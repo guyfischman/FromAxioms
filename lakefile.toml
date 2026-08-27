@@ -4,4 +4,4 @@ defaultTargets = ["FromAxioms"]
 
 [[lean_lib]]
 name = "FromAxioms"
-globs = ["FromAxioms.Logic.*"]
+globs = ["FromAxioms.Logic.*", "FromAxioms.NumberTheory.*", "FromAxioms.SetTheory.*", "FromAxioms"]
