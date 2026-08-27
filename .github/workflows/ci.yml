@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+
+      # The audit is the project's distinguishing claim, so it is checked here
+      # rather than described in the README. `--check` fails on a declaration
+      # reaching `Classical.choice`, `em` or `choice` with no entry in
+      # `tools/classical.json`; on an entry whose subject is gone; and on a
+      # stale `AXIOMS.md`. It sweeps every declaration rather than reading the
+      # hand-written `#print axioms` lines.
+      - name: Axiom audit
+        run: python3 tools/audit.py --check
