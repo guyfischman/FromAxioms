@@ -4,13 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Guy Fischman
 -/
 
-import FromAxioms.Algebra.Algebra
 import FromAxioms.Core.NatSearch
-import FromAxioms.NumberTheory.Natural
 import FromAxioms.NumberTheory.SqrtTwo
-import FromAxioms.SetTheory.PSet
-import FromAxioms.SetTheory.Regularity
-import FromAxioms.SetTheory.ZFSet
 
 /-! # Dependent choice down a binary tree
 
@@ -36,12 +31,6 @@ universe u
 
 /-- The two-element set of digits. -/
 def two : ZFSet.{u} := pair empty.{u} (succ empty.{u})
-
-/-! ## Calibration: is `TreeDCK 2` the binary principle?
-
-Without this the k-ary layer is only a parallel construction that resembles
-`TreeDC`. -/
-
 
 end SetTheory
 

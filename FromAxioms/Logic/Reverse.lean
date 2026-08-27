@@ -126,10 +126,10 @@ theorem wem_of_drinker
 
 /-! ## Choice
 
-`Exists.witness` and `Exists.witness_spec` split the axiom into its data and its
-property, so putting them back together is the axiom. The reversal is a
-one-liner, and that is the point: unlike the results above, these two are not a
-consequence of `choice` that might have been weaker -- they are `choice`. -/
+`Exists.witness` and `Exists.witness_spec` split the axiom into its data and
+its property, so putting them back together is the axiom. The reversal is a
+one-liner: unlike the results above, these two are not a consequence of
+`choice` that might have been weaker -- they are `choice`. -/
 
 -- `def`, not `theorem`: `Subtype p` is data, so this lands in `Sort u`
 def choice_of_witness
@@ -166,10 +166,6 @@ noncomputable def decider_of_em
   Exists.witness (α := Decider p) (p := fun _ => True)
     ((h p).rec (fun hp => Exists.intro (Decider.isTrue hp) True.intro)
       (fun hn => Exists.intro (Decider.isFalse hn) True.intro))
-
-/-! ## Audit
-
-Every reversal must be axiom-free, or it proves nothing. -/
 
 #print axioms em_of_dne
 #print axioms em_of_peirce

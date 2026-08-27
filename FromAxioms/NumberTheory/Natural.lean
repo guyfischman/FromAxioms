@@ -44,9 +44,7 @@ was needed for the existence form of regularity, which never appears below.
 -/
 
 import FromAxioms.Algebra.Algebra
-import FromAxioms.SetTheory.PSet
 import FromAxioms.SetTheory.Regularity
-import FromAxioms.SetTheory.ZFSet
 
 universe u
 
@@ -161,24 +159,11 @@ theorem ofNat_subset_iff (m n : Nat) : ofNat.{u} m ⊆ ofNat.{u} n ↔ m ≤ n :
     obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff w m).mp hw
     exact (mem_ofNat_iff _ n).mpr ⟨k, Nat.lt_of_lt_of_le hk h, rfl⟩
 
-/-! ## Audit
-
-Everything is `[propext, Quot.sound]`. In particular `Classical.choice` does
-not appear: P4 uses `inductionOn`, the constructive half of regularity, not
-the classical existence statement. Peano arithmetic costs no choice.
--/
-
 #print axioms succ_ne_empty     -- P3
 #print axioms not_mem_mem       -- foundation, in the form P4 needs
 #print axioms succ_injective    -- P4
 #print axioms ofNat_injective
 #print axioms mem_omega_iff
-/-! ## The first two numerals
-
-Small enough to be read directly, and used wherever a bit or a two-element
-domain is wanted.
--/
-
 end NumberTheory
 
 namespace ZFSet

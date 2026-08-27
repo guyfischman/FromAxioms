@@ -42,7 +42,6 @@ of set theory, and that gap -- not replacement -- is what the axiom was paying
 for.
 -/
 
-import FromAxioms.SetTheory.PSet
 import FromAxioms.SetTheory.ZFSet
 
 universe u
@@ -132,14 +131,6 @@ collection is a set. -/
 theorem replacement {F : ZFSet.{u} → ZFSet.{u}} (d : Definable F) (x : ZFSet.{u}) :
     ∃ img : ZFSet.{u}, ∀ w : ZFSet.{u}, w ∈ img ↔ ∃ y : ZFSet.{u}, y ∈ x ∧ w = F y :=
   ⟨imageOf d x, fun w => mem_imageOf_iff d w x⟩
-
-/-! ## Audit
-
-The contrast to read: `PSet.mem_image_iff` is the same mathematical fact as
-`SetTheory.replacement`, and both cost nothing. What used to be classical here was
-the descent from classes to representatives, and `Definable` supplies it instead
-of choosing it.
--/
 
 #print axioms PSet.mem_image_iff   -- expect: none
 #print axioms imageOf              -- expect: Quot.sound

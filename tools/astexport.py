@@ -48,6 +48,11 @@ def source_key(root=None):
     whenever this tree edited the exporter, and current whenever they did.
     """
     r = ROOT if root is None else pathlib.Path(root)
+    covered = list((r / "FromAxioms").rglob("*.lean"))
+    if not covered:
+        raise SystemExit(
+            f"no modules under {r / 'FromAxioms'}: a cache key covering "
+            f"nothing never goes stale, which is worse than no cache")
     return cache.cache_key(
         [r / "lean-toolchain", r / "lakefile.toml",
          r / "tools" / "ExportAST.lean",
@@ -63,8 +68,15 @@ def source_key(root=None):
          # The HUB is the most exposed seat, not the least: every batch that
          # brings a new file changes the aggregator and nothing else, and the
          # aggregator is a conflict file on most batches.
-         r / "FromAxioms" / "Foundations.lean",
-         *sorted((r / "FromAxioms" / "Foundations").glob("*.lean"))],
+         # EVERY MODULE, by the tree's own layout. This named
+         # `FromAxioms/Foundations.lean` and the directory beside it, which is
+         # how the private tree is arranged and not this one: neither path
+         # exists here, so the key covered nothing that changes and the cache
+         # answered every question with the first export ever taken. It served
+         # 147 declarations against a tree holding 225, and the graph drew 7
+         # landmarks of 13.
+         r / "FromAxioms.lean",
+         *sorted((r / "FromAxioms").rglob("*.lean"))],
         str(r / "tools" / "astexport.py"))
 
 

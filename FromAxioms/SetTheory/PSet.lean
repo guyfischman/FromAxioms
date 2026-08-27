@@ -321,13 +321,6 @@ theorem sep_congr {p : PSet.{u} → Prop}
   · rintro ⟨hwy, hpw⟩
     exact ⟨(mem_congr_right h w).mpr hwy, hpw⟩
 
-/-! ## Audit
-
-The headline. Seven ZFC axioms, all proved, none assumed -- and the project's
-axiom budget is untouched. Contrast this with declaring them: that would have
-added nine axioms and made every downstream `#print axioms` uninformative.
--/
-
 #print axioms equiv_iff_ext      -- EXTENSIONALITY
 #print axioms mem_empty_iff      -- EMPTY SET
 #print axioms mem_sUnion_iff     -- UNION

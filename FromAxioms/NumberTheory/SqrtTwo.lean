@@ -28,9 +28,7 @@ irrationality is needed: the middle point could a priori equal `2·4ⁿ`, and
 `sq_two_irrational` is what rules that out.
 -/
 
-import FromAxioms.SetTheory.PSet
-import FromAxioms.SetTheory.Regularity
-import FromAxioms.SetTheory.ZFSet
+import FromAxioms.SetTheory.EquivClass
 
 universe u
 
@@ -83,11 +81,6 @@ theorem sq_two_irrational : ∀ p q : Nat, p * p = 2 * (q * q) → q = 0 := by
           have h3 : 0 < q * q := Nat.mul_pos hq hq
           omega
       exact absurd (ih q hqp (p / 2) hr) (by omega)
-
-/-! ## Audit
-
-No axioms in the descent, and none in the bisection: the step is decided by
-comparing two naturals, which is data. -/
 
 #print axioms sq_two_irrational
 end NumberTheory

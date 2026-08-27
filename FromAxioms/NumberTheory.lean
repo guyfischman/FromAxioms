@@ -10,3 +10,4 @@ The NumberTheory area. This file is generated; it imports every module in
 -/
 import FromAxioms.NumberTheory.SqrtTwo
 import FromAxioms.NumberTheory.Natural
+import FromAxioms.NumberTheory.Arith

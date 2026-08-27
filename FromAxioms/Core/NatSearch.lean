@@ -79,13 +79,6 @@ theorem length_below : ∀ n : Nat, (below n).length = n
 #print axioms Core.mem_below
 #print axioms Core.length_below
 
-/-! ## Which carriers the crossing is free at
-
-`boolReadout0` prices the Prop/Type crossing at ONE proposition: free, because
-the target is a `Prop` and the witness is chosen inside a proof. These say how
-far that reaches. Every carrier below is free, so whatever `BoolReadout1` costs
-is a fact about INFINITY and not about the crossing.
--/
 end Core
 
 #print axioms Core.exists_lt_or_not

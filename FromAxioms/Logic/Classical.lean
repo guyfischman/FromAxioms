@@ -186,18 +186,6 @@ theorem Exists.witness_spec {α : Sort u} {p : α → Prop} (h : Exists p) :
     p h.witness :=
   (choice h).property
 
-/-! ## Audit
-
-The point of the whole exercise. Every result is now labelled, mechanically,
-with the exact axioms it rests on -- and the labels were never written by hand.
-
-Note especially the last two lines: results proved in the earlier files remain
-axiom-free even though this module has been imported. Assuming classical logic
-does not retroactively contaminate anything. That separation is what constraint
-3 in `CLAUDE.md` is protecting, and it is worth re-checking whenever the earlier
-files change.
--/
-
 #print axioms dne                     -- expect: em
 #print axioms peirce                  -- expect: em
 #print axioms exists_not_of_not_forall -- expect: em

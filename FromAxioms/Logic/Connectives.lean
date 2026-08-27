@@ -168,12 +168,6 @@ theorem and_or_distrib {a b c : Prop} :
       (fun hab => And.intro hab.left (Or.inl hab.right))
       (fun hac => And.intro hac.left (Or.inr hac.right)))
 
-/-! ## Audit
-
-`#print axioms` reports which axioms a proof actually depends on. Every result
-in this file must report `does not depend on any axioms`.
--/
-
 #print axioms and_or_distrib
 #print axioms not_and_not_of_not_or
 #print axioms absurd

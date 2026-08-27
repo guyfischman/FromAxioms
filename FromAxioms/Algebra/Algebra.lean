@@ -18,7 +18,6 @@ Every proof below has the same shape: apply `ext`, rewrite membership on both
 sides, and discharge the propositional core.
 -/
 
-import FromAxioms.SetTheory.PSet
 import FromAxioms.SetTheory.ZFSet
 
 universe u
@@ -80,7 +79,6 @@ instance : SDiff ZFSet.{u} := ⟨sdiff⟩
 
 `ext` reduces each to a propositional identity, which `simp` then closes using
 the membership lemmas above. -/
-
 
 @[simp] theorem union_self (x : ZFSet.{u}) : x ∪ x = x :=
   ext _ _ fun z => by simp
@@ -144,8 +142,6 @@ in its relative form, with `x \ ·` playing the part of negation. -/
   ext _ _ fun w => by
     simp only [mem_sUnion_iff, mem_singleton_iff]
     exact ⟨fun ⟨_, hz, hw⟩ => hz ▸ hw, fun hw => ⟨x, rfl, hw⟩⟩
-
-/-! ## Audit -/
 
 #print axioms mem_union_iff
 #print axioms empty_subset

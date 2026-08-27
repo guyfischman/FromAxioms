@@ -146,22 +146,6 @@ affects that structure's identity.
 
 theorem proof_irrel {a : Prop} (h₁ h₂ : a) : Eq h₁ h₂ := rfl
 
-/-! ## What is not here
-
-Two principles that belong with equality are not here, because neither is
-provable from what has been assumed so far:
-
-* Function extensionality -- pointwise-equal functions are equal. In Lean
-  this follows from quotient types, via the `Quot.sound` axiom. `congrFun`
-  above is its converse, and the converse is the easy direction.
-* Propositional extensionality -- logically equivalent propositions are
-  equal. This is the `propext` axiom outright.
-
-Both are honest axioms, and both will appear in `Logic/Classical.lean` where
-they can be declared and audited alongside excluded middle. Leaving them out
-here keeps this file at zero axiom dependencies.
--/
-
 #print axioms Eq.symm
 #print axioms Eq.subst
 #print axioms congr

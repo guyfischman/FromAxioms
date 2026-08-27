@@ -185,8 +185,6 @@ theorem exists_and_of_and_exists {α : Sort u} {p q : α → Prop}
     (h.elim (fun w hw => Exists.intro w hw.left))
     (h.elim (fun w hw => Exists.intro w hw.right))
 
-/-! ## Audit -/
-
 #print axioms Exists.elim
 #print axioms exists_eq
 #print axioms Subtype.exists

@@ -13,3 +13,8 @@ import FromAxioms.SetTheory.ZFSet
 import FromAxioms.SetTheory.TreeDC
 import FromAxioms.SetTheory.Regularity
 import FromAxioms.SetTheory.Replacement
+import FromAxioms.SetTheory.Pair
+import FromAxioms.SetTheory.Hierarchy
+import FromAxioms.SetTheory.LeastSearch
+import FromAxioms.SetTheory.Relation
+import FromAxioms.SetTheory.EquivClass

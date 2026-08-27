@@ -191,16 +191,6 @@ def omega : ZFSet.{u} := mk PSet.omega
 
 theorem empty_mem_omega : empty.{u} ∈ omega.{u} := PSet.empty_mem_omega
 
-/-! ## Audit
-
-Expect `[propext, Quot.sound]` throughout, and nothing else. In particular
-`Classical.choice` must stay absent: nothing so far requires it.
-
-The last line retires the `funext` axiom declared in `FromAxioms/Logic/`: Lean
-derives function extensionality from the quotient machinery now in play, so
-what had to be assumed there is a theorem here.
--/
-
 #print axioms ext                -- EXTENSIONALITY, as equality
 #print axioms not_mem_empty      -- EMPTY SET
 #print axioms mem_pair_iff       -- PAIRING

@@ -19,8 +19,8 @@ property they could not have failed to have.
 
 ## Two statements, two costs
 
-The file proves the same fact twice, and the audit at the bottom is the point of
-doing so.
+The file proves the same fact twice, and the audit at the bottom is what
+separates the two costs.
 
 * `inductionOn` -- ∈-induction. Constructive, modulo the quotient machinery
   (`propext`, `Quot.sound`). This is the real content.
@@ -34,7 +34,6 @@ barrier `Quantifiers.lean` demonstrated, met again where it has mathematical
 consequences.
 -/
 
-import FromAxioms.SetTheory.PSet
 import FromAxioms.SetTheory.ZFSet
 
 universe u
@@ -88,13 +87,6 @@ Read the proof as: if `x ∈ x` were possible for some `x`, take an ∈-minimal
 such `x`; but its members inherit the same property, contradiction. -/
 theorem not_mem_self : ∀ x : ZFSet.{u}, x ∉ x :=
   inductionOn (motive := fun x => x ∉ x) (fun _ ih hx => ih _ hx hx)
-
-/-! ## Audit
-
-The split this file exists to display: ∈-induction and `x ∉ x` cost nothing
-beyond the quotient, while the classical existence statement costs
-`Classical.choice`.
--/
 
 #print axioms inductionOn     -- expect: propext, Quot.sound
 #print axioms not_mem_self    -- expect: propext, Quot.sound
