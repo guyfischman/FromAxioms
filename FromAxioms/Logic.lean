@@ -24,3 +24,4 @@ uses Lean's identical-but-better-equipped copies of the very same definitions.
 prelude
 import FromAxioms.Logic.Connectives
 import FromAxioms.Logic.Equality
+import FromAxioms.Logic.Quantifiers
