@@ -1,0 +1,7 @@
+name = "FromAxioms"
+version = "0.1.0"
+defaultTargets = ["FromAxioms"]
+
+[[lean_lib]]
+name = "FromAxioms"
+globs = ["FromAxioms.Logic.*", "FromAxioms.Algebra.*", "FromAxioms.Core.*", "FromAxioms.NumberTheory.*", "FromAxioms.SetTheory.*", "FromAxioms"]
