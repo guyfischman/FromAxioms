@@ -25,3 +25,5 @@ prelude
 import FromAxioms.Logic.Connectives
 import FromAxioms.Logic.Equality
 import FromAxioms.Logic.Quantifiers
+import FromAxioms.Logic.Classical
+import FromAxioms.Logic.Reverse
