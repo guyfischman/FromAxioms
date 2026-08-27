@@ -1,0 +1,995 @@
+{
+ "_README": [
+  "The order between the principles this library reasons about, with the",
+  "theorem proving each edge. tools/lattice.py checks that every witness",
+  "exists and is choice-free, computes the transitive closure, and requires",
+  "every reversal target in tools/classical.json to be a node here.",
+  "",
+  "The DAG does NOT adjudicate independence, and cannot: discovering",
+  "WLPO -> LPO in Lean would be a true theorem, not a bug, and the fact that",
+  "they are inequivalent is a metatheoretic statement unavailable inside the",
+  "system. What the check enforces is bookkeeping: an edge",
+  "must have a witness, a witness must be choice-free, and a strength named",
+  "in the registry must be a principle we have written down.",
+  "READOUTS AND SELECTORS ARE NOT NODES, AND THE ABSENCE IS DELIBERATE.",
+  "TwoReadout, SideReadout, VanishReadout, HalveSelector, IsZeroLocator,",
+  "DecidableVanishing, Decider and their kin are DATA -- a Type someone must",
+  "produce -- not propositions ordered by implication. A Prop cannot branch a",
+  "definition,",
+  "which is why they exist as Types at all, and an edge from one would assert an",
+  "implication the library does not prove (see _unplaced, acOmegaBool).",
+  "Where a readout HAS a propositional form it is a node under that name:",
+  "IsZeroLocator's is haszerolocators, and the tree readout's is pathselection.",
+  "DECIDER IS THE THIRD CASE, AND IT IS WHY `fan` HAS NO INCOMING EDGE.",
+  "Its propositional form is a node -- `em`, by em_of_decider, which is",
+  "axiom-free -- so it is neither excluded like TwoReadout nor represented like",
+  "IsZeroLocator. The Prop form is simply WEAKER FOR THIS PURPOSE: the only",
+  "witness for FAN is fan_of_decider, whose walk must produce a Nat -> Bool, and",
+  "the one route from `em` to that data is decider_of_em, which is noncomputable",
+  "and spends Classical.choice. A witness that spends choice cannot be an edge",
+  "here. So `fan` being unlocated from above is a CATEGORY FACT about this",
+  "registry's vocabulary, not a lemma nobody has proved; `fanbool` is located",
+  "(wklbool + mp) precisely because its bar is a Bool and needs no decision.",
+  "This paragraph exists because the registry was silent about it, and a",
+  "MAINTAINED REGISTRY IS BELIEVED WHERE IT SAYS NOTHING (foundations): a reader",
+  "meeting TwoReadout thirteen times elsewhere and never here cannot tell a",
+  "category exclusion from an omission. The check cannot enforce this -- there",
+  "is no text to compare against -- so it is written down instead.",
+  "NAMED IS NOT THE SAME AS ORDERED, and the difference is why several",
+  "principles are absent here on purpose. A strength may be named in",
+  "classical.json -- as an entry, or in _equivalences when NO DECLARATION",
+  "ASSUMES IT -- without being a node. TernaryDecidable, TernaryLLPO,",
+  "TernaryMarkov and TernaryZeroDecidable are exactly that: adjudicated,",
+  "documented, and deliberately unplaced, because A NODE ASSERTS A POSITION IN",
+  "AN ORDER and nobody has proved one for them. lattice.py already accepts them",
+  "as named (see named_principles); this says why they stop there.",
+  "The structural NOTE lists the sides it cannot name for the same reason it",
+  "prints them rather than counting them: Darboux01, ExactIVT01, MaxAttainment01",
+  "and MeanAttainment01 are THEOREM STATEMENTS packaged as nullary Prop-defs so",
+  "their strength can be stated, and are correctly not nodes either. A count",
+  "could not have told those two groups apart.",
+  "`_refuted` RECORDS EDGES THAT CANNOT EXIST, which nothing else here could.",
+  "The registry stores edges that DO hold, so an impossible edge looks exactly",
+  "like one nobody has proved yet, and the question gets re-asked -- item 643",
+  "was re-asked twice before its answer was written down. Each entry names the",
+  "MODEL that validates the premise and refutes the conclusion, because that is",
+  "the only evidence available: this DAG cannot adjudicate independence, so a",
+  "refutation is always a citation and never a theorem. The check requires that",
+  "a refuted pair NOT be derivable in the closure -- if one becomes derivable,",
+  "either the model claim is wrong or the new edge is, and that is a",
+  "contradiction worth failing the build over."
+ ],
+ "nodes": {
+  "acc": "the ascending chain condition on ideals, handing over a BOUND: some index past which the chain is constant. Reverses to `lpo` and NOT to `em`, and the separator is the ENCODING rather than the mathematics -- a bound only has to be LARGE ENOUGH, and largeness need not be decided. Do NOT read the pair as `acc is weaker`: two reversals at two nodes is a fact about the PROOFS, and strictness is a model question no theorem here settles",
+  "acomega": "countable choice, over an omega-indexed family",
+  "acomegabool": "countable choice for a family of booleans",
+  "addgraphtotal": "every two points of a Weierstrass curve have a sum, OVER EVERY CURVE (a,b) with no non-singularity hypothesis -- the chord-tangent group law is TOTAL. Picking an AddClause arm decides x2-x1, then y2-y1, then y+y",
+  "bairel": "the Baire category theorem on the located reals, for arbitrary omega-indexed families of open dense sets. Keyed on the packaged `BaireL`, not on `baire_of_dc`'s unpackaged form, so the hypothesis sweep and this registry agree on the name",
+  "bdn": "Ishihara BD-N: a pseudobounded countable range is bounded",
+  "binarydc": "dependent choice along a two-valued step, which is countable choice in disguise",
+  "boolreadout2": "the same readout over a bare Nat -> Nat -> Prop rather than a set",
+  "choice": "the axiom of choice itself",
+  "chordexhaust": "the chord's three named abscissae are all of the intersection",
+  "countableboolchoice": "a choice of bit for each natural number",
+  "countableboolchoice\u2082": "the two-valued form of countable bool choice",
+  "countablenatchoice": "a choice of natural for each natural -- what a modulus selection needs. Not reachable through acomega ALONE, which returns a set-level function; the gap is exactly one function, and that function is now the node `natof` and the joint edge setchoice + natof -> countablenatchoice rather than only a hypothesis named in prose",
+  "cubicrootunique": "a depressed cubic's roots are unique, or the second factor of `realL_cubeLin_factor` vanishes -- the uniqueness `realL_cubeLin_inj` gets from `0 <= p`, stated for every `p`. One degree of omniscience BELOW `cubictrichotomy` over the same cubic: a trichotomy asks the sign of a discriminant and reverses to `LPO`, uniqueness asks only which of two factors vanished -- and at most one can, so the answer is never in doubt, only unnamed. Instantiating at y = 0, y' = u, p = v - u^2 yields the full zero-product property, which is what carries it to `llpo`.",
+  "cubictrichotomy": "every depressed cubic has three roots, a repeated root, or one -- read as the sign of the discriminant -4p^3 - 27x^2, which is what the count is. The three-roots analogue of linecircletrichotomy, and bracketed identically between em and lpo, but reached by a structurally different witness: the line-circle reversal steers its discriminant to an arbitrary target because a parameter appears LINEARLY, and nothing in the cubic's does, so that proof fixes x = 0 and leans on the cube root instead.",
+  "cutatrat": "deciding a strict comparison between two located reals at a rational cut point. One INSTANCE already gives LPO (lpo_of_cutAt), so it is not a mild splitting hypothesis: nonempty_integralOn_of_pointwiseModulus takes CutAtRat and therefore sits at or above LPO. Placed with its edge rather than left implicit, so the integral's strength is recorded. THE NODE IS THE CLOSURE and the witnesses are PER-INSTANCE, which the edge labels cannot show. `lpo_of_cutAt` consumes ONE bracket -- `CutAt (-1) 0 0` -- so `cutatrat -> lpo` is sound by instantiation while the theorem is strictly sharper: a single bracket around the origin already reverses to LPO. In the other direction `cutAt_of_lpo_of_locators` is also per-instance, so reaching the closure needs locators at EVERY bracket, which is stronger than the edge suggests. Kept as `cutat` until 2026-08-17, naming the RELATION; that could not resolve, since `carries.py`'s vocabulary admits only closed `Prop` definitions and `CutAt` takes three arguments. Analysis adjudicated the rename and asked that the per-instance witnesses stay named rather than be replaced by closure-level restatements.",
+  "darboux01": "Darboux's theorem on the unit interval: a uniform derivative attains every value strictly between its endpoint values. A STRENGTH rather than a domain condition -- it quantifies over every pair (F, F') on [0,1], which is what makes it a principle and not a hypothesis about one function, the same construction `uniformcovereddepth` is a node for. The ceiling is registered at `signdisjunction + dc`, a premise set implied by (and so no stronger than) the `llpo + binarydc + dc` form this note used to say was unregisterable. The three-premise statement was an artefact of where the factoring stopped, not a fact about the theorem: the proof spends `llpo` and `binarydc` at a single call, to MeanAttainment01, and the `SignDisjunction` form of that was already in the tree. So no three-premise edge is needed here and none should be added -- `llpo + binarydc -> signdisjunction` composes with this edge to give the old ceiling, and registering the composite is what the subsumption check exists to flag. No floor is registered: nothing in the tree yet reverses Darboux01 to a principle, so this node currently has an upper bound and no lower one, and saying so is the point of placing it.",
+  "dc": "dependent choice: a total relation has an infinite chain",
+  "dcomega": "dependent choice along an omega-indexed step",
+  "deccountableboolchoice\u2082": "countable choice of bits for a DECIDED two-place family",
+  "decidablecutmem": "deciding membership in the lower half of an arbitrary located pair, as a Prop-level alternative rather than as data",
+  "distinctapart": "two plane points that are not equal have a coordinate difference apart from zero",
+  "em": "excluded middle, over arbitrary propositions",
+  "enumfamilylocated": "locatedness of every ENUMERATED family's supremum -- the constructive least-upper-bound condition restricted to families given by a surjection from Nat. The restriction is the whole content: the UNRESTRICTED version is EM-strength (`em_of_familyLocated`, whose witness is a subset of a two-element pair with membership hiding an arbitrary Prop), so this sits two nodes below and only it is measurable. Bounded on both sides and neither edge is trivial: the lower bound holds because `firesFamily` is ITSELF enumerated (`firesEnum`), so restricting does not escape the reversal -- a weakening that lost it would measure nothing. The gap to the upper bound is exactly `countableboolchoice`, and whether it is NEEDED is open: the large-elimination failure that motivates it obstructs one proof, not every proof, and ruling `lpo` alone insufficient would need a model this registry cannot adjudicate",
+  "enumfamilylocatedinf": "locatedness of every ENUMERATED family's INFIMUM -- the dual of `enumfamilylocated`, bracketed identically at `lpo <= . <= lpo + countableboolchoice`. The restriction to enumerated families is what makes it measurable, and the check that the weakening keeps its witness was RUN rather than assumed: `firesEnumInf` enumerates `firesFamilyInf` with no assumption about the sequence at all, since each term is a computed `Bool`. THE DUALITY IS EXACT AT THE LEVEL OF PROOFS, not merely of statements -- the ceiling transplants from the supremum side with ONE change, that `lpo` must be read on the NEGATED bit sequence, because `FamilyLocated` is some-then-all where `FamilyLocatedInf` is all-then-some and `lpo` natively delivers the former. The bit assignment, `countableboolchoice`'s role and the Prop-to-Type wall are word for word. CONSEQUENCE: whether `countableboolchoice` is NEEDED is ONE question about both nodes, not two, and a single model would settle them together. The UNRESTRICTED infimum condition is NOT this node -- its lower bound is proved (`lpo_of_familyLocatedInf`) and it has no upper bound at all, since the forward direction holds only at the fires families (records the same caveat for the supremum side)",
+  "exactivt01": "the exact intermediate value theorem on the unit interval: a uniformly continuous function strictly straddling zero HAS a root, not merely approximate ones. The approximate form is free (IVT.lean), so this node names exactly the gap between approximating a root and having one. Two upper edges: `llpo + binarydc + dc`, and `signdisjunction + dc` by `attainment_of_signDisjunction_dc`, which is the sharper of the two. The ceiling is registered at `signdisjunction + dc`, a premise set implied by (and so no stronger than) the `llpo + binarydc + dc` form this note used to say was unregisterable. The three-premise statement was an artefact of where the factoring stopped, not a fact about the theorem: the proof spends `llpo` and `binarydc` at a single call, to MeanAttainment01, and the `SignDisjunction` form of that was already in the tree. So no three-premise edge is needed here and none should be added -- `llpo + binarydc -> signdisjunction` composes with this edge to give the old ceiling, and registering the composite is what the subsumption check exists to flag.",
+  "fan": "Brouwer's fan theorem: a decidable bar on the binary tree is uniform",
+  "fanbool": "the fan theorem over a bar given by a Bool rather than a Prop disjunction. The same carrier split as wklbool, and the fan-to-Koenig machinery transports across it unchanged -- which locates PathSelection's strength in compactness rather than in the carrier",
+  "fanneg": "the fan theorem for a double-negation-stable bar: weaker premise than `fan`, which the bars over located reals actually meet",
+  "hasapprox": "a real has rational approximations",
+  "hasapproxmod": "a real has rational approximations WITH a modulus -- the modulus is a datum rather than a theorem, which is the whole of the gap to hasapprox",
+  "haszerolocators": "every located real carries a zero-locator -- a bit at each scale saying whether it is apart from zero there. Countable bit-choice supplies them; nothing here derives them from less, and nothing derives anything from them alone, so the node has a ceiling and no floor. That is what makes it the gap in two independent brackets rather than a step in a chain",
+  "isnoetherian": "the Noetherian condition handing over a finite GENERATING LIST for every ideal. Reverses to `em`, because naming which list generates `{x : x = zero or p}` requires deciding `p` -- where `acc`'s bound does not. CONSEQUENCE: `IsDedekindDomain` has no constructive instance at `Int`, `Z[zeta_p]`, `Z[x]` or any coordinate ring over them, since Noetherian is one of its four clauses and those carriers have decided vanishing, which makes carrying it as a HYPOTHESIS the only available choice rather than a pragmatic one",
+  "linecircletrichotomy": "every line meets every circle twice, once or not at all -- the count, read as the sign of the discriminant",
+  "linecompleteapprox": "line completeness in its APPROXIMATION reading: the bound is asked for up to a strict betweenness rather than characterised by the ray order. Reaches EM where the SET form reaches only WEM, and the difference is what the conclusion RETURNS rather than how strong the bound is -- a RayLe bound can only ever produce a disjunction of negations (geometry, 's neighbourhood)",
+  "linecompleteseq": "line completeness over a monotone SEQUENCE of ray points, with locatedness a supplied parameter. Floor WLPO. The reversal is stated at `loc = (fun _ => True)`, which is its STRONGEST form -- a forward proved at a real locatedness predicate would be a different principle wearing the same name (geometry,)",
+  "linecompleteseqapprox": "the sequence form in the approximation reading. Floor LPO, one node above the sequence form's WLPO, for the same reason the SET pair splits: what the conclusion hands back",
+  "linecompleteset": "line completeness on the Euclidean plane, as a SET statement. Recorded as the PRICE rather than a ceiling: analysis put the ceiling in question and retracted, and the field characterises its bound by ORDER and never constructs it, so nothing unfolds back to a member -- which is what settles it (geometry, 2663)",
+  "linedichotomy": "every pair of lines in the coordinate plane meets or is disjoint -- the reading of parallelism a classical treatment assumes without stating",
+  "llpo": "of two sequences at most one of which fires, one can be named",
+  "lpo": "a binary sequence fires, or never does",
+  "maxattainment01": "exact attainment of the maximum on the unit interval. Reverses: `llpo_of_max_attainment` is a genuine floor, so this node is at or above LLPO. The approximate maximum is free (Extreme.lean), which is what makes the exact one worth naming.",
+  "meanattainment01": "exact mean attainment on the unit interval: a uniformly continuous function with a known integral TAKES its mean somewhere. The ceiling is registered at `signdisjunction + dc`, a premise set implied by (and so no stronger than) the `llpo + binarydc + dc` form this note used to say was unregisterable. The three-premise statement was an artefact of where the factoring stopped, not a fact about the theorem: the proof spends `llpo` and `binarydc` at a single call, to MeanAttainment01, and the `SignDisjunction` form of that was already in the tree. So no three-premise edge is needed here and none should be added -- `llpo + binarydc -> signdisjunction` composes with this edge to give the old ceiling, and registering the composite is what the subsumption check exists to flag. No floor registered.",
+  "meetexhaust": "two circles meet in at most the two points the constructions name -- Euclid's implicit uniqueness, the claim every ruler-and-compass step makes when it says THE point where two circles cross",
+  "mp": "Markov: a sequence that cannot be zero everywhere fires",
+  "natof": "a `ZFSet -> Nat` inverting `ofNat` -- the readout that carries a set-level choice function across to a Lean-level one. `ofNat` is injective (`ofNat_injective`) and the bijection onto omega exists AS A SET; what is absent is a LEAN function, which is exactly the set-to-type crossing. VERIFIED at the time of writing: nothing in the tree concludes such a function -- every `ZFSet -> Nat` in the library is a `ZFSet -> Nat -> Nat` modulus taken as a hypothesis. So unlike `haszerolocators`, which countable bit-choice supplies, this node has NO floor at all; it appears only in the joint edge below, which is what makes the crossing visible to the lattice instead of living in a gloss",
+  "neapartzero": "a located real distinct from zero is apart from it -- the cone's total clause",
+  "pairreadout": "a Bool colouring agreeing with a decided relation on pairs of naturals",
+  "pathselection": "the step FAN does not take: a decidable tree whose paths do not die out has one",
+  "rolle01": "Rolle's theorem on the unit interval. The best-measured of the five calibration principles: a floor (`llpo_of_rolle01`) and an edge to `signdisjunction` (`signDisjunction_of_rolle01`) as well as the ceiling. The ceiling is registered at `signdisjunction + dc`, a premise set implied by (and so no stronger than) the `llpo + binarydc + dc` form this note used to say was unregisterable. The three-premise statement was an artefact of where the factoring stopped, not a fact about the theorem: the proof spends `llpo` and `binarydc` at a single call, to MeanAttainment01, and the `SignDisjunction` form of that was already in the tree. So no three-premise edge is needed here and none should be added -- `llpo + binarydc -> signdisjunction` composes with this edge to give the old ceiling, and registering the composite is what the subsumption check exists to flag.",
+  "setchoice": "the axiom of choice over SETS, in the indexed form -- a family of inhabited sets admits a choice function. Distinct from the `choice` node, which names Phase 1's declared AXIOM and therefore cannot appear in any edge at all: an axiom is in scope rather than available as a hypothesis. `Cardinal.finite_choice` is literally this statement's finite instance",
+  "signdisjunction": "of two reals, one is nonpositive or the other nonnegative",
+  "sqrootunique": "two square roots of the same non-negative located real are equal or negatives -- the uniqueness clause Euclid I.1 needs and that constructing the intersection does not supply. Named by structures' sweep for Props used as a hypothesis three or more times and absent from the lattice.",
+  "sqrootuniquelocated": "square roots are unique where both differences carry a zero locator",
+  "tangentexhaust": "the tangent's two named abscissae are all of the intersection",
+  "treedc": "dependent choice down a binary tree, with the PATH as the index and totality asked only where the predicate holds -- as DCOn is to a set. Registered because a principle with no place in the ordering measures nothing, NOT because a new strength is claimed: it is BinaryDC in another coordinate (as amended by 964), and the absence of an edge either way to binarydc is OPEN and recorded here as the permanent answer rather than deferred to an item -- the deferral it once carried outlived its queue number, which is the failure mode CLAUDE.md's do-not-cite-a-queue-number rule exists to prevent. What would settle it in either direction is the base-three decoder from `tnum c n` back to a node, which declined to build because its only purpose is reconciling two encodings of one walk; if that decoder is ever built, the edge is what it proves and belongs to that theorem. The restriction to a predicate is forced -- the LLPO step is total on the unbounded nodes and nowhere else",
+  "uniformcovereddepth": "every measured cover of [0,1] covers every node at one uniform depth -- the Heine-Borel reduction in the form a measure argument uses. The measure block's whole dependence on the fan theorem passes through here",
+  "unitlowerbound": "no cover of the unit interval totals less than its length -- the half of `the unit interval measures one` that needs a principle, the other half being free from isOuterBound_Icc",
+  "unitlowerbound2": "no cover of the unit SQUARE by rectangles totals less than one -- the two-dimensional `UnitLowerBound`, reached at `FAN` by an ENCODING (coordinate alternation inside the address fold) rather than by a two-dimensional fan theorem, so the strength does not move",
+  "vertexhaust": "a point on the vertical and on the cubic is the given point or its reflection -- the group law's cheapest clause, and the residue is a SIGN",
+  "wem": "weak excluded middle: not p or not not p",
+  "wkl": "Weak Koenig's lemma: an infinite decidable binary tree has a path",
+  "wklbool": "weak Koenig's lemma over a tree given by a Bool rather than by a Prop disjunction. WKL covers it -- a Bool decides its own equation -- and the converse would have to turn the disjunction into a bit uniformly, which is a countable choice and not a rearrangement. So the two forms of the same lemma differ by exactly the carrier, and nothing here closes the gap",
+  "wlpo": "it is identically zero, or is not",
+  "zeroorapart": "every located real is zero or apart from zero",
+  "uniformcovereddepth2": "the same reduction in TWO dimensions: every measured cover of the unit SQUARE covers every node at one uniform depth. `FAN` gives it, and no two-dimensional fan theorem is used -- coordinate alternation inside the address fold makes a 2-D bar a decidable bar on `List Bool`, so the second dimension is an ENCODING rather than a new strength. Stated over `GridCover2` as the 1-D node is stated over `MeasuredCover`, which is what makes the two comparable",
+  "unitlowerboundall": "no cover of the unit n-cube by boxes totals less than one, in every positive dimension -- the closed form of `UnitLowerBoundN`, which is indexed and so cannot be an endpoint itself",
+  "monotoneboolchoice": "countable choice RESTRICTED to families that come with an upward-closed left clause and a downward-closed right one. Weaker than `CountableBoolChoice` IN FORM -- strictly fewer families are asked about -- and whether it is weaker in STRENGTH is a SEPARATION nobody has proved, so this node has an upper bound and a consequence and NO floor. It exists because the cost of `HasZeroLocators` splits: the per-scale disjunction is FREE (`locator_clause_disjunction`, it is `IsLocated`'s own field at two shrinking thresholds) and the family is monotone, so the only thing asked beyond locatedness is the BIT over a constrained shape (geometry,)",
+  "idealdetachableint": "every ideal of Z is detachable -- membership is decided at every integer. Reverses to `lpo` by asking `alphaIdeal a` whether it contains `intOne`, where membership reduces to `exists n, a n = true` because `intZero != intOne` rules out the other disjunct. BUILDING that ideal is free: each closure law PROPAGATES the undecided disjunction instead of splitting on it, so the cost is in the detachment and never in the construction.",
+  "idealnontrivialint": "every ideal of Z is decidably trivial or not -- it either exhibits a non-zero member or has none. Reverses to `mp` rather than `lpo`, and the separator is which side has to be REFUTED: the trivial verdict is contradicted through `intOne`, which is Markov's shape and not an omniscient decision. Same ideal as `idealdetachableint`, read through the other clause.",
+  "idealdetachableintbool": "the BOOL-valued form of `idealdetachableint` -- a characteristic sequence on the positive integers rather than a Prop-level disjunction at each point. The two are NOT interchangeable and the gap is the subject: `lpo` and `mp` consume a `Nat -> Bool`, so a Prop-level decision cannot be assembled into what they need without `Decidable`. With `lpo` it gives `idealnontrivialint`, because an ideal of Z is closed under negation and the positives are enumerated by `intOfNat`. REVERSED: the Bool form gives `em` outright (`em_of_idealDetachableIntBool`) -- the readout is a FUNCTION, so one index decides an arbitrary Prop. The gap to the Prop-valued form is the whole lattice, not a `Decidable` inconvenience.",
+  "cofinaldetachable": "every cofinal detachable subset of omega is detachable -- pinned at excluded middle, both directions choice-free",
+  "boolreadout1": "the unary crossing: a decided predicate on Nat has a Bool function",
+  "enumdetachable": "every subset of omega equinumerous with omega is detachable",
+  "addtotal": "the group law on an elliptic curve is TOTAL: every pair of points on the curve has a sum. Not a principle about sequences -- it is a statement about a CARRIER, and its strength is the carrier's. Over the located reals it reverses to `lpo` (`lpo_of_addTotal`) and comes BACK from `lpo` together with zero locators (`addTotal_of_lpo_of_hasZeroLocators`), so it is pinned from both sides and the only gap is the locators. Over the rationals the same statement is FREE (`addTotalOver_rat`). Totality is not expensive -- it is expensive over the wrong CARRIER, and the cost appears exactly where the carrier stops answering its own equality questions."
+ },
+ "edges": [
+  {
+   "by": "ZFSet.wkl_of_fan_of_pathSelection",
+   "from": [
+    "fan",
+    "pathselection"
+   ],
+   "to": "wkl"
+  },
+  {
+   "by": "ZFSet.wklBool_of_fanBool_of_pathSelection",
+   "from": [
+    "fanbool",
+    "pathselection"
+   ],
+   "to": "wklbool"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_llpo_binaryDC",
+   "from": [
+    "llpo",
+    "binarydc"
+   ],
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_llpo_of_countableBoolChoice",
+   "from": [
+    "llpo",
+    "countableboolchoice"
+   ],
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.neApartZero_of_mp_of_countableBoolChoice",
+   "from": [
+    "mp",
+    "countableboolchoice"
+   ],
+   "to": "neapartzero"
+  },
+  {
+   "by": "ZFSet.neApartZero_of_mp_of_locators",
+   "from": [
+    "mp",
+    "haszerolocators"
+   ],
+   "to": "neapartzero"
+  },
+  {
+   "by": "ZFSet.wkl_of_wklBool_of_countableBoolChoice",
+   "from": [
+    "wklbool",
+    "countableboolchoice"
+   ],
+   "to": "wkl"
+  },
+  {
+   "by": "ZFSet.hasApprox_of_ACOmega",
+   "from": "acomega",
+   "to": "hasapprox"
+  },
+  {
+   "by": "ZFSet.countableBoolChoice_iff_acOmegaBool",
+   "from": "acomegabool",
+   "to": "countableboolchoice"
+  },
+  {
+   "by": "ZFSet.countableBoolChoice_of_binaryDC",
+   "from": "binarydc",
+   "to": "countableboolchoice"
+  },
+  {
+   "by": "ZFSet.countableBoolChoice_iff_acOmegaBool",
+   "from": "countableboolchoice",
+   "to": "acomegabool"
+  },
+  {
+   "by": "ZFSet.countableBoolChoice\u2082_of_countableBoolChoice",
+   "from": "countableboolchoice",
+   "to": "countableboolchoice\u2082"
+  },
+  {
+   "by": "ZFSet.hasZeroLocators_of_countableBoolChoice",
+   "from": "countableboolchoice",
+   "to": "haszerolocators"
+  },
+  {
+   "by": "ZFSet.binaryDC_of_countableBoolChoice\u2082",
+   "from": "countableboolchoice\u2082",
+   "to": "binarydc"
+  },
+  {
+   "by": "ZFSet.countableBoolChoice_of_countableNatChoice",
+   "from": "countablenatchoice",
+   "to": "countableboolchoice"
+  },
+  {
+   "by": "ZFSet.acOmega_of_dc",
+   "from": "dc",
+   "to": "acomega"
+  },
+  {
+   "by": "ZFSet.dcOmega_of_dc",
+   "from": "dc",
+   "to": "dcomega"
+  },
+  {
+   "by": "ZFSet.bdn_of_em",
+   "from": "em",
+   "to": "bdn"
+  },
+  {
+   "by": "ZFSet.lineCircleTrichotomy_of_em",
+   "from": "em",
+   "to": "linecircletrichotomy"
+  },
+  {
+   "by": "ZFSet.lineDichotomy_of_em",
+   "from": "em",
+   "to": "linedichotomy"
+  },
+  {
+   "by": "ZFSet.wem_of_em",
+   "from": "em",
+   "to": "wem"
+  },
+  {
+   "by": "ZFSet.fanBool_of_fan",
+   "from": "fan",
+   "to": "fanbool"
+  },
+  {
+   "by": "ZFSet.hasApprox_of_hasApproxMod",
+   "from": "hasapproxmod",
+   "to": "hasapprox"
+  },
+  {
+   "by": "ZFSet.lpo_of_lineCircleTrichotomy",
+   "from": "linecircletrichotomy",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.lpo_of_lineDichotomy",
+   "from": "linedichotomy",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.wlpo_of_lineDichotomy",
+   "from": "linedichotomy",
+   "to": "wlpo"
+  },
+  {
+   "by": "ZFSet.mp_of_lpo",
+   "from": "lpo",
+   "to": "mp"
+  },
+  {
+   "by": "ZFSet.wlpo_of_lpo",
+   "from": "lpo",
+   "to": "wlpo"
+  },
+  {
+   "by": "ZFSet.mp_of_neApartZero",
+   "from": "neapartzero",
+   "to": "mp"
+  },
+  {
+   "by": "ZFSet.llpo_of_pathSelection",
+   "from": "pathselection",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_signDisjunction",
+   "from": "signdisjunction",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_wkl",
+   "from": "wkl",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.wklBool_of_wkl",
+   "from": "wkl",
+   "to": "wklbool"
+  },
+  {
+   "by": "ZFSet.llpo_of_wklBool",
+   "from": "wklbool",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_wlpo",
+   "from": "wlpo",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.fanBool_of_wklBool_of_mp",
+   "from": [
+    "wklbool",
+    "mp"
+   ],
+   "to": "fanbool"
+  },
+  {
+   "by": "ZFSet.wklBool_of_llpo_treeDC",
+   "from": [
+    "llpo",
+    "treedc"
+   ],
+   "to": "wklbool"
+  },
+  {
+   "by": "ZFSet.baire_of_dc",
+   "from": "dc",
+   "to": "bairel"
+  },
+  {
+   "by": "ZFSet.baireL_of_dc",
+   "from": "dc",
+   "to": "bairel"
+  },
+  {
+   "by": "ZFSet.binaryDC_of_treeDC",
+   "from": "treedc",
+   "to": "binarydc"
+  },
+  {
+   "by": "ZFSet.bdn_of_lpo_of_countableBoolChoice",
+   "from": [
+    "lpo",
+    "countableboolchoice"
+   ],
+   "to": "bdn"
+  },
+  {
+   "by": "ZFSet.hasApproxMod_of_hasApprox_of_countableNatChoice",
+   "from": [
+    "hasapprox",
+    "countablenatchoice"
+   ],
+   "to": "hasapproxmod"
+  },
+  {
+   "by": "ZFSet.unitLowerBound_of_fan",
+   "from": "fan",
+   "to": "unitlowerbound"
+  },
+  {
+   "by": "ZFSet.uniformCoveredDepth_of_fan",
+   "from": "fan",
+   "to": "uniformcovereddepth"
+  },
+  {
+   "by": "ZFSet.unitLowerBound_of_uniformCoveredDepth",
+   "from": "uniformcovereddepth",
+   "to": "unitlowerbound"
+  },
+  {
+   "by": "ZFSet.fan_of_fanNeg",
+   "from": "fanneg",
+   "to": "fan"
+  },
+  {
+   "by": "ZFSet.pairReadout_of_boolReadout2",
+   "from": "boolreadout2",
+   "to": "pairreadout"
+  },
+  {
+   "by": "ZFSet.boolReadout2_of_pairReadout",
+   "from": "pairreadout",
+   "to": "boolreadout2"
+  },
+  {
+   "by": "ZFSet.decCountableBoolChoice\u2082_of_boolReadout2",
+   "from": "boolreadout2",
+   "to": "deccountableboolchoice\u2082"
+  },
+  {
+   "by": "ZFSet.boolReadout2_of_decCountableBoolChoice\u2082",
+   "from": "deccountableboolchoice\u2082",
+   "to": "boolreadout2"
+  },
+  {
+   "by": "ZFSet.boolReadout2_of_countableBoolChoice\u2082",
+   "from": "countableboolchoice\u2082",
+   "to": "boolreadout2"
+  },
+  {
+   "by": "ZFSet.pairReadout_of_countableBoolChoice\u2082",
+   "from": "countableboolchoice\u2082",
+   "to": "pairreadout"
+  },
+  {
+   "by": "ZFSet.lpo_of_decidableCutMem",
+   "from": "decidablecutmem",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.lpo_of_wlpo_of_mp",
+   "from": [
+    "wlpo",
+    "mp"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.lpo_of_cutAt",
+   "from": "cutatrat",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.cutAtRat_of_em",
+   "from": "em",
+   "to": "cutatrat"
+  },
+  {
+   "by": "ZFSet.cutAt_of_lpo_of_countableBoolChoice",
+   "from": [
+    "lpo",
+    "countableboolchoice"
+   ],
+   "to": "cutatrat"
+  },
+  {
+   "by": "ZFSet.acOmega_of_setChoice",
+   "from": "setchoice",
+   "to": "acomega"
+  },
+  {
+   "by": "ZFSet.dc_of_setChoice",
+   "from": "setchoice",
+   "to": "dc"
+  },
+  {
+   "by": "ZFSet.dcOmega_of_setChoice",
+   "from": "setchoice",
+   "to": "dcomega"
+  },
+  {
+   "by": "ZFSet.lpo_of_em",
+   "from": "em",
+   "to": "lpo",
+   "restricts": "q := forall n, alpha n = false"
+  },
+  {
+   "by": "ZFSet.wlpo_of_wem",
+   "from": "wem",
+   "to": "wlpo",
+   "restricts": "q := forall n, alpha n = false"
+  },
+  {
+   "by": "ZFSet.countableNatChoice_of_setChoice_of_natOf",
+   "from": [
+    "setchoice",
+    "natof"
+   ],
+   "to": "countablenatchoice"
+  },
+  {
+   "by": "ZFSet.countableNatChoice_of_acOmega_of_natOf",
+   "from": [
+    "acomega",
+    "natof"
+   ],
+   "to": "countablenatchoice"
+  },
+  {
+   "by": "ZFSet.wem_of_lineCompleteSet",
+   "from": "linecompleteset",
+   "to": "wem"
+  },
+  {
+   "by": "ZFSet.llpo_of_meetExhaust",
+   "from": "meetexhaust",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_rolle01",
+   "from": "rolle01",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_rolle01",
+   "from": "rolle01",
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.llpo_of_max_attainment",
+   "from": "maxattainment01",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.attainment_of_signDisjunction_dc",
+   "from": [
+    "signdisjunction",
+    "dc"
+   ],
+   "to": "exactivt01"
+  },
+  {
+   "by": "ZFSet.rolle01_of_signDisjunction_dc",
+   "from": [
+    "signdisjunction",
+    "dc"
+   ],
+   "to": "rolle01"
+  },
+  {
+   "by": "ZFSet.darboux_of_signDisjunction_dc",
+   "from": [
+    "signdisjunction",
+    "dc"
+   ],
+   "to": "darboux01"
+  },
+  {
+   "by": "ZFSet.meanAttainment_of_signDisjunction_dc",
+   "from": [
+    "signdisjunction",
+    "dc"
+   ],
+   "to": "meanattainment01"
+  },
+  {
+   "by": "ZFSet.maxAttainment_of_signDisjunction_dc",
+   "from": [
+    "signdisjunction",
+    "dc"
+   ],
+   "to": "maxattainment01"
+  },
+  {
+   "by": "ZFSet.lpo_of_enumFamilyLocated",
+   "from": "enumfamilylocated",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.familyLocated_of_enum_of_lpo_of_cbc",
+   "from": [
+    "lpo",
+    "countableboolchoice"
+   ],
+   "to": "enumfamilylocated"
+  },
+  {
+   "by": "ZFSet.lpo_of_enumFamilyLocatedInf",
+   "from": "enumfamilylocatedinf",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.familyLocatedInf_of_enum_of_lpo_of_cbc",
+   "from": [
+    "lpo",
+    "countableboolchoice"
+   ],
+   "to": "enumfamilylocatedinf"
+  },
+  {
+   "by": "ZFSet.unitLowerBound2_of_fan",
+   "from": "fan",
+   "to": "unitlowerbound2"
+  },
+  {
+   "by": "ZFSet.unitLowerBound_of_unitLowerBound2",
+   "from": "unitlowerbound2",
+   "to": "unitlowerbound"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_darboux",
+   "from": "darboux01",
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_exact_ivt",
+   "from": "exactivt01",
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_mean_attainment",
+   "from": "meanattainment01",
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.signDisjunction_of_max_attainment",
+   "from": "maxattainment01",
+   "to": "signdisjunction"
+  },
+  {
+   "by": "ZFSet.acc_of_isNoetherian",
+   "from": [
+    "isnoetherian"
+   ],
+   "to": "acc"
+  },
+  {
+   "by": "ZFSet.em_of_isNoetherian",
+   "from": [
+    "isnoetherian"
+   ],
+   "to": "em"
+  },
+  {
+   "by": "ZFSet.lpo_of_acc",
+   "from": [
+    "acc"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_sqRootUnique",
+   "from": "sqrootunique",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.sqRootUnique_of_meetExhaust",
+   "from": "meetexhaust",
+   "to": "sqrootunique"
+  },
+  {
+   "by": "ZFSet.sqRootUnique_of_llpo_of_hasZeroLocators",
+   "from": [
+    "llpo",
+    "haszerolocators"
+   ],
+   "to": "sqrootunique"
+  },
+  {
+   "by": "ZFSet.cubicTrichotomy_of_em",
+   "from": "em",
+   "to": "cubictrichotomy"
+  },
+  {
+   "by": "ZFSet.lpo_of_cubicTrichotomy",
+   "from": "cubictrichotomy",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.llpo_of_cubicRootUnique",
+   "from": "cubicrootunique",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.cubicRootUnique_of_llpo_of_hasZeroLocators",
+   "from": [
+    "llpo",
+    "haszerolocators"
+   ],
+   "to": "cubicrootunique"
+  },
+  {
+   "by": "ZFSet.cubicTrichotomy_of_lpo_of_hasZeroLocators",
+   "from": [
+    "lpo",
+    "haszerolocators"
+   ],
+   "to": "cubictrichotomy"
+  },
+  {
+   "by": "ZFSet.lineCircleTrichotomy_of_lpo_of_locators",
+   "from": [
+    "lpo",
+    "haszerolocators"
+   ],
+   "to": "linecircletrichotomy"
+  },
+  {
+   "by": "ZFSet.lineDichotomy_of_lpo_of_locators",
+   "from": [
+    "lpo",
+    "haszerolocators"
+   ],
+   "to": "linedichotomy"
+  },
+  {
+   "by": "ZFSet.meetExhaust_of_sqRootUnique",
+   "from": "sqrootunique",
+   "to": "meetexhaust"
+  },
+  {
+   "by": "ZFSet.em_of_lineCompleteApprox",
+   "from": "linecompleteapprox",
+   "to": "em"
+  },
+  {
+   "by": "ZFSet.wlpo_of_lineCompleteSeq",
+   "from": "linecompleteseq",
+   "to": "wlpo"
+  },
+  {
+   "by": "ZFSet.lpo_of_lineCompleteSeqApprox",
+   "from": "linecompleteseqapprox",
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.lineCompleteSeq_of_lineCompleteSet",
+   "from": "linecompleteset",
+   "to": "linecompleteseq"
+  },
+  {
+   "by": "ZFSet.lineCompleteSeqApprox_of_lineCompleteApprox",
+   "from": "linecompleteapprox",
+   "to": "linecompleteseqapprox"
+  },
+  {
+   "by": "ZFSet.lineCompleteSeq_of_lpo_of_countableBoolChoice_of_signDisjunction",
+   "from": [
+    "lpo",
+    "countableboolchoice",
+    "signdisjunction"
+   ],
+   "to": "linecompleteseq"
+  },
+  {
+   "by": "ZFSet.distinctApart_of_neApart",
+   "from": "neapartzero",
+   "to": "distinctapart"
+  },
+  {
+   "by": "ZFSet.neApart_of_distinctApart",
+   "from": "distinctapart",
+   "to": "neapartzero"
+  },
+  {
+   "by": "ZFSet.mp_of_distinctApart",
+   "from": "distinctapart",
+   "to": "mp"
+  },
+  {
+   "by": "ZFSet.llpo_of_sqRootUniqueLocated",
+   "from": "sqrootuniquelocated",
+   "to": "llpo"
+  },
+  {
+   "by": "ZFSet.sqRootUniqueLocated_of_llpo",
+   "from": "llpo",
+   "to": "sqrootuniquelocated"
+  },
+  {
+   "by": "ZFSet.vertExhaust_of_sqRootUnique",
+   "from": "sqrootunique",
+   "to": "vertexhaust"
+  },
+  {
+   "by": "ZFSet.sqRootUnique_of_vertExhaust",
+   "from": "vertexhaust",
+   "to": "sqrootunique"
+  },
+  {
+   "by": "ZFSet.lpo_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.zeroOrApart_of_lpo_of_hasZeroLocators",
+   "from": [
+    "lpo",
+    "haszerolocators"
+   ],
+   "to": "zeroorapart"
+  },
+  {
+   "by": "ZFSet.zeroOrApart_of_lpo_of_countableBoolChoice",
+   "from": [
+    "lpo",
+    "countableboolchoice"
+   ],
+   "to": "zeroorapart"
+  },
+  {
+   "by": "ZFSet.chordExhaust_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "chordexhaust"
+  },
+  {
+   "by": "ZFSet.tangentExhaust_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "tangentexhaust"
+  },
+  {
+   "by": "ZFSet.sqRootUnique_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "sqrootunique"
+  },
+  {
+   "by": "ZFSet.cubicTrichotomy_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "cubictrichotomy"
+  },
+  {
+   "by": "ZFSet.neApartZero_of_zeroOrApart",
+   "from": [
+    "zeroorapart"
+   ],
+   "to": "neapartzero"
+  },
+  {
+   "by": "ZFSet.zeroOrApart_of_cutAtRat",
+   "from": [
+    "cutatrat"
+   ],
+   "to": "zeroorapart"
+  },
+  {
+   "by": "ZFSet.zeroOrApart_of_addGraphTotal",
+   "from": "addgraphtotal",
+   "to": "zeroorapart"
+  },
+  {
+   "by": "ZFSet.addGraphTotal_of_zeroOrApart",
+   "from": "zeroorapart",
+   "to": "addgraphtotal"
+  },
+  {
+   "by": "ZFSet.uniformCoveredDepth2_of_fan",
+   "from": "fan",
+   "to": "uniformcovereddepth2"
+  },
+  {
+   "by": "ZFSet.unitLowerBound2_of_uniformCoveredDepth2",
+   "from": "uniformcovereddepth2",
+   "to": "unitlowerbound2"
+  },
+  {
+   "by": "ZFSet.unitLowerBoundAll_of_fan",
+   "from": [
+    "fan"
+   ],
+   "to": "unitlowerboundall"
+  },
+  {
+   "by": "ZFSet.unitLowerBound_of_unitLowerBoundAll",
+   "from": [
+    "unitlowerboundall"
+   ],
+   "to": "unitlowerbound"
+  },
+  {
+   "by": "ZFSet.monotoneBoolChoice_of_countableBoolChoice",
+   "from": "countableboolchoice",
+   "to": "monotoneboolchoice"
+  },
+  {
+   "by": "ZFSet.hasZeroLocators_of_monotoneBoolChoice",
+   "from": "monotoneboolchoice",
+   "to": "haszerolocators"
+  },
+  {
+   "by": "ZFSet.lpo_of_idealDetachableInt",
+   "from": [
+    "idealdetachableint"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.mp_of_idealNonTrivialInt",
+   "from": [
+    "idealnontrivialint"
+   ],
+   "to": "mp"
+  },
+  {
+   "by": "ZFSet.idealNonTrivialInt_of_bool",
+   "from": [
+    "lpo",
+    "idealdetachableintbool"
+   ],
+   "to": "idealnontrivialint"
+  },
+  {
+   "by": "ZFSet.em_of_idealDetachableIntBool",
+   "from": [
+    "idealdetachableintbool"
+   ],
+   "to": "em"
+  },
+  {
+   "by": "ZFSet.cofinalDetachable_of_em",
+   "from": "em",
+   "to": "cofinaldetachable"
+  },
+  {
+   "by": "ZFSet.em_of_cofinalDetachable",
+   "from": "cofinaldetachable",
+   "to": "em"
+  },
+  {
+   "by": "ZFSet.boolReadout1_of_boolReadout2",
+   "from": [
+    "boolreadout2"
+   ],
+   "to": "boolreadout1"
+  },
+  {
+   "by": "ZFSet.enumDetachable_of_cofinalDetachable",
+   "from": [
+    "cofinaldetachable"
+   ],
+   "to": "enumdetachable"
+  },
+  {
+   "by": "ZFSet.enumDetachable_of_em",
+   "from": [
+    "em"
+   ],
+   "to": "enumdetachable"
+  },
+  {
+   "by": "ZFSet.enumDetachable_of_lpo_of_boolReadout1",
+   "from": [
+    "lpo",
+    "boolreadout1"
+   ],
+   "to": "enumdetachable"
+  },
+  {
+   "by": "ZFSet.boolReadout2_of_boolReadout1",
+   "from": [
+    "boolreadout1"
+   ],
+   "to": "boolreadout2"
+  },
+  {
+   "by": "ZFSet.lpo_of_enumDetachable",
+   "from": [
+    "enumdetachable"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.lpo_of_addTotal",
+   "from": [
+    "addtotal"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "ZFSet.addTotal_of_lpo_of_hasZeroLocators",
+   "from": [
+    "lpo",
+    "haszerolocators"
+   ],
+   "to": "addtotal"
+  }
+ ]
+}
