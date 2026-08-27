@@ -41,9 +41,9 @@ that every proposition is true or false in some metaphysical sense, but that
 `Or a (Not a)` is inhabited -- that we may case-split on any proposition
 whatever, without knowing which side holds.
 
-That is exactly the capability `Or` was built to deny. `Or` has two
-constructors, so holding a proof of `Or a b` means knowing which side it came
-from. `em` hands over such a proof for free, and the knowledge is fictitious.
+That is the capability `Or` was built to deny. `Or` has two constructors, so
+holding a proof of `Or a b` means knowing which side it came from. `em` hands
+over such a proof for free, and the knowledge is fictitious.
 -/
 
 /-- Axiom. Excluded middle. -/

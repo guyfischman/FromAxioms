@@ -10,5 +10,25 @@
  "PSet.omega": [
   "Zermelo-Fraenkel set theory",
   1930
+ ],
+ "Geometry.pythagoras": [
+  "the Pythagorean theorem",
+  -500
+ ],
+ "NumberTheory.succ_injective": [
+  "the Peano axioms",
+  1889
+ ],
+ "PSet.mem_sep_iff": [
+  "separation, axiomatic set theory",
+  1908
+ ],
+ "PSet.inductionOn": [
+  "well-foundedness / regularity",
+  1917
+ ],
+ "PSet.mem_image_iff": [
+  "replacement",
+  1922
  ]
 }

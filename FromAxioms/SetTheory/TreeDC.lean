@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Guy Fischman
 -/
 
+import FromAxioms.Algebra.Algebra
+import FromAxioms.Core.NatSearch
+import FromAxioms.NumberTheory.Natural
 import FromAxioms.NumberTheory.SqrtTwo
 import FromAxioms.SetTheory.PSet
+import FromAxioms.SetTheory.Regularity
 import FromAxioms.SetTheory.ZFSet
 
 /-! # Dependent choice down a binary tree
@@ -20,7 +24,7 @@ What `TreeDC` asks beyond that is a `Bool` at each index, and reading a member o
 `{∅, {∅}}` as a `Bool` is elimination into data. That is the whole difference
 between the two, and it is a `TwoReadout`. -/
 
-open NumberTheory
+open Algebra Core NumberTheory
 namespace SetTheory
 
 -- A hypothesis naming an unimported principle is auto-bound as a variable, so the

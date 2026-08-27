@@ -77,6 +77,12 @@ def Equiv : PSet.{u} → PSet.{u} → Prop
   | ⟨_, A⟩, ⟨_, B⟩ =>
     (∀ a, ∃ b, Equiv (A a) (B b)) ∧ (∀ b, ∃ a, Equiv (A a) (B b))
 
+theorem equiv_iff : ∀ x y : PSet.{u},
+    Equiv x y ↔
+      (∀ a : Idx x, ∃ b : Idx y, Equiv (Fam x a) (Fam y b)) ∧
+      (∀ b : Idx y, ∃ a : Idx x, Equiv (Fam x a) (Fam y b))
+  | ⟨_, _⟩, ⟨_, _⟩ => Iff.rfl
+
 protected theorem Equiv.refl : ∀ x : PSet.{u}, Equiv x x
   | ⟨_, A⟩ => ⟨fun a => ⟨a, Equiv.refl (A a)⟩, fun b => ⟨b, Equiv.refl (A b)⟩⟩
 
@@ -113,6 +119,8 @@ instance setoid : Setoid PSet.{u} :=
 protected def Mem (w x : PSet.{u}) : Prop := ∃ a : Idx x, Equiv w (Fam x a)
 
 instance : Membership PSet.{u} PSet.{u} := ⟨fun x w => PSet.Mem w x⟩
+
+instance : HasSubset PSet.{u} := ⟨fun x y => ∀ w : PSet.{u}, w ∈ x → w ∈ y⟩
 
 /-! ## EXTENSIONALITY
 
@@ -189,6 +197,68 @@ theorem insert_congr {y y' x x' : PSet.{u}} (hy : Equiv y y') (hx : Equiv x x') 
     · exact Or.inl (h.trans hy.symm)
     · exact Or.inr ((mem_congr_right hx w).mpr h)
 
+/-! ## UNION
+
+The members of the members. Indexed by a dependent pair: pick a branch of `x`,
+then a branch of that. -/
+
+def sUnion (x : PSet.{u}) : PSet.{u} :=
+  ⟨(a : Idx x) × Idx (Fam x a), fun p => Fam (Fam x p.1) p.2⟩
+
+/-- ZFC's union. -/
+theorem mem_sUnion_iff (w x : PSet.{u}) :
+    w ∈ sUnion x ↔ ∃ z : PSet.{u}, z ∈ x ∧ w ∈ z := by
+  constructor
+  · rintro ⟨⟨a, i⟩, h⟩
+    exact ⟨Fam x a, ⟨a, Equiv.refl _⟩, ⟨i, h⟩⟩
+  · rintro ⟨z, ⟨a, hza⟩, hwz⟩
+    obtain ⟨i, hi⟩ := (mem_congr_right hza w).mp hwz
+    exact ⟨⟨a, i⟩, hi⟩
+
+/-! ## POWER SET
+
+Indexed by predicates on the index type. This is the step that makes the
+model's strength visible: `Idx x → Prop` is an impredicative function type, and
+it is doing exactly the work Cantor's theorem says it must. -/
+
+def powerset (x : PSet.{u}) : PSet.{u} :=
+  ⟨Idx x → Prop, fun p => ⟨{a : Idx x // p a}, fun s => Fam x s.1⟩⟩
+
+/-- ZFC's power set. -/
+theorem mem_powerset_iff (w x : PSet.{u}) : w ∈ powerset x ↔ w ⊆ x := by
+  constructor
+  · rintro ⟨p, hp⟩ z hz
+    obtain ⟨s, hs⟩ := (mem_congr_right hp z).mp hz
+    exact ⟨s.1, hs⟩
+  · intro h
+    refine ⟨fun a => Fam x a ∈ w, (equiv_iff_ext _ _).mpr (fun v => ?_)⟩
+    constructor
+    · intro hv
+      obtain ⟨a, ha⟩ := h v hv
+      exact ⟨⟨a, (mem_congr_left ha w).mp hv⟩, ha⟩
+    · rintro ⟨s, hs⟩
+      exact (mem_congr_left hs w).mpr s.2
+
+/-! ## SEPARATION
+
+Carving out a sub-pre-set by a predicate. The predicate must respect `Equiv` --
+otherwise it could distinguish two trees denoting the same set, and the result
+would not be well defined on the quotient. That hypothesis is the price of
+working with pre-sets instead of sets, and it disappears in the next file. -/
+
+def sep (p : PSet.{u} → Prop) (x : PSet.{u}) : PSet.{u} :=
+  ⟨{a : Idx x // p (Fam x a)}, fun s => Fam x s.1⟩
+
+/-- ZFC's separation (restricted comprehension). -/
+theorem mem_sep_iff {p : PSet.{u} → Prop}
+    (hp : ∀ {a b : PSet.{u}}, Equiv a b → p a → p b) (w x : PSet.{u}) :
+    w ∈ sep p x ↔ w ∈ x ∧ p w := by
+  constructor
+  · rintro ⟨s, hs⟩
+    exact ⟨⟨s.1, hs⟩, hp hs.symm s.2⟩
+  · rintro ⟨⟨a, ha⟩, hpw⟩
+    exact ⟨⟨a, hp ha hpw⟩, ha⟩
+
 /-! ## INFINITY
 
 The von Neumann naturals: `0 = ∅` and `n+1 = n ∪ {n}`. Note that the recursion
@@ -204,6 +274,53 @@ def ofNat : Nat → PSet.{u}
 
 def omega : PSet.{u} := ⟨ULift Nat, fun n => ofNat n.down⟩
 
+theorem empty_mem_omega : empty.{u} ∈ omega.{u} :=
+  ⟨ULift.up 0, Equiv.refl _⟩
+
+/-! ## Congruence
+
+Every construction above respects `Equiv`. `insert_congr` was proved where it
+was needed; the rest are collected here.
+
+These are exactly the obligations that must be discharged to push each
+construction through the quotient in `ZFSet.lean` -- `Quotient.lift` will not
+accept a function unless it is known to be constant on equivalence classes, and
+these lemmas are that proof. They are all the same shape: apply
+`equiv_iff_ext`, rewrite both sides with the relevant membership lemma, and the
+result falls out.
+-/
+
+theorem sUnion_congr {x y : PSet.{u}} (h : Equiv x y) :
+    Equiv (sUnion x) (sUnion y) := by
+  refine (equiv_iff_ext _ _).mpr (fun w => ?_)
+  refine Iff.trans (mem_sUnion_iff w x) (Iff.trans ?_ (mem_sUnion_iff w y).symm)
+  constructor
+  · rintro ⟨z, hzx, hwz⟩
+    exact ⟨z, (mem_congr_right h z).mp hzx, hwz⟩
+  · rintro ⟨z, hzy, hwz⟩
+    exact ⟨z, (mem_congr_right h z).mpr hzy, hwz⟩
+
+theorem powerset_congr {x y : PSet.{u}} (h : Equiv x y) :
+    Equiv (powerset x) (powerset y) := by
+  refine (equiv_iff_ext _ _).mpr (fun w => ?_)
+  refine Iff.trans (mem_powerset_iff w x) (Iff.trans ?_ (mem_powerset_iff w y).symm)
+  constructor
+  · intro hw z hz
+    exact (mem_congr_right h z).mp (hw z hz)
+  · intro hw z hz
+    exact (mem_congr_right h z).mpr (hw z hz)
+
+theorem sep_congr {p : PSet.{u} → Prop}
+    (hp : ∀ {a b : PSet.{u}}, Equiv a b → p a → p b) {x y : PSet.{u}}
+    (h : Equiv x y) : Equiv (sep p x) (sep p y) := by
+  refine (equiv_iff_ext _ _).mpr (fun w => ?_)
+  refine Iff.trans (mem_sep_iff hp w x) (Iff.trans ?_ (mem_sep_iff hp w y).symm)
+  constructor
+  · rintro ⟨hwx, hpw⟩
+    exact ⟨(mem_congr_right h w).mp hwx, hpw⟩
+  · rintro ⟨hwy, hpw⟩
+    exact ⟨(mem_congr_right h w).mpr hwy, hpw⟩
+
 /-! ## Audit
 
 The headline. Seven ZFC axioms, all proved, none assumed -- and the project's
@@ -213,4 +330,7 @@ added nine axioms and made every downstream `#print axioms` uninformative.
 
 #print axioms equiv_iff_ext      -- EXTENSIONALITY
 #print axioms mem_empty_iff      -- EMPTY SET
+#print axioms mem_sUnion_iff     -- UNION
+#print axioms mem_powerset_iff   -- POWER SET
+#print axioms mem_sep_iff        -- SEPARATION
 end PSet

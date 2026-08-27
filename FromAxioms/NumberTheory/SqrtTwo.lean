@@ -29,6 +29,7 @@ irrationality is needed: the middle point could a priori equal `2·4ⁿ`, and
 -/
 
 import FromAxioms.SetTheory.PSet
+import FromAxioms.SetTheory.Regularity
 import FromAxioms.SetTheory.ZFSet
 
 universe u
