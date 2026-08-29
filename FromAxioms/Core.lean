@@ -8,4 +8,5 @@ Authors: Guy Fischman
 The Core area. This file is generated; it imports every module in
 `FromAxioms/Core/`.
 -/
+import FromAxioms.Core.CoreShim
 import FromAxioms.Core.NatSearch
