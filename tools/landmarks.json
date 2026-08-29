@@ -46,5 +46,13 @@
  "PSet.ordAdd_congr": [
   "cardinal and ordinal numbers",
   1895
+ ],
+ "NumberTheory.intMul_add": [
+  "solving equations in integers",
+  250
+ ],
+ "NumberTheory.intNeg_intNeg": [
+  "zero and the negative numbers",
+  628
  ]
 }

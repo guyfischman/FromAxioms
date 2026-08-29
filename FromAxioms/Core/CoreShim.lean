@@ -34,7 +34,7 @@ theorem pow_lt_pow_right' {b j k : Nat} (hb : 1 < b) (hjk : j < k) : b ^ j < b ^
 
 /-! ## Audit
 
-All three at `[propext]` or better -- which is the whole point of the file. -/
+All three at `[propext]` or better. -/
 
 /-- A base above one makes the exponent recoverable from the power. -/
 theorem pow_right_injective {b j k : Nat} (hb : 1 < b) (h : b ^ j = b ^ k) : j = k := by

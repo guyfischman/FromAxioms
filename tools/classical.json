@@ -37,23 +37,44 @@
   "                principle proves the statement, each choice-free. This pins the",
   "                result to exactly that strength, which a Phase 2 audit line",
   "                cannot do on its own -- Lean derives em from choice and reports",
-  "                only choice."
+  "                only choice.",
+  "`_equivalences` HOLDS REVERSALS, NOT TWO-WAY EQUIVALENCES, and the name",
+  "misleads. An entry records that its `statement` REVERSES to its",
+  "`principle` --- statement implies principle, witnessed by `reversal`. It",
+  "does NOT assert the converse. `Constructive.PathSelection` reverses to",
+  "`llpo` and its own note says \"Reverses to LLPO ALONE\"; nothing claims",
+  "`llpo` gives back path selection.",
+  "SOME entries ARE two-way and say so in their note ---",
+  "`Analysis.IdealDetachableInt` reads \"EQUIVALENT to em -- both directions",
+  "proved\" --- but that is the note's claim, not the field's meaning.",
+  "MEASURED 2026-08-26, because the obvious check is wrong: of the ten",
+  "entries whose statement is also a lattice node, ONE is mutually reachable",
+  "in `lattice.json` and NINE are one-directional. A cross-registry check",
+  "asserting mutual reachability would report nine defects and be wrong about",
+  "all nine. This paragraph exists so that check does not get written --- the",
+  "registry was silent here, and a maintained registry is believed where it",
+  "says nothing."
  ],
- "_unplaced": [],
+ "_unplaced": [
+  {
+   "principle": "ZFSet.OmniscientNinf",
+   "note": "PROVED, not assumed: `omniscientNinf` derives it with no hypothesis, so it is not a lattice node and no edge places it. An infinite omniscient set existing outright is the whole reason Pradic and Brown reverse Cantor-Bernstein through N_infinity rather than through Nat, where the same statement is LPO and a taboo."
+  }
+ ],
  "_equivalences": [
   {
    "statement": "Constructive.PathSelection",
    "principle": "llpo",
    "reversal": "Constructive.llpo_of_pathSelection",
    "landmark": "the principles of omniscience",
-   "note": "the step that turns 'no sequence is known to leave the tree' into an actual path. Reverses to LLPO ALONE, with no compactness and no FAN -- the reversal's tree stays alive by a decidable bounded search (analysis FINDINGS 748), so the selection carries the entire strength of the fan-to-Koenig gap. A LOWER BOUND ONLY: no forward is proved. Moved here from _unplaced once the witness was in this tree (DECISIONS 657)"
+   "note": "the step that turns 'no sequence is known to leave the tree' into an actual path. Reverses to LLPO ALONE, with no compactness and no FAN\u0394 -- the reversal's tree stays alive by a decidable bounded search (analysis FINDINGS 748), so the selection carries the entire strength of the fan-to-Koenig gap. A LOWER BOUND ONLY: no forward is proved. Moved here from _unplaced once the witness was in this tree (DECISIONS 657)"
   },
   {
    "statement": "Constructive.WKL",
    "principle": "llpo",
    "reversal": "Constructive.llpo_of_wkl",
    "landmark": "the principles of omniscience",
-   "note": "weak Koenig's lemma yields LLPO, over the same detachable List Bool trees FAN uses. A LOWER BOUND ONLY: no forward is proved, so this is not an equivalence and must not be read as one. Whether WKL -> LPO, or WKL sits strictly between LLPO and LPO in this encoding, is open (FINDINGS 746)"
+   "note": "weak Koenig's lemma yields LLPO, over the same detachable List Bool trees FAN\u0394 uses. A LOWER BOUND ONLY: no forward is proved, so this is not an equivalence and must not be read as one. Whether WKL -> LPO, or WKL sits strictly between LLPO and LPO in this encoding, is open (FINDINGS 746)"
   },
   {
    "statement": "Analysis.IdealEquivDecidable",
@@ -118,32 +139,28 @@
   },
   {
    "statement": "Metamath.MeanAttainment01",
-   "principle": "llpo",
+   "principle": "signdisjunction",
    "landmark": "the mean value theorem",
-   "reversal": "Metamath.llpo_of_mean_attainment",
-   "note": "a uniformly continuous function on [0,1] attains its mean value. Reverses to LLPO alone; the forward needs BinaryDC and DC as well, so the gap is exactly two named choice layers (FINDINGS 730, 736)",
-   "forward": "Metamath.meanAttainment_of_llpo_binaryDC_dc",
+   "reversal": "Metamath.signDisjunction_of_mean_attainment",
+   "note": "a uniformly continuous function on [0,1] attains its mean value. Reverses to LLPO alone; the forward needs BinaryDC and DC as well, so the gap is exactly two named choice layers (FINDINGS 730, 736) The floor is `SignDisjunction`, not `LLPO`, for the same reason as Rolle01: `llpo_of_mean_attainment` is literally `llpo_of_signDisjunction (signDisjunction_of_mean_attainment hatt)`, so the LLPO reversal factors through this one and understates it by a node. Repointed 2026-08-28 after `registry-agree.py` found the pair, which is the SECOND row the same factoring caught.",
+   "forward": "Metamath.meanAttainment_of_signDisjunction_dc",
    "forward_extra": [
-    "binarydc",
     "dc"
    ],
    "extra": [
-    "BinaryDC",
     "DC"
    ]
   },
   {
    "statement": "Metamath.Darboux01",
-   "principle": "llpo",
-   "reversal": "Metamath.llpo_of_darboux",
-   "note": "a uniform derivative takes every intermediate value. Same bounds as the mean-value shape through a different machine -- the content is that a uniform derivative is uniformly continuous, so the C1 bundle's continuity field is derivable rather than assumed (FINDINGS 731, 737) Those bounds are BinaryDC and DC, named here rather than left to the reference: llpo is the floor, not the value.",
-   "forward": "Metamath.darboux_of_llpo_binaryDC_dc",
+   "principle": "signdisjunction",
+   "reversal": "Metamath.signDisjunction_of_darboux",
+   "note": "a uniform derivative takes every intermediate value. Same bounds as the mean-value shape through a different machine -- the content is that a uniform derivative is uniformly continuous, so the C1 bundle's continuity field is derivable rather than assumed (FINDINGS 731, 737) Those bounds are BinaryDC and DC, named here rather than left to the reference: llpo is the floor, not the value. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time.",
+   "forward": "Metamath.darboux_of_signDisjunction_dc",
    "forward_extra": [
-    "binarydc",
     "dc"
    ],
    "extra": [
-    "BinaryDC",
     "DC"
    ]
   },
@@ -165,19 +182,17 @@
   },
   {
    "statement": "Metamath.MaxAttainment01",
-   "principle": "llpo",
-   "forward": "Analysis.maxAttainment_of_llpo_binaryDC_dc",
+   "principle": "signdisjunction",
+   "forward": "Analysis.maxAttainment_of_signDisjunction_dc",
    "forward_extra": [
-    "binarydc",
     "dc"
    ],
    "extra": [
-    "BinaryDC",
     "DC"
    ],
    "landmark": "the extreme value theorem",
-   "reversal": "Metamath.llpo_of_max_attainment",
-   "note": "a uniformly continuous function on [0,1] attains its maximum -- the exact half of the extreme value theorem, whose approximate half is free. The reversal is proved; the converse climb is the analysis track's open item, so this end of the sandwich is not yet witnessed (FINDINGS 735) A forward IS witnessed, but only with two principles more than the reversal yields: maxAttainment_of_llpo_binaryDC_dc takes LLPO, BinaryDC and DC, so the entry is BRACKETED rather than pinned. The climb at LLPO alone -- the pinning FINDINGS 735 is after -- remains open."
+   "reversal": "Metamath.signDisjunction_of_max_attainment",
+   "note": "a uniformly continuous function on [0,1] attains its maximum -- the exact half of the extreme value theorem, whose approximate half is free. The reversal is proved; the converse climb is the analysis track's open item, so this end of the sandwich is not yet witnessed (FINDINGS 735) A forward IS witnessed, but only with two principles more than the reversal yields: maxAttainment_of_llpo_binaryDC_dc takes LLPO, BinaryDC and DC, so the entry is BRACKETED rather than pinned. The climb at LLPO alone -- the pinning FINDINGS 735 is after -- remains open. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time."
   },
   {
    "statement": "Algebra.HasOrder",
@@ -222,18 +237,16 @@
   },
   {
    "statement": "Metamath.Rolle01",
-   "principle": "llpo",
-   "forward": "Metamath.rolle01_of_llpo_binaryDC_dc",
+   "principle": "signdisjunction",
+   "forward": "Metamath.rolle01_of_signDisjunction_dc",
    "forward_extra": [
-    "binarydc",
     "dc"
    ],
    "extra": [
-    "BinaryDC",
     "DC"
    ],
-   "reversal": "Metamath.llpo_of_rolle01",
-   "note": "a uniformly differentiable function agreeing at the endpoints has an interior point of vanishing derivative. Reverses through the SAME median gadget as Darboux, shifted by its own mean so the integral over [0,1] vanishes and F 0 = F 1 is SUPPLIED by the construction rather than assumed; the interior zero is then the identical attainment equation signDisjunction_of_darboux obtains, so the two reversals share their closing step. Ceiling rolle01_of_llpo_binaryDC_dc; both directions [propext, Quot.sound] (FINDINGS 984)"
+   "reversal": "Metamath.signDisjunction_of_rolle01",
+   "note": "a uniformly differentiable function agreeing at the endpoints has an interior point of vanishing derivative. Reverses through the SAME median gadget as Darboux, shifted by its own mean so the integral over [0,1] vanishes and F 0 = F 1 is SUPPLIED by the construction rather than assumed; the interior zero is then the identical attainment equation signDisjunction_of_darboux obtains, so the two reversals share their closing step. Ceiling rolle01_of_llpo_binaryDC_dc; both directions [propext, Quot.sound] (FINDINGS 984) The floor is `SignDisjunction`, not `LLPO`: `llpo_of_rolle01` is literally `llpo_of_signDisjunction (signDisjunction_of_rolle01 hrolle)`, so the LLPO reversal factors through this one and understates it by a node."
   },
   {
    "statement": "Constructive.uniformlyContinuousOn_ivtSpike",
@@ -332,6 +345,13 @@
    "reversal": "Combinatorics.em_of_decidablePairMem",
    "forward": "Combinatorics.decidablePairMem_of_em",
    "note": "deciding, for an ARBITRARY set E, whether opair i j is in it, for i and j ranging over omega. An equivalence: both directions are choice-free [propext, Quot.sound]. REGISTERED BECAUSE THE HYPOTHESIS IS EVERYWHERE AND WAS UNPRICED -- DetachablePairs appears seventeen times across RamseySet, RamseyRel and RamseyMerge and is a hypothesis at every one, which is what keeps those theorems constructive; nothing named its unrestricted form or measured it, so analysis was right to flag it and the grep for *_of_detachablePairs came back empty. THE ENTRY IS ABOUT THE CLOSURE, NOT THE USES: DetachablePairs E for a single E is not classical and must not be read as such. THE WITNESS NEEDS ONE PAIR: sep (fun _ => P) (singleton (opair 0 0)) contains opair 0 0 exactly when P, so the decision at i = j = 0 alone gives P or not P -- the quantifier over omega is never used. So this does not merely inherit from DecidableMemSet being classical (em_of_decidableMemSet): that decides EVERY membership, while this decides only memberships of ordered pairs of naturals, a strictly narrower family, and it is already all of excluded middle"
+  },
+  {
+   "statement": "Analysis.IdealDetachableInt",
+   "principle": "em",
+   "reversal": "Analysis.em_of_idealDetachableInt",
+   "landmark": "the principles of omniscience",
+   "note": "every ideal of Z is detachable, EQUIVALENT to em -- both directions proved. The reversal instantiates at propIdealOf Int intZero P, an ideal built from an arbitrary Prop WITHOUT deciding it (every IsIdeal clause cases on the disjunction its membership hypothesis already carries), and intZero != intOne turns membership of intOfNat 1 into P itself; the forward direction is em applied pointwise. The lattice's recorded idealdetachableint -> lpo edge is TRUE BUT NOT SHARP and stays, because lpo is the consequence idealNonTrivialInt_of_bool actually consumes. The BOOL-valued form is NOT registered here: it reverses to em too and more expensively, but the converse is barred -- Or is Prop-valued and cannot eliminate into Bool -- so only one direction is proved and the pair is not known to be an equivalence."
   }
  ],
  "_open_budget": 0,

@@ -21,6 +21,8 @@ is indexed by `β`'s own index type and needs no replacement. The union with `α
 is a sum of index types.
 -/
 
+import FromAxioms.Algebra.Algebra
+import FromAxioms.NumberTheory.Natural
 import FromAxioms.SetTheory.Hierarchy
 
 universe u
@@ -140,6 +142,7 @@ theorem rank_congr : ∀ {x y : PSet.{u}}, Equiv x y → Equiv (rank x) (rank y)
 
 end PSet
 
+open NumberTheory
 namespace SetTheory
 
 /-- Ordinal addition on sets. -/
@@ -185,10 +188,64 @@ about it. -/
   · exact h
   · exact absurd hz (not_mem_empty z)
 
+@[simp] theorem ordMul_empty (x : ZFSet.{u}) : ordMul x empty.{u} = empty.{u} :=
+  ext _ _ fun w => ⟨fun hw => by
+      obtain ⟨z, hz, -⟩ := (mem_ordMul_iff w x empty.{u}).mp hw
+      exact absurd hz (not_mem_empty z),
+    fun hw => absurd hw (not_mem_empty w)⟩
+
+/-! ## Rank
+
+The stage at which a set first appears. `V` says every set appears somewhere;
+`rank` names where. -/
+
+def rank : ZFSet.{u} → ZFSet.{u} :=
+  Quotient.lift (fun x => mk (PSet.rank x)) (fun _ _ h => Quotient.sound (PSet.rank_congr h))
+
+/-- Ordinal exponentiation on sets. -/
+def ordPow : ZFSet.{u} → ZFSet.{u} → ZFSet.{u} :=
+  Quotient.lift₂ (fun x y => mk (PSet.ordPow x y))
+    (fun _ _ _ _ hx hy => Quotient.sound (PSet.ordPow_congr hx hy))
+
+theorem mem_ordPow_iff (w x y : ZFSet.{u}) :
+    w ∈ ordPow x y ↔ w = empty.{u} ∨ ∃ z : ZFSet.{u}, z ∈ y ∧ w ∈ ordMul (ordPow x z) x := by
+  refine Quotient.inductionOn₃ w x y (fun w x y => ?_)
+  refine Iff.trans (PSet.mem_ordPow_iff w x y) ⟨?_, ?_⟩
+  · rintro (h | ⟨z, hz, hw⟩)
+    · exact Or.inl (Quotient.sound h)
+    · exact Or.inr ⟨mk z, hz, hw⟩
+  · rintro (h | ⟨z, hz, hw⟩)
+    · exact Or.inl (Quotient.exact h)
+    · obtain ⟨z, rfl⟩ := Quotient.exists_rep z
+      exact Or.inr ⟨z, hz, hw⟩
+
+/-- Zero exponent: the answer is `1`, with no case in the definition. -/
+@[simp] theorem ordPow_empty (x : ZFSet.{u}) : ordPow x empty.{u} = ofNat.{u} 1 := by
+  refine ext _ _ fun w => Iff.trans (mem_ordPow_iff w x empty.{u}) ⟨?_, ?_⟩
+  · rintro (rfl | ⟨z, hz, -⟩)
+    · exact mem_succ_self empty.{u}
+    · exact absurd hz (not_mem_empty z)
+  · intro hw
+    rcases (mem_succ_iff w empty.{u}).mp hw with rfl | h
+    · exact Or.inl rfl
+    · exact absurd h (not_mem_empty w)
+
+/-! ## `ε₀`
+
+The tower `ω, ω^ω, …` is a `Nat`-indexed family of sets with no bound to
+separate over, so `natSeq` cannot build it. At pre-set level it needs no bound:
+a family indexed by `ULift Nat` is a pre-set, exactly as for `V`.
+-/
+
+def tower : Nat → ZFSet.{u}
+  | 0 => omega
+  | n + 1 => ordPow omega (tower n)
+
 #print axioms PSet.ordAdd_congr
 #print axioms mem_ordAdd_iff
+#print axioms ordPow_empty
 end SetTheory
 
 namespace ZFSet
-export SetTheory (mem_ordAdd_iff mem_ordMul_iff ordAdd ordAdd_empty ordMul)
+export SetTheory (mem_ordAdd_iff mem_ordMul_iff mem_ordPow_iff ordAdd ordAdd_empty ordMul ordMul_empty ordPow ordPow_empty rank tower)
 end ZFSet
