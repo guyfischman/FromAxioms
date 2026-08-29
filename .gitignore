@@ -2,3 +2,4 @@
 .audit/
 __pycache__/
 figures/
+.DS_Store

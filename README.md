@@ -3,15 +3,17 @@
 Mathematics rebuilt in Lean 4 from the axioms of logic alone, with the
 axiomatic cost of every result measured rather than assumed.
 
-No dependencies aside from Lean toolchain.
+No dependencies aside from the Lean toolchain.
 
 ## The point
 
-Every theorem rests on some collection of principles. The aim here is for each result to answer three questions, all answered mechanically:
+Every theorem rests on some collection of principles. The aim here is for each
+result to answer three questions, all answered mechanically:
 
 1. **What did the proof use?** `#print axioms` is an upper bound, and the kernel
    computes it.
-2. **What does the theorem need?** Deriving the principle back from the theorem in a reversal, choice-free.
+2. **What does the theorem need?** Deriving the principle back from the theorem
+   in a reversal, choice-free.
 3. **Can the cost be moved into the statement?** A principle taken as a
    hypothesis is a cost the type signature records and the kernel checks.
 
@@ -25,24 +27,28 @@ free, which costs a named principle, and a proof of each.
 the classical axioms declared explicitly, and the reversals that pin them. It
 is `prelude`, importing nothing at all, and is kept a separate root because it
 declares `And`, `Or` and `Eq` at top level and so cannot be imported beside
-Lean's `Init`. The rest of the library builds on core and has begun.
+Lean's `Init`.
 
-Seven of the nine ZFC axioms are already theorems about a constructed model of
-sets rather than assumptions about a postulated one -- and the kernel reports
-that none of them costs anything at all:
+Above it, sets are constructed rather than postulated: pre-sets as a `W`-type,
+then `ZFSet` as their extensional quotient. Extensionality, the empty set,
+union, power set, separation and replacement are theorems about that
+construction, and the kernel reports that none of them costs an axiom.
+Regularity is here too, at the quotient level, where it costs `propext` and
+`Quot.sound`. Arithmetic on omega, the ordered pair, relations and functions
+follow; the integers are next.
 
+The cost of every declaration is in [AXIOMS.md](AXIOMS.md), regenerated with
+each commit. To check it rather than read it:
+
+```sh
+lake build 2>&1 | grep axioms
 ```
-'PSet.equiv_iff_ext'     does not depend on any axioms   -- EXTENSIONALITY
-'PSet.mem_empty_iff'     does not depend on any axioms   -- EMPTY SET
-'PSet.mem_pair_iff'      does not depend on any axioms   -- PAIRING
-'PSet.mem_sUnion_iff'    does not depend on any axioms   -- UNION
-'PSet.mem_powerset_iff'  does not depend on any axioms   -- POWER SET
-'PSet.mem_sep_iff'       does not depend on any axioms   -- SEPARATION
-'PSet.succ_mem_omega'    does not depend on any axioms   -- INFINITY
-```
 
-Reproduce with `lake build 2>&1 | grep axioms`, which prints the cost of every
-audited declaration in the tree, the seven above among them.
+## The graph
+
+[The library from the axioms up](https://guyfischman.github.io/FromAxioms/),
+regenerated on every push: each declaration, what it rests on, and where each
+axiom first enters beneath it. Dated results are marked.
 
 ## The audit
 
@@ -52,12 +58,11 @@ python3 tools/audit.py
 
 This generates a `#print axioms` line for *every* declaration rather than
 reading the ones written by hand, so a classical result nobody thought to
-annotate cannot hide in the gap. Of the 150 declarations here, 117 depend on no
-axioms at all. Anything reaching `Classical.choice`, or the declared `em`
-or `choice`, needs an entry in `tools/classical.json` giving the reason, and
-naming the reversal where one exists. CI runs `--check` on every push, which
-fails on an unregistered result, on an entry whose subject is gone, and on a
-stale [AXIOMS.md](AXIOMS.md).
+annotate cannot hide in the gap. Anything reaching `Classical.choice`, or the
+declared `em` or `choice`, needs an entry in `tools/classical.json` giving the
+reason and naming the reversal where one exists. CI runs `--check` on every
+push, which fails on an unregistered result, on an entry whose subject is
+gone, and on a stale [AXIOMS.md](AXIOMS.md).
 
 ## Building
 
