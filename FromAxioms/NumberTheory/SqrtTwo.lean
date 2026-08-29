@@ -28,11 +28,10 @@ irrationality is needed: the middle point could a priori equal `2·4ⁿ`, and
 `sq_two_irrational` is what rules that out.
 -/
 
-import FromAxioms.SetTheory.EquivClass
+import FromAxioms.SetTheory.ZFSet
 
 universe u
 
-open SetTheory
 namespace NumberTheory
 
 /-! ## The Nat-level theorem -/
@@ -86,5 +85,5 @@ theorem sq_two_irrational : ∀ p q : Nat, p * p = 2 * (q * q) → q = 0 := by
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (even_of_sq_even four_sq odd_sq sq_two_irrational)
+export NumberTheory (sq_two_irrational)
 end ZFSet

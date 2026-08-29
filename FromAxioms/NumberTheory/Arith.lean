@@ -23,7 +23,7 @@ of the union-of-singleton trick that keeps `SetTheory.app` choice-free.
 recursion alone does not give.
 -/
 
-import FromAxioms.SetTheory.Relation
+import FromAxioms.NumberTheory.Natural
 
 universe u
 
@@ -98,7 +98,7 @@ theorem mul_congr : ∀ (y y' : PSet.{u}) {x x' : PSet.{u}},
 
 end PSet
 
-open Algebra SetTheory
+open SetTheory
 namespace NumberTheory
 
 def add : ZFSet.{u} → ZFSet.{u} → ZFSet.{u} :=
@@ -233,19 +233,49 @@ theorem mul_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega
   obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
   rw [mul_ofNat]; exact ofNat_mem_omega _
 
+theorem mul_succ {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u}) :
+    mul x (succ y) = add (mul x y) x := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
+  rw [← ofNat_succ, mul_ofNat, mul_ofNat, add_ofNat, Nat.mul_succ]
+
 theorem mul_comm {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u}) :
     mul x y = mul y x := by
   obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
   obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
   rw [mul_ofNat, mul_ofNat, Nat.mul_comm]
 
+/-! ## The laws a SEMIRING needs that a ring derives -/
+
+/-- `0 * x = 0`. The transpose of `mul_empty`. -/
+@[simp] theorem empty_mul {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
+    mul empty.{u} x = empty.{u} := by
+  rw [mul_comm empty_mem_omega hx, mul_empty]
+
+/-- `x * 1 = x`. `ofNat 1` is `succ empty` definitionally, so this is
+`mul_succ` and the two unit laws. -/
+@[simp] theorem mul_one {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
+    mul x (ofNat.{u} 1) = x := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  rw [mul_ofNat, Nat.mul_one]
+
+/-- `1 * x = x`, by commutation. -/
+@[simp] theorem one_mul {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
+    mul (ofNat.{u} 1) x = x := by
+  rw [mul_comm (ofNat_mem_omega 1) hx, mul_one hx]
+
+#print axioms mem_add_iff
+#print axioms add_empty
 #print axioms add
 #print axioms add_succ
 #print axioms add_ofNat
 #print axioms add_assoc
 #print axioms mul_ofNat
+#print axioms empty_mul
+#print axioms mul_one
+#print axioms one_mul
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ empty_add mem_add_iff mem_mul_iff mul mul_comm mul_empty mul_mem_omega mul_ofNat)
+export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ empty_add mem_add_iff mem_mul_iff mul mul_comm mul_empty mul_mem_omega mul_ofNat mul_succ)
 end ZFSet

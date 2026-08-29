@@ -43,12 +43,11 @@ half of regularity (`inductionOn`) is what P4 actually uses. `Classical.choice`
 was needed for the existence form of regularity, which never appears below.
 -/
 
-import FromAxioms.Algebra.Algebra
 import FromAxioms.SetTheory.Regularity
 
 universe u
 
-open Algebra SetTheory
+open SetTheory
 namespace NumberTheory
 
 /-! ## `Nat` and `omega` are the same thing -/

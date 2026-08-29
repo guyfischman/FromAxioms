@@ -143,11 +143,7 @@ def choice_of_witness
 `em` gives `Or p (Not p)`, which lives in `Prop` and so cannot eliminate into
 `Type`. A proof may split on it; a definition may not. The gap between the two
 is measured here rather than described: `Decider` is the decision as data, and
-the two directions below carry different audit lines.
-
-Four classical results in Phase 2 sit on exactly this -- `realMul`, `dcNum`,
-`dcDigit` and `dcNum` all define data by cases and so are marked `reversed`
-with no forward direction. -/
+the two directions below carry different audit lines. -/
 
 /-- A decision as data: which side holds, in a `Type`. -/
 inductive Decider (p : Prop) : Type where

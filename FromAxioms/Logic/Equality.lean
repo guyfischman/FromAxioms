@@ -109,6 +109,14 @@ data rather than proofs.
 def cast {α β : Sort u} (h : Eq α β) (a : α) : β :=
   h.rec (motive := fun x _ => x) a
 
+/-- Casting along `refl` is the identity, and it is `rfl`.
+
+`cast` is a `def` because it lands in an arbitrary `Sort u` and computes; this
+is the theorem that says what it computes to in the only case where the answer
+is forced. Without it `cast` is a claim the file makes and never supports --
+every other definition here is named by a later result, and this one was not. -/
+theorem cast_refl {α : Sort u} (a : α) : Eq (cast (Eq.refl α) a) a := rfl
+
 /-- Modus ponens for propositional equality. -/
 def Eq.mp {α β : Prop} (h : Eq α β) (ha : α) : β :=
   h.rec (motive := fun x _ => x) ha
@@ -150,4 +158,5 @@ theorem proof_irrel {a : Prop} (h₁ h₂ : a) : Eq h₁ h₂ := rfl
 #print axioms Eq.subst
 #print axioms congr
 #print axioms cast
+#print axioms cast_refl
 #print axioms proof_irrel

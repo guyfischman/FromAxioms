@@ -3,18 +3,6 @@
   "irrationality of √2",
   -540
  ],
- "PSet": [
-  "set, uncountability",
-  1874
- ],
- "PSet.omega": [
-  "Zermelo-Fraenkel set theory",
-  1930
- ],
- "NumberTheory.succ_injective": [
-  "the Peano axioms",
-  1889
- ],
  "PSet.mem_sep_iff": [
   "separation, axiomatic set theory",
   1908
@@ -23,15 +11,31 @@
   "well-foundedness / regularity",
   1917
  ],
- "PSet.mem_image_iff": [
-  "replacement",
-  1922
+ "Algebra.powerset_empty": [
+  "Zermelo-Fraenkel set theory",
+  1930
  ],
  "SetTheory.mem_prod_iff": [
   "coordinates / cartesian product",
   1637
  ],
- "SetTheory.IsFunction": [
+ "NumberTheory.succ_injective": [
+  "the Peano axioms",
+  1889
+ ],
+ "SetTheory.opair_app_mem": [
+  "ordered pair from sets",
+  1914
+ ],
+ "SetTheory.opair_injective": [
+  "the ⟨a,b⟩ = {{a},{a,b}} encoding",
+  1921
+ ],
+ "PSet.mem_image_iff": [
+  "replacement",
+  1922
+ ],
+ "SetTheory.isFunction_union": [
   "function as arbitrary assignment",
   1837
  ],
@@ -39,12 +43,8 @@
   "recursive definition of + on ℕ",
   1861
  ],
- "SetTheory.opair": [
-  "ordered pair from sets",
-  1914
- ],
- "SetTheory.opair_injective": [
-  "the ⟨a,b⟩ = {{a},{a,b}} encoding",
-  1921
+ "PSet.ordAdd_congr": [
+  "cardinal and ordinal numbers",
+  1895
  ]
 }
