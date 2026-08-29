@@ -197,6 +197,11 @@ theorem empty_mem_omega : empty.{u} ∈ omega.{u} := PSet.empty_mem_omega
 #print axioms mem_sUnion_iff     -- UNION
 #print axioms mem_powerset_iff   -- POWER SET
 #print axioms mem_sep_iff        -- SEPARATION, hypothesis-free
+#print axioms pair             -- PAIRING, as the constructor
+#print axioms powerset         -- POWER SET, as the constructor
+#print axioms sep              -- SEPARATION, as the constructor
+#print axioms omega            -- INFINITY, as the constructor
+
 end SetTheory
 
 namespace ZFSet

@@ -17,4 +17,6 @@ import FromAxioms.SetTheory.Pair
 import FromAxioms.SetTheory.Hierarchy
 import FromAxioms.SetTheory.LeastSearch
 import FromAxioms.SetTheory.Relation
+import FromAxioms.SetTheory.Cantor
 import FromAxioms.SetTheory.EquivClass
+import FromAxioms.SetTheory.OrdinalArith

@@ -19,7 +19,7 @@ encoding at all. The cartesian product then carves out of
 
 import FromAxioms.Algebra.Algebra
 
-universe u
+universe u v
 
 open Algebra
 namespace SetTheory
@@ -123,6 +123,13 @@ theorem opair_mem_prod {a b x y : ZFSet.{u}} (ha : a ∈ x) (hb : b ∈ y) :
     opair a b ∈ prod x y :=
   (mem_prod_iff _ x y).mpr ⟨a, ha, b, hb, rfl⟩
 
+theorem mem_map_of_maps {α : Type v} {R : ZFSet.{u}} {F : α → ZFSet.{u}}
+    (xs : List α) (hF : ∀ a, a ∈ xs → F a ∈ R) :
+    ∀ w, w ∈ xs.map F → w ∈ R := by
+  intro w hw
+  obtain ⟨b, hb, rfl⟩ := List.mem_map.mp hw
+  exact hF b hb
+
 theorem mem_prod_left {a b x y : ZFSet.{u}} (h : opair a b ∈ prod x y) : a ∈ x := by
   obtain ⟨a', ha', b', hb', he⟩ := (mem_prod_iff _ x y).mp h
   obtain ⟨rfl, rfl⟩ := opair_injective he
@@ -193,6 +200,9 @@ def snd (p : ZFSet.{u}) : ZFSet.{u} :=
   rw [snd, hsep, sUnion_singleton]
 
 #print axioms opair_injective
+#print axioms opair_eq_opair_iff
+#print axioms opair
+#print axioms prod
 #print axioms fst_opair
 #print axioms snd_opair
 #print axioms mem_prod_iff
@@ -242,5 +252,5 @@ theorem mem_pairRel_iff {X a b c d : ZFSet.{u}}
 end SetTheory
 
 namespace ZFSet
-export SetTheory (empty_prod fst fst_mem_sUnion fst_opair mem_opair_iff mem_pairRel_iff mem_prod_iff mem_prod_left mem_prod_right opair opair_eq_opair_iff opair_injective opair_mem_powerset opair_mem_prod pair_comm pair_eq_pair_iff pair_eq_singleton_iff pair_self prod prod_empty snd snd_mem_sUnion snd_opair)
+export SetTheory (empty_prod fst fst_mem_sUnion fst_opair mem_map_of_maps mem_opair_iff mem_pairRel_iff mem_prod_iff mem_prod_left mem_prod_right opair opair_eq_opair_iff opair_injective opair_mem_powerset opair_mem_prod pair_comm pair_eq_pair_iff pair_eq_singleton_iff pair_self prod prod_empty snd snd_mem_sUnion snd_opair)
 end ZFSet

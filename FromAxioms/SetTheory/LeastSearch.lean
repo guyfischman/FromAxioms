@@ -30,6 +30,7 @@ again a union of a singleton -- so it rests on nothing above `Algebra.lean`,
 and a file wanting a two-way branch need not import the tower to get one.
 -/
 
+import FromAxioms.Algebra.Algebra
 import FromAxioms.Core.NatSearch
 import FromAxioms.NumberTheory.Natural
 
@@ -118,5 +119,5 @@ def condP (P : Prop) (A B : ZFSet.{u}) : ZFSet.{u} :=
 end SetTheory
 
 namespace ZFSet
-export SetTheory (Detachable condP least least_mem nat_least nat_least_le)
+export SetTheory (Detachable condP least least_mem nat_least)
 end ZFSet

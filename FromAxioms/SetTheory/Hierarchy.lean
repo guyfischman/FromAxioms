@@ -25,7 +25,7 @@ well-foundedness that classical set theory assumes in order to build this
 hierarchy was already a theorem here.
 -/
 
-import FromAxioms.NumberTheory.Natural
+import FromAxioms.SetTheory.ZFSet
 
 universe u
 
@@ -50,7 +50,6 @@ theorem V_congr : ∀ {x y : PSet.{u}}, Equiv x y → Equiv (V x) (V y)
 
 end PSet
 
-open NumberTheory
 namespace SetTheory
 
 /-- The hierarchy on sets. -/
