@@ -13,3 +13,4 @@ import FromAxioms.NumberTheory.Natural
 import FromAxioms.NumberTheory.Arith
 import FromAxioms.NumberTheory.Integer
 import FromAxioms.NumberTheory.Prime
+import FromAxioms.NumberTheory.Rational

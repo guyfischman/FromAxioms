@@ -406,14 +406,448 @@ theorem choose_gt : ∀ n k : Nat, n < k → choose n k = 0
   | n + 1, k + 1, h => by
     rw [choose_succ_succ, choose_gt n k (by omega), choose_gt n (k + 1) (by omega)]
 
+theorem choose_self : ∀ n : Nat, choose n n = 1
+  | 0 => rfl
+  | n + 1 => by
+    rw [choose_succ_succ, choose_self n, choose_gt n (n + 1) (by omega)]
+
+theorem choose_one : ∀ n : Nat, choose n 1 = n
+  | 0 => rfl
+  | n + 1 => by
+    rw [choose_succ_succ, choose_zero, choose_one n]
+    omega
+
+/-- The identity behind `p ∣ C(p,k)`: `(n+1)·C(n,k) = C(n+1,k+1)·(k+1)`. -/
+theorem succ_mul_choose : ∀ n k : Nat, (n + 1) * choose n k = choose (n + 1) (k + 1) * (k + 1)
+  | 0, 0 => rfl
+  | 0, k + 1 => by
+    show 1 * choose 0 (k + 1) = choose 1 (k + 2) * (k + 2)
+    rw [show choose 0 (k + 1) = 0 from rfl, choose_gt 1 (k + 2) (by omega)]
+    omega
+  | n + 1, 0 => by
+    show (n + 2) * choose (n + 1) 0 = choose (n + 2) 1 * 1
+    rw [choose_zero, choose_one (n + 2)]
+  | n + 1, k + 1 => by
+    have h₁ := succ_mul_choose n k
+    have h₂ := succ_mul_choose n (k + 1)
+    have hX : choose (n + 1) (k + 1) = choose n k + choose n (k + 1) := rfl
+    have hY : choose (n + 2) (k + 1 + 1)
+        = choose (n + 1) (k + 1) + choose (n + 1) (k + 1 + 1) := rfl
+    show (n + 2) * choose (n + 1) (k + 1) = choose (n + 2) (k + 1 + 1) * (k + 1 + 1)
+    have e1 : (n + 2) * choose (n + 1) (k + 1)
+        = (n + 1) * choose (n + 1) (k + 1) + choose (n + 1) (k + 1) := by
+      rw [show n + 2 = (n + 1) + 1 by omega, Nat.add_mul, Nat.one_mul]
+    have e2 : (n + 1) * choose (n + 1) (k + 1)
+        = (n + 1) * choose n k + (n + 1) * choose n (k + 1) := by
+      rw [hX, Nat.mul_add]
+    have e3 : choose (n + 2) (k + 1 + 1) * (k + 1 + 1)
+        = choose (n + 1) (k + 1) * (k + 1 + 1)
+          + choose (n + 1) (k + 1 + 1) * (k + 1 + 1) := by
+      rw [hY, Nat.add_mul]
+    have e4 : choose (n + 1) (k + 1) * (k + 1 + 1)
+        = choose (n + 1) (k + 1) * (k + 1) + choose (n + 1) (k + 1) := by
+      rw [Nat.mul_add, Nat.mul_one]
+    omega
+
+
+/-- A prime divides its own binomial coefficients, away from the ends. -/
+theorem prime_dvd_choose {p k : Nat} (hp : IsPrime p) (hk : 0 < k) (hkp : k < p) :
+    Divides p (choose p k) := by
+  have hp2 := hp.left
+  obtain ⟨j, rfl⟩ : ∃ j, k = j + 1 := ⟨k - 1, by omega⟩
+  obtain ⟨q, rfl⟩ : ∃ q, p = q + 1 := ⟨p - 1, by omega⟩
+  -- `(q+1)·C(q,j) = C(q+1,j+1)·(j+1)`, so `p` divides the right side
+  have hid := succ_mul_choose q j
+  have hdvd : Divides (q + 1) (choose (q + 1) (j + 1) * (j + 1)) := ⟨choose q j, hid.symm⟩
+  refine coprime_divides (v := j + 1) ?_ ?_
+  · -- `p` and `j+1` are coprime, since `p` is prime and `j+1 < p`
+    refine gcd_eq_one_of_prime_not_divides hp (fun hd => ?_)
+    have := divides_le (show 0 < j + 1 by omega) hd
+    omega
+  · obtain ⟨w, hw⟩ := hdvd
+    exact ⟨w, by rw [← hw, Nat.mul_comm]⟩
+
+/-! ## Divisor sums, and a geometric bound
+
+The arithmetic half of counting irreducible polynomials: a sum over the proper
+divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, which is what makes the count
+of degree-`d` irreducibles positive. -/
+
+/-- The shifted cyclotomic polynomial satisfies Eisenstein's conditions at
+`p`.
+
+`Φp(x+1) = ((x+1)^p - 1)/x`, so its coefficient of `x^j` is `C(p, j+1)`. The
+three Eisenstein hypotheses are then binomial facts:
+
+* every coefficient below the top is divisible by `p` -- `prime_dvd_choose`;
+* the top one is `C(p,p) = 1`, which `p` does not divide;
+* the constant term is `C(p,1) = p`, which `p²` does not divide.
+
+Stated over the coefficient FUNCTION rather than over a polynomial object,
+because the substitution `x → x+1` does not exist in this tree and is not needed
+to state the conditions -- only to transfer the resulting irreducibility back to
+`Φp` itself, which is a separate rung. -/
+theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
+    (∀ j, j < p - 1 -> Divides p (choose p (j + 1)))
+      ∧ ¬ Divides p (choose p (p - 1 + 1))
+      ∧ choose p 1 = p
+      ∧ ¬ Divides (p * p) (choose p 1) := by
+  have hp2 : 2 <= p := hp.left
+  refine ⟨fun j hj => prime_dvd_choose hp (by omega) (by omega), ?_, choose_one p, ?_⟩
+  · have hpp : p - 1 + 1 = p := by omega
+    rw [hpp, choose_self p]
+    intro hcon
+    exact absurd (eq_one_of_divides_one hcon) (by omega)
+  · rw [choose_one p]
+    intro hcon
+    obtain ⟨c, hc⟩ := hcon
+    rcases Nat.eq_zero_or_pos c with rfl | hcp
+    · omega
+    · -- `p = p²c` with `c ≥ 1` forces `p ≥ p² ≥ 2p`, so `p ≤ 0`
+      have h1 : p * p <= p * p * c := by
+        have hstep := Nat.mul_le_mul_left (p * p) hcp
+        rw [Nat.mul_one] at hstep
+        exact hstep
+      have h2 : 2 * p <= p * p := Nat.mul_le_mul_right p hp2
+      omega
+
 #print axioms isPrime_minFac
 #print axioms bezout
 #print axioms prime_divides_mul
 #print axioms coprime_divides
+#print axioms prime_dvd_choose
+#print axioms cyclotomicShift_eisenstein
 #print axioms exists_factorization
+/-! ### Summing over the indices, continued -/
+
+/-- `2` is prime: a divisor at least `2` cannot exceed it. -/
+theorem isPrime_two : IsPrime 2 := by
+  refine ⟨by omega, fun d hd hdvd => ?_⟩
+  obtain ⟨c, hc⟩ := hdvd
+  rcases Nat.eq_zero_or_pos c with h0 | hcp
+  · rw [h0, Nat.mul_zero] at hc; omega
+  · have : d * 1 ≤ d * c := Nat.mul_le_mul_left d hcp
+    omega
+
+#print axioms isPrime_two
+/-! ## The Eisenstein integers
+
+`ℤ[ω]` with `ω` a primitive cube root of `1`, so `ω² = -ω - 1`. Written as a
+pair of integers `a + bω`, which makes multiplication
+
+    (a + bω)(c + dω) = ac + (ad + bc)ω + bd ω²
+                     = (ac - bd) + (ad + bc - bd)ω
+
+The second case of Fermat for `n = 3` is a descent in this ring; the norm below
+is what turns that descent into one on the naturals. -/
+
+structure Eis where
+  re : Int
+  im : Int
+
 namespace Eis
 
+def zero : Eis := ⟨0, 0⟩
+def one : Eis := ⟨1, 0⟩
+def omega : Eis := ⟨0, 1⟩
+
+def mul (x y : Eis) : Eis :=
+  ⟨x.re * y.re - x.im * y.im,
+   x.re * y.im + x.im * y.re - x.im * y.im⟩
+
+/-- The field norm `N(a + bω) = a² - ab + b²`, which is `(a + bω)` times its
+conjugate. It is never negative -- `4N = (2a - b)² + 3b²` -- so it lands in the
+naturals and a descent on it terminates. -/
+def norm (x : Eis) : Int := x.re * x.re - x.re * x.im + x.im * x.im
+
+private theorem int_sq_nonneg (a : Int) : 0 <= a * a := by
+  rcases Int.lt_or_le a 0 with h | h
+  · rw [← Int.neg_mul_neg]
+    exact Int.mul_nonneg (by omega) (by omega)
+  · exact Int.mul_nonneg h h
+
+private theorem int_sq_eq_zero {a : Int} (h : a * a = 0) : a = 0 := by
+  rcases Int.mul_eq_zero.mp h with h' | h' <;> exact h'
+
+/-- `(a - b)² = a² - 2ab + b²`, expanded so that only products of the two
+variables appear -- no numeral is multiplied into a product, which is what lets
+`omega` finish from here treating each product as an atom. -/
+private theorem sq_sub_expand (a b : Int) :
+    (a - b) * (a - b) = a * a - (a * b + a * b) + b * b := by
+  rw [Int.sub_mul, Int.mul_sub, Int.mul_sub]
+  have hc : b * a = a * b := Int.mul_comm b a
+  omega
+
+/-- `N(a + bω) = (a - b)² + ab`, which is the split the sign of `ab` decides. -/
+private theorem norm_split (x : Eis) :
+    norm x = (x.re - x.im) * (x.re - x.im) + x.re * x.im := by
+  rw [sq_sub_expand]; simp [norm]; omega
+
+theorem norm_nonneg (x : Eis) : 0 <= norm x := by
+  rcases Int.lt_or_le (x.re * x.im) 0 with h | h
+  · have h1 := int_sq_nonneg x.re
+    have h2 := int_sq_nonneg x.im
+    simp [norm]; omega
+  · have h1 := int_sq_nonneg (x.re - x.im)
+    rw [norm_split]; omega
+
+/-- The norm is multiplicative, so a factorisation in `ℤ[ω]` becomes a
+factorisation of a natural number, in which a proper factor is strictly
+smaller. This is what makes the descent terminate. -/
+theorem norm_mul (x y : Eis) : norm (mul x y) = norm x * norm y := by
+  simp [norm, mul, Int.sub_mul, Int.mul_sub, Int.mul_add, Int.add_mul,
+    Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
+  omega
+
+theorem norm_eq_zero {x : Eis} (h : norm x = 0) : x.re = 0 ∧ x.im = 0 := by
+  rcases Int.lt_or_le (x.re * x.im) 0 with hs | hs
+  · exfalso
+    have h1 := int_sq_nonneg x.re
+    have h2 := int_sq_nonneg x.im
+    simp [norm] at h; omega
+  · have h1 := int_sq_nonneg (x.re - x.im)
+    rw [norm_split] at h
+    have hd : (x.re - x.im) * (x.re - x.im) = 0 := by omega
+    have hp : x.re * x.im = 0 := by omega
+    have hdz : x.re - x.im = 0 := int_sq_eq_zero hd
+    rcases Int.mul_eq_zero.mp hp with hz | hz
+    · exact ⟨hz, by omega⟩
+    · exact ⟨by omega, hz⟩
+
+/-! ### The ring laws, and the six units
+
+`ℤ[ω]` is a commutative ring, and its units are exactly the six elements of
+norm `1`: `±1, ±ω, ±ω²`. The descent for `n = 3` runs modulo those, so the
+finiteness is what makes the case analysis terminate. -/
+
+theorem mul_comm (x y : Eis) : mul x y = mul y x := by
+  simp [mul, Int.mul_comm]; omega
+
+theorem mul_assoc (x y z : Eis) : mul (mul x y) z = mul x (mul y z) := by
+  simp [mul, Int.sub_mul, Int.mul_sub, Int.mul_add, Int.add_mul,
+    Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
+  exact ⟨by omega, by omega⟩
+
+/-! ### Conjugation, and the road to division with remainder
+
+`x * conj x = N(x)`, so dividing by `x` is dividing by the integer `N(x)` after
+multiplying by the conjugate. That is the whole content of the Euclidean
+algorithm here; what remains is rounding, and the geometric fact that the
+hexagonal lattice's covering radius is under `1`. -/
+
+def conj (x : Eis) : Eis := ⟨x.re - x.im, -x.im⟩
+
+def ofInt (n : Int) : Eis := ⟨n, 0⟩
+
+theorem mul_conj (x : Eis) : mul x (conj x) = ofInt (norm x) := by
+  simp [mul, conj, ofInt, norm, Int.mul_sub, Int.mul_neg, Int.neg_neg]
+  have hc : x.im * x.re = x.re * x.im := Int.mul_comm x.im x.re
+  omega
+
+theorem norm_conj (x : Eis) : norm (conj x) = norm x := by
+  simp [norm, conj, Int.mul_sub,
+    Int.mul_neg, Int.neg_mul, Int.neg_neg, Int.mul_comm]
+
+/-- Cancellation: `ℤ[ω]` has no zero divisors, because the norm has none in
+`ℤ`. The descent needs this to know a proper factor is proper. -/
+theorem eq_zero_of_mul_eq_zero {x y : Eis} (h : mul x y = zero)
+    (hx : ¬ (x.re = 0 ∧ x.im = 0)) : y.re = 0 ∧ y.im = 0 := by
+  have hn : norm x * norm y = 0 := by
+    rw [← norm_mul, h]; simp [norm, zero]
+  rcases Int.mul_eq_zero.mp hn with h' | h'
+  · exact absurd (norm_eq_zero h') hx
+  · exact norm_eq_zero h'
+
+/-! ### The Euclidean property
+
+`x = q·y + r` with `N(r) < N(y)`. The quotient rounds `x·conj y` coordinatewise
+by `N(y)`; the remainder's norm then satisfies `N(r)·N(y) = N(x·conj y - N(y)·q)`,
+which the covering bound puts under `N(y)²`. -/
+
+def sub (x y : Eis) : Eis := ⟨x.re - y.re, x.im - y.im⟩
+
+theorem mul_ofInt (a : Eis) (n : Int) : mul a (ofInt n) = ⟨a.re * n, a.im * n⟩ := by
+  simp [mul, ofInt]
+
+/-! ### `λ = 1 - ω`, the ramified prime above 3
+
+`N(λ) = 3`, and `3 = -ω² λ²` up to a unit: the rational prime `3` ramifies. The
+descent for `n = 3` is a descent on the power of `λ` dividing one of the three
+terms, which is why this element and not `3` is the right object. -/
+
+def lam : Eis := ⟨1, -1⟩
+
+/-! ### Divisibility, and the descent the Euclidean property licenses -/
+
+def Dvd (d x : Eis) : Prop := ∃ k : Eis, x = mul d k
+
+/-! ### Cubes modulo `λ⁴`
+
+The `n = 3` descent turns on one congruence: a cube prime to `λ` is `±1` modulo
+`λ⁴`. That is the Eisenstein analogue of cubes are `0, ±1` mod `9` -- indeed
+`λ⁴` has norm `81` and `9` is `-ω²λ²` up to a unit -- and it is what makes the
+sum of three such cubes impossible.
+
+The residues are recorded here as a divisibility statement rather than as a
+quotient ring, so nothing is constructed that a descent does not use. -/
+
+/-- `λ` divides `a + bω` exactly when `3` divides `a + b`.
+
+Mod `λ` we have `ω ≡ 1`, so `a + bω ≡ a + b`; and the rational integers `λ`
+divides are exactly the multiples of `3`. Both directions are computations:
+`λ·(c + dω) = (c + d) + (2d - c)ω`, whose coordinate sum is `3d`, and
+conversely `a + b = 3m` is solved by `c = a - m`, `d = m`.
+
+This makes `λ`-divisibility DECIDABLE by an integer test, which is what turns
+the descent's case analysis into arithmetic rather than search. -/
+theorem lam_dvd_iff {x : Eis} :
+    Dvd lam x ↔ ∃ m : Int, x.re + x.im = 3 * m := by
+  obtain ⟨a, b⟩ := x
+  constructor
+  · intro h
+    obtain ⟨k, hk⟩ := h
+    refine ⟨k.im, ?_⟩
+    rw [hk]
+    simp [mul, lam]
+    omega
+  · intro h
+    obtain ⟨m, hm⟩ := h
+    refine ⟨⟨a - m, m⟩, ?_⟩
+    simp [mul, lam] at hm ⊢
+    omega
+
+#print axioms norm_nonneg
+#print axioms norm_mul
+#print axioms norm_eq_zero
 #print axioms mul_comm
+#print axioms mul_assoc
+#print axioms mul_conj
+#print axioms norm_conj
+#print axioms eq_zero_of_mul_eq_zero
+#print axioms lam_dvd_iff
+/-! ### The cube congruence
+
+`x³ ≡ ±1 (mod λ⁴)` for `x` prime to `λ`. The coordinates make it finite:
+
+    (a + bω)³ = (a³ - 3ab² + b³) + 3ab(a - b)·ω -/
+
+theorem mul_sub (a b c : Eis) : mul a (sub b c) = sub (mul a b) (mul a c) := by
+  simp [sub, mul, Int.mul_sub]
+  exact ⟨by omega, by omega⟩
+
+theorem ext_of_coords {a b : Eis} (hr : a.re = b.re) (hi : a.im = b.im) : a = b := by
+  obtain ⟨p, q⟩ := a
+  obtain ⟨r, s⟩ := b
+  simp at hr hi
+  simp [hr, hi]
+
+/-- Cancellation. `ℤ[ω]` has no zero divisors, so a non-zero factor may be
+struck from both sides -- which is what turns `λ⁴ ∣ λ³w³` into `λ ∣ w³`. -/
+theorem eq_of_mul_left_cancel {a b c : Eis}
+    (ha : ¬ (a.re = 0 ∧ a.im = 0)) (h : mul a b = mul a c) : b = c := by
+  have hz : mul a (sub b c) = zero := by
+    rw [mul_sub, h]
+    simp [sub, zero]
+  obtain ⟨h1, h2⟩ := eq_zero_of_mul_eq_zero hz ha
+  simp [sub] at h1 h2
+  exact ext_of_coords (by omega) (by omega)
+
+/-! ### Discharging the split decision
+
+A hypothesis that could be a theorem makes the price look higher than it is,
+which is the opposite of what the measurements here are for. -/
+
+/-- Divisibility in `ℤ[ω]` is DECIDABLE, by the same route `lam_dvd_iff`
+takes for `λ`: `a ∣ x` exactly when `N(a)` divides both coordinates of
+`x · conj a`, which is a question about two integers.
+
+This is the step that makes the split search decidable rather than merely
+finite, and it needs `a ≠ 0` -- nothing divides by zero. -/
+theorem dvd_iff_norm_dvd_coords {a x : Eis}
+    (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
+    Dvd a x ↔ (∃ p : Int, (mul x (conj a)).re = norm a * p)
+              ∧ (∃ q : Int, (mul x (conj a)).im = norm a * q) := by
+  constructor
+  · rintro ⟨k, rfl⟩
+    -- `(a k) · conj a = k · (a · conj a) = k · N(a)`
+    have h : mul (mul a k) (conj a) = mul k (ofInt (norm a)) := by
+      rw [mul_comm a k, mul_assoc, mul_conj]
+    rw [h, mul_ofInt]
+    exact ⟨⟨k.re, by simp [Int.mul_comm]⟩, ⟨k.im, by simp [Int.mul_comm]⟩⟩
+  · rintro ⟨⟨p, hp⟩, ⟨q, hq⟩⟩
+    -- `x · conj a = N(a) · ⟨p,q⟩`, and cancelling `conj a` leaves `x = a⟨p,q⟩`
+    refine ⟨⟨p, q⟩, ?_⟩
+    have hn : norm a ≠ 0 := fun h0 => ha (norm_eq_zero h0)
+    refine eq_of_mul_left_cancel (a := conj a) ?_ ?_
+    · intro ⟨h1, h2⟩
+      refine ha ?_
+      have : norm (conj a) = 0 := by simp [norm, h1, h2]
+      rw [norm_conj] at this
+      exact norm_eq_zero this
+    · -- both sides equal `⟨N(a)·p, N(a)·q⟩`; computed separately so neither
+      -- rewrite has to match a shape the other has already changed
+      have hl : mul (conj a) x = ⟨norm a * p, norm a * q⟩ := by
+        rw [mul_comm (conj a) x]
+        exact ext_of_coords hp hq
+      have hr : mul (conj a) (mul a ⟨p, q⟩) = ⟨norm a * p, norm a * q⟩ := by
+        rw [← mul_assoc, mul_comm (conj a) a, mul_conj]
+        refine ext_of_coords ?_ ?_ <;> simp [mul, ofInt] <;> omega
+      rw [hl, hr]
+
+/-- Testing one candidate is a decision, not a search. `a ∣ x` reduces to two
+integer divisibility questions by `dvd_iff_norm_dvd_coords`, and integer
+divisibility is decidable by a remainder -- so the enumeration's inner step
+needs no principle.
+
+Stated as the disjunction the search consumes, so the outer loop can branch on
+it without reaching for `em`. -/
+theorem dvd_or_not (a x : Eis) (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
+    Dvd a x ∨ ¬ Dvd a x := by
+  have hn0 : norm a ≠ 0 := fun h0 => ha (norm_eq_zero h0)
+  have hnp : 0 < norm a := by have := norm_nonneg a; omega
+  have hd := Int.mul_ediv_add_emod (mul x (conj a)).re (norm a)
+  have he := Int.mul_ediv_add_emod (mul x (conj a)).im (norm a)
+  have hr0 : 0 <= (mul x (conj a)).re % norm a := Int.emod_nonneg _ hn0
+  have hi0 : 0 <= (mul x (conj a)).im % norm a := Int.emod_nonneg _ hn0
+  -- `Int.lt_or_le`, never `by omega : _ ∨ _`: omega on a DISJUNCTION routes
+  -- through `Classical.em` and only the audit line tells the two apart.
+  rcases Int.lt_or_le 0 ((mul x (conj a)).re % norm a) with hre | hre
+  · exact Or.inr (fun hdv => by
+      obtain ⟨⟨u, hu⟩, _⟩ := (dvd_iff_norm_dvd_coords ha).mp hdv
+      -- `(N a * u) % N a = 0` is the fact omega cannot derive: it would have to
+      -- relate two products, which is outside linear arithmetic.
+      have hz : (mul x (conj a)).re % norm a = 0 := by
+        rw [hu]; exact Int.mul_emod_right _ _
+      rw [hz] at hre
+      exact Int.lt_irrefl 0 hre)
+  · rcases Int.lt_or_le 0 ((mul x (conj a)).im % norm a) with him | him
+    · exact Or.inr (fun hdv => by
+        obtain ⟨_, ⟨v, hv⟩⟩ := (dvd_iff_norm_dvd_coords ha).mp hdv
+        have hz : (mul x (conj a)).im % norm a = 0 := by
+          rw [hv]; exact Int.mul_emod_right _ _
+        rw [hz] at him
+        exact Int.lt_irrefl 0 him)
+    · -- The two components are built SEPARATELY and the division is never
+      -- handed to `omega`: it interprets `/` and `%` by CONSTANTS only, and by
+      -- a variable it reaches for a classical route -- the audit line was
+      -- `[propext, Classical.choice, Quot.sound]` until this was split out.
+      -- `Int.le_antisymm`, not `omega`: the remainders are bounded above and
+      -- below already, and handing omega a `%` by a VARIABLE is what pulled
+      -- `Classical.choice` into the audit line. It interprets `/` and `%` by
+      -- CONSTANTS only; by a variable it takes a classical route and nothing
+      -- about the proof text shows it.
+      have hre0 : (mul x (conj a)).re % norm a = 0 := Int.le_antisymm hre hr0
+      have him0 : (mul x (conj a)).im % norm a = 0 := Int.le_antisymm him hi0
+      rw [hre0, Int.add_zero] at hd
+      rw [him0, Int.add_zero] at he
+      exact Or.inl ((dvd_iff_norm_dvd_coords ha).mpr
+        ⟨⟨(mul x (conj a)).re / norm a, hd.symm⟩,
+         ⟨(mul x (conj a)).im / norm a, he.symm⟩⟩)
+
+#print axioms mul_sub
+#print axioms eq_of_mul_left_cancel
+#print axioms dvd_iff_norm_dvd_coords
+#print axioms dvd_or_not
 #print axioms add_comm
 end Eis
 
@@ -423,5 +857,5 @@ end Eis
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet IsFactorization IsPrime bezout choose choose_gt choose_succ_succ choose_zero coprime_divides divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prodList)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_dvd_choose prodList succ_mul_choose)
 end ZFSet
