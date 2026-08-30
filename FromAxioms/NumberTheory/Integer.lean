@@ -692,6 +692,357 @@ theorem intMul_mem_intPositive {z w : ZFSet.{u}} (hz : z ∈ intPositive.{u})
   simp only [Nat.add_mul, Nat.mul_add]
   omega
 
+theorem intAdd_le_add_left_iff {k x y : ZFSet.{u}} (hk : k ∈ Int.{u}) (hx : x ∈ Int.{u})
+    (hy : y ∈ Int.{u}) : intLe (intAdd k x) (intAdd k y) ↔ intLe x y := by
+  obtain ⟨p, hp, q, hq, rfl⟩ := (mem_Int_iff k).mp hk
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff x).mp hx
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff y).mp hy
+  obtain ⟨np, rfl⟩ := (mem_omega_iff p).mp hp
+  obtain ⟨nq, rfl⟩ := (mem_omega_iff q).mp hq
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨nc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨nd, rfl⟩ := (mem_omega_iff d).mp hd
+  rw [intAdd_intOf hp hq ha hb, intAdd_intOf hp hq hc hd]
+  simp only [add_ofNat, intLe_ofNat]
+  -- `omega` on the `↔` itself would route through `Classical.em`; each
+  -- direction separately stays constructive.
+  exact ⟨fun h => by omega, fun h => by omega⟩
+
+/-! ### The natural numbers inside ℤ
+
+`intOfNat` is the ladder that makes ℤ -- and then ℚ -- Archimedean: every
+integer is below some `intOfNat n`, and multiplying that by a positive integer
+only moves it further up. -/
+
+def intOfNat (n : Nat) : ZFSet.{u} := intOf (ofNat.{u} n) empty.{u}
+
+theorem intOfNat_mem_Int (n : Nat) : intOfNat.{u} n ∈ Int.{u} :=
+  intOf_mem_Int (ofNat_mem_omega n) empty_mem_omega
+
+theorem intOne_le_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{u}) :
+    intLe intOne.{u} z := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp (intPositive_subset _ hz)
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  have h := intPositive_ofNat hz
+  rw [intOne, ← ofNat_zero, intLe_ofNat]
+  omega
+
+/-- `intOne` and `intOfNat 1` are the same term. Both unfold to
+`intOf (ofNat 1) empty`, so this is `rfl` -- but nothing said so, and a lemma
+stated with `intOne` silently fails to meet `intOfNat_add` and the other
+conversion lemmas, whose entry point is `intOfNat`. -/
+theorem intOne_eq_intOfNat_one : intOne.{u} = intOfNat.{u} 1 := rfl
+
+#print axioms intOne_eq_intOfNat_one
+
+theorem intOfNat_succ (n : Nat) :
+    intOfNat.{u} (n + 1) = intAdd (intOfNat.{u} n) intOne.{u} := by
+  rw [intOfNat, intOfNat, intOne, intAdd_intOf (ofNat_mem_omega n) empty_mem_omega
+    (ofNat_mem_omega 1) empty_mem_omega, add_ofNat, add_empty]
+
+@[simp] theorem intOfNat_zero : intOfNat.{u} 0 = intZero.{u} := by
+  rw [intOfNat, intZero, ofNat_zero]
+
+theorem intPositive_of_intZero_le {z : ZFSet.{u}} (hz : z ∈ Int.{u})
+    (h : intLe intZero.{u} z) (hne : z ≠ intZero.{u}) : z ∈ intPositive.{u} := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  rw [intZero, ← ofNat_zero, intLe_ofNat] at h
+  refine ofNat_mem_intPositive ?_
+  rcases Nat.eq_or_lt_of_le h with heq | hlt
+  · exact absurd (by
+      rw [intZero, ← ofNat_zero]
+      refine (intOf_eq_intOf_iff (ofNat_mem_omega _) (ofNat_mem_omega _)
+        (ofNat_mem_omega 0) (ofNat_mem_omega 0)).mpr ?_
+      rw [add_ofNat, add_ofNat]
+      exact congrArg ofNat (by omega)) hne
+  · omega
+
+/-- Archimedes for ℤ: every integer is strictly below some `n · d` with `d`
+positive and `n` a natural number. -/
+theorem int_lt_intOfNat_mul {z d : ZFSet.{u}} (hz : z ∈ Int.{u}) (hd : d ∈ intPositive.{u}) :
+    ∃ n : Nat, intLe z (intMul (intOfNat.{u} n) d) ∧ z ≠ intMul (intOfNat.{u} n) d := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨c, hc, e, he, rfl⟩ := (mem_Int_iff _).mp (intPositive_subset _ hd)
+  obtain ⟨za, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨zb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨dc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨de, rfl⟩ := (mem_omega_iff e).mp he
+  have hlt := intPositive_ofNat hd
+  refine ⟨za + 1, ?_, ?_⟩ <;>
+    rw [intOfNat, ← ofNat_zero, intMul_intOf (ofNat_mem_omega _) (ofNat_mem_omega 0) hc he] <;>
+    simp only [mul_ofNat, add_ofNat]
+  · rw [intLe_ofNat]
+    have step : (za + 1) * de + (za + 1) ≤ (za + 1) * dc := by
+      have h₁ : (za + 1) * (de + 1) ≤ (za + 1) * dc :=
+        Nat.mul_le_mul_left (za + 1) (by omega)
+      rw [Nat.mul_succ] at h₁
+      omega
+    omega
+  · intro heq
+    rw [intOf_eq_intOf_iff (ofNat_mem_omega _) (ofNat_mem_omega _)
+      (ofNat_mem_omega _) (ofNat_mem_omega _), add_ofNat, add_ofNat] at heq
+    have hn := ofNat_injective heq
+    have step : (za + 1) * de + (za + 1) ≤ (za + 1) * dc := by
+      have h₁ : (za + 1) * (de + 1) ≤ (za + 1) * dc :=
+        Nat.mul_le_mul_left (za + 1) (by omega)
+      rw [Nat.mul_succ] at h₁
+      omega
+    omega
+
+theorem intAdd_le_add_right_iff {k x y : ZFSet.{u}} (hk : k ∈ Int.{u}) (hx : x ∈ Int.{u})
+    (hy : y ∈ Int.{u}) : intLe (intAdd x k) (intAdd y k) ↔ intLe x y := by
+  rw [intAdd_comm hx hk, intAdd_comm hy hk]
+  exact intAdd_le_add_left_iff hk hx hy
+
+theorem intAdd_right_cancel {k x y : ZFSet.{u}} (hk : k ∈ Int.{u}) (hx : x ∈ Int.{u})
+    (hy : y ∈ Int.{u}) (h : intAdd x k = intAdd y k) : x = y := by
+  rw [intAdd_comm hx hk, intAdd_comm hy hk] at h
+  exact intAdd_left_cancel hk hx hy h
+
+theorem intZero_le_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{u}) :
+    intLe intZero.{u} z := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp (intPositive_subset _ hz)
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  have h := intPositive_ofNat hz
+  rw [intZero, ← ofNat_zero, intLe_ofNat]
+  omega
+
+theorem intNeg_eq_zero_iff {z : ZFSet.{u}} (hz : z ∈ Int.{u}) :
+    intNeg z = intZero.{u} ↔ z = intZero.{u} := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  rw [intNeg_intOf ha hb, intZero,
+      intOf_eq_intOf_iff hb ha empty_mem_omega empty_mem_omega,
+      intOf_eq_intOf_iff ha hb empty_mem_omega empty_mem_omega,
+      add_empty, add_empty, empty_add ha, empty_add hb]
+  exact ⟨fun h => h.symm, fun h => h.symm⟩
+
+theorem intLe_neg_zero_iff {z : ZFSet.{u}} (hz : z ∈ Int.{u}) :
+    intLe (intNeg z) intZero.{u} ↔ intLe intZero.{u} z := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  rw [intNeg_intOf ha hb, intZero, ← ofNat_zero, intLe_ofNat, intLe_ofNat]
+  exact ⟨fun h => by omega, fun h => by omega⟩
+
+theorem intMul_ne_zero {z w : ZFSet.{u}} (hz : z ∈ Int.{u}) (hw : w ∈ Int.{u})
+    (hz0 : z ≠ intZero.{u}) (hw0 : w ≠ intZero.{u}) : intMul z w ≠ intZero.{u} := by
+  intro h
+  exact hw0 (intMul_left_cancel hz hw intZero_mem_Int hz0 (by rw [h, intMul_zero hz]))
+
+/-- Trichotomy on ℤ: a nonzero integer is positive or its negation is. Both
+sides are decided at the level of `Nat`, so no excluded middle is involved. -/
+theorem intPositive_or_neg {z : ZFSet.{u}} (hz : z ∈ Int.{u}) (h : z ≠ intZero.{u}) :
+    z ∈ intPositive.{u} ∨ intNeg z ∈ intPositive.{u} := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  have hne : na ≠ nb := by
+    intro he
+    refine h ?_
+    rw [intZero]
+    refine (intOf_eq_intOf_iff ha hb empty_mem_omega empty_mem_omega).mpr ?_
+    rw [add_empty, empty_add hb, he]
+  rcases Nat.lt_or_ge na nb with hlt | hge
+  · rw [intNeg_intOf ha hb]
+    exact Or.inr (ofNat_mem_intPositive hlt)
+  · exact Or.inl (ofNat_mem_intPositive (by omega))
+
+/-- Multiplying by a non-negative integer preserves `≤`. Only the strictly
+positive case can reflect it, which is `intMul_le_mul_right_iff` below. -/
+theorem intMul_le_mul_right {x y k : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈ Int.{u})
+    (hk : k ∈ Int.{u}) (hk0 : intLe intZero.{u} k) (h : intLe x y) :
+    intLe (intMul x k) (intMul y k) := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff x).mp hx
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff y).mp hy
+  obtain ⟨p, hp, q, hq, rfl⟩ := (mem_Int_iff k).mp hk
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨nc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨nd, rfl⟩ := (mem_omega_iff d).mp hd
+  obtain ⟨np, rfl⟩ := (mem_omega_iff p).mp hp
+  obtain ⟨nq, rfl⟩ := (mem_omega_iff q).mp hq
+  rw [intZero, ← ofNat_zero, intLe_ofNat] at hk0
+  rw [intLe_ofNat] at h
+  rw [intMul_intOf ha hb hp hq, intMul_intOf hc hd hp hq]
+  simp only [mul_ofNat, add_ofNat, intLe_ofNat]
+  have c1 : na * np = np * na := Nat.mul_comm _ _
+  have c2 : nb * nq = nq * nb := Nat.mul_comm _ _
+  have c3 : nc * nq = nq * nc := Nat.mul_comm _ _
+  have c4 : nd * np = np * nd := Nat.mul_comm _ _
+  have c5 : nc * np = np * nc := Nat.mul_comm _ _
+  have c6 : nd * nq = nq * nd := Nat.mul_comm _ _
+  have c7 : na * nq = nq * na := Nat.mul_comm _ _
+  have c8 : nb * np = np * nb := Nat.mul_comm _ _
+  have hm := nat_le_mul (X := na + nd) (Y := nc + nb) (show nq ≤ np by omega) h
+  simp only [Nat.mul_add] at hm
+  omega
+
+/-- Multiplying by a positive integer both preserves and reflects `≤`. This is
+what makes the order on ℚ well defined. -/
+theorem intMul_le_mul_right_iff {x y k : ZFSet.{u}} (hx : x ∈ Int.{u})
+    (hy : y ∈ Int.{u}) (hk : k ∈ intPositive.{u}) :
+    intLe (intMul x k) (intMul y k) ↔ intLe x y := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff x).mp hx
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff y).mp hy
+  obtain ⟨p, hp, q, hq, rfl⟩ := (mem_Int_iff _).mp (intPositive_subset _ hk)
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨nc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨nd, rfl⟩ := (mem_omega_iff d).mp hd
+  obtain ⟨np, rfl⟩ := (mem_omega_iff p).mp hp
+  obtain ⟨nq, rfl⟩ := (mem_omega_iff q).mp hq
+  have hlt := intPositive_ofNat hk
+  rw [intMul_intOf ha hb hp hq, intMul_intOf hc hd hp hq]
+  simp only [mul_ofNat, add_ofNat, intLe_ofNat]
+  -- `omega` sees `na * np` and `np * na` as unrelated atoms, so the
+  -- commutations have to be supplied explicitly.
+  have c1 : na * np = np * na := Nat.mul_comm _ _
+  have c2 : nb * nq = nq * nb := Nat.mul_comm _ _
+  have c3 : nc * nq = nq * nc := Nat.mul_comm _ _
+  have c4 : nd * np = np * nd := Nat.mul_comm _ _
+  have c5 : nc * np = np * nc := Nat.mul_comm _ _
+  have c6 : nd * nq = nq * nd := Nat.mul_comm _ _
+  have c7 : na * nq = nq * na := Nat.mul_comm _ _
+  have c8 : nb * np = np * nb := Nat.mul_comm _ _
+  constructor
+  · intro h
+    refine nat_le_cancel hlt ?_
+    simp only [Nat.mul_add]
+    omega
+  · intro h
+    have hm := nat_le_mul (X := na + nd) (Y := nc + nb) (Nat.le_of_lt hlt) h
+    simp only [Nat.mul_add] at hm
+    omega
+
+/-- Equality of integers reduces to an equality of naturals, which `Nat.decEq`
+decides. Trichotomy on ℤ therefore costs nothing. -/
+theorem int_eq_or_ne {z w : ZFSet.{u}} (hz : z ∈ Int.{u}) (hw : w ∈ Int.{u}) :
+    z = w ∨ z ≠ w := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff w).mp hw
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨nc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨nd, rfl⟩ := (mem_omega_iff d).mp hd
+  have key : intOf (ofNat.{u} na) (ofNat.{u} nb) = intOf (ofNat.{u} nc) (ofNat.{u} nd)
+      ↔ na + nd = nc + nb := by
+    rw [intOf_eq_intOf_iff ha hb hc hd, add_ofNat, add_ofNat]
+    exact ⟨fun h => ofNat_injective h, fun h => congrArg ofNat h⟩
+  rcases Nat.decEq (na + nd) (nc + nb) with h | h
+  · exact Or.inr fun he => h (key.mp he)
+  · exact Or.inl (key.mpr h)
+
+/-! ## Naturals as integers
+
+`intOfNat` is a ring map on the non-negative part. Everything downstream that
+wants to do integer arithmetic in `Nat` goes through these. -/
+
+theorem intOfNat_add (m n : Nat) :
+    intAdd (intOfNat.{u} m) (intOfNat.{u} n) = intOfNat.{u} (m + n) := by
+  rw [intOfNat, intOfNat, intOfNat, intAdd_intOf (ofNat_mem_omega m) empty_mem_omega
+    (ofNat_mem_omega n) empty_mem_omega, add_ofNat, add_empty]
+
+theorem intOfNat_mul (m n : Nat) :
+    intMul (intOfNat.{u} m) (intOfNat.{u} n) = intOfNat.{u} (m * n) := by
+  rw [intOfNat, intOfNat, intOfNat, ← ofNat_zero,
+    intMul_intOf (ofNat_mem_omega m) (ofNat_mem_omega 0)
+      (ofNat_mem_omega n) (ofNat_mem_omega 0)]
+  simp only [mul_ofNat, add_ofNat]
+  have h1 : m * n + 0 * 0 = m * n := by omega
+  have h2 : m * 0 + 0 * n = 0 := by omega
+  rw [h1, h2]
+
+theorem intOfNat_le_iff (m n : Nat) : intLe (intOfNat.{u} m) (intOfNat.{u} n) ↔ m ≤ n := by
+  rw [intOfNat, intOfNat, ← ofNat_zero, intLe_ofNat]
+  -- `omega` closes an `↔` goal only by way of `Classical.em`
+  exact ⟨fun h => by omega, fun h => by omega⟩
+
+theorem intOfNat_eq_iff (m n : Nat) : intOfNat.{u} m = intOfNat.{u} n ↔ m = n := by
+  rw [intOfNat, intOfNat, intOf_eq_intOf_iff (ofNat_mem_omega m) empty_mem_omega
+    (ofNat_mem_omega n) empty_mem_omega, add_empty, add_empty]
+  exact ⟨fun h => ofNat_injective h, fun h => by rw [h]⟩
+
+theorem intOfNat_mem_intPositive {n : Nat} (h : 0 < n) : intOfNat.{u} n ∈ intPositive.{u} := by
+  rw [intOfNat, ← ofNat_zero]
+  exact ofNat_mem_intPositive h
+
+/-- A numeral is not negative. `intPositive` is defined by `intNonneg` and
+`≠ 0`, and `intNeg (intOfNat n)` is `intOf ∅ (ofNat n)`, whose non-negativity
+reads as `ofNat n ⊆ ∅`. So the only numeral whose negation could be positive is
+zero, and that one is not `≠ 0`.
+
+Stated because the SIGN STEP of any descent from `Rat` needs it: a positive `r`
+with `r * z` a numeral forces `z` to be one, and the negative case is refuted
+here. `intPositive_or_neg` gives the trichotomy and nothing closed this branch
+of it. -/
+theorem not_intPositive_intNeg_intOfNat (n : Nat) :
+    intNeg (intOfNat.{u} n) ∉ intPositive.{u} := by
+  intro h
+  obtain ⟨-, hnn, hne⟩ := (mem_intPositive_iff _).mp h
+  rw [intOfNat, intNeg_intOf (ofNat_mem_omega n) empty_mem_omega,
+    intNonneg_iff empty_mem_omega (ofNat_mem_omega n)] at hnn
+  rw [intOfNat, intNeg_intOf (ofNat_mem_omega n) empty_mem_omega] at hne
+  rw [← ofNat_zero, ofNat_subset_iff] at hnn
+  obtain rfl : n = 0 := Nat.le_zero.mp hnn
+  exact hne (by rw [ofNat_zero]; rfl)
+
+/-- The numerals embed injectively. `intOf_eq_intOf_iff` turns the class
+equality into `add m 0 = add n 0`, and cancelling the zero addend leaves the
+`ω`-level equation `ofNat_injective` settles.
+
+Needed to read an integer equation back in `Nat`, where `Divides` lives:
+`intDvd_of_divides` sends divisibility one way and nothing sent it back, so the
+polynomial layer's ring-level divisibility could not meet `prime_divides_mul`. -/
+theorem intOfNat_injective {m n : Nat} (h : intOfNat.{u} m = intOfNat.{u} n) :
+    m = n := by
+  rw [intOfNat, intOfNat] at h
+  have hadd := (intOf_eq_intOf_iff (ofNat_mem_omega m) empty_mem_omega
+    (ofNat_mem_omega n) empty_mem_omega).mp h
+  exact ofNat_injective (by simpa using hadd)
+
+#print axioms not_intPositive_intNeg_intOfNat
+
+#print axioms intOfNat_injective
+
+
+
+
+/-- A positive integer IS a positive numeral.
+
+`intPositive_ofNat` reads the inequality off a representative someone already
+holds; this produces the representative, which is what a proof descending from
+`Int` to `Nat` needs and what nothing here supplied. -/
+theorem exists_intOfNat_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{u}) :
+    ∃ n : Nat, 0 < n ∧ z = intOfNat.{u} n := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp (intPositive_subset _ hz)
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  have hlt := intPositive_ofNat hz
+  refine ⟨na - nb, by omega, ?_⟩
+  rw [intOfNat, ← ofNat_zero,
+    intOf_eq_intOf_iff (ofNat_mem_omega na) (ofNat_mem_omega nb)
+      (ofNat_mem_omega (na - nb)) (ofNat_mem_omega 0), add_ofNat, add_ofNat]
+  have h : na + 0 = na - nb + nb := by omega
+  rw [h]
+
+/-- `m - n` for `n ≤ m`, staying inside the numerals. -/
+theorem intOfNat_sub (m n : Nat) (h : n ≤ m) :
+    intAdd (intOfNat.{u} m) (intNeg (intOfNat.{u} n)) = intOfNat.{u} (m - n) := by
+  rw [intOfNat, intOfNat, intOfNat, intNeg_intOf (ofNat_mem_omega n) empty_mem_omega,
+    intAdd_intOf (ofNat_mem_omega m) empty_mem_omega empty_mem_omega (ofNat_mem_omega n),
+    add_empty, empty_add (ofNat_mem_omega n), ← ofNat_zero,
+    intOf_eq_intOf_iff (ofNat_mem_omega m) (ofNat_mem_omega n)
+      (ofNat_mem_omega (m - n)) (ofNat_mem_omega 0), add_ofNat, add_ofNat]
+  have : m + 0 = m - n + n := by omega
+  rw [this]
+
+/-! ## Audit -/
+
 #print axioms intRel_isEquivRel
 #print axioms intOf_eq_intOf_iff
 #print axioms intAdd_intOf
@@ -706,10 +1057,22 @@ theorem intMul_mem_intPositive {z w : ZFSet.{u}} (hz : z ∈ intPositive.{u})
 #print axioms intAdd_left_cancel
 #print axioms intLe_trans
 #print axioms intLe_total
+#print axioms intAdd_le_add_left_iff
+#print axioms intMul_le_mul_right_iff
 #print axioms intMul_mem_intPositive
 #print axioms intNeg_mul
+#print axioms intLe_neg_zero_iff
+#print axioms exists_intOfNat_of_intPositive
+theorem intOf_succ_pos {n : ZFSet.{u}} (hn : n ∈ omega.{u}) :
+    intOf (succ n) empty.{u} ∈ intPositive.{u} := by
+  obtain ⟨k, rfl⟩ := (mem_omega_iff n).mp hn
+  rw [← ofNat_succ, ← ofNat_zero]
+  exact ofNat_mem_intPositive (by omega)
+
 end NumberTheory
 
+#print axioms NumberTheory.intOf_succ_pos
+
 namespace ZFSet
-export NumberTheory (Int intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_zero intLe intLe_antisymm intLe_intOf intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_neg intMul_one intMul_zero intNeg intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_zero intNonneg intNonneg_iff intOf intOf_eq_intOf_iff intOf_mem_Int intOne intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_subset intRel intRel_isEquivRel intZero intZero_mem_Int intZero_mul mem_Int_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff ofNat_mem_intPositive omegaPairs one_mem_intPositive)
+export NumberTheory (Int exists_intOfNat_of_intPositive intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_le_add_left_iff intAdd_le_add_right_iff intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_right_cancel intAdd_zero intLe intLe_antisymm intLe_intOf intLe_neg_zero_iff intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_le_mul_right intMul_le_mul_right_iff intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_ne_zero intMul_neg intMul_one intMul_zero intNeg intNeg_eq_zero_iff intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_zero intNonneg intNonneg_iff intOf intOfNat intOfNat_add intOfNat_eq_iff intOfNat_injective intOfNat_le_iff intOfNat_mem_Int intOfNat_mem_intPositive intOfNat_mul intOfNat_sub intOfNat_succ intOfNat_zero intOf_eq_intOf_iff intOf_mem_Int intOf_succ_pos intOne intOne_eq_intOfNat_one intOne_le_of_intPositive intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_of_intZero_le intPositive_or_neg intPositive_subset intRel intRel_isEquivRel intZero intZero_le_of_intPositive intZero_mem_Int intZero_mul int_eq_or_ne int_lt_intOfNat_mul mem_Int_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff not_intPositive_intNeg_intOfNat ofNat_mem_intPositive omegaPairs one_mem_intPositive)
 end ZFSet

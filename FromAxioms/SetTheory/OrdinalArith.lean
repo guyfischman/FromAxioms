@@ -21,7 +21,6 @@ is indexed by `β`'s own index type and needs no replacement. The union with `α
 is a sum of index types.
 -/
 
-import FromAxioms.Algebra.Algebra
 import FromAxioms.NumberTheory.Natural
 import FromAxioms.SetTheory.Hierarchy
 

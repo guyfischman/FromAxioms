@@ -12,3 +12,4 @@ import FromAxioms.NumberTheory.SqrtTwo
 import FromAxioms.NumberTheory.Natural
 import FromAxioms.NumberTheory.Arith
 import FromAxioms.NumberTheory.Integer
+import FromAxioms.NumberTheory.Prime

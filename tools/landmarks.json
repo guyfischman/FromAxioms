@@ -54,5 +54,13 @@
  "NumberTheory.intNeg_intNeg": [
   "zero and the negative numbers",
   628
+ ],
+ "NumberTheory.bezout": [
+  "Bezout's identity",
+  -300
+ ],
+ "NumberTheory.exists_factorization": [
+  "unique factorisation",
+  1801
  ]
 }
