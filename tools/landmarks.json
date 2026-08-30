@@ -62,5 +62,9 @@
  "NumberTheory.exists_factorization": [
   "unique factorisation",
   1801
+ ],
+ "Analysis.located_bracket": [
+  "constructive analysis: located reals",
+  1967
  ]
 }

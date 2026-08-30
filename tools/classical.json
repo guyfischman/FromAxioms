@@ -11,33 +11,33 @@
   "stale entry cannot outlive its subject.",
   "",
   "An audit line is an upper bound: it says a proof used choice, not that the",
-  "theorem needs it. FINDINGS 24 is that gap caught in the act -- `cut_located`",
+  "theorem needs it. The gap is visible in this tree: `cut_located`",
   "and `located_bracket` are the same walk, and only one pays. So `reversed` is",
   "the only status that establishes anything:",
   "",
-  "  reversed   -- Reverse.lean proves, choice-free, that the statement implies",
-  "                EM (or the weaker principle named). The dependency is real.",
-  "  definition -- a def rather than a proposition; nothing to reverse.",
-  "  inherited  -- classical only through something else it is stated over. Not",
-  "                known to be essential; `note` says where the constructive",
-  "                content lives.",
+  "reversed   -- Reverse.lean proves, choice-free, that the statement implies",
+  "EM (or the weaker principle named). The dependency is real.",
+  "definition -- a def rather than a proposition; nothing to reverse.",
+  "inherited  -- classical only through something else it is stated over. Not",
+  "known to be essential; `note` says where the constructive",
+  "content lives.",
   "",
-  "  open       -- classical, and no reversal found. Counted against",
-  "                _open_budget, which ratchets: a new one fails the build, and",
-  "                clearing one requires lowering the budget to lock it in.",
+  "open       -- classical, and no reversal found. Counted against",
+  "_open_budget, which ratchets: a new one fails the build, and",
+  "clearing one requires lowering the budget to lock it in.",
   "",
   "There is no `accepted` status on purpose. If a result is genuinely classical",
   "it can be reversed; if it cannot be, it is not yet understood -- and `open`",
   "says exactly that instead of pretending otherwise.",
   "",
-  "  axiom      -- a declared axiom of Phase 1. It is the subject of the audit,",
-  "                not a result to be justified against it.",
+  "axiom      -- a declared axiom of Phase 1. It is the subject of the audit,",
+  "not a result to be justified against it.",
   "",
-  "  equivalent -- both directions: the statement implies the principle, and the",
-  "                principle proves the statement, each choice-free. This pins the",
-  "                result to exactly that strength, which a Phase 2 audit line",
-  "                cannot do on its own -- Lean derives em from choice and reports",
-  "                only choice.",
+  "equivalent -- both directions: the statement implies the principle, and the",
+  "principle proves the statement, each choice-free. This pins the",
+  "result to exactly that strength, which a Phase 2 audit line",
+  "cannot do on its own -- Lean derives em from choice and reports",
+  "only choice.",
   "`_equivalences` HOLDS REVERSALS, NOT TWO-WAY EQUIVALENCES, and the name",
   "misleads. An entry records that its `statement` REVERSES to its",
   "`principle` --- statement implies principle, witnessed by `reversal`. It",
@@ -67,14 +67,14 @@
    "principle": "llpo",
    "reversal": "Constructive.llpo_of_pathSelection",
    "landmark": "the principles of omniscience",
-   "note": "the step that turns 'no sequence is known to leave the tree' into an actual path. Reverses to LLPO ALONE, with no compactness and no FAN\u0394 -- the reversal's tree stays alive by a decidable bounded search (analysis FINDINGS 748), so the selection carries the entire strength of the fan-to-Koenig gap. A LOWER BOUND ONLY: no forward is proved. Moved here from _unplaced once the witness was in this tree (DECISIONS 657)"
+   "note": "the step that turns 'no sequence is known to leave the tree' into an actual path. Reverses to LLPO ALONE, with no compactness and no FAN\u0394 -- the reversal's tree stays alive by a decidable bounded search, so the selection carries the entire strength of the fan-to-Koenig gap. A LOWER BOUND ONLY: no forward is proved. Moved here from _unplaced once the witness was in this tree"
   },
   {
    "statement": "Constructive.WKL",
    "principle": "llpo",
    "reversal": "Constructive.llpo_of_wkl",
    "landmark": "the principles of omniscience",
-   "note": "weak Koenig's lemma yields LLPO, over the same detachable List Bool trees FAN\u0394 uses. A LOWER BOUND ONLY: no forward is proved, so this is not an equivalence and must not be read as one. Whether WKL -> LPO, or WKL sits strictly between LLPO and LPO in this encoding, is open (FINDINGS 746)"
+   "note": "weak Koenig's lemma yields LLPO, over the same detachable List Bool trees FAN\u0394 uses. A LOWER BOUND ONLY: no forward is proved, so this is not an equivalence and must not be read as one. Whether WKL -> LPO, or WKL sits strictly between LLPO and LPO in this encoding, is open"
   },
   {
    "statement": "Analysis.IdealEquivDecidable",
@@ -90,7 +90,7 @@
    "landmark": "the principles of omniscience",
    "reversal": "Constructive.lpo_of_ternary_decidable",
    "forward": "Constructive.ternary_decidable_of_lpo",
-   "note": "deciding 0's membership in the lower cut of a real built by the ternary walk. For an arbitrary cut the same decision is EM (FINDINGS 20); restricted to a real named by a binary sequence it is exactly LPO"
+   "note": "deciding 0's membership in the lower cut of a real built by the ternary walk. For an arbitrary cut the same decision is EM; restricted to a real named by a binary sequence it is exactly LPO"
   },
   {
    "statement": "Constructive.TernaryZeroDecidable",
@@ -121,7 +121,7 @@
    "principle": "em",
    "reversal": "Constructive.em_of_ordinal_trichotomy",
    "forward": "Constructive.ordinal_trichotomy_of_em",
-   "note": "comparability of von Neumann ordinals. Both directions now proved, so the first ordinal entry is pinned rather than one-sided (FINDINGS 33)"
+   "note": "comparability of von Neumann ordinals. Both directions now proved, so the first ordinal entry is pinned rather than one-sided"
   },
   {
    "statement": "Constructive.LeastOrdinal",
@@ -134,7 +134,7 @@
    "statement": "SetTheory.SubsetFinite",
    "principle": "em",
    "reversal": "SetTheory.em_of_subset_finite",
-   "note": "every subset of a finite set is finite. Both directions now: deciding how many elements {z in 1 | p} has decides p, and em supplies the detachability that isFinite_of_detachable needs (FINDINGS 57)",
+   "note": "every subset of a finite set is finite. Both directions now: deciding how many elements {z in 1 | p} has decides p, and em supplies the detachability that isFinite_of_detachable needs",
    "forward": "SetTheory.subsetFinite_of_em"
   },
   {
@@ -142,7 +142,7 @@
    "principle": "signdisjunction",
    "landmark": "the mean value theorem",
    "reversal": "Metamath.signDisjunction_of_mean_attainment",
-   "note": "a uniformly continuous function on [0,1] attains its mean value. Reverses to LLPO alone; the forward needs BinaryDC and DC as well, so the gap is exactly two named choice layers (FINDINGS 730, 736) The floor is `SignDisjunction`, not `LLPO`, for the same reason as Rolle01: `llpo_of_mean_attainment` is literally `llpo_of_signDisjunction (signDisjunction_of_mean_attainment hatt)`, so the LLPO reversal factors through this one and understates it by a node. Repointed 2026-08-28 after `registry-agree.py` found the pair, which is the SECOND row the same factoring caught.",
+   "note": "a uniformly continuous function on [0,1] attains its mean value. Reverses to LLPO alone; the forward needs BinaryDC and DC as well, so the gap is exactly two named choice layers. The floor is `SignDisjunction`, not `LLPO`, for the same reason as Rolle01: `llpo_of_mean_attainment` is literally `llpo_of_signDisjunction (signDisjunction_of_mean_attainment hatt)`, so the LLPO reversal factors through this one and understates it by a node. Repointed 2026-08-28 after `registry-agree.py` found the pair, which is the SECOND row the same factoring caught.",
    "forward": "Metamath.meanAttainment_of_signDisjunction_dc",
    "forward_extra": [
     "dc"
@@ -155,7 +155,7 @@
    "statement": "Metamath.Darboux01",
    "principle": "signdisjunction",
    "reversal": "Metamath.signDisjunction_of_darboux",
-   "note": "a uniform derivative takes every intermediate value. Same bounds as the mean-value shape through a different machine -- the content is that a uniform derivative is uniformly continuous, so the C1 bundle's continuity field is derivable rather than assumed (FINDINGS 731, 737) Those bounds are BinaryDC and DC, named here rather than left to the reference: llpo is the floor, not the value. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time.",
+   "note": "a uniform derivative takes every intermediate value. Same bounds as the mean-value shape through a different machine -- the content is that a uniform derivative is uniformly continuous, so the C1 bundle's continuity field is derivable rather than assumed. Those bounds are BinaryDC and DC, named here rather than left to the reference: llpo is the floor, not the value. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time.",
    "forward": "Metamath.darboux_of_signDisjunction_dc",
    "forward_extra": [
     "dc"
@@ -169,7 +169,7 @@
    "principle": "llpo",
    "landmark": "the intermediate value theorem, constructively",
    "reversal": "Metamath.llpo_of_exact_ivt",
-   "note": "an exact zero-crossing, as against the approximate one which is free. The first of the four sandwiches closed, and the one that fixed the shape (FINDINGS 732, 733-734) BRACKETED, NOT PINNED: the reversal yields llpo; the forward's type also takes DC and BinaryDC, so llpo is the floor.",
+   "note": "an exact zero-crossing, as against the approximate one which is free. The first of the four sandwiches closed, and the one that fixed the shape. BRACKETED, NOT PINNED: the reversal yields llpo; the forward's type also takes DC and BinaryDC, so llpo is the floor.",
    "forward": "Metamath.exactIVT_of_llpo_binaryDC_dc",
    "forward_extra": [
     "binarydc",
@@ -192,7 +192,7 @@
    ],
    "landmark": "the extreme value theorem",
    "reversal": "Metamath.signDisjunction_of_max_attainment",
-   "note": "a uniformly continuous function on [0,1] attains its maximum -- the exact half of the extreme value theorem, whose approximate half is free. The reversal is proved; the converse climb is the analysis track's open item, so this end of the sandwich is not yet witnessed (FINDINGS 735) A forward IS witnessed, but only with two principles more than the reversal yields: maxAttainment_of_llpo_binaryDC_dc takes LLPO, BinaryDC and DC, so the entry is BRACKETED rather than pinned. The climb at LLPO alone -- the pinning FINDINGS 735 is after -- remains open. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time."
+   "note": "a uniformly continuous function on [0,1] attains its maximum -- the exact half of the extreme value theorem, whose approximate half is free. The reversal is proved; the converse climb is the analysis track's open item, so this end of the sandwich is not yet witnessed. A forward IS witnessed, but only with two principles more than the reversal yields: maxAttainment_of_llpo_binaryDC_dc takes LLPO, BinaryDC and DC, so the entry is BRACKETED rather than pinned. The climb at LLPO alone remains open. The floor is `SignDisjunction`, not `LLPO`: the LLPO reversal's whole body is `llpo_of_signDisjunction (signDisjunction_of_... h)`, so it factors through this one and understates it by a node. Repointed 2026-08-28 by a sweep for that proof SHAPE, after the same understatement was found on Rolle01 and MeanAttainment01 one row at a time."
   },
   {
    "statement": "Algebra.HasOrder",
@@ -200,14 +200,14 @@
    "landmark": "the principles of omniscience",
    "reversal": "Algebra.mp_of_hasOrder",
    "forward": "Algebra.hasOrder_of_mp",
-   "note": "naming the order of a power series -- the least index whose coefficient survives -- given a vanishing readout. Both directions are proved and `exists_ord_iff` bundles them, so this is an EQUIVALENCE and not a bound. The polynomial mirror, `exists_deg_iff`, prices the same question at DecidableVanishing with no omniscience at all: the support bound turns an unbounded search into a bounded scan, and that is the whole of the gap (FINDINGS 774)"
+   "note": "naming the order of a power series -- the least index whose coefficient survives -- given a vanishing readout. Both directions are proved and `exists_ord_iff` bundles them, so this is an EQUIVALENCE and not a bound. The polynomial mirror, `exists_deg_iff`, prices the same question at DecidableVanishing with no omniscience at all: the support bound turns an unbounded search into a bounded scan, and that is the whole of the gap"
   },
   {
    "statement": "Algebra.NeApartZero",
    "principle": "mp",
    "landmark": "the principles of omniscience",
    "reversal": "Algebra.mp_of_neApartZero",
-   "note": "a located real distinct from zero is apart from it -- the positive cone's `total` clause for RealL, and the same principle the geometry track reached independently (FINDINGS 788). BRACKETED, NOT PINNED: mp_of_neApartZero gives MP and is choice-free; neApartZero_of_mp_of_locators returns it from MP PLUS HasZeroLocators. The gap is therefore INSIDE THE LOCATORS, not in countable choice -- the earlier ceiling took CountableBoolChoice and spent it only on manufacturing a locator, which is the inherited-premise shape and was caught by geometry (FINDINGS 789). Whether locators give countable choice back is an independence this development declines to settle (DECISIONS 797), so read `mp` as the FLOOR. Reading a firing digit back off an apartness costs nothing (FINDINGS 784), and LPO's extra strength over MP buys the DECISION rather than the witness (FINDINGS 785). The cut encoding's same clause needs realNonneg_or, which reverses to em, so the two encodings' orders sit at different lattice points (FINDINGS 782)",
+   "note": "a located real distinct from zero is apart from it -- the positive cone's `total` clause for RealL, and the same principle the geometry track reached independently. BRACKETED, NOT PINNED: mp_of_neApartZero gives MP and is choice-free; neApartZero_of_mp_of_locators returns it from MP PLUS HasZeroLocators. The gap is therefore INSIDE THE LOCATORS, not in countable choice -- the earlier ceiling took CountableBoolChoice and spent it only on manufacturing a locator, which is the inherited-premise shape and was caught by geometry. Whether locators give countable choice back is an independence this development declines to settle, so read `mp` as the FLOOR. Reading a firing digit back off an apartness costs nothing, and LPO's extra strength over MP buys the DECISION rather than the witness. The cut encoding's same clause needs realNonneg_or, which reverses to em, so the two encodings' orders sit at different lattice points",
    "forward": "Algebra.neApartZero_of_mp_of_locators",
    "extra": [
     "HasZeroLocators"
@@ -225,7 +225,7 @@
    "principle": "lpo",
    "reversal": "Combinatorics.lpo_of_infiniteRamsey",
    "landmark": "Ramsey's theorem",
-   "note": "an unbounded monochromatic set for a detachable symmetric colouring of pairs. Reverses to LPO: join i and j when the sequence is true somewhere at or below min i j, and an unbounded monochromatic set decides it -- two joined points witness a true, while for each n two unjoined points above n force the value false there. A LOWER BOUND ONLY; whether LPO plus DC suffices is open and the upper bound is expected to want DC as a hypothesis, as Baire does. THE POINT OF THE PAIR: the FINITE theorem (ZFSet.ramsey) is free under the SAME hypotheses -- Bool-valued colouring, symmetric -- so the two differ only in the size of the carrier and the gap between them is a principle rather than a proof technique (FINDINGS 5023)"
+   "note": "an unbounded monochromatic set for a detachable symmetric colouring of pairs. Reverses to LPO: join i and j when the sequence is true somewhere at or below min i j, and an unbounded monochromatic set decides it -- two joined points witness a true, while for each n two unjoined points above n force the value false there. A LOWER BOUND ONLY; whether LPO plus DC suffices is open and the upper bound is expected to want DC as a hypothesis, as Baire does. THE POINT OF THE PAIR: the FINITE theorem (ZFSet.ramsey) is free under the SAME hypotheses -- Bool-valued colouring, symmetric -- so the two differ only in the size of the carrier and the gap between them is a principle rather than a proof technique"
   },
   {
    "statement": "Combinatorics.UnboundedSplit",
@@ -246,13 +246,13 @@
     "DC"
    ],
    "reversal": "Metamath.signDisjunction_of_rolle01",
-   "note": "a uniformly differentiable function agreeing at the endpoints has an interior point of vanishing derivative. Reverses through the SAME median gadget as Darboux, shifted by its own mean so the integral over [0,1] vanishes and F 0 = F 1 is SUPPLIED by the construction rather than assumed; the interior zero is then the identical attainment equation signDisjunction_of_darboux obtains, so the two reversals share their closing step. Ceiling rolle01_of_llpo_binaryDC_dc; both directions [propext, Quot.sound] (FINDINGS 984) The floor is `SignDisjunction`, not `LLPO`: `llpo_of_rolle01` is literally `llpo_of_signDisjunction (signDisjunction_of_rolle01 hrolle)`, so the LLPO reversal factors through this one and understates it by a node."
+   "note": "a uniformly differentiable function agreeing at the endpoints has an interior point of vanishing derivative. Reverses through the SAME median gadget as Darboux, shifted by its own mean so the integral over [0,1] vanishes and F 0 = F 1 is SUPPLIED by the construction rather than assumed; the interior zero is then the identical attainment equation signDisjunction_of_darboux obtains, so the two reversals share their closing step. Ceiling rolle01_of_llpo_binaryDC_dc; both directions [propext, Quot.sound] The floor is `SignDisjunction`, not `LLPO`: `llpo_of_rolle01` is literally `llpo_of_signDisjunction (signDisjunction_of_rolle01 hrolle)`, so the LLPO reversal factors through this one and understates it by a node."
   },
   {
    "statement": "Constructive.uniformlyContinuousOn_ivtSpike",
    "principle": "wlpo",
    "reversal": "Constructive.wlpo_of_ivtSpike_uc_decidable",
-   "note": "DECIDING whether 1/(x+t) is uniformly continuous on [0,1], for t the ternary real of a bit sequence, is exactly WLPO. The hypothesis must be the decision and not the assertion: the assertion is REFUTABLE at the all-zero sequence (not_uniformlyContinuousOn_ivtSpike_of_eq_zero), so an implication out of it would be vacuous. Forward direction uniformlyContinuousOn_ivtSpike prices it at an apartness; both directions [propext, Quot.sound] (FINDINGS 1002)"
+   "note": "DECIDING whether 1/(x+t) is uniformly continuous on [0,1], for t the ternary real of a bit sequence, is exactly WLPO. The hypothesis must be the decision and not the assertion: the assertion is REFUTABLE at the all-zero sequence (not_uniformlyContinuousOn_ivtSpike_of_eq_zero), so an implication out of it would be vacuous. Forward direction uniformlyContinuousOn_ivtSpike prices it at an apartness; both directions [propext, Quot.sound]"
   },
   {
    "statement": "Geometry.MeetCoincidenceDecidable",
@@ -260,7 +260,7 @@
    "reversal": "Geometry.wlpo_of_meet_coincidence_decidable",
    "forward": "Geometry.meet_coincidence_decidable_of_wlpo",
    "landmark": "Euclid I.1 and ruler-and-compass construction",
-   "note": "deciding whether two circles meet in ONE point or TWO. BOTH DIRECTIONS, both [propext, Quot.sound]. THE POINT OF THE PAIR: Euclid I.1 itself is FREE (sqDist_meet_equilateral) because it never asks which of the two points it got -- it asserts a distance, and both intersection points satisfy it. The brief predicted circle-circle intersection would land on a lattice node and aimed it one theorem too early (FINDINGS 3178). It lands here, at the question that TELLS THE TWO POINTS APART. Quantified over Nat -> Bool rather than over an arbitrary radius, which is load-bearing: over arbitrary located reals the reversal still gives WLPO but the forward direction does not return, because located yields a disjunction and turning one into WLPO's bit is defining data by cases (ternary_vanishing_of_wlpo). So a Prop over arbitrary radii would be a BOUND and not a node (FINDINGS 3185)"
+   "note": "deciding whether two circles meet in ONE point or TWO. BOTH DIRECTIONS, both [propext, Quot.sound]. THE POINT OF THE PAIR: Euclid I.1 itself is FREE (sqDist_meet_equilateral) because it never asks which of the two points it got -- it asserts a distance, and both intersection points satisfy it. The brief predicted circle-circle intersection would land on a lattice node and aimed it one theorem too early. It lands here, at the question that TELLS THE TWO POINTS APART. Quantified over Nat -> Bool rather than over an arbitrary radius, which is load-bearing: over arbitrary located reals the reversal still gives WLPO but the forward direction does not return, because located yields a disjunction and turning one into WLPO's bit is defining data by cases (ternary_vanishing_of_wlpo). So a Prop over arbitrary radii would be a BOUND and not a node"
   },
   {
    "statement": "Analysis.DecidableEqSet",
@@ -268,7 +268,7 @@
    "reversal": "Analysis.em_of_decidableEqSet",
    "forward": "Analysis.decidableEqSet_of_em",
    "landmark": "excluded middle",
-   "note": "DECIDING EQUALITY OF SETS IS EXACTLY EXCLUDED MIDDLE. Both directions choice-free, the forward at NO AXIOMS AT ALL. The reversal is one separation: sep (fun _ => P) (singleton empty) equals singleton empty exactly when P holds, so a decision procedure reads P off a comparison -- compared against the SINGLETON rather than empty, because the other reading needs a witness out of a non-empty set, the step regularity pays Classical.choice for (FINDINGS 1026)"
+   "note": "DECIDING EQUALITY OF SETS IS EXACTLY EXCLUDED MIDDLE. Both directions choice-free, the forward at NO AXIOMS AT ALL. The reversal is one separation: sep (fun _ => P) (singleton empty) equals singleton empty exactly when P holds, so a decision procedure reads P off a comparison -- compared against the SINGLETON rather than empty, because the other reading needs a witness out of a non-empty set, the step regularity pays Classical.choice for"
   },
   {
    "statement": "Analysis.DecidableMemSet",
@@ -276,7 +276,7 @@
    "reversal": "Analysis.em_of_decidableMemSet",
    "forward": "Analysis.decidableMemSet_of_em",
    "landmark": "excluded middle",
-   "note": "AND DECIDING MEMBERSHIP IS TOO, with a shorter witness: empty in sep (fun _ => P) (singleton empty) IS P, so separation alone carries it and no extensionality step appears. This is the one actually tempting to assume -- decidable membership reads as a convenience where decidable equality looks like a strong hypothesis, and both are the whole of em. Together they are why condP exists and why every definition-by-cases in the tower is built by separation rather than by branching (FINDINGS 1026)"
+   "note": "AND DECIDING MEMBERSHIP IS TOO, with a shorter witness: empty in sep (fun _ => P) (singleton empty) IS P, so separation alone carries it and no extensionality step appears. This is the one actually tempting to assume -- decidable membership reads as a convenience where decidable equality looks like a strong hypothesis, and both are the whole of em. Together they are why condP exists and why every definition-by-cases in the tower is built by separation rather than by branching"
   },
   {
    "statement": "Analysis.DecidableRatLt",
@@ -290,7 +290,7 @@
    ],
    "reversal": "Analysis.wem_of_decidableRatLt",
    "landmark": "excluded middle",
-   "note": "DECIDING RATIONAL ORDER AS A PROP-LEVEL DECISION reverses to WEM, though rational order is perfectly decidable mathematically and ratLt_or_not proves exactly that free. Witness: condP P ratOne ratZero is a rational reading ratOne when P holds and ratZero when it fails, so comparing it against ratZero reads P back. WEM and NOT EM, and the asymmetry is the content -- the negative branch gives not-P outright, the positive gives only not-not-P, because ratZero < X does not say WHICH value X took. A BRACKET, NOT AN EQUIVALENCE: decidableRatLt_of_em gives the upper bound EM, WEM and EM are distinct, and no forward from WEM is proved, so the bracket does not close. Note also that this hypothesis PRICES the merge without being able to PERFORM it -- Or lives in Prop, so Or.casesOn cannot eliminate into Type and no count can be built from it (FINDINGS 1026, item 1031)"
+   "note": "DECIDING RATIONAL ORDER AS A PROP-LEVEL DECISION reverses to WEM, though rational order is perfectly decidable mathematically and ratLt_or_not proves exactly that free. Witness: condP P ratOne ratZero is a rational reading ratOne when P holds and ratZero when it fails, so comparing it against ratZero reads P back. WEM and NOT EM, and the asymmetry is the content -- the negative branch gives not-P outright, the positive gives only not-not-P, because ratZero < X does not say WHICH value X took. A BRACKET, NOT AN EQUIVALENCE: decidableRatLt_of_em gives the upper bound EM, WEM and EM are distinct, and no forward from WEM is proved, so the bracket does not close. Note also that this hypothesis PRICES the merge without being able to PERFORM it -- Or lives in Prop, so Or.casesOn cannot eliminate into Type and no count can be built from it"
   },
   {
    "statement": "Analysis.IcoDetachable",
@@ -298,7 +298,7 @@
    "reversal": "Analysis.em_of_icoDetachable",
    "forward": "Analysis.icoDetachable_of_em",
    "landmark": "the Lebesgue measure",
-   "note": "deciding membership in a half-open interval of located reals for an ARBITRARY set, and it is EQUIVALENT to excluded middle -- both directions named, so this is a measurement rather than a bound. Registered here because the strength arrives as a HYPOTHESIS and not as an axiom, so audit.py cannot see it: lebesgueOuter_unionUpto_dyadic assumes it, which makes the dyadic subdivision classical as stated even though every accumulation step around it is free. The contrast is the content: CutAtRat is the SAME comparison for a w already supplied with a rational bracket, is free, and is what dyadicPiece_covers uses -- so the gap between the two readings is the whole of EM and lies entirely in the quantifier's range (analysis FINDINGS 1199)."
+   "note": "deciding membership in a half-open interval of located reals for an ARBITRARY set, and it is EQUIVALENT to excluded middle -- both directions named, so this is a measurement rather than a bound. Registered here because the strength arrives as a HYPOTHESIS and not as an axiom, so audit.py cannot see it: lebesgueOuter_unionUpto_dyadic assumes it, which makes the dyadic subdivision classical as stated even though every accumulation step around it is free. The contrast is the content: CutAtRat is the SAME comparison for a w already supplied with a rational bracket, is free, and is what dyadicPiece_covers uses -- so the gap between the two readings is the whole of EM and lies entirely in the quantifier's range."
   },
   {
    "statement": "CategoryTheory.DiscIsoDecidable",
@@ -328,7 +328,7 @@
    "principle": "em",
    "reversal": "Analysis.em_of_subsetMaximal_decidable",
    "landmark": "ideal theory over a Dedekind domain",
-   "note": "deciding whether an ARBITRARY ideal sits inside a given MAXIMAL one, which is `exists_idealProdList_eq_of_primeProductList`'s `hsubP`. Tested at `propIdealOf R zero p`, whose membership is `p` away from zero: containment forces not-p since a maximal ideal is proper, and a witness outside forces p since zero is inside. Needs ONE maximal ideal to test against, so it is stated with M supplied rather than quantified. A LOWER BOUND ONLY: no forward is proved, though em plainly gives it. THE POINT: the same lemma's `ACC` reverses only to LPO, so pricing that route from `ACC` alone understates it by a full lattice node -- a signature's cost is its WORST binder, not its first informative one (DECISIONS 12275's correction)"
+   "note": "deciding whether an ARBITRARY ideal sits inside a given MAXIMAL one, which is `exists_idealProdList_eq_of_primeProductList`'s `hsubP`. Tested at `propIdealOf R zero p`, whose membership is `p` away from zero: containment forces not-p since a maximal ideal is proper, and a witness outside forces p since zero is inside. Needs ONE maximal ideal to test against, so it is stated with M supplied rather than quantified. A LOWER BOUND ONLY: no forward is proved, though em plainly gives it. THE POINT: the same lemma's `ACC` reverses only to LPO, so pricing that route from `ACC` alone understates it by a full lattice node -- a signature's cost is its WORST binder, not its first informative one"
   },
   {
    "statement": "CategoryTheory.EqualizerInitialDecidable",
@@ -354,6 +354,7 @@
    "note": "every ideal of Z is detachable, EQUIVALENT to em -- both directions proved. The reversal instantiates at propIdealOf Int intZero P, an ideal built from an arbitrary Prop WITHOUT deciding it (every IsIdeal clause cases on the disjunction its membership hypothesis already carries), and intZero != intOne turns membership of intOfNat 1 into P itself; the forward direction is em applied pointwise. The lattice's recorded idealdetachableint -> lpo edge is TRUE BUT NOT SHARP and stays, because lpo is the consequence idealNonTrivialInt_of_bool actually consumes. The BOOL-valued form is NOT registered here: it reverses to em too and more expensively, but the converse is barred -- Or is Prop-valued and cannot eliminate into Bool -- so only one direction is proved and the pair is not known to be an equivalence."
   }
  ],
+ "Analysis.realMul": "reversed by `Constructive.em_of_realNonneg_or`. the sign split. Reversed to EM, but no forward direction is possible: defining data by cases needs the decision as data (Decidable), which EM cannot supply. Proving by cases needs em; defining by cases needs choice; the general form is Constructive.decider_of_em",
  "_open_budget": 0,
  "_choice_budget": 16,
  "_choice_doors": 9,

@@ -24,7 +24,7 @@ import FromAxioms.NumberTheory.Integer
 
 universe u
 
-open SetTheory
+open Algebra SetTheory
 namespace NumberTheory
 
 def ratPairs : ZFSet.{u} := prod Int.{u} intPositive.{u}
@@ -1203,7 +1203,13 @@ theorem diff_self_bounds {a d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hd : d ∈ Rat.
   rw [ratAdd_neg ha]
   exact ⟨hnd0, hd0.left⟩
 
-/-! ### Bounds -/
+/-! ### Bounds
+
+`located` for a product needs the corners of a small box to be close together,
+which is the one genuinely analytic estimate in the development. These are its
+parts: the inverse of a positive is positive, and a product of a bounded factor
+with a small one is small. Both are proved by splitting on signs, which is free
+in a proof. -/
 
 theorem ratInv_pos {x : ZFSet.{u}} (hx : x ∈ Rat.{u}) (h : ratLt ratZero.{u} x) :
     ratLt ratZero.{u} (ratInv x) := by
@@ -1834,10 +1840,206 @@ theorem exists_scale_above_upper {p w : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hw : w 
     ratMul_comm hrQ hw] at hlt
   exact (ratNeg_lt_neg_iff hp (ratMul_mem_Rat hw hrQ)).mp hlt
 
+/-! ## Naturals as rationals
+
+`ratNat p q` is `p/q`; the `intOfNat` arithmetic it rests on is in
+`Integer.lean`. Transporting these facts is what lets every later inequality be
+a `Nat` inequality. -/
+
+/-- The rational `p/q`. -/
+def ratNat (p q : Nat) : ZFSet.{u} := ratOf (intOfNat.{u} p) (intOfNat.{u} q)
+
+theorem ratNat_mem_Rat {p q : Nat} (hq : 0 < q) : ratNat.{u} p q ∈ Rat.{u} :=
+  ratOf_mem_Rat (intOfNat_mem_Int p) (intOfNat_mem_intPositive hq)
+
+theorem ratNat_le_iff {p q r s : Nat} (hq : 0 < q) (hs : 0 < s) :
+    ratLe (ratNat.{u} p q) (ratNat.{u} r s) ↔ p * s ≤ r * q := by
+  rw [ratNat, ratNat, ratLe_ratOf (intOfNat_mem_Int p) (intOfNat_mem_intPositive hq)
+    (intOfNat_mem_Int r) (intOfNat_mem_intPositive hs), intOfNat_mul, intOfNat_mul,
+    intOfNat_le_iff]
+
+theorem ratNat_eq_iff {p q r s : Nat} (hq : 0 < q) (hs : 0 < s) :
+    ratNat.{u} p q = ratNat.{u} r s ↔ p * s = r * q := by
+  rw [ratNat, ratNat, ratOf_eq_ratOf_iff (intOfNat_mem_Int p) (intOfNat_mem_intPositive hq)
+    (intOfNat_mem_Int r) (intOfNat_mem_intPositive hs), intOfNat_mul, intOfNat_mul,
+    intOfNat_eq_iff]
+
+theorem ratNat_lt_iff {p q r s : Nat} (hq : 0 < q) (hs : 0 < s) :
+    ratLt (ratNat.{u} p q) (ratNat.{u} r s) ↔ p * s < r * q := by
+  rw [ratLt, ratNat_le_iff hq hs]
+  constructor
+  · rintro ⟨hle, hne⟩
+    exact Nat.lt_of_le_of_ne hle (fun he => hne ((ratNat_eq_iff hq hs).mpr he))
+  · intro h
+    exact ⟨Nat.le_of_lt h, fun he => Nat.ne_of_lt h ((ratNat_eq_iff hq hs).mp he)⟩
+
+/-- The width of `[p/q, (p+1)/q]`, as a rational in the same form. -/
+theorem ratNat_width {p q : Nat} (hq : 0 < q) :
+    ratAdd (ratNat.{u} (p + 1) q) (ratNeg (ratNat.{u} p q)) = ratNat.{u} 1 q := by
+  have hqP : intOfNat.{u} q ∈ intPositive.{u} := intOfNat_mem_intPositive hq
+  have hqI := intPositive_subset _ hqP
+  rw [ratNat, ratNat, ratNat, ratNeg_ratOf (intOfNat_mem_Int p) hqP,
+    ratAdd_ratOf (intOfNat_mem_Int (p + 1)) hqP (intNeg_mem_Int (intOfNat_mem_Int p)) hqP,
+    ← intAdd_mul (intOfNat_mem_Int (p + 1)) (intNeg_mem_Int (intOfNat_mem_Int p)) hqI,
+    intOfNat_sub (p + 1) p (by omega)]
+  have h1 : (p + 1) - p = 1 := by omega
+  rw [h1, ratOf_eq_ratOf_iff (intMul_mem_Int (intOfNat_mem_Int 1) hqI)
+    (intMul_mem_intPositive hqP hqP) (intOfNat_mem_Int 1) hqP, intOfNat_mul,
+    intOfNat_mul, intOfNat_mul, intOfNat_mul, intOfNat_eq_iff]
+  rw [Nat.one_mul, Nat.one_mul]
+
+theorem ratZero_eq_ratNat : ratZero.{u} = ratNat.{u} 0 1 := rfl
+
+/-! ## The integers inside the rationals
+
+`intToRat` names the map `a ↦ a/1`.  The pattern `ratOf c intOne` is written
+out at twenty-two sites in `Field.lean` and `GeomTower.lean`; naming it buys
+the two homomorphism laws once instead of re-deriving them from
+`ratAdd_ratOf`/`ratMul_ratOf` at each use. -/
+
+/-- The integers inside the rationals: `a` goes to the class of `a/1`. -/
+def intToRat (a : ZFSet.{u}) : ZFSet.{u} := ratOf a intOne.{u}
+
+theorem intToRat_mem_Rat {a : ZFSet.{u}} (ha : a ∈ Int.{u}) :
+    intToRat a ∈ Rat.{u} :=
+  ratOf_mem_Rat ha one_mem_intPositive
+
+theorem intToRat_add {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u}) :
+    ratAdd (intToRat a) (intToRat c) = intToRat (intAdd a c) := by
+  unfold intToRat
+  rw [ratAdd_ratOf ha one_mem_intPositive hc one_mem_intPositive,
+      intMul_one ha, intMul_one hc, intMul_one intOne_mem_Int]
+
+theorem intToRat_mul {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u}) :
+    ratMul (intToRat a) (intToRat c) = intToRat (intMul a c) := by
+  unfold intToRat
+  rw [ratMul_ratOf ha one_mem_intPositive hc one_mem_intPositive,
+      intMul_one intOne_mem_Int]
+
+/-- One denominator cleared. A rational becomes an integer after
+multiplication by a positive integer.
+
+Stated as an EXISTENTIAL: naming the denominator as DATA would extract a
+witness from `mem_Rat_iff` and cost `Classical.choice`; here every extraction
+happens inside a proof, where it is free. -/
+theorem exists_clear_denom {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
+    ∃ n, n ∈ intPositive.{u} ∧ ∃ a, a ∈ Int.{u} ∧
+      ratMul (intToRat n) r = intToRat a := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
+  have hbI : b ∈ Int.{u} := intPositive_subset _ hb
+  refine ⟨b, hb, a, ha, ?_⟩
+  unfold intToRat
+  rw [ratMul_ratOf hbI one_mem_intPositive ha hb]
+  refine (ratOf_eq_ratOf_iff (intMul_mem_Int hbI ha)
+    (intMul_mem_intPositive one_mem_intPositive hb) ha one_mem_intPositive).mpr ?_
+  rw [intMul_one (intMul_mem_Int hbI ha), intMul_comm intOne_mem_Int hbI,
+      intMul_one hbI, intMul_comm hbI ha]
+
+/-- A common denominator for finitely many rationals, by induction on the
+bound.  Every extraction stays inside the proof, so the whole construction is
+choice-free -- this is the statement `polyMap` needs in order to carry an
+integer polynomial's factorisation back from `Q[x]`. -/
+theorem exists_common_denom {T : Nat → ZFSet.{u}} :
+    ∀ d : Nat, (∀ i : Nat, i < d → T i ∈ Rat.{u}) →
+      ∃ n, n ∈ intPositive.{u} ∧
+        ∀ i : Nat, i < d → ∃ a, a ∈ Int.{u} ∧
+          ratMul (intToRat n) (T i) = intToRat a := by
+  intro d
+  induction d with
+  | zero =>
+      intro _
+      exact ⟨intOne.{u}, one_mem_intPositive, fun i hi => absurd hi (Nat.not_lt_zero i)⟩
+  | succ k ih =>
+      intro hmem
+      obtain ⟨n, hn, hall⟩ := ih (fun i hi => hmem i (Nat.lt_succ_of_lt hi))
+      obtain ⟨m, hm, c, hc, hmc⟩ := exists_clear_denom (hmem k (Nat.lt_succ_self k))
+      refine ⟨intMul n m, intMul_mem_intPositive hn hm, ?_⟩
+      intro i hi
+      have hnI : n ∈ Int.{u} := intPositive_subset _ hn
+      have hmI : m ∈ Int.{u} := intPositive_subset _ hm
+      have hnR : intToRat n ∈ Rat.{u} := intToRat_mem_Rat hnI
+      have hmR : intToRat m ∈ Rat.{u} := intToRat_mem_Rat hmI
+      rcases Nat.lt_or_ge i k with hik | hik
+      · obtain ⟨a, ha, hai⟩ := hall i hik
+        refine ⟨intMul m a, intMul_mem_Int hmI ha, ?_⟩
+        rw [← intToRat_mul hmI ha, ← hai,
+            ← ratMul_assoc hmR hnR (hmem i (Nat.lt_succ_of_lt hik)),
+            ratMul_comm hmR hnR, intToRat_mul hnI hmI]
+      · have hik' : i = k := Nat.le_antisymm (Nat.lt_succ_iff.mp hi) hik
+        subst hik'
+        refine ⟨intMul n c, intMul_mem_Int hnI hc, ?_⟩
+        rw [← intToRat_mul hnI hc, ← hmc,
+            ← ratMul_assoc hnR hmR (hmem i (Nat.lt_succ_self i)),
+            intToRat_mul hnI hmI]
+
+/-- The map `Z -> Q` is injective.  What makes the cleared polynomial
+definable by SEPARATION rather than by choosing a numerator for each
+coefficient: the graph `{(i,a) : N * F i = intToRat a}` is single-valued
+because of this, so it is a function without any witness being named. -/
+theorem intToRat_inj {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u})
+    (h : intToRat a = intToRat c) : a = c := by
+  unfold intToRat at h
+  have := (ratOf_eq_ratOf_iff ha one_mem_intPositive hc one_mem_intPositive).mp h
+  rw [intMul_one ha, intMul_one hc] at this
+  exact this
+
+/-- The partial inverse of `intToRat`, as a definite description.
+
+`theOnly` carves the numerator out of the class: `a/1` is the class holding
+`opair a intOne`, and the cross-multiplication in `mem_ratOf_iff` forces that
+element to be unique, so the integer is NAMED rather than chosen -- FINDINGS
+27's mechanism, applied to the coefficient map.  This is what lets a cleared
+polynomial be built by `polyOfSeq` with no witness selected. -/
+def intOfRat (r : ZFSet.{u}) : ZFSet.{u} :=
+  theOnly (fun x => opair x intOne.{u} ∈ r) Int.{u}
+
+theorem intOfRat_intToRat {a : ZFSet.{u}} (ha : a ∈ Int.{u}) :
+    intOfRat (intToRat a) = a := by
+  refine theOnly_eq ha ?_ ?_
+  · refine (mem_ratOf_iff ha one_mem_intPositive _).mpr
+      ⟨a, ha, intOne.{u}, one_mem_intPositive, rfl, rfl⟩
+  · intro b hb hmem
+    obtain ⟨x, hx, y, hy, hpair, hcross⟩ :=
+      (mem_ratOf_iff ha one_mem_intPositive _).mp hmem
+    obtain ⟨rfl, rfl⟩ := opair_injective hpair
+    rw [intMul_one ha, intMul_one hx] at hcross
+    exact hcross.symm
+
+/-- The description lands in `Int` whenever the rational really is an integer.
+The hypothesis is existential, so the witness is taken inside this proof and
+costs nothing. -/
+theorem intOfRat_mem {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intToRat a) :
+    intOfRat r ∈ Int.{u} := by
+  obtain ⟨a, ha, rfl⟩ := h
+  rw [intOfRat_intToRat ha]
+  exact ha
+
+/-- The round trip, the other way.  This is the step the cleared polynomial
+needs: its coefficients are `intOfRat` of something known to be an integer, and
+mapping them back reproduces the rational. -/
+theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intToRat a) :
+    intToRat (intOfRat r) = r := by
+  obtain ⟨a, ha, rfl⟩ := h
+  rw [intOfRat_intToRat ha]
+
 #print axioms ratRel_isEquivRel
 #print axioms ratOf_eq_ratOf_iff
+#print axioms ratNat_eq_iff
+#print axioms ratNat_le_iff
 #print axioms mem_Rat_iff
 #print axioms ratAdd_ratOf
+#print axioms intToRat
+#print axioms intToRat_mem_Rat
+
+#print axioms intToRat_add
+#print axioms intToRat_mul
+#print axioms exists_clear_denom
+#print axioms exists_common_denom
+#print axioms intToRat_inj
+#print axioms intOfRat
+#print axioms intOfRat_intToRat
+#print axioms intOfRat_mem
+#print axioms intToRat_intOfRat
 #print axioms ratAdd_assoc
 #print axioms ratAdd_neg
 #print axioms ratMul_ratOf
@@ -1883,8 +2085,77 @@ theorem exists_scale_above_upper {p w : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hw : w 
 #print axioms exists_max_four
 #print axioms ratMul_lt_mul_right_of_nonpos
 
+/-! ### Powers -/
+
+/-- `0/q` is zero. MOVED here from `Omniscience.lean`, which is downstream and
+could not lend it to the Archimedean step below; the proof is that file's. -/
+theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
+  rw [ratZero_eq_ratNat, ratNat_eq_iff hq (by omega)]
+  omega
+
+#print axioms ratNat_zero
+def ratTwo : ZFSet.{u} := ratAdd ratOne.{u} ratOne.{u}
+
+/-- Halfway between two rationals. -/
+def ratMid (a b : ZFSet.{u}) : ZFSet.{u} :=
+  ratMul (ratAdd a b) (ratInv ratTwo.{u})
+
+def invWidth (n : ZFSet.{u}) : ZFSet.{u} := ratOf intOne.{u} (intOf (succ n) empty.{u})
+
+theorem invWidth_mem_Rat {n : ZFSet.{u}} (hn : n ∈ omega.{u}) : invWidth n ∈ Rat.{u} :=
+  ratOf_mem_Rat intOne_mem_Int (intOf_succ_pos hn)
+
+theorem invWidth_pos {n : ZFSet.{u}} (hn : n ∈ omega.{u}) :
+    ratLt ratZero.{u} (invWidth n) := ratOf_one_pos (intOf_succ_pos hn)
+
+/-- The width at a numeral index, as a ratio of naturals. -/
+theorem invWidth_ofNat (n : Nat) : invWidth (ofNat.{u} n) = ratNat.{u} 1 (n + 1) := by
+  rw [invWidth, ratNat, ← ofNat_succ n]
+  rfl
+
+/-- Archimedes, in the form the widths need: some `1/(N+1)` is below any given
+positive rational. -/
+theorem exists_invWidth_lt {ε : ZFSet.{u}} (hεQ : ε ∈ Rat.{u})
+    (hε : ratLt ratZero.{u} ε) : ∃ N, N ∈ omega.{u} ∧ ratLt (invWidth N) ε := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff ε).mp hεQ
+  have haP := intPositive_num ha hb hε
+  have haI := intPositive_subset _ haP
+  have hbI := intPositive_subset _ hb
+  -- a natural `n` with `b ≤ n` and `b ≠ n`
+  obtain ⟨n, hle, hne⟩ := int_lt_intOfNat_mul hbI one_mem_intPositive
+  rw [intMul_one (intOfNat_mem_Int n)] at hle hne
+  refine ⟨ofNat.{u} n, ofNat_mem_omega n, ?_⟩
+  have hdP := intOf_succ_pos (ofNat_mem_omega n)
+  have hdI := intPositive_subset _ hdP
+  have hnd : intLe (intOfNat.{u} n) (intOf (succ (ofNat.{u} n)) empty.{u}) := by
+    rw [intOfNat, ← ofNat_succ, ← ofNat_zero, intLe_ofNat]
+    omega
+  have hda : intLe (intOf (succ (ofNat.{u} n)) empty.{u})
+      (intMul a (intOf (succ (ofNat.{u} n)) empty.{u})) := by
+    have hm := intMul_le_mul_right intOne_mem_Int haI hdI
+      (intZero_le_of_intPositive hdP) (intOne_le_of_intPositive haP)
+    rwa [intOne_mul hdI] at hm
+  have hchain : intLe (intOfNat.{u} n) (intMul a (intOf (succ (ofNat.{u} n)) empty.{u})) :=
+    intLe_trans (intOfNat_mem_Int n) hdI (intMul_mem_Int haI hdI) hnd hda
+  refine (ratLt_ratOf intOne_mem_Int hdP ha hb).mpr ⟨?_, ?_⟩
+  · rw [intOne_mul hbI]
+    exact intLe_trans hbI (intOfNat_mem_Int n) (intMul_mem_Int haI hdI) hle hchain
+  · rw [intOne_mul hbI]
+    intro heq
+    refine hne (intLe_antisymm hbI (intOfNat_mem_Int n) hle ?_)
+    rw [heq]
+    exact hchain
+
+#print axioms ratTwo
+#print axioms ratMid
+#print axioms invWidth
+#print axioms invWidth_mem_Rat
+#print axioms invWidth_pos
+#print axioms invWidth_ofNat
+#print axioms exists_invWidth_lt
+
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Rat corner_above_of_neg corner_close corner_le_mul diff_bounds diff_self_bounds exists_between_two exists_between_two' exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intPositive_num lt_mul_add_of_lt mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add num_ne_zero of_one_of_four ratAdd ratAdd_assoc ratAdd_comm ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_sub_cancel ratAdd_zero ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratOf ratLe ratLe_antisymm ratLe_ratOf ratLe_refl ratLe_total ratLe_trans ratLt ratLt_irrefl ratLt_mul_of_corners ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_ratOf ratLt_trans ratLt_trichotomy ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_one ratMul_ratOf ratMul_zero ratNeg ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_mem_Rat ratOne_mul ratPairs ratRel ratRel_isEquivRel ratZero ratZero_add ratZero_lt_one ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_scale_mono sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add)
+export NumberTheory (Rat corner_above_of_neg corner_close corner_le_mul diff_bounds diff_self_bounds exists_between_two exists_between_two' exists_clear_denom exists_common_denom exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_invWidth_lt exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intOfRat intOfRat_intToRat intOfRat_mem intPositive_num intToRat intToRat_add intToRat_inj intToRat_intOfRat intToRat_mem_Rat intToRat_mul invWidth invWidth_mem_Rat invWidth_ofNat invWidth_pos lt_mul_add_of_lt mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add num_ne_zero of_one_of_four ratAdd ratAdd_assoc ratAdd_comm ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_sub_cancel ratAdd_zero ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratOf ratLe ratLe_antisymm ratLe_ratOf ratLe_refl ratLe_total ratLe_trans ratLt ratLt_irrefl ratLt_mul_of_corners ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_ratOf ratLt_trans ratLt_trichotomy ratMid ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_one ratMul_ratOf ratMul_zero ratNat ratNat_eq_iff ratNat_le_iff ratNat_lt_iff ratNat_mem_Rat ratNat_width ratNat_zero ratNeg ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_mem_Rat ratOne_mul ratPairs ratRel ratRel_isEquivRel ratTwo ratZero ratZero_add ratZero_eq_ratNat ratZero_lt_one ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_scale_mono sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add)
 end ZFSet

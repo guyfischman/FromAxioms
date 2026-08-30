@@ -11,6 +11,7 @@ Lean core only -- no Mathlib, and no `prelude`, so notation and tactics are
 available. See `FromAxioms.Logic` for why the two roots are kept apart.
 -/
 import FromAxioms.Algebra
+import FromAxioms.Analysis
 import FromAxioms.Core
 import FromAxioms.NumberTheory
 import FromAxioms.SetTheory
