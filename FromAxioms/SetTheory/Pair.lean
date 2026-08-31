@@ -11,10 +11,10 @@ Sets are unordered, so an ordered pair has to be encoded. Kuratowski's encoding
 is `⟨a, b⟩ = {{a}, {a, b}}`: the first coordinate is distinguished by appearing
 in both members.
 
-Everything here rests on `opair_injective`, which is what makes the encoding an
-encoding at all. The cartesian product then carves out of
-`𝒫(𝒫(x ∪ y))` -- the smallest set-theoretic universe large enough to hold every
-`⟨a, b⟩` with `a ∈ x` and `b ∈ y`.
+Everything here rests on `opair_injective`, without which the encoding would
+not be an encoding. The cartesian product then carves out of `𝒫(𝒫(x ∪ y))` --
+the smallest set-theoretic universe large enough to hold every `⟨a, b⟩` with
+`a ∈ x` and `b ∈ y`.
 -/
 
 import FromAxioms.Algebra.Algebra

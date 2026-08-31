@@ -31,8 +31,8 @@ using the congruence lemmas at the bottom of `PSet.lean`.
 
 Two of Lean core's three axioms appear here:
 
-  * `Quot.sound` -- equivalent pre-sets become equal sets. This is what makes
-    the quotient a quotient, and it is irreducibly an axiom.
+  * `Quot.sound` -- equivalent pre-sets become equal sets, which
+    makes the quotient a quotient and is irreducibly an axiom.
   * `propext` -- lifting a `Prop`-valued function through `Quotient.lift`
     requires proving `f a₁ b₁ = f a₂ b₂` as an equality of propositions, and
     the congruence lemmas supply only an `Iff`. `propext` bridges them.

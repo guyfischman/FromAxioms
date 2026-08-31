@@ -11,15 +11,15 @@ Authors: Guy Fischman
 propositional connectives, equality, and the quantifiers from inductive types
 and the dependent arrow, then declares the classical axioms explicitly.
 
-This module and `FromAxioms.Foundations` are deliberately separate roots, and
-nothing imports both. They cannot coexist: Phase 1 declares `And`, `Or`, `Eq`
-and friends at top level, and so does Lean's `Init`, so importing this from a
+This module is a separate root from the rest of the library, and nothing
+imports both. They cannot coexist: this file declares `And`, `Or`, `Eq` and
+friends at top level, and so does Lean's `Init`, so importing it from a
 non-`prelude` module fails outright with
 
   environment already contains 'And.rec' from Init.Prelude
 
-That is not a defect. Phase 1 exists to show what is under the notation; Phase 2
-uses Lean's identical-but-better-equipped copies of the very same definitions.
+This development shows what is under the notation; the rest of the library
+uses Lean's identical copies of the same definitions.
 -/
 prelude
 import FromAxioms.Logic.Connectives

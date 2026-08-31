@@ -90,8 +90,8 @@ argument is data.
 
 If a witness could be extracted, `Prop` could no longer be erased at compile
 time, and a proof by contradiction that something exists would yield an actual
-object. The restriction is where the classical and the constructive readings of
-`Exists` part company.
+object. The restriction separates the classical and the constructive readings
+of `Exists`.
 
 The Type-level counterpart, where extraction is allowed, is `Subtype`.
 -/
@@ -148,9 +148,9 @@ theorem not_forall_of_exists_not {α : Sort u} {p : α → Prop}
 /-
 The missing fourth law is `Not ((a : α) → p a) → Exists (fun a => Not (p a))`:
 from the failure of a universal, produce a counterexample. It is not provable
-here, and the reason is structural rather than incidental -- the hypothesis is a
-function into `False` and contains no witness anywhere, while the conclusion
-requires one. Nothing in the type theory can manufacture it.
+here, for a structural reason -- the hypothesis is a function into `False` and
+contains no witness anywhere, while the conclusion requires one. Nothing in the
+type theory can manufacture it.
 
 It appears in `Logic/Classical.lean`, where excluded middle supplies it.
 -/

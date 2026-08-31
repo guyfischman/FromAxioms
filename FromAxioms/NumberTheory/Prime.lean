@@ -10,11 +10,11 @@ Authors: Guy Fischman
 The number-theory track opens here, at the next dated result after √2: 300 BCE,
 infinitely many primes.
 
-Everything is decidable, which is what makes this cheap. `d ∣ n` is `n % d =
-0`, a `Bool`-level test, so the least non-trivial factor can be found by
-bounded search and defined rather than chosen. Compare `Uncountable.lean`,
-where the search is over a `Prop` disjunction and costs an axiom: the
-difference is not the shape of the argument but what is being decided.
+Everything is decidable, so this is cheap. `d ∣ n` is `n % d = 0`, a
+`Bool`-level test, so the least non-trivial factor can be found by bounded
+search and defined rather than chosen. Compare `Uncountable.lean`, where the
+search is over a `Prop` disjunction and costs an axiom: the difference is not
+the shape of the argument but what is being decided.
 
 Euclid's step is then the usual one. `minFac (n! + 1)` is prime, and it cannot
 be `≤ n`, because anything in that range divides `n!` and would have to divide
@@ -185,8 +185,7 @@ private theorem mul_shuffle (a x d : Nat) : a * (x * d) = a * d * x := by
   rw [Nat.mul_assoc, Nat.mul_comm d x]
 
 /-- Bezout's identity. One of the two sides carries the coefficient; which
-one flips with each Euclidean step, which is why the statement is a
-disjunction. -/
+one flips with each Euclidean step, so the statement is a disjunction. -/
 theorem bezout : ∀ x y : Nat, ∃ a b : Nat,
     a * x = b * y + Nat.gcd x y ∨ a * y = b * x + Nat.gcd x y := by
   intro x
@@ -334,8 +333,8 @@ theorem prime_divides_mul {p a b : Nat} (hp : IsPrime p) (h : Divides p (a * b))
 
 Lists are core's; the product is not, so it is defined here. Existence is
 `minFac` plus strong induction. Uniqueness up to permutation is not proved --
-what is proved is its engine, that a prime dividing a product divides one of the
-factors, which is what makes any two factorizations line up. -/
+what is proved is its engine, that a prime dividing a product divides one of
+the factors, so any two factorizations line up. -/
 
 def prodList : List Nat → Nat
   | [] => 1
@@ -470,8 +469,8 @@ theorem prime_dvd_choose {p k : Nat} (hp : IsPrime p) (hk : 0 < k) (hkp : k < p)
 /-! ## Divisor sums, and a geometric bound
 
 The arithmetic half of counting irreducible polynomials: a sum over the proper
-divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, which is what makes the count
-of degree-`d` irreducibles positive. -/
+divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, so the count of degree-`d`
+irreducibles is positive. -/
 
 /-- The shifted cyclotomic polynomial satisfies Eisenstein's conditions at
 `p`.
@@ -570,8 +569,8 @@ private theorem int_sq_eq_zero {a : Int} (h : a * a = 0) : a = 0 := by
   rcases Int.mul_eq_zero.mp h with h' | h' <;> exact h'
 
 /-- `(a - b)² = a² - 2ab + b²`, expanded so that only products of the two
-variables appear -- no numeral is multiplied into a product, which is what lets
-`omega` finish from here treating each product as an atom. -/
+variables appear -- no numeral is multiplied into a product, so `omega`
+finishes from here treating each product as an atom. -/
 private theorem sq_sub_expand (a b : Int) :
     (a - b) * (a - b) = a * a - (a * b + a * b) + b * b := by
   rw [Int.sub_mul, Int.mul_sub, Int.mul_sub]
@@ -593,7 +592,7 @@ theorem norm_nonneg (x : Eis) : 0 <= norm x := by
 
 /-- The norm is multiplicative, so a factorisation in `ℤ[ω]` becomes a
 factorisation of a natural number, in which a proper factor is strictly
-smaller. This is what makes the descent terminate. -/
+smaller, so the descent terminates. -/
 theorem norm_mul (x y : Eis) : norm (mul x y) = norm x * norm y := by
   simp [norm, mul, Int.sub_mul, Int.mul_sub, Int.mul_add, Int.add_mul,
     Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
@@ -673,7 +672,7 @@ theorem mul_ofInt (a : Eis) (n : Int) : mul a (ofInt n) = ⟨a.re * n, a.im * n�
 
 `N(λ) = 3`, and `3 = -ω² λ²` up to a unit: the rational prime `3` ramifies. The
 descent for `n = 3` is a descent on the power of `λ` dividing one of the three
-terms, which is why this element and not `3` is the right object. -/
+terms, so this element and not `3` is the right object. -/
 
 def lam : Eis := ⟨1, -1⟩
 
@@ -685,8 +684,8 @@ def Dvd (d x : Eis) : Prop := ∃ k : Eis, x = mul d k
 
 The `n = 3` descent turns on one congruence: a cube prime to `λ` is `±1` modulo
 `λ⁴`. That is the Eisenstein analogue of cubes are `0, ±1` mod `9` -- indeed
-`λ⁴` has norm `81` and `9` is `-ω²λ²` up to a unit -- and it is what makes the
-sum of three such cubes impossible.
+`λ⁴` has norm `81` and `9` is `-ω²λ²` up to a unit -- and it rules out a sum of
+three such cubes.
 
 The residues are recorded here as a divisibility statement rather than as a
 quotient ring, so nothing is constructed that a descent does not use. -/
@@ -698,8 +697,8 @@ divides are exactly the multiples of `3`. Both directions are computations:
 `λ·(c + dω) = (c + d) + (2d - c)ω`, whose coordinate sum is `3d`, and
 conversely `a + b = 3m` is solved by `c = a - m`, `d = m`.
 
-This makes `λ`-divisibility DECIDABLE by an integer test, which is what turns
-the descent's case analysis into arithmetic rather than search. -/
+This makes `λ`-divisibility DECIDABLE by an integer test, turning the descent's
+case analysis into arithmetic rather than search. -/
 theorem lam_dvd_iff {x : Eis} :
     Dvd lam x ↔ ∃ m : Int, x.re + x.im = 3 * m := by
   obtain ⟨a, b⟩ := x
@@ -742,7 +741,7 @@ theorem ext_of_coords {a b : Eis} (hr : a.re = b.re) (hi : a.im = b.im) : a = b 
   simp [hr, hi]
 
 /-- Cancellation. `ℤ[ω]` has no zero divisors, so a non-zero factor may be
-struck from both sides -- which is what turns `λ⁴ ∣ λ³w³` into `λ ∣ w³`. -/
+struck from both sides, turning `λ⁴ ∣ λ³w³` into `λ ∣ w³`. -/
 theorem eq_of_mul_left_cancel {a b c : Eis}
     (ha : ¬ (a.re = 0 ∧ a.im = 0)) (h : mul a b = mul a c) : b = c := by
   have hz : mul a (sub b c) = zero := by

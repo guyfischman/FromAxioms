@@ -85,8 +85,8 @@ theorem not_and_or_of_wem (h : ∀ a : Prop, Or (Not a) (Not (Not a))) (a b : Pr
 
 `exists_not_of_not_forall` and `drinker` were the open entries in
 `tools/classical.json`. Both reverse, and both reverse to `WEM` rather than
-`em`, which is why the earlier attempts over `Prop` kept failing: they were
-aiming at the wrong target.
+`em`, so the earlier attempts over `Prop` kept failing: they were aiming at the
+wrong target.
 
 The witness is a genuine two-element type, so that a case split on the witness
 is available -- over `Prop` there is nothing to split on. The family sends one
@@ -156,7 +156,7 @@ theorem em_of_decider (d : (q : Prop) -> Decider q) (p : Prop) : Or p (Not p) :=
   (d p).rec (fun hp => Or.inl hp) (fun hn => Or.inr hn)
 
 -- `def`, not `theorem`: `Decider p` is data. The audit line is the result --
--- `choice` and nothing else, with `em` supplied as a hypothesis rather than used
+-- `choice`, with `em` supplied as a hypothesis rather than used
 noncomputable def decider_of_em
     (h : (q : Prop) -> Or q (Not q)) (p : Prop) : Decider p :=
   Exists.witness (α := Decider p) (p := fun _ => True)

@@ -111,7 +111,7 @@ theorem mem_intOf_iff {a b : ZFSet.{u}} (ha : a ∈ omega.{u}) (hb : b ∈ omega
 /-! ## Arithmetic
 
 The operations are carved out of `ω × ω` by separation, quantifying into the
-classes rather than selecting representatives from them. That is what keeps them
+classes rather than selecting representatives from them, which keeps them
 choice-free. -/
 
 def intAdd (z w : ZFSet.{u}) : ZFSet.{u} :=

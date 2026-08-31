@@ -92,9 +92,9 @@ data. -/
 
 /-- The naturals below `n`, descending: `below 3 = [2, 1, 0]`.
 
-Empty at zero, consing `n` onto `below n` at the successor -- so the head always
-exceeds everything in the tail, which is what makes it repeat-free by
-construction and what `mem_below` and `length_below` are about.
+Empty at zero, consing `n` onto `below n` at the successor -- so the head
+always exceeds everything in the tail, so it is repeat-free by construction and
+what `mem_below` and `length_below` are about.
 
 -/
 def below : Nat → List Nat

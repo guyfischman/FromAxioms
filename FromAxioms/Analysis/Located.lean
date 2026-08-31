@@ -217,8 +217,8 @@ theorem located_bracket {L U ε : ZFSet.{u}} (h : IsLocated L U) (hεQ : ε ∈ 
 
 With that hypothesis the supremum is a located pair and nothing here is
 classical. The upper set is defined rounded -- `r` counts as an upper bound
-only when some strictly smaller rational already is one -- which is what makes
-`upper_open` immediate rather than another ladder. -/
+only when some strictly smaller rational already is one -- so `upper_open` is
+immediate rather than another ladder. -/
 
 /-- The located reals, as a set of ordered pairs. -/
 def RealL : ZFSet.{u} :=

@@ -25,7 +25,7 @@ than something that merely resembles it.
 
 ## The one that needs foundation
 
-P3 and P5 are routine. P4 is where the earlier work pays off. Suppose
+P3 and P5 are routine. P4 draws on the earlier work. Suppose
 `succ m = succ n`. Since `m ∈ succ m`, we get `m ∈ succ n`, hence `m = n` or
 `m ∈ n`; symmetrically `n = m` or `n ∈ m`. The bad case is `m ∈ n` and
 `n ∈ m` -- a two-step membership cycle. Ruling it out is exactly what

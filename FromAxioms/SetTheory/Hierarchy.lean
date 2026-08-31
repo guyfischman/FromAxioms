@@ -10,8 +10,8 @@ Authors: Guy Fischman
     V x = ⋃ { 𝒫 (V y) | y ∈ x }
 
 Read on ordinals this is the usual cumulative hierarchy; read on arbitrary sets
-it is the same recursion with no well-ordering required, which is what makes it
-available here.
+it is the same recursion with no well-ordering required, so it is available
+here.
 
 Two things make it cheap. At the pre-set level the recursion is structural --
 a pre-set is an index type together with a family, so the family of stages is

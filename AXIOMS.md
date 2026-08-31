@@ -19,7 +19,7 @@ Every one of the 698 declarations in the library, asked what it depends on.
 
 | declaration | axioms | why |
 |---|---|---|
-| `Analysis.realMul` | `propext, Classical.choice, Quot.sound` | reversed by `Constructive.em_of_realNonneg_or`. the sign split. Reversed to EM, but no forward direction is possible: defining data by cases needs the decision as data (Decidable), which EM cannot supply. Proving by cases needs em; defining by cases needs choice; the general form is Constructive.decider_of_em |
+| `Analysis.realMul` | `propext, Classical.choice, Quot.sound` | reversed by `Constructive.em_of_realNonneg_or`, whose hypothesis is the SIGN DISJUNCTION and not the product. The `Classical.choice` here is spent by the `if` on an undecidable Prop: proving by cases needs em, defining by cases needs a `Decidable`, and em supplies no such instance -- `Or` does not eliminate into data. That blocks this route and not every route. `realMulNonneg` is already a single separation with no branch and is choice-free, so whether a sign-split-free definition of the general product costs less is OPEN here |
 | `Exists.witness` | `choice` | reversed by `choice_of_witness`. Phase 1. Together with witness_spec it reconstructs the axiom, so it is choice rather than a consequence of it |
 | `Exists.witness_spec` | `choice` | reversed by `choice_of_witness`. Phase 1. The property half of the same reconstruction |
 | `byCases` | `em` | reversed by `em_of_dne`. Pinned: Phase 1. Case analysis on an arbitrary proposition -- em applied |

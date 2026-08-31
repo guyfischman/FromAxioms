@@ -9,11 +9,11 @@ Authors: Guy Fischman
 
 `ℚ` is `ℤ × ℤ_{>0}` modulo `(a,b) ~ (c,d) ↔ a·d = c·b`.
 
-Denominators are strictly positive, not merely nonzero. With arbitrary nonzero
-denominators every rational has two representations of opposite sign, and the
-order `a/b ≤ c/d ↔ a·d ≤ c·b` then needs a case split on the sign of `b·d`.
-Restricting to positive denominators removes the case split, which is what makes
-the order on ℚ -- and hence Dedekind cuts -- tractable.
+Denominators are strictly positive, not merely nonzero. With arbitrary
+nonzero denominators every rational has two representations of opposite sign,
+and the order `a/b ≤ c/d ↔ a·d ≤ c·b` then needs a case split on the sign of
+`b·d`. Restricting to positive denominators removes the case split, so the
+order on ℚ is -- and hence Dedekind cuts -- tractable.
 
 Transitivity is where ℤ has to be a domain: from `a·d = c·b` and `c·f = e·d`
 one reaches `d·(a·f) = d·(e·b)` by associativity and commutativity, and then
@@ -324,7 +324,7 @@ theorem ratMul_assoc {r s t : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u
       intMul_assoc (intPositive_subset _ hb) (intPositive_subset _ hd)
         (intPositive_subset _ hf)]
 
-/-- Cancelling a common positive factor. This is what keeps the distributive law
+/-- Cancelling a common positive factor, which keeps the distributive law
 from turning into a six-factor rearrangement. -/
 theorem ratOf_cancel {k a b : ZFSet.{u}} (hk : k ∈ intPositive.{u}) (ha : a ∈ Int.{u})
     (hb : b ∈ intPositive.{u}) :
@@ -591,7 +591,7 @@ theorem ratLe_total {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) 
   · exact Or.inl ((ratLe_ratOf ha hb hc hd).mpr h)
   · exact Or.inr ((ratLe_ratOf hc hd ha hb).mpr h)
 
-/-- Transitivity is where the denominators have to be cancelled: the two
+/-- Transitivity is the step that cancels the denominators: the two
 hypotheses are multiplied up to a common denominator `b·d·f` and `intLe_trans`
 closes the chain, after which `d` divides back out. -/
 theorem ratLe_trans {r s t : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u})
@@ -1727,8 +1727,8 @@ theorem exists_max_pair {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{
   · exact ⟨a, ha, ratLe_refl ha, h, Or.inl rfl⟩
 
 /-- Transfer a property from four values to whichever of them was chosen. Paired
-with `exists_min_four`, this is what makes "the bound holds for the least"
-a single line rather than a four-way case split at each use. -/
+with `exists_min_four`, this reduces "the bound holds for the least" to a
+single line rather than a four-way case split at each use. -/
 theorem of_one_of_four {P : ZFSet.{u} → Prop} {w a b c d : ZFSet.{u}}
     (h : w = a ∨ w = b ∨ w = c ∨ w = d) (ha : P a) (hb : P b) (hc : P c) (hd : P d) : P w := by
   rcases h with rfl | rfl | rfl | rfl
@@ -1987,9 +1987,8 @@ theorem intToRat_inj {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u})
 
 `theOnly` carves the numerator out of the class: `a/1` is the class holding
 `opair a intOne`, and the cross-multiplication in `mem_ratOf_iff` forces that
-element to be unique, so the integer is NAMED rather than chosen -- FINDINGS
-27's mechanism, applied to the coefficient map.  This is what lets a cleared
-polynomial be built by `polyOfSeq` with no witness selected. -/
+element to be unique, so the integer is NAMED rather than chosen. A cleared
+polynomial is therefore built by `polyOfSeq` with no witness selected. -/
 def intOfRat (r : ZFSet.{u}) : ZFSet.{u} :=
   theOnly (fun x => opair x intOne.{u} ∈ r) Int.{u}
 

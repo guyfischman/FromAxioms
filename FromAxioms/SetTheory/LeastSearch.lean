@@ -12,9 +12,9 @@ Authors: Guy Fischman
 asking for its least member decides which. That is the general case, and it is
 classical.
 
-This file is the other case. When membership is detachable -- when `k in S or
-k not-in S` is a theorem rather than a hypothesis -- the least element is
-definable outright, with no principle at all. The term is the same
+This file is the other case. When membership is detachable -- when
+`k in S or k not-in S` is a theorem rather than a hypothesis -- the least
+element is definable outright, with no principle at all. The term is the same
 union-of-a-singleton trick `leastRank` uses: the minimal members of `S` form a
 singleton, and `sUnion` reads it.
 
@@ -66,8 +66,8 @@ theorem nat_least {P : Nat → Prop} (hdec : ∀ n, P n ∨ ¬ P n) {N : Nat} (h
 
 /-- The least member of a set of naturals: the union of its minimal members.
 
-Defining it costs nothing and says nothing -- for a set with no least member the
-separation is empty and this is `∅`. `least_mem` is where the content is. -/
+Defining it costs nothing and says nothing -- for a set with no least member
+the separation is empty and this is `∅`. The content is in `least_mem`. -/
 def least (S : ZFSet.{u}) : ZFSet.{u} :=
   sUnion (sep (fun k => ∀ j, j ∈ S → k ⊆ j) S)
 

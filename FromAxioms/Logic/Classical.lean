@@ -120,10 +120,10 @@ theorem drinker {α : Sort u} (a₀ : α) (p : α → Prop) :
 Deferred from `Equality.lean`. This one is an axiom outright, in this project
 and in Lean's standard library alike -- there is no derivation.
 
-It is what makes `Prop` behave like a set of truth values rather than a
-collection of distinct proof-objects: combined with the definitional proof
-irrelevance noted in `Equality.lean`, it means a proposition is determined
-entirely by whether it holds.
+It makes `Prop` behave like a set of truth values rather than a collection of
+distinct proof-objects: combined with the definitional proof irrelevance noted
+in `Equality.lean`, it means a proposition is determined entirely by whether it
+holds.
 -/
 
 /-- Axiom. Logically equivalent propositions are equal. -/
@@ -167,7 +167,7 @@ constructor carries data, and the kernel therefore refuses to eliminate it into
 `Type`. `Subtype p` carries the same information in a sort where extraction is
 permitted. The gap between them is precisely this axiom.
 
-Stated in this form it is indefinite description. It is what licenses the
+Stated in this form it is indefinite description, and it licenses the
 ordinary mathematical move of saying "let `x` be such an object" after merely
 proving that one exists.
 -/

@@ -7,10 +7,10 @@ Authors: Guy Fischman
 /-
 # Replacement.
 
-The last ZFC axiom, and the one that makes the theory strong: the image of a set
-under a function is a set. Separation can only carve subsets out of something
-you already have; replacement lets you build genuinely new sets of the same
-size, and it is what makes ordinals and transfinite recursion possible.
+The last ZFC axiom, and the one that makes the theory strong: the image of a
+set under a function is a set. Separation can only carve subsets out of
+something you already have; replacement lets you build genuinely new sets of
+the same size, and ordinals and transfinite recursion rest on that.
 
 ## Why this is nearly free at the pre-set level
 

@@ -20,7 +20,7 @@ encoded here: it falls out of the type theory.
 `infixr` expand into code mentioning `Lean.TrailingParserDescr`, which does
 not exist this early -- so connectives are written `And a b` rather than
 `a ∧ b`. And an eliminator landing in an arbitrary `Sort u` must be a `def`
-rather than a `theorem`, which is why `False.elim` below is one.
+rather than a `theorem`, so `False.elim` below is one.
 
 Nothing here is classical. There is no excluded middle in this file.
 -/

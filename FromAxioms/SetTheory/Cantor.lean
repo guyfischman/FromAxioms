@@ -17,8 +17,8 @@ exactly when it did not.
 
 The argument is constructive. It never splits on whether `a ∈ F a`; it derives
 `a ∉ diagonal F x` outright, and then derives membership from the same
-hypothesis. `Not` is doing all the work, which is why no axiom is needed --
-compare `regularity`, where the existence half needed excluded middle.
+hypothesis. `Not` is doing all the work, so no axiom is needed -- compare
+`regularity`, where the existence half needed excluded middle.
 
 `F` here is an arbitrary function on sets rather than a `Definable` one. That
 costs nothing: the theorem says a certain subset is missed, so quantifying

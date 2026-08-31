@@ -13,8 +13,7 @@ a subset of `x`, so the power set bounds the construction and Replacement is not
 needed.
 
 `cls_eq_cls_iff` states it: two classes are equal as sets exactly when their
-representatives are related. That is what lets a quotient stand in for the
-relation.
+representatives are related, so a quotient stands in for the relation.
 -/
 
 import FromAxioms.SetTheory.Relation
