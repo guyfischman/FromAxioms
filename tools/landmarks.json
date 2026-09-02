@@ -66,5 +66,9 @@
  "Analysis.located_bracket": [
   "constructive analysis: located reals",
   1967
+ ],
+ "SetTheory.peanoMap_injective": [
+  "ℕ characterised by recursion",
+  1888
  ]
 }

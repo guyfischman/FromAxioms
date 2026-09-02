@@ -75,6 +75,27 @@ theorem mem_omega_iff (x : ZFSet.{u}) : x ∈ omega.{u} ↔ ∃ n : Nat, x = ofN
   · rintro ⟨n, hn⟩
     exact ⟨ULift.up n, mk_eq_mk.mp hn⟩
 
+/-! ## P5: induction
+
+The induction principle is not assumed -- it is transported from `Nat`'s own
+recursion through `mem_omega_iff`. Every member of `omega` is `ofNat k` for a
+concrete `k`, and then structural recursion on `k` does the work. -/
+
+/-- P5, induction: a predicate holding at `∅` and passing to successors
+holds throughout `omega`. Not the recursion theorem -- defining a function by
+recursion is `recFun`, and the characterisation it buys is `peanoMap_injective`
+and `peanoMap_surjective`. -/
+theorem omega_induction {motive : ZFSet.{u} → Prop}
+    (base : motive empty.{u})
+    (step : ∀ k : ZFSet.{u}, k ∈ omega.{u} → motive k → motive (succ k)) :
+    ∀ n : ZFSet.{u}, n ∈ omega.{u} → motive n := by
+  intro n hn
+  obtain ⟨k, rfl⟩ := (mem_omega_iff n).mp hn
+  clear hn
+  induction k with
+  | zero => exact base
+  | succ k ih => exact step (ofNat k) (ofNat_mem_omega k) ih
+
 /-! ## P3: zero is not a successor -/
 
 theorem mem_succ_self (x : ZFSet.{u}) : x ∈ succ x :=
@@ -82,6 +103,40 @@ theorem mem_succ_self (x : ZFSet.{u}) : x ∈ succ x :=
 
 theorem mem_succ_iff (w x : ZFSet.{u}) : w ∈ succ x ↔ w = x ∨ w ∈ x :=
   mem_insert_iff w x x
+
+/-- `ω` is transitive: a member of a natural number is a natural number.
+The induction is on the `Nat` the member came from, which is what
+`mem_omega_iff` supplies. -/
+theorem mem_of_mem_ofNat : ∀ (k : Nat) {x : ZFSet.{u}},
+    x ∈ ofNat.{u} k → x ∈ omega.{u}
+  | 0, x, h => absurd h (not_mem_empty x)
+  | k + 1, x, h =>
+    ((mem_succ_iff x (ofNat.{u} k)).mp h).elim
+      (fun he => he ▸ ofNat_mem_omega k) (mem_of_mem_ofNat k)
+
+theorem omega_transitive {x y : ZFSet.{u}} (hy : y ∈ omega.{u}) (hx : x ∈ y) :
+    x ∈ omega.{u} :=
+  match (mem_omega_iff y).mp hy with
+  | ⟨k, hk⟩ => mem_of_mem_ofNat k (hk ▸ hx)
+
+/-- Each natural is itself a transitive set, which `omega_transitive` does
+not say: that one lands a member of a natural back in `ω`, this one lands it
+back in the SAME natural. A recursion whose step reads the value at `k` from a
+hypothesis about `k⁺` needs exactly this. -/
+theorem ofNat_transitive : ∀ (m : Nat) {x y : ZFSet.{u}},
+    y ∈ ofNat.{u} m → x ∈ y → x ∈ ofNat.{u} m
+  | 0, _, _, hy, _ => absurd hy (not_mem_empty _)
+  | m + 1, x, y, hy, hx =>
+    ((mem_succ_iff y (ofNat.{u} m)).mp hy).elim
+      (fun he => (mem_succ_iff x (ofNat.{u} m)).mpr (Or.inr (he ▸ hx)))
+      (fun hm => (mem_succ_iff x (ofNat.{u} m)).mpr
+        (Or.inr (ofNat_transitive m hm hx)))
+
+/-- Zero is a member of every later natural, so a recursion's base clause fires
+at every stage past the first. -/
+theorem empty_mem_ofNat_succ : ∀ m : Nat, empty.{u} ∈ ofNat.{u} (m + 1)
+  | 0 => (mem_succ_iff _ _).mpr (Or.inl rfl)
+  | m + 1 => (mem_succ_iff _ _).mpr (Or.inr (empty_mem_ofNat_succ m))
 
 /-- P3 of the Peano axioms: no successor is empty. -/
 theorem succ_ne_empty (x : ZFSet.{u}) : succ x ≠ empty.{u} :=
@@ -159,13 +214,17 @@ theorem ofNat_subset_iff (m n : Nat) : ofNat.{u} m ⊆ ofNat.{u} n ↔ m ≤ n :
     obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff w m).mp hw
     exact (mem_ofNat_iff _ n).mpr ⟨k, Nat.lt_of_lt_of_le hk h, rfl⟩
 
+#print axioms omega_induction   -- P5
 #print axioms succ_ne_empty     -- P3
 #print axioms not_mem_mem       -- foundation, in the form P4 needs
 #print axioms succ_injective    -- P4
 #print axioms ofNat_injective
 #print axioms mem_omega_iff
+#print axioms omega_transitive
+#print axioms ofNat_transitive
+#print axioms empty_mem_ofNat_succ
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (mem_ofNat_iff mem_omega_iff mem_succ_iff mem_succ_self not_mem_mem ofNat ofNat_injective ofNat_mem_omega ofNat_subset_iff ofNat_succ ofNat_zero succ_injective succ_ne_empty)
+export NumberTheory (empty_mem_ofNat_succ mem_ofNat_iff mem_of_mem_ofNat mem_omega_iff mem_succ_iff mem_succ_self not_mem_mem ofNat ofNat_injective ofNat_mem_omega ofNat_subset_iff ofNat_succ ofNat_transitive ofNat_zero omega_induction omega_transitive succ_injective succ_ne_empty)
 end ZFSet

@@ -882,8 +882,8 @@ theorem intMul_le_mul_right {x y k : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈
   simp only [Nat.mul_add] at hm
   omega
 
-/-- Multiplying by a positive integer both preserves and reflects `≤`. This is
-what makes the order on ℚ well defined. -/
+/-- Multiplying by a positive integer both preserves and reflects `≤`, which is
+what the order on ℚ is defined by. -/
 theorem intMul_le_mul_right_iff {x y k : ZFSet.{u}} (hx : x ∈ Int.{u})
     (hy : y ∈ Int.{u}) (hk : k ∈ intPositive.{u}) :
     intLe (intMul x k) (intMul y k) ↔ intLe x y := by
@@ -1007,6 +1007,25 @@ theorem intOfNat_injective {m n : Nat} (h : intOfNat.{u} m = intOfNat.{u} n) :
 
 #print axioms not_intPositive_intNeg_intOfNat
 
+/-- Adding one to a negative numeral: `-(m+1) + 1 = -m`.
+
+Mixed signs are not reachable by `intOfNat_add`, so this goes through the PAIR
+representation directly. -/
+theorem intNeg_succ_add_one (m : Nat) :
+    intAdd (intNeg (intOfNat.{u} (m + 1))) (intOfNat.{u} 1)
+      = intNeg (intOfNat.{u} m) := by
+  have hm1 := ofNat_mem_omega.{u} (m + 1)
+  have hm := ofNat_mem_omega.{u} m
+  have h1 := ofNat_mem_omega.{u} 1
+  have he := empty_mem_omega.{u}
+  rw [intOfNat, intOfNat, intOfNat, intNeg_intOf hm1 he, intNeg_intOf hm he,
+    intAdd_intOf he hm1 h1 he]
+  refine (intOf_eq_intOf_iff (add_mem_omega he h1) (add_mem_omega hm1 he)
+    he hm).mpr ?_
+  rw [empty_add h1, add_empty, add_ofNat, empty_add hm1]
+  exact congrArg _ (by omega)
+
+#print axioms intNeg_succ_add_one
 #print axioms intOfNat_injective
 
 
@@ -1024,6 +1043,26 @@ theorem exists_intOfNat_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{
   obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
   have hlt := intPositive_ofNat hz
   refine ⟨na - nb, by omega, ?_⟩
+  rw [intOfNat, ← ofNat_zero,
+    intOf_eq_intOf_iff (ofNat_mem_omega na) (ofNat_mem_omega nb)
+      (ofNat_mem_omega (na - nb)) (ofNat_mem_omega 0), add_ofNat, add_ofNat]
+  have h : na + 0 = na - nb + nb := by omega
+  rw [h]
+
+/-- A non-negative integer IS a numeral.
+
+`exists_intOfNat_of_intPositive` produces the representative for a POSITIVE
+integer, and the bounded-coordinate argument Floor 2 waits on needs the
+non-strict version: a coordinate may be zero, and excluding it would make the
+count off by the origin. Nothing is decided -- the representative's own
+subtraction supplies the numeral. -/
+theorem exists_intOfNat_of_intNonneg {z : ZFSet.{u}} (hz : z ∈ Int.{u})
+    (hnn : intNonneg z) : ∃ n : Nat, z = intOfNat.{u} n := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  rw [intNonneg_iff (ofNat_mem_omega na) (ofNat_mem_omega nb), ofNat_subset_iff] at hnn
+  refine ⟨na - nb, ?_⟩
   rw [intOfNat, ← ofNat_zero,
     intOf_eq_intOf_iff (ofNat_mem_omega na) (ofNat_mem_omega nb)
       (ofNat_mem_omega (na - nb)) (ofNat_mem_omega 0), add_ofNat, add_ofNat]
@@ -1063,16 +1102,77 @@ theorem intOfNat_sub (m n : Nat) (h : n ≤ m) :
 #print axioms intNeg_mul
 #print axioms intLe_neg_zero_iff
 #print axioms exists_intOfNat_of_intPositive
+#print axioms exists_intOfNat_of_intNonneg
+
+/-- The integers from `-B` to `B`, as a set. -/
+def boundedInts (B : Nat) : ZFSet.{u} :=
+  sep (fun z => intLe (intNeg (intOfNat.{u} B)) z ∧ intLe z (intOfNat.{u} B)) Int.{u}
+
+theorem mem_boundedInts_iff (B : Nat) (z : ZFSet.{u}) :
+    z ∈ boundedInts.{u} B ↔
+      z ∈ Int.{u} ∧ intLe (intNeg (intOfNat.{u} B)) z ∧ intLe z (intOfNat.{u} B) :=
+  mem_sep_iff _ z _
+
+theorem boundedInts_subset (B : Nat) : boundedInts.{u} B ⊆ Int.{u} :=
+  fun _ h => ((mem_boundedInts_iff B _).mp h).left
+
+/-- And every shifted numeral below `2B + 1` is bounded.
+
+The other half, so the two together say the set IS the image. -/
+theorem shift_mem_boundedInts {B k : Nat} (hk : k < 2 * B + 1) :
+    intAdd (intOfNat.{u} k) (intNeg (intOfNat.{u} B)) ∈ boundedInts.{u} B := by
+  have hB := intOfNat_mem_Int.{u} B
+  have hnB := intNeg_mem_Int hB
+  have hk' := intOfNat_mem_Int.{u} k
+  refine (mem_boundedInts_iff B _).mpr ⟨intAdd_mem_Int hk' hnB, ?_, ?_⟩
+  · have h : intLe (intAdd (intOfNat.{u} 0) (intNeg (intOfNat.{u} B)))
+        (intAdd (intOfNat.{u} k) (intNeg (intOfNat.{u} B))) :=
+      (intAdd_le_add_right_iff hnB (intOfNat_mem_Int.{u} 0) hk').mpr
+        ((intOfNat_le_iff 0 k).mpr (by omega))
+    rw [intOfNat_zero, intAdd_comm intZero_mem_Int hnB, intAdd_zero hnB] at h
+    exact h
+  · have h : intLe (intAdd (intOfNat.{u} k) (intNeg (intOfNat.{u} B)))
+        (intAdd (intOfNat.{u} (2 * B)) (intNeg (intOfNat.{u} B))) :=
+      (intAdd_le_add_right_iff hnB hk' (intOfNat_mem_Int.{u} (2 * B))).mpr
+        ((intOfNat_le_iff k (2 * B)).mpr (by omega))
+    have heq : intAdd (intOfNat.{u} (2 * B)) (intNeg (intOfNat.{u} B)) = intOfNat.{u} B := by
+      refine intAdd_right_cancel hB (intAdd_mem_Int (intOfNat_mem_Int.{u} (2 * B)) hnB) hB ?_
+      rw [intAdd_assoc (intOfNat_mem_Int.{u} (2 * B)) hnB hB,
+        intAdd_comm hnB hB, intAdd_neg hB, intAdd_zero (intOfNat_mem_Int.{u} (2 * B)),
+        intOfNat_add]
+      exact congrArg _ (by omega)
+    rw [heq] at h
+    exact h
+
+#print axioms boundedInts
+#print axioms mem_boundedInts_iff
+#print axioms boundedInts_subset
+#print axioms shift_mem_boundedInts
+
 theorem intOf_succ_pos {n : ZFSet.{u}} (hn : n ∈ omega.{u}) :
     intOf (succ n) empty.{u} ∈ intPositive.{u} := by
   obtain ⟨k, rfl⟩ := (mem_omega_iff n).mp hn
   rw [← ofNat_succ, ← ofNat_zero]
   exact ofNat_mem_intPositive (by omega)
 
+/-! ## Subtraction, and the bounded-difference step -/
+
+/-- Negation distributes over addition. Absent from `Integer.lean`, which
+has `intNeg_intOf` and `intAdd_intOf` but never composes them. Both sides
+reduce to the same `intOf` by those two lemmas and commutativity of `add` on
+`omega`. -/
+theorem intNeg_intAdd {x y : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈ Int.{u}) :
+    intNeg (intAdd x y) = intAdd (intNeg x) (intNeg y) := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff x).mp hx
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff y).mp hy
+  rw [intAdd_intOf ha hb hc hd, intNeg_intOf (add_mem_omega ha hc) (add_mem_omega hb hd),
+      intNeg_intOf ha hb, intNeg_intOf hc hd, intAdd_intOf hb ha hd hc]
+
+#print axioms intNeg_intAdd
 end NumberTheory
 
 #print axioms NumberTheory.intOf_succ_pos
 
 namespace ZFSet
-export NumberTheory (Int exists_intOfNat_of_intPositive intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_le_add_left_iff intAdd_le_add_right_iff intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_right_cancel intAdd_zero intLe intLe_antisymm intLe_intOf intLe_neg_zero_iff intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_le_mul_right intMul_le_mul_right_iff intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_ne_zero intMul_neg intMul_one intMul_zero intNeg intNeg_eq_zero_iff intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_zero intNonneg intNonneg_iff intOf intOfNat intOfNat_add intOfNat_eq_iff intOfNat_injective intOfNat_le_iff intOfNat_mem_Int intOfNat_mem_intPositive intOfNat_mul intOfNat_sub intOfNat_succ intOfNat_zero intOf_eq_intOf_iff intOf_mem_Int intOf_succ_pos intOne intOne_eq_intOfNat_one intOne_le_of_intPositive intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_of_intZero_le intPositive_or_neg intPositive_subset intRel intRel_isEquivRel intZero intZero_le_of_intPositive intZero_mem_Int intZero_mul int_eq_or_ne int_lt_intOfNat_mul mem_Int_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff not_intPositive_intNeg_intOfNat ofNat_mem_intPositive omegaPairs one_mem_intPositive)
+export NumberTheory (Int boundedInts boundedInts_subset exists_intOfNat_of_intNonneg exists_intOfNat_of_intPositive intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_le_add_left_iff intAdd_le_add_right_iff intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_right_cancel intAdd_zero intLe intLe_antisymm intLe_intOf intLe_neg_zero_iff intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_le_mul_right intMul_le_mul_right_iff intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_ne_zero intMul_neg intMul_one intMul_zero intNeg intNeg_eq_zero_iff intNeg_intAdd intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_succ_add_one intNeg_zero intNonneg intNonneg_iff intOf intOfNat intOfNat_add intOfNat_eq_iff intOfNat_injective intOfNat_le_iff intOfNat_mem_Int intOfNat_mem_intPositive intOfNat_mul intOfNat_sub intOfNat_succ intOfNat_zero intOf_eq_intOf_iff intOf_mem_Int intOf_succ_pos intOne intOne_eq_intOfNat_one intOne_le_of_intPositive intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_of_intZero_le intPositive_or_neg intPositive_subset intRel intRel_isEquivRel intZero intZero_le_of_intPositive intZero_mem_Int intZero_mul int_eq_or_ne int_lt_intOfNat_mul mem_Int_iff mem_boundedInts_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff not_intPositive_intNeg_intOfNat ofNat_mem_intPositive omegaPairs one_mem_intPositive shift_mem_boundedInts)
 end ZFSet

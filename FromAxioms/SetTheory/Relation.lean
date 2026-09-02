@@ -81,6 +81,37 @@ The relation laws at `empty`. -/
 def IsFunction (f : ZFSet.{u}) : Prop :=
   IsRelation f ∧ ∀ a b c, opair a b ∈ f → opair a c ∈ f → b = c
 
+/-- The empty set is a function: vacuously single-valued, and its domain is
+empty, so it is the function on no arguments. -/
+theorem isFunction_empty : IsFunction empty.{u} :=
+  ⟨fun p hp => absurd hp (not_mem_empty p),
+    fun _ _ _ hb => absurd hb (not_mem_empty _)⟩
+
+/-- A Lean-level family, carved into a graph, is a function.
+
+This is how a `ZFSet → ZFSet` becomes an object the theory can quantify over,
+and it is the same three lines everywhere it is done: single-valuedness is
+`opair_injective` twice and then the two second components agree because the
+first ones did. Extracted after `dupes.py` found the block written THREE times
+-- `Cardinal.lean`, `FiniteSubsets.lean` and `Halving.lean` -- each building a
+graph for a different family.
+
+The codomain `C` is a parameter and not `image f D`: a caller may know only that
+the values land somewhere, which is enough, and demanding the exact image would
+force each caller to prove surjectivity it does not need. -/
+theorem isFunction_graphOn {D C : ZFSet.{u}} (f : ZFSet.{u} → ZFSet.{u}) :
+    IsFunction (sep (fun z => ∃ a, a ∈ D ∧ z = opair a (f a)) (prod D C)) := by
+  constructor
+  · intro z hz
+    obtain ⟨-, a, -, he⟩ := (mem_sep_iff _ z _).mp hz
+    exact ⟨_, _, he⟩
+  · intro a b b' hb hb'
+    obtain ⟨-, c, -, he⟩ := (mem_sep_iff _ _ _).mp hb
+    obtain ⟨-, c', -, he'⟩ := (mem_sep_iff _ _ _).mp hb'
+    obtain ⟨rfl, rfl⟩ := opair_injective he
+    obtain ⟨hc, rfl⟩ := opair_injective he'
+    rw [hc]
+
 /-- Application, without choice: the separation below is a singleton. -/
 def app (f a : ZFSet.{u}) : ZFSet.{u} :=
   sUnion (sep (fun b => opair a b ∈ f) (range f))
@@ -124,6 +155,383 @@ theorem funext_zf {f g : ZFSet.{u}} (hf : IsFunction f) (hg : IsFunction g)
     have haf : a ∈ domain f := hdom ▸ hag
     have : app f a = b := by rw [hval a haf, app_eq hg hp]
     exact this ▸ opair_app_mem hf haf
+
+/-! ### Extending a function by one pair
+
+The step of every recursion on `ω`, and stated with `k ∉ domain g` as a
+hypothesis rather than derived: the caller knows why its new key is fresh, and
+for the naturals that reason is `not_mem_self`, which lives further down the
+tower than this file. -/
+
+/-- `g`, with `k` sent to `v`. -/
+def extendAt (g k v : ZFSet.{u}) : ZFSet.{u} := g ∪ singleton (opair k v)
+
+theorem mem_extendAt_iff (g k v p : ZFSet.{u}) :
+    p ∈ extendAt g k v ↔ Or (p ∈ g) (p = opair k v) :=
+  Iff.trans (mem_union_iff p _ _)
+    (or_congr Iff.rfl (mem_singleton_iff p _))
+
+theorem opair_mem_extendAt (g k v : ZFSet.{u}) : opair k v ∈ extendAt g k v :=
+  (mem_extendAt_iff g k v _).mpr (Or.inr rfl)
+
+theorem subset_extendAt (g k v : ZFSet.{u}) : g ⊆ extendAt g k v :=
+  fun _ hp => (mem_extendAt_iff g k v _).mpr (Or.inl hp)
+
+/-- A fresh key keeps it a function. Both mixed cases are where the
+hypothesis is spent: a pair of `g` at the new key would put that key in
+`domain g`. -/
+theorem isFunction_extendAt {g k v : ZFSet.{u}} (hg : IsFunction g)
+    (hk : k ∉ domain g) : IsFunction (extendAt g k v) := by
+  refine ⟨fun p hp => ?_, fun a b c hb hc => ?_⟩
+  · rcases (mem_extendAt_iff g k v p).mp hp with h | h
+    · exact hg.left p h
+    · exact ⟨k, v, h⟩
+  · rcases (mem_extendAt_iff g k v _).mp hb with hb' | hb' <;>
+      rcases (mem_extendAt_iff g k v _).mp hc with hc' | hc'
+    · exact hg.right a b c hb' hc'
+    · obtain ⟨hak, -⟩ := opair_injective hc'
+      exact absurd (hak ▸ (mem_domain_iff a g).mpr ⟨b, hb'⟩) hk
+    · obtain ⟨hak, -⟩ := opair_injective hb'
+      exact absurd (hak ▸ (mem_domain_iff a g).mpr ⟨c, hc'⟩) hk
+    · obtain ⟨-, hbv⟩ := opair_injective hb'
+      obtain ⟨-, hcv⟩ := opair_injective hc'
+      rw [hbv, hcv]
+
+/-- The domain grows by exactly the new key. -/
+theorem domain_extendAt_succ {g k v : ZFSet.{u}} (hd : domain g = k) :
+    domain (extendAt g k v) = succ k := by
+  refine ext _ _ fun a => ⟨fun ha => ?_, fun ha => ?_⟩
+  · obtain ⟨b, hb⟩ := (mem_domain_iff a _).mp ha
+    rcases (mem_extendAt_iff g k v _).mp hb with h | h
+    · exact (mem_succ_iff a k).mpr (Or.inr (hd ▸ (mem_domain_iff a g).mpr ⟨b, h⟩))
+    · exact (mem_succ_iff a k).mpr (Or.inl (opair_injective h).left)
+  · rcases (mem_succ_iff a k).mp ha with rfl | h
+    · exact (mem_domain_iff a _).mpr ⟨v, opair_mem_extendAt g a v⟩
+    · obtain ⟨b, hb⟩ := (mem_domain_iff a g).mp (hd ▸ h)
+      exact (mem_domain_iff a _).mpr ⟨b, subset_extendAt g k v _ hb⟩
+
+theorem app_extendAt_self {g k v : ZFSet.{u}} (hg : IsFunction g)
+    (hk : k ∉ domain g) : app (extendAt g k v) k = v :=
+  app_eq (isFunction_extendAt hg hk) (opair_mem_extendAt g k v)
+
+/-- Below the new key nothing moves, so an approximation extends without
+disturbing what it already said. -/
+theorem app_extendAt_of_mem {g k v a : ZFSet.{u}} (hg : IsFunction g)
+    (hk : k ∉ domain g) (ha : a ∈ domain g) :
+    app (extendAt g k v) a = app g a :=
+  app_eq (isFunction_extendAt hg hk) (subset_extendAt g k v _ (opair_app_mem hg ha))
+
+/-! ### The recursion theorem: finite approximations
+
+`natSeq` below internalises a recursion Lean has already performed, so it says
+what Lean's `Nat` can do and nothing about what `ω` can. This
+is the other thing: the approximations are built as SETS, from `a` and `f`
+alone.
+
+They are indexed from ONE. The step needs the previous value to apply `f` to,
+and at stage zero there is none -- so a zero-indexed statement forces a case
+split on empty-or-successor inside the step, while indexing from one makes the
+base `{(∅, a)}` and leaves the previous stage always in hand. -/
+
+/-- A finite approximation: a function on `n` obeying both recursion clauses
+wherever they apply inside `n`. -/
+structure IsRecApprox (A a f n g : ZFSet.{u}) : Prop where
+  isFun : IsFunction g
+  dom : domain g = n
+  bounded : g ⊆ prod n A
+  zero : empty.{u} ∈ n → app g empty.{u} = a
+  step : ∀ k, succ k ∈ n → app g (succ k) = app f (app g k)
+
+/-- An approximation exists at every stage. The recursion is on the `Nat`
+that indexes the stage, but every step BUILDS a set and the statement is about
+sets throughout -- so unlike `natSeq` nothing is transported in from outside. -/
+theorem exists_recApprox {A a f : ZFSet.{u}} (ha : a ∈ A)
+    (hval : ∀ v, v ∈ A → app f v ∈ A) (n : Nat) :
+    ∃ g, IsRecApprox.{u} A a f (ofNat.{u} (n + 1)) g := by
+  induction n with
+  | zero =>
+    have hfresh : empty.{u} ∉ domain empty.{u} := by
+      rw [domain_empty]; exact not_mem_empty _
+    refine ⟨extendAt empty.{u} empty.{u} a, isFunction_extendAt isFunction_empty hfresh,
+      domain_extendAt_succ domain_empty, ?_, ?_, ?_⟩
+    · intro p hp
+      rcases (mem_extendAt_iff _ _ _ p).mp hp with h | h
+      · exact absurd h (not_mem_empty p)
+      · exact h ▸ (mem_prod_iff _ _ _).mpr
+          ⟨empty.{u}, (mem_succ_iff _ _).mpr (Or.inl rfl), a, ha, rfl⟩
+    · exact fun _ => app_extendAt_self isFunction_empty hfresh
+    · intro k hk
+      rcases (mem_succ_iff (succ k) empty.{u}).mp hk with h | h
+      · exact absurd h (succ_ne_empty k)
+      · exact absurd h (not_mem_empty _)
+  | succ n ih =>
+    obtain ⟨g, hfun, hdom, hsub, hzero, hstep⟩ := ih
+    have hfresh : ofNat.{u} (n + 1) ∉ domain g := by
+      rw [hdom]; exact not_mem_self _
+    have hprev : ofNat.{u} n ∈ domain g := by
+      rw [hdom]; exact (mem_succ_iff _ _).mpr (Or.inl rfl)
+    have hprevA : app g (ofNat.{u} n) ∈ A := by
+      have := hsub _ (opair_app_mem hfun hprev)
+      obtain ⟨x, _, y, hy, he⟩ := (mem_prod_iff _ _ _).mp this
+      rw [(opair_injective he).right]; exact hy
+    refine ⟨extendAt g (ofNat.{u} (n + 1)) (app f (app g (ofNat.{u} n))),
+      isFunction_extendAt hfun hfresh, domain_extendAt_succ hdom, ?_, ?_, ?_⟩
+    · intro p hp
+      rcases (mem_extendAt_iff _ _ _ p).mp hp with h | h
+      · obtain ⟨x, hx, y, hy, rfl⟩ := (mem_prod_iff _ _ _).mp (hsub p h)
+        exact (mem_prod_iff _ _ _).mpr
+          ⟨x, (mem_succ_iff _ _).mpr (Or.inr hx), y, hy, rfl⟩
+      · exact h ▸ (mem_prod_iff _ _ _).mpr
+          ⟨ofNat.{u} (n + 1), (mem_succ_iff _ _).mpr (Or.inl rfl),
+            app f (app g (ofNat.{u} n)), hval _ hprevA, rfl⟩
+    · intro _
+      have hz : empty.{u} ∈ domain g := by rw [hdom]; exact empty_mem_ofNat_succ n
+      rw [app_extendAt_of_mem hfun hfresh hz]
+      exact hzero (hdom ▸ hz)
+    · intro k hk
+      rcases (mem_succ_iff (succ k) (ofNat.{u} (n + 1))).mp hk with h | h
+      · have hkn : k = ofNat.{u} n := succ_injective h
+        rw [h, app_extendAt_self hfun hfresh, hkn,
+          app_extendAt_of_mem hfun hfresh hprev]
+      · have hkdom : succ k ∈ domain g := by rw [hdom]; exact h
+        have hkd : k ∈ domain g := by
+          rw [hdom]
+          exact ofNat_transitive (n + 1) h (mem_succ_self k)
+        rw [app_extendAt_of_mem hfun hfresh hkdom,
+          app_extendAt_of_mem hfun hfresh hkd]
+        exact hstep k (hdom ▸ hkdom)
+
+/-- Any two approximations agree wherever both are defined. The induction is
+on the stage, and both clauses are used exactly once: the base says both send
+`∅` to `a`, and the step says both send `k⁺` to `f` of their own value at `k`,
+which the inductive hypothesis has already equated.
+
+Stated over NUMERAL domains rather than arbitrary ones, because the step needs
+`k⁺ ∈ n → k ∈ n` and that is `ofNat_transitive` -- true of a natural and not of
+a set in general. `exists_recApprox` only ever produces numeral domains, so
+nothing is lost. -/
+theorem recApprox_agree {A a f : ZFSet.{u}} {p q : Nat} {g g' : ZFSet.{u}}
+    (hg : IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g)
+    (hg' : IsRecApprox.{u} A a f (ofNat.{u} (q + 1)) g') :
+    ∀ j : Nat, ofNat.{u} j ∈ ofNat.{u} (p + 1) → ofNat.{u} j ∈ ofNat.{u} (q + 1) →
+      app g (ofNat.{u} j) = app g' (ofNat.{u} j) := by
+  obtain ⟨-, -, -, hz, hs⟩ := hg
+  obtain ⟨-, -, -, hz', hs'⟩ := hg'
+  intro j
+  induction j with
+  | zero => intro h1 h2; rw [ofNat_zero, hz (ofNat_zero ▸ h1), hz' (ofNat_zero ▸ h2)]
+  | succ j ih =>
+    intro h1 h2
+    have t1 : ofNat.{u} j ∈ ofNat.{u} (p + 1) :=
+      ofNat_transitive (p + 1) h1 (mem_succ_self _)
+    have t2 : ofNat.{u} j ∈ ofNat.{u} (q + 1) :=
+      ofNat_transitive (q + 1) h2 (mem_succ_self _)
+    rw [ofNat_succ, hs (ofNat.{u} j) (ofNat_succ j ▸ h1),
+      hs' (ofNat.{u} j) (ofNat_succ j ▸ h2), ih t1 t2]
+
+/-! ### The recursion theorem: the union
+
+All the approximations at once, as a set -- a separation over
+`powerset (prod ω A)`, so the bound is the axiom of power set and nothing
+stronger. `recApprox_agree` is exactly what makes the union single-valued:
+without it two approximations could disagree and the union would be a relation
+rather than a function. -/
+
+/-- Every finite approximation, collected. -/
+def recSet (A a f : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun g => ∃ p : Nat, IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g)
+    (powerset (prod omega.{u} A))
+
+theorem mem_recSet_iff (A a f g : ZFSet.{u}) :
+    g ∈ recSet A a f ↔ And (g ∈ powerset (prod omega.{u} A))
+      (∃ p : Nat, IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g) :=
+  mem_sep_iff _ _ _
+
+/-- An approximation qualifies: its pairs are bounded by `ω × A`, because its
+domain is a numeral and every member of a numeral is in `ω`. -/
+theorem recApprox_mem_recSet {A a f g : ZFSet.{u}} {p : Nat}
+    (hg : IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g) : g ∈ recSet A a f := by
+  refine (mem_recSet_iff A a f g).mpr ⟨(mem_powerset_iff _ _).mpr ?_, p, hg⟩
+  intro z hz
+  obtain ⟨x, hx, y, hy, rfl⟩ :=
+    (mem_prod_iff _ _ _).mp (hg.bounded z hz)
+  exact (mem_prod_iff _ _ _).mpr ⟨x, mem_of_mem_ofNat (p + 1) hx, y, hy, rfl⟩
+
+/-- The recursion's function: every approximation, unioned. -/
+def recFun (A a f : ZFSet.{u}) : ZFSet.{u} := sUnion (recSet A a f)
+
+theorem mem_recFun_iff (A a f z : ZFSet.{u}) :
+    z ∈ recFun A a f ↔ ∃ g, And (g ∈ recSet A a f) (z ∈ g) :=
+  mem_sUnion_iff _ _
+
+/-- The union is a function. Two pairs at one key come from two
+approximations; the key is a numeral because it lies in a numeral domain, and
+`recApprox_agree` then equates the two values. -/
+theorem isFunction_recFun (A a f : ZFSet.{u}) : IsFunction (recFun A a f) := by
+  refine ⟨fun z hz => ?_, fun k b c hb hc => ?_⟩
+  · obtain ⟨g, hgS, hzg⟩ := (mem_recFun_iff A a f z).mp hz
+    obtain ⟨-, p, hg⟩ := (mem_recSet_iff A a f g).mp hgS
+    exact hg.isFun.left z hzg
+  · obtain ⟨g, hgS, hbg⟩ := (mem_recFun_iff A a f _).mp hb
+    obtain ⟨g', hgS', hcg⟩ := (mem_recFun_iff A a f _).mp hc
+    obtain ⟨-, p, hg⟩ := (mem_recSet_iff A a f g).mp hgS
+    obtain ⟨-, q, hg'⟩ := (mem_recSet_iff A a f g').mp hgS'
+    have hk : k ∈ ofNat.{u} (p + 1) :=
+      hg.dom ▸ (mem_domain_iff k g).mpr ⟨b, hbg⟩
+    have hk' : k ∈ ofNat.{u} (q + 1) :=
+      hg'.dom ▸ (mem_domain_iff k g').mpr ⟨c, hcg⟩
+    obtain ⟨j, rfl⟩ := (mem_omega_iff k).mp (mem_of_mem_ofNat (p + 1) hk)
+    rw [← app_eq hg.isFun hbg, ← app_eq hg'.isFun hcg]
+    exact recApprox_agree hg hg' j hk hk'
+
+/-- The union's value is any approximation's value. Every later fact about
+`recFun` goes through this: pick a stage whose domain reaches far enough, and
+the union answers exactly as that stage does. -/
+theorem app_recFun_eq {A a f g : ZFSet.{u}} {p j : Nat}
+    (hg : IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g)
+    (hj : ofNat.{u} j ∈ ofNat.{u} (p + 1)) :
+    app (recFun A a f) (ofNat.{u} j) = app g (ofNat.{u} j) :=
+  app_eq (isFunction_recFun A a f)
+    ((mem_recFun_iff A a f _).mpr
+      ⟨g, recApprox_mem_recSet hg, opair_app_mem hg.isFun (hg.dom ▸ hj)⟩)
+
+/-- The union is defined on all of `ω` -- no further, because every
+approximation is bounded by `ω × A`, and no less, because a stage reaching any
+given numeral exists. -/
+theorem domain_recFun {A a f : ZFSet.{u}} (ha : a ∈ A)
+    (hval : ∀ v, v ∈ A → app f v ∈ A) : domain (recFun A a f) = omega.{u} := by
+  refine ext _ _ fun k => ⟨fun hk => ?_, fun hk => ?_⟩
+  · obtain ⟨b, hb⟩ := (mem_domain_iff k _).mp hk
+    obtain ⟨g, hgS, hbg⟩ := (mem_recFun_iff A a f _).mp hb
+    have hbound := (mem_powerset_iff _ _).mp ((mem_recSet_iff A a f g).mp hgS).left
+    exact mem_prod_left (hbound _ hbg)
+  · obtain ⟨j, rfl⟩ := (mem_omega_iff k).mp hk
+    obtain ⟨g, hg⟩ := exists_recApprox ha hval j
+    have hj : ofNat.{u} j ∈ ofNat.{u} (j + 1) := (mem_succ_iff _ _).mpr (Or.inl rfl)
+    exact (mem_domain_iff _ _).mpr ⟨app g (ofNat.{u} j),
+      (mem_recFun_iff A a f _).mpr
+        ⟨g, recApprox_mem_recSet hg, opair_app_mem hg.isFun (hg.dom ▸ hj)⟩⟩
+
+/-- The base clause, read off the stage-zero approximation. -/
+theorem app_recFun_empty {A a f : ZFSet.{u}} (ha : a ∈ A)
+    (hval : ∀ v, v ∈ A → app f v ∈ A) :
+    app (recFun A a f) empty.{u} = a := by
+  obtain ⟨g, hg⟩ := exists_recApprox ha hval 0
+  have h0 : empty.{u} ∈ ofNat.{u} (0 + 1) := empty_mem_ofNat_succ 0
+  rw [← ofNat_zero, app_recFun_eq hg (ofNat_zero ▸ h0), ofNat_zero]
+  exact hg.zero h0
+
+/-- The step clause. The stage is chosen one past the successor, so both the
+successor and its predecessor are inside that approximation's domain and the
+union agrees with it at each. -/
+theorem app_recFun_succ {A a f : ZFSet.{u}} (ha : a ∈ A)
+    (hval : ∀ v, v ∈ A → app f v ∈ A) :
+    ∀ n, n ∈ omega.{u} →
+      app (recFun A a f) (succ n) = app f (app (recFun A a f) n) := by
+  intro n hn
+  obtain ⟨j, rfl⟩ := (mem_omega_iff n).mp hn
+  obtain ⟨g, hg⟩ := exists_recApprox ha hval (j + 1)
+  have hsj : ofNat.{u} (j + 1) ∈ ofNat.{u} (j + 1 + 1) :=
+    (mem_succ_iff _ _).mpr (Or.inl rfl)
+  have hj : ofNat.{u} j ∈ ofNat.{u} (j + 1 + 1) :=
+    ofNat_transitive (j + 1 + 1) hsj (mem_succ_self _)
+  rw [show succ (ofNat.{u} j) = ofNat.{u} (j + 1) from rfl,
+    app_recFun_eq hg hsj, app_recFun_eq hg hj,
+    show ofNat.{u} (j + 1) = succ (ofNat.{u} j) from rfl]
+  exact hg.step (ofNat.{u} j) hsj
+
+/-- The recursion's values stay in `A`, which the bound on every approximation
+already forces. -/
+theorem app_recFun_mem {A a f : ZFSet.{u}} (ha : a ∈ A)
+    (hval : ∀ v, v ∈ A → app f v ∈ A) :
+    ∀ n, n ∈ omega.{u} → app (recFun A a f) n ∈ A := by
+  intro n hn
+  have hpair := opair_app_mem (isFunction_recFun A a f) (domain_recFun ha hval ▸ hn)
+  obtain ⟨g, hgS, hg⟩ := (mem_recFun_iff A a f _).mp hpair
+  have hbound := (mem_powerset_iff _ _).mp ((mem_recSet_iff A a f g).mp hgS).left
+  exact mem_prod_right (hbound _ hg)
+
+/-! ### Second-order Peano models, and categoricity
+
+A model is a set with a zero and a successor OPERATION -- the successor is a
+set function, not a Lean one, so the whole statement lives inside the theory.
+The induction clause quantifies over every subset of the carrier, which is what
+second-order means here and what categoricity rests on; the first-order schema
+of `Peano.lean` has non-standard models (`Nonstandard.lean` builds one). -/
+
+structure IsPeano (N z s : ZFSet.{u}) : Prop where
+  zero_mem : z ∈ N
+  succ_fun : IsFunction s
+  succ_dom : domain s = N
+  succ_mem : ∀ x, x ∈ N → app s x ∈ N
+  succ_ne_zero : ∀ x, x ∈ N → app s x ≠ z
+  succ_inj : ∀ x, x ∈ N → ∀ y, y ∈ N → app s x = app s y → x = y
+  induct : ∀ S, S ⊆ N → z ∈ S → (∀ x, x ∈ S → app s x ∈ S) → S = N
+
+/-- The map `ω → N` the recursion theorem supplies. -/
+def peanoMap (N z s : ZFSet.{u}) : ZFSet.{u} := recFun N z s
+
+theorem peanoMap_zero {N z s : ZFSet.{u}} (h : IsPeano.{u} N z s) :
+    app (peanoMap N z s) empty.{u} = z :=
+  app_recFun_empty h.zero_mem h.succ_mem
+
+theorem peanoMap_succ {N z s : ZFSet.{u}} (h : IsPeano.{u} N z s) :
+    ∀ n, n ∈ omega.{u} →
+      app (peanoMap N z s) (succ n) = app s (app (peanoMap N z s) n) :=
+  app_recFun_succ h.zero_mem h.succ_mem
+
+theorem peanoMap_mem {N z s : ZFSet.{u}} (h : IsPeano.{u} N z s) :
+    ∀ n, n ∈ omega.{u} → app (peanoMap N z s) n ∈ N :=
+  app_recFun_mem h.zero_mem h.succ_mem
+
+/-- The map is onto. Its image is a subset of `N` containing `z` and closed
+under the successor, so the model's own induction clause forces it to be all of
+`N` -- which is the whole use made of second-order induction. -/
+theorem peanoMap_surjective {N z s : ZFSet.{u}} (h : IsPeano.{u} N z s) :
+    ∀ y, y ∈ N → ∃ n, And (n ∈ omega.{u}) (app (peanoMap N z s) n = y) := by
+  have himg : sep (fun y => ∃ n, And (n ∈ omega.{u})
+      (app (peanoMap N z s) n = y)) N = N := by
+    refine h.induct _ (fun w hw => ((mem_sep_iff _ w _).mp hw).left) ?_ ?_
+    · exact (mem_sep_iff _ _ _).mpr
+        ⟨h.zero_mem, empty.{u}, empty_mem_omega, peanoMap_zero h⟩
+    · intro x hx
+      obtain ⟨hxN, n, hn, hval⟩ := (mem_sep_iff _ x _).mp hx
+      refine (mem_sep_iff _ _ _).mpr ⟨h.succ_mem x hxN, succ n, succ_mem_omega n hn, ?_⟩
+      rw [peanoMap_succ h n hn, hval]
+  intro y hy
+  exact ((mem_sep_iff _ y _).mp (himg ▸ hy)).right
+
+/-- The map is injective. A double induction on the stage: at zero the
+model's `succ_ne_zero` separates the images, and at a successor the model's
+`succ_inj` peels one step off each side. Both Peano clauses of `N` are used, and
+`ω`'s own `succ_injective` is not needed at all -- the recursion carries the
+index. -/
+theorem peanoMap_injective {N z s : ZFSet.{u}} (h : IsPeano.{u} N z s) :
+    ∀ (m n : Nat), app (peanoMap N z s) (ofNat.{u} m)
+      = app (peanoMap N z s) (ofNat.{u} n) → m = n := by
+  intro m
+  induction m with
+  | zero =>
+    intro n hmn
+    cases n with
+    | zero => rfl
+    | succ n =>
+      rw [ofNat_zero, peanoMap_zero h, ofNat_succ,
+        peanoMap_succ h (ofNat.{u} n) (ofNat_mem_omega n)] at hmn
+      exact absurd hmn.symm
+        (h.succ_ne_zero _ (peanoMap_mem h _ (ofNat_mem_omega n)))
+  | succ m ih =>
+    intro n hmn
+    cases n with
+    | zero =>
+      rw [ofNat_zero, peanoMap_zero h, ofNat_succ,
+        peanoMap_succ h (ofNat.{u} m) (ofNat_mem_omega m)] at hmn
+      exact absurd hmn (h.succ_ne_zero _ (peanoMap_mem h _ (ofNat_mem_omega m)))
+    | succ n =>
+      rw [ofNat_succ, ofNat_succ, peanoMap_succ h (ofNat.{u} m) (ofNat_mem_omega m),
+        peanoMap_succ h (ofNat.{u} n) (ofNat_mem_omega n)] at hmn
+      exact congrArg (· + 1) (ih n (h.succ_inj _ (peanoMap_mem h _ (ofNat_mem_omega m))
+        _ (peanoMap_mem h _ (ofNat_mem_omega n)) hmn))
 
 /-! ## Graphs
 
@@ -292,6 +700,30 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 #print axioms mem_domain_iff
 #print axioms app_eq
 #print axioms funext_zf
+#print axioms extendAt
+#print axioms isFunction_extendAt
+#print axioms domain_extendAt_succ
+#print axioms app_extendAt_self
+#print axioms app_extendAt_of_mem
+#print axioms IsRecApprox
+#print axioms exists_recApprox
+#print axioms recApprox_agree
+#print axioms recSet
+#print axioms recApprox_mem_recSet
+#print axioms recFun
+#print axioms isFunction_recFun
+#print axioms app_recFun_eq
+#print axioms domain_recFun
+#print axioms app_recFun_empty
+#print axioms app_recFun_succ
+#print axioms app_recFun_mem
+#print axioms IsPeano
+#print axioms peanoMap
+#print axioms peanoMap_zero
+#print axioms peanoMap_succ
+#print axioms peanoMap_mem
+#print axioms peanoMap_surjective
+#print axioms peanoMap_injective
 #print axioms graphOn_domain
 #print axioms app_graphOn
 #print axioms app_idMap
@@ -300,5 +732,5 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 end SetTheory
 
 namespace ZFSet
-export SetTheory (IsFunction IsInjection IsRelation IsSurjection app app_eq app_graphOn app_idMap app_idOn app_mem_of_isSurjection app_mem_range app_natSeq domain domain_empty funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idMap idOn imageIn imageIn_subset isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq opAt opair_app_mem range range_empty sep_range_eq_singleton)
+export SetTheory (IsFunction IsInjection IsPeano IsRecApprox IsRelation IsSurjection app app_eq app_extendAt_of_mem app_extendAt_self app_graphOn app_idMap app_idOn app_mem_of_isSurjection app_mem_range app_natSeq app_recFun_empty app_recFun_eq app_recFun_mem app_recFun_succ domain domain_empty domain_extendAt_succ domain_recFun exists_recApprox extendAt funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idMap idOn imageIn imageIn_subset isFunction_empty isFunction_extendAt isFunction_graphOn isFunction_recFun isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_extendAt_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_recFun_iff mem_recSet_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq opAt opair_app_mem opair_mem_extendAt peanoMap peanoMap_injective peanoMap_mem peanoMap_succ peanoMap_surjective peanoMap_zero range range_empty recApprox_agree recApprox_mem_recSet recFun recSet sep_range_eq_singleton subset_extendAt)
 end ZFSet

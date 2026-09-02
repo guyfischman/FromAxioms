@@ -82,11 +82,11 @@ error: failed to elaborate eliminator, invalid motive
   fun x => α
 ```
 
-The rule the kernel is enforcing: an inductive type in `Prop` may eliminate into
-an arbitrary `Sort` only if it is a subsingleton -- at most one constructor,
-all of whose arguments are themselves proofs. `And` and `Eq` qualify, which is
-why `cast` was allowed in `Equality.lean`. `Exists` does not qualify: its `w`
-argument is data.
+The rule the kernel is enforcing: an inductive type in `Prop` may eliminate
+into an arbitrary `Sort` only if it is a subsingleton -- at most one
+constructor, all of whose arguments are themselves proofs. `And` and `Eq`
+qualify, so `cast` was allowed in `Equality.lean`. `Exists` does not qualify:
+its `w` argument is data.
 
 If a witness could be extracted, `Prop` could no longer be erased at compile
 time, and a proof by contradiction that something exists would yield an actual

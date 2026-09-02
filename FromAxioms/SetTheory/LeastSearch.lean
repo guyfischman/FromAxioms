@@ -38,8 +38,8 @@ universe u
 open Algebra Core NumberTheory
 namespace SetTheory
 
-/-- Membership decided, one element at a time. Stated over `ω` because that is
-where the search runs. -/
+/-- Membership decided, one element at a time, over `ω`, where the search
+runs. -/
 def Detachable (S : ZFSet.{u}) : Prop :=
   ∀ k, k ∈ omega.{u} → k ∈ S ∨ k ∉ S
 

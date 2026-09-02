@@ -20,28 +20,18 @@ does not have to.
 | `Nat.pow_lt_pow_right` | `Classical.choice` | `Nat.pow_le_pow_right` is free; the strict form splits off one factor |
 | `List.mem_append` | `propext` | it is an `Iff`; the three directions a caller needs are each a recursion on the first list |
 
-`List.mem_append` IS THE FIRST ENTRY HERE FOR `propext` RATHER THAN
-`Classical.choice`, and the reason it is worth an entry is the SCALE. Measured
-2026-08-30: 175 uses across 28 files, and no axiom-free alternative anywhere in
-the tree. `Metamath/FirstOrder.lean` documents the technique for its own layer
+`List.mem_append` is here for `propext` rather than `Classical.choice`, and
+there is no axiom-free alternative in core. `Metamath/FirstOrder.lean`
+documents the technique for its own layer
 --- *`List.Mem` is an inductive and its `Iff` lemmas in core are not ... recursing
 on the membership instead keeps the whole derivation layer free of axioms
 * --- and keeps `DerivesFO` clean that way, but the discipline was
 local to that file and the lemmas were never written down.
 
-HOW IT WAS FOUND, because the route matters more than the lemma. Two Henkin-set
-clauses with identical mathematics printed different axioms: `mem_disj_iff` at
-ZERO and `mem_conj_iff` at `propext`. The difference was not conjunction versus
-disjunction --- it was that one proof routed through `DerivesIn.conj_intro`,
-which appends two contexts, and the other did not. `#print axioms` was reporting
-a PROOF-PATH ARTEFACT as though it were a property of the theorem, which is
-exactly the noise a library about measuring cost cannot afford.
-
-`DerivesIn.imp_elim` and `DerivesIn.conj_intro` were the only two theory-level
-combinators carrying it; rebuilt on the three lemmas below they print nothing,
-and so does every Henkin clause above them. THE OTHER 173 USES ARE UNTOUCHED and
-are a measured backlog rather than a claim --- the technique is here, the sweep
-is not, and it crosses four other tracks' live files.
+Two proofs of the same statement can print different axioms when one routes
+through a combinator that appends contexts and the other does not, so an axiom
+line can report a proof path rather than a property of the theorem. The lemmas
+below remove that route.
 
 Anything else that turns up goes here, with the audit line that motivated it.
 Nothing in this file is new mathematics -- it exists so that the pattern is
@@ -89,8 +79,22 @@ theorem eq_or_lt_of_le' {n m : Nat} (h : n ≤ m) : n = m ∨ n < m :=
 #print axioms pow_right_injective
 
 
+/-- `Nat.div_lt_of_lt_mul`, constructively. The core lemma is classical,
+and its content is not. Dividing is a
+computation; the only case split is on whether the divisor is zero, and the
+hypothesis rules that out by itself. -/
+theorem div_lt_of_lt_mul' {m n k : Nat} (h : m < n * k) : m / n < k := by
+  rcases Nat.lt_or_ge (m / n) k with hk | hk
+  · exact hk
+  · have h1 : n * k ≤ n * (m / n) := Nat.mul_le_mul_left n hk
+    have h2 : n * (m / n) + m % n = m := Nat.div_add_mod m n
+    omega
+
+#print axioms Core.div_lt_of_lt_mul'
+
+
 end Core
 
 namespace ZFSet
-export Core (eq_or_lt_of_le' mul_lt_mul_right' pow_lt_pow_right' pow_right_injective)
+export Core (div_lt_of_lt_mul' eq_or_lt_of_le' mul_lt_mul_right' pow_lt_pow_right' pow_right_injective)
 end ZFSet

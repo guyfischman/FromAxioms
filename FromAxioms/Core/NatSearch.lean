@@ -139,10 +139,9 @@ theorem forall_lt_succ {P : Nat → Prop} {n : Nat}
     exact hin ▸ hn
 
 /-- A bounded conjunction of decidable propositions is decidable. No
-principle: the induction decides `n + 1` from `n` and the single new index. This
-is what makes `exists_least` applicable to every slice above `m` vanishes,
-whose decision at each index is supplied by a `DecidableVanishing` the caller
-already holds. -/
+principle: the induction decides `n + 1` from `n` and the single new index, so
+`exists_least` applies to every slice above `m` vanishes, whose decision at
+each index is supplied by a `DecidableVanishing` the caller already holds. -/
 theorem bounded_forall_dec {P : Nat → Prop} :
     ∀ n : Nat, (∀ j, j < n → P j ∨ ¬ P j) →
       (∀ i, i < n → P i) ∨ ¬ (∀ i, i < n → P i)
@@ -189,9 +188,9 @@ no witness constructively -- so it cannot drive a search for the largest failing
 index. This returns the failing index itself, which is what a bounded search can
 always do and an unbounded one cannot.
 
-The `B := ¬ P` instance of `bounded_forall_or_witness_of_or`, which is what
-makes the widening a widening: the compiler checks the subsumption, and no
-second theorem carries this elaborated type. -/
+The `B := ¬ P` instance of `bounded_forall_or_witness_of_or`, which widens it:
+the compiler checks the subsumption, and no second theorem carries this
+elaborated type. -/
 theorem bounded_forall_or_witness {P : Nat → Prop} (n : Nat)
     (hdec : ∀ j, j < n → P j ∨ ¬ P j) :
     (∀ i, i < n → P i) ∨ ∃ i, i < n ∧ ¬ P i :=
@@ -202,6 +201,21 @@ theorem bounded_forall_or_witness {P : Nat → Prop} (n : Nat)
 def prodUpto (d : Nat → Nat) : Nat → Nat
   | 0 => 1
   | n + 1 => prodUpto d n * d n
+
+theorem mod_ne_zero_of_between {p m : Nat}
+    (hlo : 2 ≤ m) (hhi : m < 2 * p) (hne : m ≠ p) : m % p ≠ 0 := by
+  intro h
+  obtain ⟨k, hk⟩ := Nat.dvd_of_mod_eq_zero h
+  match k with
+  | 0 => omega
+  | 1 => omega
+  | (k + 2) =>
+    have : 2 * p ≤ p * (k + 2) := by
+      calc 2 * p = p * 2 := Nat.mul_comm 2 p
+        _ ≤ p * (k + 2) := Nat.mul_le_mul_left p (by omega)
+    omega
+
+#print axioms mod_ne_zero_of_between
 
 end Core
 
@@ -214,5 +228,5 @@ end Core
 #print axioms Core.prodUpto
 
 namespace ZFSet
-export Core (below bounded_forall_dec bounded_forall_or_witness bounded_forall_or_witness_of_or exists_least exists_lt_or_not exists_pair_or_inj forall_lt_succ length_below mem_below prodUpto)
+export Core (below bounded_forall_dec bounded_forall_or_witness bounded_forall_or_witness_of_or exists_least exists_lt_or_not exists_pair_or_inj forall_lt_succ length_below mem_below mod_ne_zero_of_between prodUpto)
 end ZFSet

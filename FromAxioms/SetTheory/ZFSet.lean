@@ -101,6 +101,9 @@ theorem ext (x y : ZFSet.{u}) (h : ∀ z : ZFSet.{u}, z ∈ x ↔ z ∈ y) : x =
     (motive := fun x y : ZFSet.{u} => (∀ z : ZFSet.{u}, z ∈ x ↔ z ∈ y) → x = y) x y
     (fun a b hab => Quotient.sound ((PSet.equiv_iff_ext a b).mpr (fun w => hab (mk w)))) h
 
+theorem ext_iff (x y : ZFSet.{u}) : x = y ↔ ∀ z : ZFSet.{u}, z ∈ x ↔ z ∈ y :=
+  ⟨fun h _ => h ▸ Iff.rfl, ext x y⟩
+
 /-! ## The constructions, descended
 
 Each is `Quotient.lift` applied to its `PSet` counterpart, with the matching
@@ -191,12 +194,16 @@ def omega : ZFSet.{u} := mk PSet.omega
 
 theorem empty_mem_omega : empty.{u} ∈ omega.{u} := PSet.empty_mem_omega
 
+theorem succ_mem_omega : ∀ x : ZFSet.{u}, x ∈ omega.{u} → succ x ∈ omega.{u} :=
+  Quotient.ind fun _ h => PSet.succ_mem_omega h
+
 #print axioms ext                -- EXTENSIONALITY, as equality
 #print axioms not_mem_empty      -- EMPTY SET
 #print axioms mem_pair_iff       -- PAIRING
 #print axioms mem_sUnion_iff     -- UNION
 #print axioms mem_powerset_iff   -- POWER SET
 #print axioms mem_sep_iff        -- SEPARATION, hypothesis-free
+#print axioms succ_mem_omega     -- INFINITY
 #print axioms pair             -- PAIRING, as the constructor
 #print axioms powerset         -- POWER SET, as the constructor
 #print axioms sep              -- SEPARATION, as the constructor
@@ -205,5 +212,5 @@ theorem empty_mem_omega : empty.{u} ∈ omega.{u} := PSet.empty_mem_omega
 end SetTheory
 
 namespace ZFSet
-export SetTheory (Mem empty empty_mem_omega ext insert mem_insert_iff mem_pair_iff mem_powerset_iff mem_sUnion_iff mem_sep_iff mk mk_eq_mk mk_subset_mk not_mem_empty omega pair powerset sUnion sep succ)
+export SetTheory (Mem empty empty_mem_omega ext ext_iff insert mem_insert_iff mem_pair_iff mem_powerset_iff mem_sUnion_iff mem_sep_iff mk mk_eq_mk mk_subset_mk not_mem_empty omega pair powerset sUnion sep succ succ_mem_omega)
 end ZFSet

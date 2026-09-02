@@ -529,6 +529,18 @@ theorem isPrime_two : IsPrime 2 := by
     omega
 
 #print axioms isPrime_two
+/-- `3` is prime. -/
+theorem isPrime_three : IsPrime 3 := by
+  refine ⟨by omega, fun d hd hdvd => ?_⟩
+  obtain ⟨k, hk⟩ := hdvd
+  have hle : d ≤ 3 := divides_le (by omega) ⟨k, hk⟩
+  rcases Nat.lt_or_ge d 3 with hlt | hge
+  · obtain rfl : d = 2 := by omega
+    omega
+  · omega
+
+#print axioms isPrime_three
+
 /-! ## The Eisenstein integers
 
 `ℤ[ω]` with `ω` a primitive cube root of `1`, so `ω² = -ω - 1`. Written as a
@@ -856,5 +868,5 @@ end Eis
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_dvd_choose prodList succ_mul_choose)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_dvd_choose prodList succ_mul_choose)
 end ZFSet

@@ -30,8 +30,8 @@ set theory -- it is set theory up to a coarser equality, `Equiv` below, which
 identifies trees with the same members. Quotienting by it yields `ZFSet`, and is
 the next file.
 
-Everything here is therefore stated in terms of `Equiv` rather than `=`, which
-is why so many results carry an explicit congruence hypothesis.
+Everything here is therefore stated in terms of `Equiv` rather than `=`, so
+many results carry an explicit congruence hypothesis.
 
 ## What this does and does not show
 
@@ -277,6 +277,11 @@ def omega : PSet.{u} := ⟨ULift Nat, fun n => ofNat n.down⟩
 theorem empty_mem_omega : empty.{u} ∈ omega.{u} :=
   ⟨ULift.up 0, Equiv.refl _⟩
 
+/-- ZFC's infinity: a set containing `∅` and closed under successor. -/
+theorem succ_mem_omega {x : PSet.{u}} (h : x ∈ omega.{u}) : succ x ∈ omega.{u} := by
+  obtain ⟨n, hn⟩ := h
+  exact ⟨ULift.up (n.down + 1), insert_congr hn hn⟩
+
 /-! ## Congruence
 
 Every construction above respects `Equiv`. `insert_congr` was proved where it
@@ -326,4 +331,6 @@ theorem sep_congr {p : PSet.{u} → Prop}
 #print axioms mem_sUnion_iff     -- UNION
 #print axioms mem_powerset_iff   -- POWER SET
 #print axioms mem_sep_iff        -- SEPARATION
+#print axioms succ_mem_omega     -- INFINITY
+
 end PSet

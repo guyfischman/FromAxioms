@@ -248,9 +248,35 @@ theorem theOnly_eq {P : ZFSet.{u} → Prop} {S a : ZFSet.{u}}
     theOnly P S = a := by
   rw [theOnly, sep_eq_singleton ha hPa huniq, sUnion_singleton]
 
+theorem theOnly_mem {P : ZFSet.{u} → Prop} {S a : ZFSet.{u}}
+    (ha : a ∈ S) (hPa : P a) (huniq : ∀ b, b ∈ S → P b → b = a) :
+    theOnly P S ∈ S := by
+  rw [theOnly_eq ha hPa huniq]; exact ha
+
+theorem theOnly_spec {P : ZFSet.{u} → Prop} {S a : ZFSet.{u}}
+    (ha : a ∈ S) (hPa : P a) (huniq : ∀ b, b ∈ S → P b → b = a) :
+    P (theOnly P S) := by
+  rw [theOnly_eq ha hPa huniq]; exact hPa
+
 #print axioms sep_eq_singleton
 #print axioms theOnly
 #print axioms theOnly_eq
+#print axioms theOnly_mem
+#print axioms theOnly_spec
+
+/-- The predicate carrier for the algebra of logic.
+
+The lattice laws of `α → Prop` fall out of `and_assoc` and `or_comm` almost
+definitionally. This tree's laws are about `ZFSet` and are
+proved by extensionality, which is a different theorem about a different object
+even though the two coincide.
+
+Writing the predicate carrier down lets the ZFSet laws be DERIVED from the
+propositional ones rather than restated beside them. Nothing here costs
+anything: `And` and `Or` are associative and commutative constructively. -/
+def PSet (α : Type u) : Type u := α → Prop
+
+#print axioms Algebra.PSet
 end Algebra
 #print axioms Algebra.empty_inter
 #print axioms Algebra.empty_sdiff
@@ -264,5 +290,5 @@ end Algebra
 #print axioms Algebra.union_empty
 #print axioms Algebra.union_self
 namespace ZFSet
-export Algebra (empty_inter empty_sdiff empty_subset empty_union inter inter_empty inter_self inter_union_cancel mem_inter_iff mem_sdiff_iff mem_singleton_iff mem_singleton_self mem_unionUpto_iff mem_union_iff powerset_empty sUnion_empty sUnion_singleton sdiff sdiff_empty sdiff_sdiff_left_self sdiff_self sdiff_subset sep_empty sep_eq_singleton singleton singleton_injective theOnly theOnly_eq union unionUpto union_empty union_inter_cancel union_sdiff_self union_self)
+export Algebra (empty_inter empty_sdiff empty_subset empty_union inter inter_empty inter_self inter_union_cancel mem_inter_iff mem_sdiff_iff mem_singleton_iff mem_singleton_self mem_unionUpto_iff mem_union_iff powerset_empty sUnion_empty sUnion_singleton sdiff sdiff_empty sdiff_sdiff_left_self sdiff_self sdiff_subset sep_empty sep_eq_singleton singleton singleton_injective theOnly theOnly_eq theOnly_mem theOnly_spec union unionUpto union_empty union_inter_cancel union_sdiff_self union_self)
 end ZFSet

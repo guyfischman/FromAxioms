@@ -9,11 +9,10 @@ Authors: Guy Fischman
 
     α + β = α ∪ { α + γ | γ ∈ β }          α · β = ⋃ { α·γ + α | γ ∈ β }
 
-Both are stated uniformly, with no split into zero, successor and limit. That is
-not a stylistic preference: "β is zero, a successor, or a limit" is not decidable,
-so a definition by those cases would need the decision as data and cost choice.
-The uniform recursions above have the usual equations as
-theorems instead.
+Both are stated uniformly, with no split into zero, successor and limit: "β is
+zero, a successor, or a limit" is not decidable, so a definition by those cases
+would need the decision as data and cost choice. The uniform
+recursions above have the usual equations as theorems instead.
 
 The recursion is structural at the pre-set level, exactly as `PSet.V` is:
 a pre-set is an index type with a family, so `{ α + γ | γ ∈ β }`
@@ -92,8 +91,8 @@ theorem mem_ordMul_iff (w x : PSet.{u}) : ∀ y : PSet.{u},
       exact (mem_congr_right (ordAdd_congr (ordMul_congr (Equiv.refl x) hzb)
         (Equiv.refl x)) w).mp hw
 
-/-- `α ^ β = 1 ∪ ⋃ { α^γ · α | γ ∈ β }`. The `1` is `insert ∅`, which is what
-makes the empty exponent come out right without a case. -/
+/-- `α ^ β = 1 ∪ ⋃ { α^γ · α | γ ∈ β }`. The `1` is `insert ∅`, so the empty
+exponent comes out right without a case. -/
 def ordPow (x : PSet.{u}) : PSet.{u} → PSet.{u}
   | ⟨β, B⟩ => insert empty (sUnion ⟨β, fun b => ordMul (ordPow x (B b)) x⟩)
 

@@ -670,6 +670,18 @@ theorem ratLt_trans {r s t : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}
   ⟨ratLe_trans hr hs ht h₁.left h₂.left, fun he =>
     h₂.right (ratLe_antisymm hs ht h₂.left (he ▸ h₁.left))⟩
 
+/-- The strict order is the complement of the reverse order, constructively:
+antisymmetry gives one direction and totality the other. -/
+theorem ratLt_iff_not_ratLe {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
+    ratLt r s ↔ ¬ ratLe s r := by
+  constructor
+  · rintro ⟨h, hne⟩ h'
+    exact hne (ratLe_antisymm hr hs h h')
+  · intro h
+    rcases ratLe_total hr hs with h' | h'
+    · exact ⟨h', fun he => h (he ▸ ratLe_refl hr)⟩
+    · exact absurd h' h
+
 /-- Density, by the mediant. -/
 theorem rat_dense {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u})
     (h : ratLt r s) : ∃ t, t ∈ Rat.{u} ∧ ratLt r t ∧ ratLt t s := by
@@ -928,6 +940,18 @@ theorem ratLt_of_le_of_lt {a b c : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ R
   ⟨ratLe_trans ha hb hc h₁ h₂.left,
    fun he => h₂.right (ratLe_antisymm hb hc h₂.left (he ▸ h₁))⟩
 
+/-- Negation distributes over a sum, by cancelling the sum from both sides. -/
+theorem ratNeg_add {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
+    ratNeg (ratAdd r s) = ratAdd (ratNeg r) (ratNeg s) := by
+  have hrs := ratAdd_mem_Rat hr hs
+  have hnr := ratNeg_mem_Rat hr
+  have hns := ratNeg_mem_Rat hs
+  refine ratAdd_left_cancel hrs (ratNeg_mem_Rat hrs) (ratAdd_mem_Rat hnr hns) ?_
+  rw [ratAdd_neg hrs, ratAdd_assoc hr hs (ratAdd_mem_Rat hnr hns),
+    ← ratAdd_assoc hs hnr hns, ratAdd_comm hs hnr,
+    ratAdd_assoc hnr hs hns, ratAdd_neg hs, ratAdd_zero hnr,
+    ratAdd_neg hr]
+
 theorem ratMul_neg {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratMul r (ratNeg s) = ratNeg (ratMul r s) := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
@@ -1152,10 +1176,32 @@ theorem ratLt_trichotomy {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.
     · exact Or.inl ⟨h, hne⟩
     · exact Or.inr (Or.inr ⟨h, fun he => hne he.symm⟩)
 
+/-- Cancelling a positive factor on the right of `<`. The forward direction is
+`ratMul_lt_mul_right`, 350 lines above; this is the converse, by trichotomy --
+so it cannot sit beside it, trichotomy coming later than both. -/
+theorem ratMul_lt_cancel_right {x y t : ZFSet.{u}} (hx : x ∈ Rat.{u})
+    (hy : y ∈ Rat.{u}) (ht : t ∈ Rat.{u}) (ht0 : ratLt ratZero.{u} t)
+    (h : ratLt (ratMul x t) (ratMul y t)) : ratLt x y := by
+  have htne : t ≠ ratZero.{u} := ratNe_zero_of_pos ht0
+  rcases ratLt_trichotomy hx hy with hlt | he | hgt
+  · exact hlt
+  · exact absurd (he ▸ h) ratLt_irrefl
+  · have hback := ratMul_lt_mul_right hy hx ht htne ht0.left hgt
+    exact absurd (ratLt_trans (ratMul_mem_Rat hx ht) (ratMul_mem_Rat hy ht)
+      (ratMul_mem_Rat hx ht) h hback) ratLt_irrefl
+
 /-! ### Differences
 
 Translating between `x - y ≤ d` and `x ≤ y + d`, which is how every bound on a
 bracket width gets used. -/
+
+/-- A difference is positive exactly when the order holds, which is the form
+every bracket-width argument uses it in. -/
+theorem ratSub_pos {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
+    (h : ratLt p q) : ratLt ratZero.{u} (ratAdd q (ratNeg p)) := by
+  have := (ratAdd_lt_add_left_iff (ratNeg_mem_Rat hp) hp hq).mpr h
+  rwa [ratAdd_comm (ratNeg_mem_Rat hp) hp, ratAdd_neg hp,
+    ratAdd_comm (ratNeg_mem_Rat hp) hq] at this
 
 theorem sub_add_cancel {x y : ZFSet.{u}} (hx : x ∈ Rat.{u}) (hy : y ∈ Rat.{u}) :
     ratAdd (ratAdd x (ratNeg y)) y = x := by
@@ -1783,6 +1829,191 @@ theorem exists_max_four {a b c d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ R
     · exact Or.inr (Or.inr (Or.inl rfl))
     · exact Or.inr (Or.inr (Or.inr rfl))
 
+/-- Inversion reverses `≤` on the positives. -/
+theorem ratInv_le_ratInv {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
+    (ha0 : ratLt ratZero.{u} a) (hab : ratLe a b) : ratLe (ratInv b) (ratInv a) := by
+  have hb0 := ratLt_of_lt_of_le ratZero_mem_Rat ha hb ha0 hab
+  have hane : a ≠ ratZero.{u} := ratNe_zero_of_pos ha0
+  have hbne : b ≠ ratZero.{u} := ratNe_zero_of_pos hb0
+  have hia := ratInv_mem_Rat ha hane
+  have hib := ratInv_mem_Rat hb hbne
+  have hprod := ratMul_mem_Rat hia hib
+  have hprod0 : ratLe ratZero.{u} (ratMul (ratInv a) (ratInv b)) := by
+    have := ratMul_le_mul_right ratZero_mem_Rat hia hib
+      (ratInv_pos ha ha0).left (ratInv_pos hb hb0).left
+    rwa [ratZero_mul hib] at this
+  have hstep := ratMul_le_mul_right ha hb hprod hab hprod0
+  rw [← ratMul_assoc ha hia hib, ratMul_inv ha hane, ratOne_mul hib,
+    ← ratMul_assoc hb hia hib, ratMul_comm hb hia, ratMul_assoc hia hb hib,
+    ratMul_inv hb hbne, ratMul_one hia] at hstep
+  exact hstep
+
+/-- `(a⁻¹)⁻¹ = a`. The inverse of `a⁻¹` is determined by multiplying to one, and
+`a` does. -/
+theorem ratInv_ratInv {a : ZFSet.{u}} (ha : a ∈ Rat.{u}) (h0 : a ≠ ratZero.{u}) :
+    ratInv (ratInv a) = a := by
+  have hia := ratInv_mem_Rat ha h0
+  have hine : ratInv a ≠ ratZero.{u} := by
+    intro he
+    have := ratMul_inv ha h0
+    rw [he, ratMul_zero ha] at this
+    exact absurd this.symm (ratNe_zero_of_pos ratZero_lt_one)
+  refine ratMul_left_cancel hia (ratInv_mem_Rat hia hine) ha hine ?_
+  rw [ratMul_inv hia hine, ratMul_comm hia ha, ratMul_inv ha h0]
+
+/-- Inversion reverses the order on the positives: `0 < a < b` gives
+`b⁻¹ < a⁻¹`. Multiplying through by `a⁻¹b⁻¹`, which is positive. -/
+theorem ratInv_lt_ratInv {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
+    (ha0 : ratLt ratZero.{u} a) (hab : ratLt a b) :
+    ratLt (ratInv b) (ratInv a) := by
+  have hb0 := ratLt_trans ratZero_mem_Rat ha hb ha0 hab
+  have hane : a ≠ ratZero.{u} := ratNe_zero_of_pos ha0
+  have hbne : b ≠ ratZero.{u} := ratNe_zero_of_pos hb0
+  have hia := ratInv_mem_Rat ha hane
+  have hib := ratInv_mem_Rat hb hbne
+  have hia0 := ratInv_pos ha ha0
+  have hib0 := ratInv_pos hb hb0
+  have hprod := ratMul_mem_Rat hia hib
+  have hprod0 : ratLt ratZero.{u} (ratMul (ratInv a) (ratInv b)) := by
+    have := ratMul_lt_mul_right ratZero_mem_Rat hia hib
+      (ratNe_zero_of_pos hib0) hib0.left hia0
+    rwa [ratZero_mul hib] at this
+  -- `a·(a⁻¹b⁻¹) = b⁻¹` and `b·(a⁻¹b⁻¹) = a⁻¹`
+  have hstep := ratMul_lt_mul_right ha hb hprod
+    (ratNe_zero_of_pos hprod0) hprod0.left hab
+  rw [← ratMul_assoc ha hia hib, ratMul_inv ha hane, ratOne_mul hib,
+    ← ratMul_assoc hb hia hib, ratMul_comm hb hia, ratMul_assoc hia hb hib,
+    ratMul_inv hb hbne, ratMul_one hia] at hstep
+  exact hstep
+
+/-- The bracket width that makes `p·q' < q` for every bracket `[q, q')` of width
+below `e` whose lower end clears `c`. The approximation step in `x · x⁻¹ = 1`:
+the corner `q/q'` must beat `p`, and does once the bracket is narrow enough
+relative to the positivity witness. Strictness comes from the scale, not from
+`p`, so `p = 0` is not a special case. -/
+theorem exists_bracket_width {p c : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
+    (hc0 : ratLt ratZero.{u} c) (hp0 : ratLe ratZero.{u} p) (hp1 : ratLt p ratOne.{u}) :
+    ∃ e, e ∈ Rat.{u} ∧ ratLt ratZero.{u} e ∧
+      ∀ q q' : ZFSet.{u}, q ∈ Rat.{u} → q' ∈ Rat.{u} → ratLe c q →
+        ratLt q' (ratAdd q e) → ratLt (ratMul p q') q := by
+  have hone := ratOne_mem_Rat.{u}
+  have hnp := ratNeg_mem_Rat hp
+  have hsub := ratAdd_mem_Rat hone hnp
+  have hsub0 : ratLt ratZero.{u} (ratAdd ratOne.{u} (ratNeg p)) := by
+    have := (ratAdd_lt_add_right_iff hnp hp hone).mpr hp1
+    rwa [ratAdd_neg hp] at this
+  have hgap0 : ratLt ratZero.{u} (ratMul c (ratAdd ratOne.{u} (ratNeg p))) := by
+    have := ratMul_lt_mul_right ratZero_mem_Rat hsub hc
+      (ratNe_zero_of_pos hc0) hc0.left hsub0
+    rwa [ratZero_mul hc, ratMul_comm hsub hc] at this
+  obtain ⟨e, heQ, he0, hpe, -⟩ := exists_small_scale hp (ratMul_mem_Rat hc hsub) hgap0
+  refine ⟨e, heQ, he0, fun q q' hqQ hq'Q hcq hq' => ?_⟩
+  have hqe := ratAdd_mem_Rat hqQ heQ
+  -- `p·q' ≤ p·(q+e) = p·q + p·e`
+  have h1 : ratLe (ratMul p q') (ratAdd (ratMul p q) (ratMul p e)) := by
+    have := ratMul_le_mul_right hq'Q hqe hp hq'.left hp0
+    rwa [ratMul_comm hq'Q hp, ratMul_comm hqe hp, ratMul_add hp hqQ heQ] at this
+  -- `p·e < c(1-p) ≤ q(1-p)`
+  have h2 : ratLt (ratMul p e) (ratMul q (ratAdd ratOne.{u} (ratNeg p))) := by
+    refine ratLt_of_lt_of_le (ratMul_mem_Rat hp heQ) (ratMul_mem_Rat hc hsub)
+      (ratMul_mem_Rat hqQ hsub) hpe ?_
+    have := ratMul_le_mul_right hc hqQ hsub hcq hsub0.left
+    rwa [ratMul_comm hc hsub, ratMul_comm hqQ hsub, ratMul_comm hsub hc,
+      ratMul_comm hsub hqQ] at this
+  -- `p·q + q(1-p) = q`
+  have h3 : ratAdd (ratMul p q) (ratMul q (ratAdd ratOne.{u} (ratNeg p))) = q := by
+    rw [ratMul_add hqQ hone hnp, ratMul_one hqQ, ratMul_neg hqQ hp,
+      ← ratAdd_assoc (ratMul_mem_Rat hp hqQ) hqQ (ratNeg_mem_Rat (ratMul_mem_Rat hqQ hp)),
+      ratAdd_comm (ratMul_mem_Rat hp hqQ) hqQ,
+      ratAdd_assoc hqQ (ratMul_mem_Rat hp hqQ) (ratNeg_mem_Rat (ratMul_mem_Rat hqQ hp)),
+      ratMul_comm hp hqQ, ratAdd_neg (ratMul_mem_Rat hqQ hp), ratAdd_zero hqQ]
+  refine ratLt_of_le_of_lt (ratMul_mem_Rat hp hq'Q)
+    (ratAdd_mem_Rat (ratMul_mem_Rat hp hqQ) (ratMul_mem_Rat hp heQ)) hqQ h1 ?_
+  have hstep := (ratAdd_lt_add_left_iff (ratMul_mem_Rat hp hqQ) (ratMul_mem_Rat hp heQ)
+    (ratMul_mem_Rat hqQ hsub)).mpr h2
+  rwa [h3] at hstep
+
+/-- From `p·s < q` with `q, s` positive, `p·q⁻¹ < s⁻¹`. Both sides multiplied by
+`q⁻¹s⁻¹`, which is positive. -/
+theorem ratMul_inv_lt_inv {p q s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
+    (hs : s ∈ Rat.{u}) (hq0 : ratLt ratZero.{u} q) (hs0 : ratLt ratZero.{u} s)
+    (h : ratLt (ratMul p s) q) : ratLt (ratMul p (ratInv q)) (ratInv s) := by
+  have hqne : q ≠ ratZero.{u} := ratNe_zero_of_pos hq0
+  have hsne : s ≠ ratZero.{u} := ratNe_zero_of_pos hs0
+  have hiq := ratInv_mem_Rat hq hqne
+  have his := ratInv_mem_Rat hs hsne
+  have hprod := ratMul_mem_Rat hiq his
+  have hprod0 : ratLt ratZero.{u} (ratMul (ratInv q) (ratInv s)) := by
+    have := ratMul_lt_mul_right ratZero_mem_Rat hiq his
+      (fun he => ratLt_irrefl (he ▸ ratInv_pos hs hs0)) (ratInv_pos hs hs0).left
+      (ratInv_pos hq hq0)
+    rwa [ratZero_mul his] at this
+  have hstep := ratMul_lt_mul_right (ratMul_mem_Rat hp hs) hq hprod
+    (ratNe_zero_of_pos hprod0) hprod0.left h
+  -- `(p·s)·(q⁻¹s⁻¹) = p·q⁻¹` and `q·(q⁻¹s⁻¹) = s⁻¹`
+  rw [ratMul_assoc hp hs hprod, ← ratMul_assoc hs hiq his, ratMul_comm hs hiq,
+    ratMul_assoc hiq hs his, ratMul_inv hs hsne, ratMul_one hiq,
+    ← ratMul_assoc hq hiq his, ratMul_inv hq hqne, ratOne_mul his] at hstep
+  exact hstep
+
+/-- The mirror of `exists_bracket_width`, for `p` above one: a width making
+`q' < p·q`. Simpler than its twin -- `e` need only stay below `c·(p-1)`, with no
+scaling lemma involved. -/
+theorem exists_bracket_width_gt {p c : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
+    (hc0 : ratLt ratZero.{u} c) (hp1 : ratLt ratOne.{u} p) :
+    ∃ e, e ∈ Rat.{u} ∧ ratLt ratZero.{u} e ∧
+      ∀ q q' : ZFSet.{u}, q ∈ Rat.{u} → q' ∈ Rat.{u} → ratLe c q →
+        ratLt q' (ratAdd q e) → ratLt q' (ratMul p q) := by
+  have hone := ratOne_mem_Rat.{u}
+  have hsub := ratAdd_mem_Rat hp (ratNeg_mem_Rat hone)
+  have hsub0 : ratLt ratZero.{u} (ratAdd p (ratNeg ratOne.{u})) := by
+    have := (ratAdd_lt_add_right_iff (ratNeg_mem_Rat hone) hone hp).mpr hp1
+    rwa [ratAdd_neg hone] at this
+  have hgap0 : ratLt ratZero.{u} (ratMul c (ratAdd p (ratNeg ratOne.{u}))) := by
+    have := ratMul_lt_mul_right ratZero_mem_Rat hsub hc
+      (ratNe_zero_of_pos hc0) hc0.left hsub0
+    rwa [ratZero_mul hc, ratMul_comm hsub hc] at this
+  obtain ⟨e, heQ, he0, heg⟩ := rat_dense ratZero_mem_Rat (ratMul_mem_Rat hc hsub) hgap0
+  refine ⟨e, heQ, he0, fun q q' hqQ hq'Q hcq hq' => ?_⟩
+  -- `q' < q + e < q + c(p-1) ≤ q + q(p-1) = p·q`
+  have hstep : ratLt (ratAdd q e) (ratMul p q) := by
+    have h1 : ratLt (ratAdd q e) (ratAdd q (ratMul q (ratAdd p (ratNeg ratOne.{u})))) := by
+      refine (ratAdd_lt_add_left_iff hqQ heQ (ratMul_mem_Rat hqQ hsub)).mpr ?_
+      refine ratLt_of_lt_of_le heQ (ratMul_mem_Rat hc hsub) (ratMul_mem_Rat hqQ hsub) heg ?_
+      have := ratMul_le_mul_right hc hqQ hsub hcq hsub0.left
+      rwa [ratMul_comm hc hsub, ratMul_comm hqQ hsub, ratMul_comm hsub hc,
+        ratMul_comm hsub hqQ] at this
+    have h2 : ratAdd q (ratMul q (ratAdd p (ratNeg ratOne.{u}))) = ratMul p q := by
+      rw [ratMul_add hqQ hp (ratNeg_mem_Rat hone), ratMul_neg hqQ hone, ratMul_one hqQ,
+        ← ratAdd_assoc hqQ (ratMul_mem_Rat hqQ hp) (ratNeg_mem_Rat hqQ),
+        ratAdd_comm hqQ (ratMul_mem_Rat hqQ hp),
+        ratAdd_assoc (ratMul_mem_Rat hqQ hp) hqQ (ratNeg_mem_Rat hqQ),
+        ratAdd_neg hqQ, ratAdd_zero (ratMul_mem_Rat hqQ hp), ratMul_comm hqQ hp]
+    rwa [h2] at h1
+  exact ratLt_trans hq'Q (ratAdd_mem_Rat hqQ heQ) (ratMul_mem_Rat hp hqQ) hq' hstep
+
+/-- From `q' < p·q` with `q, q'` positive, `q⁻¹ < p·q'⁻¹`. -/
+theorem ratInv_lt_mul_inv {p q q' : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
+    (hq' : q' ∈ Rat.{u}) (hq0 : ratLt ratZero.{u} q) (hq'0 : ratLt ratZero.{u} q')
+    (h : ratLt q' (ratMul p q)) : ratLt (ratInv q) (ratMul p (ratInv q')) := by
+  have hqne : q ≠ ratZero.{u} := ratNe_zero_of_pos hq0
+  have hq'ne : q' ≠ ratZero.{u} := fun he => ratLt_irrefl (he ▸ hq'0)
+  have hiq := ratInv_mem_Rat hq hqne
+  have hiq' := ratInv_mem_Rat hq' hq'ne
+  have hprod := ratMul_mem_Rat hiq hiq'
+  have hprod0 : ratLt ratZero.{u} (ratMul (ratInv q) (ratInv q')) := by
+    have := ratMul_lt_mul_right ratZero_mem_Rat hiq hiq'
+      (fun he => ratLt_irrefl (he ▸ ratInv_pos hq' hq'0)) (ratInv_pos hq' hq'0).left
+      (ratInv_pos hq hq0)
+    rwa [ratZero_mul hiq'] at this
+  have hstep := ratMul_lt_mul_right hq' (ratMul_mem_Rat hp hq) hprod
+    (ratNe_zero_of_pos hprod0) hprod0.left h
+  rw [ratMul_comm hq' hprod, ratMul_assoc hiq hiq' hq', ratMul_comm hiq' hq',
+    ratMul_inv hq' hq'ne, ratMul_one hiq,
+    ratMul_assoc hp hq hprod, ← ratMul_assoc hq hiq hiq', ratMul_inv hq hqne,
+    ratOne_mul hiq'] at hstep
+  exact hstep
+
 /-! ## Scales for the unit law
 
 Given `p < q`, a scale on each side of `1` that keeps `q · scale` above `p`.
@@ -1883,6 +2114,13 @@ theorem ratNat_lt_iff {p q r s : Nat} (hq : 0 < q) (hs : 0 < s) :
   · intro h
     exact ⟨Nat.le_of_lt h, fun he => Nat.ne_of_lt h ((ratNat_eq_iff hq hs).mp he)⟩
 
+theorem ratNat_mul {a b c d : Nat} (hb : 0 < b) (hd : 0 < d) :
+    ratMul (ratNat.{u} a b) (ratNat.{u} c d) = ratNat.{u} (a * c) (b * d) := by
+  have hbP : intOfNat.{u} b ∈ intPositive.{u} := intOfNat_mem_intPositive hb
+  have hdP : intOfNat.{u} d ∈ intPositive.{u} := intOfNat_mem_intPositive hd
+  rw [ratNat, ratNat, ratNat, ratMul_ratOf (intOfNat_mem_Int a) hbP (intOfNat_mem_Int c) hdP,
+    intOfNat_mul, intOfNat_mul]
+
 /-- The width of `[p/q, (p+1)/q]`, as a rational in the same form. -/
 theorem ratNat_width {p q : Nat} (hq : 0 < q) :
     ratAdd (ratNat.{u} (p + 1) q) (ratNeg (ratNat.{u} p q)) = ratNat.{u} 1 q := by
@@ -1899,6 +2137,21 @@ theorem ratNat_width {p q : Nat} (hq : 0 < q) :
   rw [Nat.one_mul, Nat.one_mul]
 
 theorem ratZero_eq_ratNat : ratZero.{u} = ratNat.{u} 0 1 := rfl
+
+/-- `1/1` and `2/1`, in the numeral form the width induction uses. -/
+theorem ratNat_one_one : ratNat.{u} 1 1 = ratOne.{u} := by
+  rw [ratNat, intOfNat, ratOne, intOne]
+
+
+/-! ## Audit -/
+
+/-- Two inequalities add. -/
+theorem ratAdd_le_add {q q' r r' : ZFSet.{u}} (hq : q ∈ Rat.{u}) (hq' : q' ∈ Rat.{u})
+    (hr : r ∈ Rat.{u}) (hr' : r' ∈ Rat.{u}) (h₁ : ratLe q q') (h₂ : ratLe r r') :
+    ratLe (ratAdd q r) (ratAdd q' r') :=
+  ratLe_trans (ratAdd_mem_Rat hq hr) (ratAdd_mem_Rat hq' hr) (ratAdd_mem_Rat hq' hr')
+    ((ratAdd_le_add_right_iff hr hq hq').mpr h₁)
+    ((ratAdd_le_add_left_iff hq' hr hr').mpr h₂)
 
 /-! ## The integers inside the rationals
 
@@ -2035,8 +2288,11 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 #print axioms ratOf_eq_ratOf_iff
 #print axioms ratNat_eq_iff
 #print axioms ratNat_le_iff
+#print axioms ratNat_mul
+#print axioms ratNat_one_one
 #print axioms mem_Rat_iff
 #print axioms ratAdd_ratOf
+#print axioms ratAdd_le_add
 #print axioms intToRat
 #print axioms intToRat_mem_Rat
 
@@ -2061,6 +2317,7 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 #print axioms ratLe_trans
 #print axioms ratLe_antisymm
 #print axioms ratLe_total
+#print axioms ratLt_iff_not_ratLe
 #print axioms rat_dense
 #print axioms rat_no_greatest
 #print axioms rat_no_least
@@ -2081,7 +2338,13 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 #print axioms exists_scale_below_upper
 #print axioms exists_scale_above_upper
 #print axioms ratInv_neg
+#print axioms ratInv_lt_ratInv
+#print axioms ratInv_le_ratInv
 #print axioms exists_small_scale
+#print axioms exists_bracket_width
+#print axioms ratMul_inv_lt_inv
+#print axioms exists_bracket_width_gt
+#print axioms ratInv_lt_mul_inv
 #print axioms small_scale_mono
 #print axioms exists_lt_of_mul_lt₂
 #print axioms lt_mul_add_of_lt
@@ -2096,6 +2359,8 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 
 /-! ### Powers -/
 
+#print axioms ratSub_pos
+#print axioms ratMul_lt_cancel_right
 /-- `0/q` is zero. MOVED here from `Omniscience.lean`, which is downstream and
 could not lend it to the Archimedean step below; the proof is that file's. -/
 theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
@@ -2105,9 +2370,93 @@ theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
 #print axioms ratNat_zero
 def ratTwo : ZFSet.{u} := ratAdd ratOne.{u} ratOne.{u}
 
+/-- Doubling is adding to itself -- `ratTwo` is `1 + 1` by definition. -/
+theorem ratMul_two {x : ZFSet.{u}} (hx : x ∈ Rat.{u}) :
+    ratMul x ratTwo.{u} = ratAdd x x := by
+  rw [ratTwo, ratMul_add hx ratOne_mem_Rat ratOne_mem_Rat, ratMul_one hx]
+
+theorem ratTwo_mem_Rat : ratTwo.{u} ∈ Rat.{u} :=
+  ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat
+
+theorem ratTwo_pos : ratLt ratZero.{u} ratTwo.{u} := by
+  refine ratLt_trans ratZero_mem_Rat ratOne_mem_Rat ratTwo_mem_Rat ratZero_lt_one ?_
+  have := (ratAdd_lt_add_left_iff ratOne_mem_Rat ratZero_mem_Rat
+    ratOne_mem_Rat).mpr ratZero_lt_one
+  rwa [ratAdd_zero ratOne_mem_Rat] at this
+
+theorem ratTwo_ne_zero : ratTwo.{u} ≠ ratZero.{u} :=
+  ratNe_zero_of_pos ratTwo_pos
+
 /-- Halfway between two rationals. -/
 def ratMid (a b : ZFSet.{u}) : ZFSet.{u} :=
   ratMul (ratAdd a b) (ratInv ratTwo.{u})
+
+theorem ratMid_mem_Rat {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+    ratMid a b ∈ Rat.{u} :=
+  ratMul_mem_Rat (ratAdd_mem_Rat ha hb)
+    (ratInv_mem_Rat ratTwo_mem_Rat ratTwo_ne_zero)
+
+/-- Doubling the midpoint returns the sum, which is the only fact the order
+statements below need. -/
+theorem ratMid_double {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+    ratMul (ratMid a b) ratTwo.{u} = ratAdd a b := by
+  rw [ratMid, ratMul_assoc (ratAdd_mem_Rat ha hb)
+    (ratInv_mem_Rat ratTwo_mem_Rat ratTwo_ne_zero) ratTwo_mem_Rat,
+    ratMul_comm (ratInv_mem_Rat ratTwo_mem_Rat ratTwo_ne_zero) ratTwo_mem_Rat,
+    ratMul_inv ratTwo_mem_Rat ratTwo_ne_zero, ratMul_one (ratAdd_mem_Rat ha hb)]
+
+/-- Half the gap, stated as a product so that nothing is divided. -/
+theorem ratMid_sub_left {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+    ratMul (ratAdd (ratMid a b) (ratNeg a)) ratTwo.{u} = ratAdd b (ratNeg a) := by
+  have hmid := ratMid_mem_Rat ha hb
+  rw [ratAdd_mul hmid (ratNeg_mem_Rat ha) ratTwo_mem_Rat, ratMid_double ha hb]
+  have haa : ratMul (ratNeg a) ratTwo.{u} = ratAdd (ratNeg a) (ratNeg a) := by
+    rw [ratMul_two (ratNeg_mem_Rat ha)]
+  rw [haa, ← ratAdd_assoc (ratAdd_mem_Rat ha hb) (ratNeg_mem_Rat ha)
+      (ratNeg_mem_Rat ha), ratAdd_comm ha hb,
+    ratAdd_assoc hb ha (ratNeg_mem_Rat ha), ratAdd_neg ha, ratAdd_zero hb]
+
+theorem ratMid_sub_right {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+    ratMul (ratAdd b (ratNeg (ratMid a b))) ratTwo.{u} = ratAdd b (ratNeg a) := by
+  have hmid := ratMid_mem_Rat ha hb
+  rw [ratAdd_mul hb (ratNeg_mem_Rat hmid) ratTwo_mem_Rat]
+  have hbb : ratMul b ratTwo.{u} = ratAdd b b := by
+    rw [ratMul_two hb]
+  have hmm : ratMul (ratNeg (ratMid a b)) ratTwo.{u}
+      = ratNeg (ratAdd a b) := by
+    rw [ratMul_comm (ratNeg_mem_Rat hmid) ratTwo_mem_Rat,
+      ratMul_neg ratTwo_mem_Rat hmid, ratMul_comm ratTwo_mem_Rat hmid,
+      ratMid_double ha hb]
+  rw [hbb, hmm, ratNeg_add ha hb,
+    ratAdd_comm (ratNeg_mem_Rat ha) (ratNeg_mem_Rat hb),
+    ← ratAdd_assoc (ratAdd_mem_Rat hb hb) (ratNeg_mem_Rat hb) (ratNeg_mem_Rat ha),
+    ratAdd_assoc hb hb (ratNeg_mem_Rat hb), ratAdd_neg hb, ratAdd_zero hb]
+
+#print axioms ratMid_sub_left
+#print axioms ratMid_sub_right
+
+theorem ratMid_lt {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
+    (h : ratLt a b) : ratLt (ratMid a b) b := by
+  -- `2 · mid = a + b < b + b = 2 · b`
+  have hsum : ratLt (ratMul (ratMid a b) ratTwo.{u}) (ratMul b ratTwo.{u}) := by
+    rw [ratMid_double ha hb]
+    have hbb : ratMul b ratTwo.{u} = ratAdd b b := by
+      rw [ratMul_two hb]
+    rw [hbb]
+    exact (ratAdd_lt_add_right_iff hb ha hb).mpr h
+  exact ratMul_lt_cancel_right (ratMid_mem_Rat ha hb) hb ratTwo_mem_Rat
+    ratTwo_pos hsum
+
+theorem lt_ratMid {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
+    (h : ratLt a b) : ratLt a (ratMid a b) := by
+  have hsum : ratLt (ratMul a ratTwo.{u}) (ratMul (ratMid a b) ratTwo.{u}) := by
+    rw [ratMid_double ha hb]
+    have haa : ratMul a ratTwo.{u} = ratAdd a a := by
+      rw [ratMul_two ha]
+    rw [haa]
+    exact (ratAdd_lt_add_left_iff ha ha hb).mpr h
+  exact ratMul_lt_cancel_right ha (ratMid_mem_Rat ha hb) ratTwo_mem_Rat
+    ratTwo_pos hsum
 
 def invWidth (n : ZFSet.{u}) : ZFSet.{u} := ratOf intOne.{u} (intOf (succ n) empty.{u})
 
@@ -2156,7 +2505,15 @@ theorem exists_invWidth_lt {ε : ZFSet.{u}} (hεQ : ε ∈ Rat.{u})
     exact hchain
 
 #print axioms ratTwo
+#print axioms ratTwo_mem_Rat
+#print axioms ratTwo_pos
+#print axioms ratTwo_ne_zero
 #print axioms ratMid
+#print axioms ratMid_mem_Rat
+#print axioms ratMid_double
+#print axioms ratMid_lt
+#print axioms lt_ratMid
+#print axioms ratMul_two
 #print axioms invWidth
 #print axioms invWidth_mem_Rat
 #print axioms invWidth_pos
@@ -2166,5 +2523,5 @@ theorem exists_invWidth_lt {ε : ZFSet.{u}} (hεQ : ε ∈ Rat.{u})
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Rat corner_above_of_neg corner_close corner_le_mul diff_bounds diff_self_bounds exists_between_two exists_between_two' exists_clear_denom exists_common_denom exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_invWidth_lt exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intOfRat intOfRat_intToRat intOfRat_mem intPositive_num intToRat intToRat_add intToRat_inj intToRat_intOfRat intToRat_mem_Rat intToRat_mul invWidth invWidth_mem_Rat invWidth_ofNat invWidth_pos lt_mul_add_of_lt mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add num_ne_zero of_one_of_four ratAdd ratAdd_assoc ratAdd_comm ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_sub_cancel ratAdd_zero ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratOf ratLe ratLe_antisymm ratLe_ratOf ratLe_refl ratLe_total ratLe_trans ratLt ratLt_irrefl ratLt_mul_of_corners ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_ratOf ratLt_trans ratLt_trichotomy ratMid ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_one ratMul_ratOf ratMul_zero ratNat ratNat_eq_iff ratNat_le_iff ratNat_lt_iff ratNat_mem_Rat ratNat_width ratNat_zero ratNeg ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_mem_Rat ratOne_mul ratPairs ratRel ratRel_isEquivRel ratTwo ratZero ratZero_add ratZero_eq_ratNat ratZero_lt_one ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_scale_mono sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add)
+export NumberTheory (Rat corner_above_of_neg corner_close corner_le_mul diff_bounds diff_self_bounds exists_between_two exists_between_two' exists_bracket_width exists_bracket_width_gt exists_clear_denom exists_common_denom exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_invWidth_lt exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intOfRat intOfRat_intToRat intOfRat_mem intPositive_num intToRat intToRat_add intToRat_inj intToRat_intOfRat intToRat_mem_Rat intToRat_mul invWidth invWidth_mem_Rat invWidth_ofNat invWidth_pos lt_mul_add_of_lt lt_ratMid mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add num_ne_zero of_one_of_four ratAdd ratAdd_assoc ratAdd_comm ratAdd_le_add ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_sub_cancel ratAdd_zero ratInv ratInv_le_ratInv ratInv_lt_mul_inv ratInv_lt_ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratInv ratInv_ratOf ratLe ratLe_antisymm ratLe_ratOf ratLe_refl ratLe_total ratLe_trans ratLt ratLt_iff_not_ratLe ratLt_irrefl ratLt_mul_of_corners ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_ratOf ratLt_trans ratLt_trichotomy ratMid ratMid_double ratMid_lt ratMid_mem_Rat ratMid_sub_left ratMid_sub_right ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_inv_lt_inv ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_cancel_right ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_one ratMul_ratOf ratMul_two ratMul_zero ratNat ratNat_eq_iff ratNat_le_iff ratNat_lt_iff ratNat_mem_Rat ratNat_mul ratNat_one_one ratNat_width ratNat_zero ratNeg ratNeg_add ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_mem_Rat ratOne_mul ratPairs ratRel ratRel_isEquivRel ratSub_pos ratTwo ratTwo_mem_Rat ratTwo_ne_zero ratTwo_pos ratZero ratZero_add ratZero_eq_ratNat ratZero_lt_one ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_scale_mono sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add)
 end ZFSet
