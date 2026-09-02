@@ -20,3 +20,15 @@ jobs:
       # hand-written `#print axioms` lines.
       - name: Axiom audit
         run: python3 tools/audit.py --check
+
+      # THE OTHER HALF OF THE SAME QUESTION. `audit.py` measures what a proof
+      # USES; a principle taken as a hypothesis never reaches a `#print axioms`
+      # line, so a conditional theorem can carry excluded middle in a binder and
+      # audit clean. These two check the assumption side: that every principle
+      # assumed is registered with its calibration, and that each is spent where
+      # the registry says it is.
+      - name: Hypothesis registry
+        run: python3 tools/hypotheses.py --check
+
+      - name: Where principles are spent
+        run: python3 tools/hypcost.py --check

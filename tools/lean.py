@@ -422,9 +422,34 @@ def doc_span(raw, decls, i):
     return lead, max(end, start + 1)
 
 
+PHASE1 = "Logic"
+
+
 def source_files(root):
     """Every Lean file in the library, in a stable order."""
     return sorted(root.glob("FromAxioms/**/*.lean"))
+
+
+def phase2_files(root):
+    """Every module above Phase 1, wherever it lives.
+
+    Anchored on EXCLUSION rather than on a directory list, so an area added
+    later is included without anyone remembering to add it here.
+
+    THE RULE IS DEPTH. A root module is a SIBLING of its directory --
+    `FromAxioms/Logic.lean` sits beside `FromAxioms/Logic/` -- so its
+    relative parts are `("Logic.lean",)` and a test for `"Logic"` among the
+    parts misses it. Phase 2 modules live in a subdirectory; the root modules
+    are imports only.
+    """
+    base = root / "FromAxioms"
+    out = []
+    for p in base.rglob("*.lean"):
+        rel = p.relative_to(base).parts
+        if len(rel) < 2 or rel[0] == PHASE1:
+            continue
+        out.append(p)
+    return sorted(out)
 
 
 # --------------------------------------------------------------------------
