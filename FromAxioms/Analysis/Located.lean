@@ -472,7 +472,10 @@ theorem isLocated_neg {L₁ U₁ : ZFSet.{u}} (h₁ : IsLocated L₁ U₁) :
 #print axioms Analysis.BoundedLocated
 end Analysis
 
-#print axioms Analysis.BoundedLocated
+
+
+
+
 namespace ZFSet
 export Analysis (BoundedLocated IsLocated LocatedReadout RealL addLower addUpper isLocated_add isLocated_neg isLocated_ratCut located_bracket mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_negLower_iff mem_negUpper_iff mem_upper_iff negLower negUpper pairLe pairLe_antisymm upper_eq_of_lower_eq)
 end ZFSet

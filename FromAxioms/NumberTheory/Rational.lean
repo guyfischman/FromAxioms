@@ -890,6 +890,15 @@ theorem ratNeg_le_neg_iff {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat
     rw [ratAdd_assoc ha hb hnb, ratAdd_neg hb, ratAdd_zero ha]
   rw [← ratAdd_le_add_left_iff hab hna hnb, e₁, e₂]
 
+/-! ### The absolute value's sign facts
+
+RELOCATED from `Algebra/PolyUniform.lean`, a leaf on the polynomial branch that
+nothing in `Analysis` reaches. Every ingredient of all three proofs is declared
+in THIS file, so they sat as far downstream of their own inputs as they could
+while being unusable to every consumer outside that one branch --- a shape a
+statement query cannot report, because it answers existence and this was a
+question about REACHABILITY. -/
+
 theorem ratNeg_lt_neg_iff {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
     ratLt (ratNeg a) (ratNeg b) ↔ ratLt b a := by
   constructor
@@ -927,12 +936,13 @@ theorem ratMul_neg {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
       ratMul_ratOf ha hb hc hd, ratNeg_ratOf (intMul_mem_Int ha hc)
         (intMul_mem_intPositive hb hd), intMul_neg ha hc]
 
-/-- Multiplying by a non-positive rational reverses `≤`. -/
+/-- Negating twice is the identity, by `intNeg_intNeg` on the numerator. -/
 @[simp] theorem ratNeg_ratNeg {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
     ratNeg (ratNeg r) = r := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
   rw [ratNeg_ratOf ha hb, ratNeg_ratOf (intNeg_mem_Int ha) hb, intNeg_intNeg ha]
 
+/-- Multiplying by a non-positive rational reverses `≤`. -/
 theorem ratMul_le_mul_right_of_nonpos {r s t : ZFSet.{u}} (hr : r ∈ Rat.{u})
     (hs : s ∈ Rat.{u}) (ht : t ∈ Rat.{u}) (h : ratLe r s)
     (h0 : ratLe t ratZero.{u}) : ratLe (ratMul s t) (ratMul r t) := by

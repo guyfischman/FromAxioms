@@ -98,7 +98,7 @@ theorem mul_congr : ∀ (y y' : PSet.{u}) {x x' : PSet.{u}},
 
 end PSet
 
-open SetTheory
+open Algebra SetTheory
 namespace NumberTheory
 
 def add : ZFSet.{u} → ZFSet.{u} → ZFSet.{u} :=

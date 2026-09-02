@@ -30,7 +30,6 @@ again a union of a singleton -- so it rests on nothing above `Algebra.lean`,
 and a file wanting a two-way branch need not import the tower to get one.
 -/
 
-import FromAxioms.Algebra.Algebra
 import FromAxioms.Core.NatSearch
 import FromAxioms.NumberTheory.Natural
 

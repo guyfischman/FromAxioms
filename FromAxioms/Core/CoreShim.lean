@@ -7,10 +7,45 @@ Authors: Guy Fischman
 /-
 # Core lemmas that are classical, redone.
 
-Lean core is not uniformly constructive. The lemmas reproved here are not
-scattered at random: each is a general statement whose special case at a
-decidable type is constructive. Core pays an axiom for the generality; a
-development that lives inside decidable arithmetic does not have to.
+Lean core is not uniformly constructive. Each lemma reproved here is a general
+statement whose special case at a decidable type is constructive. Core pays an
+axiom for the generality; a development that lives inside decidable arithmetic
+does not have to.
+
+| core lemma | core's axioms | why it is avoidable |
+|---|---|---|
+| `Nat.mul_lt_mul_right` | `Classical.choice` | `Nat.mul_le_mul_right` is free; `<` follows by contraposition |
+| `Nat.lt_of_mul_lt_mul_left` | `Classical.choice` | same shape, same fix |
+| `List.perm_cons_erase` | `Classical.choice` | general over `BEq`/`LawfulBEq`; `Nat` equality is decidable |
+| `Nat.pow_lt_pow_right` | `Classical.choice` | `Nat.pow_le_pow_right` is free; the strict form splits off one factor |
+| `List.mem_append` | `propext` | it is an `Iff`; the three directions a caller needs are each a recursion on the first list |
+
+`List.mem_append` IS THE FIRST ENTRY HERE FOR `propext` RATHER THAN
+`Classical.choice`, and the reason it is worth an entry is the SCALE. Measured
+2026-08-30: 175 uses across 28 files, and no axiom-free alternative anywhere in
+the tree. `Metamath/FirstOrder.lean` documents the technique for its own layer
+--- *`List.Mem` is an inductive and its `Iff` lemmas in core are not ... recursing
+on the membership instead keeps the whole derivation layer free of axioms
+* --- and keeps `DerivesFO` clean that way, but the discipline was
+local to that file and the lemmas were never written down.
+
+HOW IT WAS FOUND, because the route matters more than the lemma. Two Henkin-set
+clauses with identical mathematics printed different axioms: `mem_disj_iff` at
+ZERO and `mem_conj_iff` at `propext`. The difference was not conjunction versus
+disjunction --- it was that one proof routed through `DerivesIn.conj_intro`,
+which appends two contexts, and the other did not. `#print axioms` was reporting
+a PROOF-PATH ARTEFACT as though it were a property of the theorem, which is
+exactly the noise a library about measuring cost cannot afford.
+
+`DerivesIn.imp_elim` and `DerivesIn.conj_intro` were the only two theory-level
+combinators carrying it; rebuilt on the three lemmas below they print nothing,
+and so does every Henkin clause above them. THE OTHER 173 USES ARE UNTOUCHED and
+are a measured backlog rather than a claim --- the technique is here, the sweep
+is not, and it crosses four other tracks' live files.
+
+Anything else that turns up goes here, with the audit line that motivated it.
+Nothing in this file is new mathematics -- it exists so that the pattern is
+visible in one place instead of being rediscovered file by file.
 -/
 
 namespace Core

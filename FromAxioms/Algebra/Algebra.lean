@@ -20,7 +20,7 @@ sides, and discharge the propositional core.
 
 import FromAxioms.SetTheory.ZFSet
 
-universe u
+universe u v
 
 open SetTheory
 namespace Algebra
@@ -258,6 +258,11 @@ end Algebra
 #print axioms Algebra.powerset_empty
 #print axioms Algebra.sep_empty
 #print axioms Algebra.union_inter_cancel
+#print axioms Algebra.empty_union
+#print axioms Algebra.inter_empty
+#print axioms Algebra.inter_self
+#print axioms Algebra.union_empty
+#print axioms Algebra.union_self
 namespace ZFSet
 export Algebra (empty_inter empty_sdiff empty_subset empty_union inter inter_empty inter_self inter_union_cancel mem_inter_iff mem_sdiff_iff mem_singleton_iff mem_singleton_self mem_unionUpto_iff mem_union_iff powerset_empty sUnion_empty sUnion_singleton sdiff sdiff_empty sdiff_sdiff_left_self sdiff_self sdiff_subset sep_empty sep_eq_singleton singleton singleton_injective theOnly theOnly_eq union unionUpto union_empty union_inter_cancel union_sdiff_self union_self)
 end ZFSet
