@@ -10,3 +10,4 @@ The Analysis area. This file is generated; it imports every module in
 -/
 import FromAxioms.Analysis.Real
 import FromAxioms.Analysis.Located
+import FromAxioms.Analysis.Cauchy

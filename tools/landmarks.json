@@ -70,5 +70,9 @@
  "SetTheory.peanoMap_injective": [
   "ℕ characterised by recursion",
   1888
+ ],
+ "Constructive.EM": [
+  "law of excluded middle, informally",
+  -350
  ]
 }
