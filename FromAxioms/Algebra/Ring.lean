@@ -1033,13 +1033,7 @@ theorem hom_app_mem {h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂ a : Z
 /-! A ring hom out of a FIELD kills nothing --- that is `hom_ne_zero`, in
 `SetTheory/Extension.lean`, and NOT here. -/
 
-/-- Vanishing is decidable: the hypothesis degree needs.
-
-Sited here rather than beside the first degree argument that wanted it. Its body
-is carrier and zero -- no degree, no polynomial, nothing from the file it was
-declared in -- and fifteen files across the polynomial, field and geometry towers
-take it as a hypothesis. A subject-free predicate placed at its first consumer is
-invisible to the second. -/
+/-- Vanishing is decidable: the hypothesis degree needs. -/
 def DecidableVanishing (R zero : ZFSet.{u}) : Prop :=
   ∀ a, a ∈ R → a = zero ∨ a ≠ zero
 
@@ -1168,10 +1162,6 @@ def ringMultiples (R mul a : ZFSet.{u}) : ZFSet.{u} :=
 theorem mem_ringMultiples_iff (R mul a w : ZFSet.{u}) :
     w ∈ ringMultiples R mul a ↔ w ∈ R ∧ ∃ y, y ∈ R ∧ w = opAt mul a y :=
   mem_sep_iff _ _ _
-
-/-! `ringMultiples_natIn_mul_unit` --- a unit numeral factor is invisible to the
-ideal --- belongs beside these two and is sited instead beside
-`ringMultiples_unit_mul`, some nine thousand lines below, which it cites. -/
 
 theorem isIdeal_ringMultiples {R add mul zero one a : ZFSet.{u}}
     (h : IsRing R add mul zero one) (ha : a ∈ R) :

@@ -16,9 +16,6 @@ library's `setFold` -- which folds `ZFSet` operations -- does not give. The
 arguments that want this do not need the sum: they need to know a prime divides
 the total. Carrying divisibility through the induction never forms a sum at
 all, so the missing fold is not missing for anything.
-
-Stated generally rather than beside the argument that wanted it first. A
-counting lemma buried in a group-theory file is a lemma nothing else can find.
 -/
 
 import FromAxioms.SetTheory.Cardinal

@@ -2626,9 +2626,9 @@ theorem realLLe_add_right {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 /-! ### Antisymmetry
 
-`realLLe` is a negation, so this is not a rewriting of the definition: it
-descends to the cuts, and `realLLe_lower_subset` is where locatedness is spent --
-the rung `(p, p')` inside the lower set has to fall one way or the other. -/
+`realLLe` is a negation, so antisymmetry descends to the cuts, and
+`realLLe_lower_subset` is where locatedness is spent -- the rung `(p, p')`
+inside the lower set has to fall one way or the other. -/
 
 theorem realLLe_lower_subset {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (h : realLLe x y) : fst x ⊆ fst y := by
@@ -2998,9 +2998,7 @@ theorem realLAdd_interchange {A B C D : ZFSet.{u}} (hA : A ∈ RealL.{u})
     ← realLAdd_assoc hA hC (realLAdd_mem hB hD)]
 /-! ## More rearrangements
 
-The rest of the block whose first six moved earlier. None of these references
-anything from the file it sat in, so each belongs here and each move typechecks
-by construction. -/
+-/
 
 /-- `-(A - B) = B - A`. -/
 theorem realLNeg_sub {A B : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.{u}) :
@@ -3040,9 +3038,8 @@ theorem eq_zero_of_add_self_eq_zero {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
   exact realLLe_antisymm hy realLZero_mem
     (fun hlt => hnap (Or.inl hlt)) (fun hlt => hnap (Or.inr hlt))
 
-/-- Mixed transitivity, one way. `realLLe` carries no witness, so this is not a
-rearrangement of the definitions: cotransitivity supplies the witness and the
-weak hypothesis refutes the wrong branch. -/
+/-- Mixed transitivity, one way. `realLLe` carries no witness, so cotransitivity
+supplies it and the weak hypothesis refutes the wrong branch. -/
 theorem realLLt_of_le_of_lt {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hab : realLLe a b) (hbc : realLLt b c) : realLLt a c := by
   rcases realLLt_cotrans hb hc ha hbc with h | h
@@ -3114,12 +3111,7 @@ theorem apart_mul_apart {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
 #print axioms Analysis.realLLe_refl
 #print axioms Analysis.realLLe_of_lt
 #print axioms Analysis.realLLe_add_right
-/-- The weak order adds.
-
-Supersedes `realLAdd_le_add`, which stated the same thing; do not add new uses
-of that name. A branch that has not merged the supersession still defines both,
-and a use written there is correct on that branch and breaks at the merge -- so
-the marker belongs here, where a proof is being written. -/
+/-- The weak order adds. -/
 theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) (h₁ : realLLe a b) (h₂ : realLLe c d) :
     realLLe (realLAdd a c) (realLAdd b d) := by

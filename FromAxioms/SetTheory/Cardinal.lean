@@ -24,11 +24,8 @@ applications, and for the inverse the unique preimage, extracted by the
 Antisymmetry is Schröder--Bernstein, so it inherits `Bernstein.lean`'s
 `SBDetachable` hypothesis and nothing more.
 
-A finite product of a FAMILY of sets sits here rather than with the measure
-work that first needed it: it is a construction the counting lemmas above are
-about, and two towers that cannot see each other both want it. `prodFam C n`
-nests left, exactly as `powSet` does, so `equinumerous_powSet`'s induction
-transplants to count it.
+The finite product `prodFam C n` of a family nests left, exactly as `powSet`
+does, so `equinumerous_powSet`'s induction transplants to count it.
 -/
 
 import FromAxioms.Constructive.Reverse
@@ -872,12 +869,7 @@ Nothing classical: the inverse is extracted from a singleton rather than chosen,
 and `em` appears only as a hypothesis, inherited from antisymmetry. -/
 
 /-- A singleton is equinumerous with `1`. Adjoining the point to the empty
-set, which `equinumerous_insert` does without deciding membership.
-
-Lives here rather than with either consumer: `Scott.lean` had a private copy and
-`Sylow.lean` a public one, neither file reaching the other, so the duplication
-was forced by placement rather than by mathematics. This file is the latest
-common ancestor of both AND the lemma's own subject. -/
+set, which `equinumerous_insert` does without deciding membership. -/
 theorem equinumerous_singleton_one {a : ZFSet.{u}} :
     Equinumerous (singleton a) (ofNat.{u} 1) := by
   have h := equinumerous_insert (x := empty.{u}) (a₀ := a) (n := 0)

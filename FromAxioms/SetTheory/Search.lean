@@ -70,9 +70,7 @@ namespace SetTheory
 /-! ## The dyadic interval a node names
 
 A path of bits and the interval it cuts out of `[0, 1]`, refined one bit at a
-time. Subject-free interval bookkeeping over `ratMid`, so it sits
-beside the interval shrink rather than beside its first consumer -- the measure
-argument that wanted it first is not what it is about. -/
+time. Subject-free interval bookkeeping over `ratMid`. -/
 
 /-- One refinement: take the left or right half, split at `ratMid`. -/
 def nodeStep (p : ZFSet.{u} × ZFSet.{u}) (b : Bool) : ZFSet.{u} × ZFSet.{u} :=
