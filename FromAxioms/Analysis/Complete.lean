@@ -33,6 +33,22 @@ universe u
 open NumberTheory SetTheory
 namespace Analysis
 
+/-! ## The Cauchy condition, and the two halves of the limit -/
+
+/-- A sequence of reals with a modulus: past `m`, any two terms are within the
+scale asked for. The modulus is an existential per scale, and every use of it
+below is inside a proof. -/
+def IsCauchyReal (x : Nat → ZFSet.{u}) : Prop :=
+  ∀ n : Nat, ∃ m : Nat, ∀ j k : Nat, m ≤ j → m ≤ k →
+    WithinOf (realLAdd (x j) (realLNeg (x k))) (invScale.{u} n)
+
+/-! ## Convergence -/
+
+/-- The sequence eventually stays within every scale of `L`. -/
+def TendsToL (x : Nat → ZFSet.{u}) (L : ZFSet.{u}) : Prop :=
+  ∀ n : Nat, ∃ m : Nat, ∀ k : Nat, m ≤ k →
+    WithinOf (realLAdd (x k) (realLNeg L)) (invScale.{u} n)
+
 /-! ## The constant
 
 The one integral that can be computed rather than approximated, which turns the
@@ -92,5 +108,5 @@ theorem zero_le_of_forall_neg_invWidth {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
 #print axioms Analysis.zero_le_of_forall_neg_invWidth
 end Analysis
 namespace ZFSet
-export Analysis (realLLe_zero_of_forall_invWidth zero_le_of_forall_neg_invWidth)
+export Analysis (IsCauchyReal TendsToL realLLe_zero_of_forall_invWidth zero_le_of_forall_neg_invWidth)
 end ZFSet

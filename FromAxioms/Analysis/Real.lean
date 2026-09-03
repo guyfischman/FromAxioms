@@ -86,6 +86,17 @@ greatest element whenever `x` has a least upper bound in ℚ. -/
 def realNeg (x : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun p => ∃ q, q ∈ NumberTheory.Rat.{u} ∧ q ∉ x ∧ ratLt p (ratNeg q)) NumberTheory.Rat.{u}
 
+/-! No ladder walk is needed here. `located_of_adjacent` takes the adjacency
+step as the hypothesis `adj`, so it is choice-free, and
+`Constructive.cut_located_of_em` discharges that hypothesis from an `EM`
+binder. -/
+
+/-- For every `ε > 0`, a member and a non-member within `ε` of each other. This
+is the data a one-sided cut does not carry. -/
+def Located (x : ZFSet.{u}) : Prop :=
+  ∀ ε, ε ∈ NumberTheory.Rat.{u} → ratLt ratZero.{u} ε →
+    ∃ q, q ∈ x ∧ ∃ s, s ∈ NumberTheory.Rat.{u} ∧ s ∉ x ∧ ratLt s (ratAdd q ε)
+
 /-! ## Multiplication on the non-negative cone
 
 `{q·r}` is only the right set of products when both factors are non-negative,
@@ -107,5 +118,5 @@ def realMulNonneg (x y : ZFSet.{u}) : ZFSet.{u} :=
 end Analysis
 
 namespace ZFSet
-export Analysis (IsCut Real mem_ratCut_iff ratCut realLe realMulNonneg realNeg realNonneg realZero)
+export Analysis (IsCut Located Real mem_ratCut_iff ratCut realLe realMulNonneg realNeg realNonneg realZero)
 end ZFSet

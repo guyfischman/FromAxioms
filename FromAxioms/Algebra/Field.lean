@@ -172,6 +172,15 @@ theorem isRing_int : IsRing NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZe
       opAt_intAddOp (intMul_mem_Int ha hb) (intMul_mem_Int ha hc)]
     exact intMul_add ha hb hc
 
+/-! ## Fermat in numbers
+
+The class of a power is the power of the class -- one induction -- so the
+group statement reads back as arithmetic: `p ∤ a` gives `a^(p-1) ≡ 1 (mod p)`. -/
+
+def intPow (z : ZFSet.{u}) : Nat → ZFSet.{u}
+  | 0 => intOne.{u}
+  | k + 1 => intMul (intPow z k) z
+
 /-! ## Audit
 
 Nothing classical, and nothing new about ℚ: every clause is a `Rational.lean`
@@ -392,5 +401,5 @@ theorem cyclotomicShift_dvd_int {p : Nat} (hp : IsPrime p) {j : Nat}
 end Algebra
 
 namespace ZFSet
-export Algebra (cyclotomicShift_dvd_int divides_of_intMul_ofNat divides_of_intOfNat_eq_mul field_no_zero_divisors_ne intDvd_decidable intDvd_neg_iff intDvd_ofNat_decidable intDvd_of_divides intMulOp intPrime_divides_mul intPrime_divides_mul_ofNat int_eq_ofNat_or_neg isField_rat isGroup_ratAdd isRing_int isRing_rat mul_right_cancel_field opAt_intMulOp opAt_ratAddOp opAt_ratMulOp ratAddOp ratMulOp)
+export Algebra (cyclotomicShift_dvd_int divides_of_intMul_ofNat divides_of_intOfNat_eq_mul field_no_zero_divisors_ne intDvd_decidable intDvd_neg_iff intDvd_ofNat_decidable intDvd_of_divides intMulOp intPow intPrime_divides_mul intPrime_divides_mul_ofNat int_eq_ofNat_or_neg isField_rat isGroup_ratAdd isRing_int isRing_rat mul_right_cancel_field opAt_intMulOp opAt_ratAddOp opAt_ratMulOp ratAddOp ratMulOp)
 end ZFSet

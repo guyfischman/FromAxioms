@@ -15,3 +15,4 @@ import FromAxioms.Algebra.Ring
 import FromAxioms.Algebra.Field
 import FromAxioms.Algebra.Poly
 import FromAxioms.Algebra.PolyRing
+import FromAxioms.Algebra.Conjugation

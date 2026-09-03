@@ -9,3 +9,4 @@ The Topology area. This file is generated; it imports every module in
 `FromAxioms/Topology/`.
 -/
 import FromAxioms.Topology.Topology
+import FromAxioms.Topology.Metric

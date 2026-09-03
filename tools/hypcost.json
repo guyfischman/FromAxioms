@@ -1,6 +1,13 @@
 {
+ "FamilyLocated": [
+  "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",
+  "FromAxioms/Analysis/Located.lean::lub_of_familyLocated"
+ ],
  "SubsetFinite": [
   "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
+ ],
+ "TernaryLLPO": [
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_ternary_llpo"
  ],
  "TernaryZeroDecidable": [
   "FromAxioms/Constructive/Omniscience.lean::wlpo_of_ternary_zero_decidable"

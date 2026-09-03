@@ -50,6 +50,26 @@ def WLPO : Prop := ∀ α : Nat → Bool, (∀ n, α n = false) ∨ ¬ (∀ n, �
 /-- Markov's principle. -/
 def MP : Prop := ∀ α : Nat → Bool, ¬ (∀ n, α n = false) → ∃ n, α n = true
 
+/-- The lesser limited principle of omniscience. -/
+def LLPO : Prop := ∀ α β : Nat → Bool,
+  ¬ ((∃ n, α n = true) ∧ (∃ n, β n = true)) →
+    (∀ n, α n = false) ∨ (∀ n, β n = false)
+
+/-! ## The lattice
+
+`EM → LPO → WLPO → LLPO` and `LPO → MP`, each proved choice-free, so the
+ordering is a checked object rather than a claim in a comment. -/
+
+/-- A `Bool` never taking `true` takes `false` everywhere -- case analysis,
+not a principle. Public because `Integral.lean` proves the same conclusion and
+the duplicate is the one that goes. -/
+theorem not_exists_true {α : Nat → Bool} (h : ¬ ∃ n, α n = true) :
+    ∀ n, α n = false := by
+  intro n
+  cases hn : α n with
+  | false => rfl
+  | true => exact absurd ⟨n, hn⟩ h
+
 /-! ## Where `LPO` is the exact strength
 
 A binary sequence gives ternary digits without any decision -- `Bool` is already
@@ -196,6 +216,24 @@ theorem wlpo_of_decidable_bridge {S : (Nat → Bool) → Prop}
 theorem wlpo_of_ternary_zero_decidable (h : TernaryZeroDecidable.{u}) : WLPO :=
   wlpo_of_decidable_bridge ternary_eq_zero_iff h
 
+/-! ## Where `LLPO` is the exact strength
+
+Two walk-built reals are both `≥ 0`, and each is `> 0` exactly when its
+sequence fires. So "of two reals that cannot both be positive, one is `≤ 0`" is
+`LLPO` read off the cuts -- the analytic form the principle is usually quoted
+in, and the ternary walk states it without needing a sign. -/
+
+def TernaryLLPO : Prop := ∀ α β : Nat → Bool,
+  ¬ ((∃ n, α n = true) ∧ (∃ n, β n = true)) →
+    ratZero.{u} ∉ nestLower (tlowSeq.{u} (boolDigit α)) ∨
+      ratZero.{u} ∉ nestLower (tlowSeq.{u} (boolDigit β))
+
+theorem llpo_of_ternary_llpo (h : TernaryLLPO.{u}) : LLPO := by
+  intro α β hdisj
+  rcases h α β hdisj with hα | hβ
+  · exact Or.inl (not_exists_true (fun hex => hα ((zero_mem_ternary_iff α).mpr hex)))
+  · exact Or.inr (not_exists_true (fun hex => hβ ((zero_mem_ternary_iff β).mpr hex)))
+
 /-! ## The fan theorem
 
 Brouwer's principle, and the same kind of object as `LPO` and friends of object
@@ -224,10 +262,86 @@ def take (α : Nat → Bool) : Nat → List Bool
 /-- Any finite path, continued with `false` forever. -/
 def extend (s : List Bool) : Nat → Bool := fun i => (s[i]?).getD false
 
+/-! ## Where the selection's strength sits
+
+What is not free is knowing which child fails, and that is a decision about a
+`Π` statement. So the honest form takes it as data, exactly as
+`bdn_of_mp_readout` does: the principle is spent on reading the step's premise
+rather than on the step. -/
+
+/-- The subtree above `s` reaches depth `N`. -/
+def Extendable (T : List Bool → Prop) (s : List Bool) (N : Nat) : Prop :=
+  ∃ t : List Bool, t.length = N ∧ T (s ++ t)
+
+/-- The subtree above `s` reaches every depth. -/
+def Unbounded (T : List Bool → Prop) (s : List Bool) : Prop :=
+  ∀ N, Extendable T s N
+
+/-! ## The path from a readout -/
+
+/-- Which child to descend to, as data, with the promise that the child
+it names stays unbounded. -/
+structure TreeReadout (T : List Bool → Prop) where
+  bit : List Bool → Bool
+  keeps : ∀ s, Unbounded T s → Unbounded T (s ++ [bit s])
+
 #print axioms zero_mem_ternary_iff
 #print axioms ternary_eq_zero_iff
 #print axioms wlpo_of_ternary_zero_decidable
+#print axioms llpo_of_ternary_llpo
+/-! ## `N∞`, and a set that is omniscient with no principle at all
+
+`LPO` above is exactly `Nat` is omniscient: every `Bool` predicate on it
+either fires somewhere or never does. That is a taboo. Pradic and Brown
+(arXiv:1904.09193, §3) observe that a DIFFERENT infinite set is omniscient
+outright, with no principle --- the non-increasing binary sequences --- and
+that `CantorBernstein → EM` follows from it without smuggling `LPO` in. Their
+§3 is reproduced here; the construction is Escardó's.
+-/
+
+/-- Two distinct equal-length bit strings first differ somewhere, explicitly.
+
+The separation lemma is stated at a differing index; this produces the index,
+along with the shared prefix and the two heads.
+
+Splitting on the two bits directly is choice-free, and it keeps the recursion
+visibly decidable.
+
+The conclusion is a DISJUNCTION over which side carries the true bit, because
+the separation is directional: it bounds the false-headed value below the
+true-headed one, and the hypotheses do not say which is which. -/
+theorem exists_first_diff : ∀ u v : List Bool, u.length = v.length → u ≠ v →
+    ∃ k, List.take k u = List.take k v ∧
+      ((List.drop k u = false :: (List.drop k u).tail ∧
+        List.drop k v = true :: (List.drop k v).tail) ∨
+       (List.drop k u = true :: (List.drop k u).tail ∧
+        List.drop k v = false :: (List.drop k v).tail))
+  | [], [], _, hne => absurd rfl hne
+  | [], _ :: _, hlen, _ => Nat.noConfusion hlen
+  | _ :: _, [], hlen, _ => Nat.noConfusion hlen
+  | a :: u', b :: v', hlen, hne => by
+      have hlen' : u'.length = v'.length := Nat.succ.inj hlen
+      cases a
+      · cases b
+        · -- both false: the heads agree, recurse
+          have hne' : u' ≠ v' := fun h => hne (by rw [h])
+          obtain ⟨k, hpre, hheads⟩ := exists_first_diff u' v' hlen' hne'
+          exact ⟨k + 1, by
+            show false :: List.take k u' = false :: List.take k v'
+            rw [hpre], hheads⟩
+        · exact ⟨0, rfl, Or.inl ⟨rfl, rfl⟩⟩
+      · cases b
+        · exact ⟨0, rfl, Or.inr ⟨rfl, rfl⟩⟩
+        · have hne' : u' ≠ v' := fun h => hne (by rw [h])
+          obtain ⟨k, hpre, hheads⟩ := exists_first_diff u' v' hlen' hne'
+          exact ⟨k + 1, by
+            show true :: List.take k u' = true :: List.take k v'
+            rw [hpre], hheads⟩
+
+#print axioms Constructive.exists_first_diff
+
+
 end Constructive
 namespace ZFSet
-export Constructive (LPO MP TernaryZeroDecidable WLPO boolDigit boolDigit_eq_one_iff boolDigit_le_one extend take ternary_eq_zero_iff tnum_eq_zero tnum_pos_iff wlpo_of_ternary_zero_decidable zero_mem_ternary_iff)
+export Constructive (Extendable LLPO LPO MP TernaryLLPO TernaryZeroDecidable TreeReadout Unbounded WLPO boolDigit boolDigit_eq_one_iff boolDigit_le_one extend llpo_of_ternary_llpo not_exists_true take ternary_eq_zero_iff tnum_eq_zero tnum_pos_iff wlpo_of_ternary_zero_decidable zero_mem_ternary_iff)
 end ZFSet

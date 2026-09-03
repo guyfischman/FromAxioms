@@ -238,6 +238,92 @@ theorem mem_RealL_iff (z : ZFSet.{u}) :
   exact ⟨opair_mem_prod ((mem_powerset_iff _ _).mpr hloc.lower_subset)
     ((mem_powerset_iff _ _).mpr hloc.upper_subset), L, U, rfl, hloc⟩
 
+theorem isLocated_of_mem_RealL {z L U : ZFSet.{u}} (hz : z ∈ RealL.{u})
+    (he : z = opair L U) : IsLocated L U := by
+  obtain ⟨L', U', he', hloc⟩ := (mem_RealL_iff z).mp hz
+  obtain ⟨rfl, rfl⟩ := opair_injective (he.symm.trans he')
+  exact hloc
+
+def supLower (S : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun p => ∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ p ∈ L) NumberTheory.Rat.{u}
+
+def supUpper (S : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun r => ∃ p, p ∈ NumberTheory.Rat.{u} ∧ ratLt p r ∧
+        ∀ z, z ∈ S → ∀ L U, z = opair L U → p ∈ U) NumberTheory.Rat.{u}
+
+theorem mem_supLower_iff (S p : ZFSet.{u}) :
+    p ∈ supLower S ↔ p ∈ NumberTheory.Rat.{u} ∧ ∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ p ∈ L :=
+  mem_sep_iff _ _ _
+
+theorem mem_supUpper_iff (S r : ZFSet.{u}) :
+    r ∈ supUpper S ↔ r ∈ NumberTheory.Rat.{u} ∧ ∃ p, p ∈ NumberTheory.Rat.{u} ∧ ratLt p r ∧
+      ∀ z, z ∈ S → ∀ L U, z = opair L U → p ∈ U :=
+  mem_sep_iff _ _ _
+
+/-- A family is located when every rational interval is decided: some member
+reaches above the left end, or all of them stay below the right end. -/
+def FamilyLocated (S : ZFSet.{u}) : Prop :=
+  ∀ p, p ∈ NumberTheory.Rat.{u} → ∀ q, q ∈ NumberTheory.Rat.{u} → ratLt p q →
+    (∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ p ∈ L) ∨
+    (∀ z, z ∈ S → ∀ L U, z = opair L U → q ∈ U)
+
+theorem isLocated_sup_of_familyLocated {S : ZFSet.{u}} (hS : S ⊆ RealL.{u}) (hne : ∃ z, z ∈ S)
+    (hbd : ∃ r, r ∈ NumberTheory.Rat.{u} ∧ ∀ z, z ∈ S → ∀ L U, z = opair L U → r ∈ U)
+    (hfam : FamilyLocated S) : IsLocated (supLower S) (supUpper S) where
+  lower_subset p hp := ((mem_supLower_iff S p).mp hp).left
+  upper_subset r hr := ((mem_supUpper_iff S r).mp hr).left
+  lower_inhabited := by
+    obtain ⟨z, hz⟩ := hne
+    obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff z).mp (hS z hz)
+    obtain ⟨q, hq⟩ := hloc.lower_inhabited
+    exact ⟨q, (mem_supLower_iff S q).mpr
+      ⟨hloc.lower_subset q hq, _, hz, L, U, rfl, hq⟩⟩
+  upper_inhabited := by
+    obtain ⟨r₀, hr₀Q, hall⟩ := hbd
+    obtain ⟨r, hrQ, hlt⟩ := rat_no_greatest hr₀Q
+    exact ⟨r, (mem_supUpper_iff S r).mpr ⟨hrQ, r₀, hr₀Q, hlt, hall⟩⟩
+  ordered q hq r hr := by
+    obtain ⟨hqQ, z, hz, L, U, he, hqL⟩ := (mem_supLower_iff S q).mp hq
+    obtain ⟨hrQ, p, hpQ, hpr, hall⟩ := (mem_supUpper_iff S r).mp hr
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    exact ratLt_trans hqQ hpQ hrQ (hloc.ordered q hqL p (hall z hz L U he)) hpr
+  lower_down q hq p hpQ hlt := by
+    obtain ⟨-, z, hz, L, U, he, hqL⟩ := (mem_supLower_iff S q).mp hq
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    exact (mem_supLower_iff S p).mpr ⟨hpQ, z, hz, L, U, he, hloc.lower_down q hqL p hpQ hlt⟩
+  upper_up r hr p hpQ hlt := by
+    obtain ⟨hrQ, t, htQ, htr, hall⟩ := (mem_supUpper_iff S r).mp hr
+    exact (mem_supUpper_iff S p).mpr ⟨hpQ, t, htQ, ratLt_trans htQ hrQ hpQ htr hlt, hall⟩
+  lower_open q hq := by
+    obtain ⟨-, z, hz, L, U, he, hqL⟩ := (mem_supLower_iff S q).mp hq
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    obtain ⟨q', hq'L, hlt⟩ := hloc.lower_open q hqL
+    exact ⟨q', (mem_supLower_iff S q').mpr
+      ⟨hloc.lower_subset q' hq'L, z, hz, L, U, he, hq'L⟩, hlt⟩
+  upper_open r hr := by
+    obtain ⟨hrQ, p, hpQ, hpr, hall⟩ := (mem_supUpper_iff S r).mp hr
+    obtain ⟨t, htQ, h₁, h₂⟩ := rat_dense hpQ hrQ hpr
+    exact ⟨t, (mem_supUpper_iff S t).mpr ⟨htQ, p, hpQ, h₁, hall⟩, h₂⟩
+  located p hpQ q hqQ hlt := by
+    obtain ⟨t, htQ, h₁, h₂⟩ := rat_dense hpQ hqQ hlt
+    -- the family's locatedness is used exactly here, and nowhere else
+    rcases hfam p hpQ t htQ h₁ with hleft | hright
+    · exact Or.inl ((mem_supLower_iff S p).mpr ⟨hpQ, hleft⟩)
+    · exact Or.inr ((mem_supUpper_iff S q).mpr ⟨hqQ, t, htQ, h₂, hright⟩)
+
+/-- The supremum is an upper bound, and the least one: both halves are the
+membership condition of `supLower` read in the two directions. -/
+theorem le_sup {S z L U : ZFSet.{u}} (hS : S ⊆ RealL.{u}) (hz : z ∈ S)
+    (he : z = opair L U) : L ⊆ supLower S := fun p hp =>
+  (mem_supLower_iff S p).mpr
+    ⟨(isLocated_of_mem_RealL (hS z hz) he).lower_subset p hp, z, hz, L, U, he, hp⟩
+
+theorem sup_le {S B : ZFSet.{u}}
+    (h : ∀ z, z ∈ S → ∀ L U, z = opair L U → L ⊆ B) : supLower S ⊆ B := by
+  intro p hp
+  obtain ⟨-, z, hz, L, U, he, hpL⟩ := (mem_supLower_iff S p).mp hp
+  exact h z hz L U he p hpL
+
 /-- `q' + r' < s`, given that both brackets have width below `D`, that
 `2D < s - p`, and that `q + r` has not exceeded `p`. -/
 private theorem add_window {q q' r r' p s D : ZFSet.{u}} (hqQ : q ∈ NumberTheory.Rat.{u})
@@ -1576,6 +1662,43 @@ theorem realLZero_mul {y : ZFSet.{u}} (hy : y ∈ RealL.{u}) :
     realLMul realLZero.{u} y = realLZero.{u} := by
   rw [realLMul_comm realLZero_mem hy, realLMul_zero hy]
 
+/-- `-0 = 0`. Each half is a density argument: a rational below zero has a
+positive rational whose negation still exceeds it. -/
+theorem realLNeg_zero : realLNeg realLZero.{u} = realLZero.{u} := by
+  have hlow : negLower (sep (fun p => ratLt ratZero.{u} p) NumberTheory.Rat.{u}) = ratCut ratZero.{u} := by
+    refine ext _ _ fun p => ⟨fun hp => ?_, fun hp => ?_⟩
+    · obtain ⟨hpQ, r, hr, hpr⟩ := (mem_negLower_iff _ p).mp hp
+      obtain ⟨hrQ, h0r⟩ := (mem_sep_iff _ r _).mp hr
+      refine (mem_ratCut_iff _ _).mpr ⟨hpQ, ratLt_trans hpQ (ratNeg_mem_Rat hrQ)
+        ratZero_mem_Rat hpr ?_⟩
+      have := (ratNeg_lt_neg_iff hrQ ratZero_mem_Rat).mpr h0r
+      rwa [ratNeg_zero] at this
+    · obtain ⟨hpQ, hp0⟩ := (mem_ratCut_iff _ p).mp hp
+      have hnp0 : ratLt ratZero.{u} (ratNeg p) := by
+        have := (ratNeg_lt_neg_iff ratZero_mem_Rat hpQ).mpr hp0
+        rwa [ratNeg_zero] at this
+      obtain ⟨r, hrQ, h0r, hrn⟩ := rat_dense ratZero_mem_Rat (ratNeg_mem_Rat hpQ) hnp0
+      refine (mem_negLower_iff _ _).mpr ⟨hpQ, r, (mem_sep_iff _ _ _).mpr ⟨hrQ, h0r⟩, ?_⟩
+      have := (ratNeg_lt_neg_iff (ratNeg_mem_Rat hpQ) hrQ).mpr hrn
+      rwa [ratNeg_ratNeg hpQ] at this
+  have hupp : negUpper (ratCut ratZero.{u}) = sep (fun p => ratLt ratZero.{u} p) NumberTheory.Rat.{u} := by
+    refine ext _ _ fun p => ⟨fun hp => ?_, fun hp => ?_⟩
+    · obtain ⟨hpQ, q, hq, hqp⟩ := (mem_negUpper_iff _ p).mp hp
+      obtain ⟨hqQ, hq0⟩ := (mem_ratCut_iff _ q).mp hq
+      refine (mem_sep_iff _ _ _).mpr ⟨hpQ, ratLt_trans ratZero_mem_Rat
+        (ratNeg_mem_Rat hqQ) hpQ ?_ hqp⟩
+      have := (ratNeg_lt_neg_iff ratZero_mem_Rat hqQ).mpr hq0
+      rwa [ratNeg_zero] at this
+    · obtain ⟨hpQ, h0p⟩ := (mem_sep_iff _ p _).mp hp
+      have hnp0 : ratLt (ratNeg p) ratZero.{u} := by
+        have := (ratNeg_lt_neg_iff hpQ ratZero_mem_Rat).mpr h0p
+        rwa [ratNeg_zero] at this
+      obtain ⟨q, hqQ, hnq, hq0⟩ := rat_dense (ratNeg_mem_Rat hpQ) ratZero_mem_Rat hnp0
+      refine (mem_negUpper_iff _ _).mpr ⟨hpQ, q, (mem_ratCut_iff _ _).mpr ⟨hqQ, hq0⟩, ?_⟩
+      have := (ratNeg_lt_neg_iff hqQ (ratNeg_mem_Rat hpQ)).mpr hnq
+      rwa [ratNeg_ratNeg hpQ] at this
+  rw [realLNeg, realLZero, realLOf, fst_opair, snd_opair, hlow, hupp]
+
 /-- A located pair is determined by either containment. If both pairs are
 located and each half of one is contained in the other's, the containments
 reverse and the pairs are equal. So an equation between located reals needs only
@@ -2619,6 +2742,14 @@ theorem realLLe_of_lt {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL
     (h : realLLt a b) : realLLe a b :=
   fun hlt => realLLt_irrefl ha (realLLt_trans ha hb ha h hlt)
 
+/-- Negation takes a nonnegative real to a nonpositive one. -/
+theorem realLNeg_le_zero {e : ZFSet.{u}} (he : e ∈ RealL.{u})
+    (h : realLLe realLZero.{u} e) : realLLe (realLNeg e) realLZero.{u} := by
+  intro hlt
+  have := realLNeg_lt_neg realLZero_mem (realLNeg_mem he) hlt
+  rw [realLNeg_realLNeg he, realLNeg_zero] at this
+  exact h this
+
 theorem realLLe_add_right {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u}) (h : realLLe a b) :
     realLLe (realLAdd a c) (realLAdd b c) :=
@@ -2755,12 +2886,14 @@ theorem realLMin_le_right {z w : ZFSet.{u}} (hw : w ∈ RealL.{u}) :
 
 #print axioms isLocated_ratCut
 #print axioms located_bracket        -- the point: no Classical.choice
+#print axioms isLocated_sup_of_familyLocated  -- completeness, for located families
 #print axioms mem_upper_iff
 #print axioms pairLe_antisymm
 #print axioms isLocated_add
 #print axioms isLocated_neg
 #print axioms mul_located
 #print axioms isLocated_mul
+#print axioms sup_le
 #print axioms realLAdd_mem
 #print axioms realLNeg_mem
 #print axioms realLMul_mem
@@ -2792,6 +2925,7 @@ theorem realLMin_le_right {z w : ZFSet.{u}} (hw : w ∈ RealL.{u}) :
 #print axioms realLMul_zero
 #print axioms mulLower_const
 #print axioms mulUpper_const
+#print axioms realLNeg_zero
 #print axioms mulLower_distrib_le
 #print axioms located_eq_of_subset
 #print axioms corners_of_refinement'
@@ -3006,6 +3140,20 @@ theorem realLNeg_sub {A B : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.
   rw [realLNeg_realLAdd hA (realLNeg_mem hB), realLNeg_realLNeg hB,
     realLAdd_comm (realLNeg_mem hA) hB]
 
+theorem realLLe_sub_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u}) :
+    realLLe a b ↔ realLLe realLZero.{u} (realLAdd b (realLNeg a)) := by
+  have hna := realLNeg_mem ha
+  constructor
+  · intro h hlt
+    have hstep := realLLt_add_right (realLAdd_mem hb hna) realLZero_mem ha hlt
+    rw [realLAdd_assoc hb hna ha, realLAdd_comm hna ha, realLAdd_neg ha,
+      realLAdd_zero hb, realLZero_add ha] at hstep
+    exact h hstep
+  · intro h hlt
+    refine h ?_
+    have := realLLt_add_right hb ha hna hlt
+    rwa [realLAdd_neg ha] at this
+
 /-- Strict order adds. -/
 theorem realLLt_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) (h₁ : realLLt a b) (h₂ : realLLt c d) :
@@ -3108,8 +3256,10 @@ theorem apart_mul_apart {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
 #print axioms Analysis.realLLt_add
 #print axioms Analysis.apart_add_self_of_apart
 #print axioms Analysis.eq_zero_of_add_self_eq_zero
+#print axioms Analysis.realLLe_sub_nonneg
 #print axioms Analysis.realLLe_refl
 #print axioms Analysis.realLLe_of_lt
+#print axioms Analysis.realLNeg_le_zero
 #print axioms Analysis.realLLe_add_right
 /-- The weak order adds. -/
 theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
@@ -3175,6 +3325,18 @@ def WithinOf (z ε : ZFSet.{u}) : Prop :=
 /-- `x` and `y` are within `δ` of each other. -/
 def Close (x y δ : ZFSet.{u}) : Prop := WithinOf (realLAdd x (realLNeg y)) δ
 
+/-- The lower endpoint of the subinterval a bit string names. -/
+def dyadicLo (p q : ZFSet.{u}) : List Bool → ZFSet.{u}
+  | [] => p
+  | false :: s => dyadicLo p (ratMid p q) s
+  | true :: s => dyadicLo (ratMid p q) q s
+
+/-- And the upper. -/
+def dyadicHi (p q : ZFSet.{u}) : List Bool → ZFSet.{u}
+  | [] => q
+  | false :: s => dyadicHi p (ratMid p q) s
+  | true :: s => dyadicHi (ratMid p q) q s
+
 theorem sq_sum {u v : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ RealL.{u}) :
     realLMul (realLAdd u v) (realLAdd u v)
       = realLAdd (realLAdd (realLMul u u) (realLMul v v))
@@ -3191,8 +3353,306 @@ theorem shift_sub {z m : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hm : m ∈ RealL.{u}
   rw [realLAdd_comm hz hm, realLAdd_assoc hm hz (realLNeg_mem hz), realLAdd_neg hz,
     realLAdd_zero hm]
 
+theorem sub_pos_of_lt {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
+    (hb : b ∈ RealL.{u}) (h : realLLt a b) :
+    realLLt realLZero.{u} (realLAdd b (realLNeg a)) := by
+  have := realLLt_add_right ha hb (realLNeg_mem ha) h
+  rwa [realLAdd_neg ha] at this
+
 #print axioms sq_sum
 #print axioms shift_sub
+#print axioms sub_pos_of_lt
+/-- Inclusion of lower cuts gives the order.  `realLLe` is a negation, so a
+witness for the strict inequality would put one rational in both halves of a
+located pair, which `ordered` refutes.
+
+This is the bridge the supremum lemmas need.  `le_sup` and `sup_le`
+(`le_sup` and `sup_le`) are stated as inclusions of LOWER CUTS, and every
+consumer wants `realLLe`. -/
+theorem realLLe_of_lower_subset {L U L' U' : ZFSet.{u}}
+    (h' : IsLocated L' U') (hsub : L ⊆ L') :
+    realLLe (opair L U) (opair L' U') := by
+  rintro ⟨p, hpU, hpL⟩
+  rw [snd_opair] at hpU
+  rw [fst_opair] at hpL
+  exact ratLt_irrefl (h'.ordered p (hsub p hpL) p hpU)
+
+/-- The supremum is the LEAST upper bound, at the order rather than the cut.
+`sup_le` says the lower cut is contained; the bridge turns that into `realLLe`,
+which is what a consumer states its bounds in.
+
+Together with `isLocated_sup_of_familyLocated` this is the whole supremum API a
+Hahn-Banach extension needs: `FamilyLocated` gives the value, this gives that it
+does not overshoot any bound the family respects. -/
+theorem sup_realLLe_of_forall {S b L' U' : ZFSet.{u}}
+    (hb : b = opair L' U') (h' : IsLocated L' U')
+    (h : ∀ z, z ∈ S → ∀ L U, z = opair L U → L ⊆ L') :
+    realLLe (opair (supLower S) (supUpper S)) b := by
+  rw [hb]
+  exact realLLe_of_lower_subset h' (sup_le h)
+
+/-- The supremum is the least upper bound, with the hypothesis at the ORDER
+level.  The companion of `sup_realLLe_of_forall`, and the one that composes:
+consumers produce `realLLe` bounds, not cut inclusions, and the converse bridge
+is not available.
+
+`rangeSup_le` (`Extreme.lean`) is this argument inlined for one particular
+set.  Stated here for an arbitrary `S`, which is what a family indexed by
+something other than an interval needs. -/
+theorem sup_realLLe_of_forall_le {S w : ZFSet.{u}}
+    (h : ∀ z, z ∈ S → realLLe z w) :
+    realLLe (opair (supLower S) (supUpper S)) w := by
+  rintro ⟨p, hpU, hpL⟩
+  rw [fst_opair] at hpL
+  obtain ⟨hpQ, z, hz, L, U, heq, hpLz⟩ := (mem_supLower_iff _ p).mp hpL
+  refine h z hz ⟨p, hpU, ?_⟩
+  rw [heq, fst_opair]
+  exact hpLz
+
+
+/-- Every member sits below the supremum, at the ORDER rather than the cut.
+
+`le_sup` gives the LOWER-CUT inclusion and has no consumer
+in the tree -- `rangeSup_le` inlines its own argument instead. This is the form a
+consumer states its bounds in, and it is the companion of
+`sup_realLLe_of_forall_le`.
+
+A witness for the strict inequality would put one rational above EVERY member --
+`supUpper`'s own condition -- and simultaneously in this member's lower half,
+which its `ordered` clause refutes. -/
+theorem le_sup_realLLe {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
+    (hloc : IsLocated L U) :
+    realLLe z (opair (supLower S) (supUpper S)) := by
+  rintro ⟨r, hrU, hrL⟩
+  rw [snd_opair] at hrU
+  obtain ⟨-, p, hpQ, hpr, hall⟩ := (mem_supUpper_iff S r).mp hrU
+  rw [he, fst_opair] at hrL
+  have hrp : ratLt r p := hloc.ordered r hrL p (hall z hz L U he)
+  have hrQ : r ∈ NumberTheory.Rat.{u} := hloc.lower_subset r hrL
+  exact ratLt_irrefl (ratLt_trans hpQ hrQ hpQ hpr hrp)
+
+/-- The lower cut of an INFIMUM: a rational below every member, with a strict
+buffer -- the mirror of `supUpper`. -/
+def infLower (S : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun p => ∃ q, q ∈ NumberTheory.Rat.{u} ∧ ratLt p q ∧
+        ∀ z, z ∈ S → ∀ L U, z = opair L U → q ∈ L) NumberTheory.Rat.{u}
+
+/-- The upper cut of an INFIMUM: a rational above SOME member -- the mirror of
+`supLower`. -/
+def infUpper (S : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun r => ∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ r ∈ U) NumberTheory.Rat.{u}
+
+theorem mem_infLower_iff (S p : ZFSet.{u}) :
+    p ∈ infLower S ↔ p ∈ NumberTheory.Rat.{u} ∧ ∃ q, q ∈ NumberTheory.Rat.{u} ∧ ratLt p q ∧
+      ∀ z, z ∈ S → ∀ L U, z = opair L U → q ∈ L :=
+  mem_sep_iff _ _ _
+
+theorem mem_infUpper_iff (S r : ZFSet.{u}) :
+    r ∈ infUpper S ↔ r ∈ NumberTheory.Rat.{u} ∧ ∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ r ∈ U :=
+  mem_sep_iff _ _ _
+
+/-- The dual of `FamilyLocated`, and it is a genuinely different condition:
+`FamilyLocated` asks whether SOME member exceeds `p`, this asks whether EVERY
+member does. Neither follows from the other -- each member's own `located`
+clause gives a pointwise disjunction, and the two ways of collapsing it over the
+family are independent. -/
+def FamilyLocatedInf (S : ZFSet.{u}) : Prop :=
+  ∀ p, p ∈ NumberTheory.Rat.{u} → ∀ q, q ∈ NumberTheory.Rat.{u} → ratLt p q →
+    (∀ z, z ∈ S → ∀ L U, z = opair L U → p ∈ L) ∨
+    (∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ q ∈ U)
+
+/-- The infimum of a family is a located real, dual to
+`isLocated_sup_of_familyLocated` -- and the tree had no infimum construction at
+all before this. Every outer measure is a greatest LOWER bound, so
+`LebesgueOuter` could only be stated as a characterisation. -/
+theorem isLocated_inf_of_familyLocatedInf {S : ZFSet.{u}} (hS : S ⊆ RealL.{u})
+    (hne : ∃ z, z ∈ S)
+    (hbd : ∃ p, p ∈ NumberTheory.Rat.{u} ∧ ∀ z, z ∈ S → ∀ L U, z = opair L U → p ∈ L)
+    (hfam : FamilyLocatedInf S) : IsLocated (infLower S) (infUpper S) where
+  lower_subset p hp := ((mem_infLower_iff S p).mp hp).left
+  upper_subset r hr := ((mem_infUpper_iff S r).mp hr).left
+  lower_inhabited := by
+    obtain ⟨p₀, hp₀Q, hall⟩ := hbd
+    obtain ⟨p, hpQ, hlt⟩ := rat_no_least hp₀Q
+    exact ⟨p, (mem_infLower_iff S p).mpr ⟨hpQ, p₀, hp₀Q, hlt, hall⟩⟩
+  upper_inhabited := by
+    obtain ⟨z, hz⟩ := hne
+    obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff z).mp (hS z hz)
+    obtain ⟨r, hr⟩ := hloc.upper_inhabited
+    exact ⟨r, (mem_infUpper_iff S r).mpr
+      ⟨hloc.upper_subset r hr, _, hz, L, U, rfl, hr⟩⟩
+  ordered q hq r hr := by
+    obtain ⟨hqQ, q', hq'Q, hqq', hall⟩ := (mem_infLower_iff S q).mp hq
+    obtain ⟨hrQ, z, hz, L, U, he, hrU⟩ := (mem_infUpper_iff S r).mp hr
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    exact ratLt_trans hqQ hq'Q hrQ hqq' (hloc.ordered q' (hall z hz L U he) r hrU)
+  lower_down q hq p hpQ hlt := by
+    obtain ⟨hqQ, q', hq'Q, hqq', hall⟩ := (mem_infLower_iff S q).mp hq
+    exact (mem_infLower_iff S p).mpr
+      ⟨hpQ, q', hq'Q, ratLt_trans hpQ hqQ hq'Q hlt hqq', hall⟩
+  upper_up r hr p hpQ hlt := by
+    obtain ⟨hrQ, z, hz, L, U, he, hrU⟩ := (mem_infUpper_iff S r).mp hr
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    exact (mem_infUpper_iff S p).mpr
+      ⟨hpQ, z, hz, L, U, he, hloc.upper_up r hrU p hpQ hlt⟩
+  lower_open q hq := by
+    obtain ⟨hqQ, q', hq'Q, hqq', hall⟩ := (mem_infLower_iff S q).mp hq
+    obtain ⟨t, htQ, h₁, h₂⟩ := rat_dense hqQ hq'Q hqq'
+    exact ⟨t, (mem_infLower_iff S t).mpr ⟨htQ, q', hq'Q, h₂, hall⟩, h₁⟩
+  upper_open r hr := by
+    obtain ⟨hrQ, z, hz, L, U, he, hrU⟩ := (mem_infUpper_iff S r).mp hr
+    have hloc := isLocated_of_mem_RealL (hS z hz) he
+    obtain ⟨r', hr'U, hlt⟩ := hloc.upper_open r hrU
+    exact ⟨r', (mem_infUpper_iff S r').mpr
+      ⟨hloc.upper_subset r' hr'U, z, hz, L, U, he, hr'U⟩, hlt⟩
+  located p hpQ q hqQ hlt := by
+    obtain ⟨t, htQ, h₁, h₂⟩ := rat_dense hpQ hqQ hlt
+    rcases hfam t htQ q hqQ h₂ with hleft | hright
+    · exact Or.inl ((mem_infLower_iff S p).mpr ⟨hpQ, t, htQ, h₁, hleft⟩)
+    · exact Or.inr ((mem_infUpper_iff S q).mpr ⟨hqQ, hright⟩)
+
+/-- The infimum is a LOWER bound.  Dual to `le_sup_realLLe`. -/
+theorem inf_realLLe_of_mem {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
+    (hloc : IsLocated L U) :
+    realLLe (opair (infLower S) (infUpper S)) z := by
+  rintro ⟨r, hrU, hrL⟩
+  rw [he, snd_opair] at hrU
+  rw [fst_opair] at hrL
+  obtain ⟨hrQ, q, hqQ, hrq, hall⟩ := (mem_infLower_iff S r).mp hrL
+  exact ratLt_irrefl (ratLt_trans hrQ hqQ hrQ hrq
+    (hloc.ordered q (hall z hz L U he) r hrU))
+
+/-- And it is the GREATEST lower bound.  Dual to `sup_realLLe_of_forall_le`,
+with the hypothesis at the ORDER level, which is the form that composes. -/
+theorem realLLe_inf_of_forall {S K : ZFSet.{u}}
+    (h : ∀ z, z ∈ S → realLLe K z) :
+    realLLe K (opair (infLower S) (infUpper S)) := by
+  rintro ⟨r, hrU, hrL⟩
+  rw [snd_opair] at hrU
+  obtain ⟨hrQ, z, hz, L, U, he, hrU'⟩ := (mem_infUpper_iff S r).mp hrU
+  refine h z hz ⟨r, ?_, hrL⟩
+  rw [he, snd_opair]
+  exact hrU'
+
+
+/-- At or above zero, every negative rational is already in the lower cut. The
+crossing goes through `located` at `(p, 0)`, with the wrong branch refuted by
+`upper_open` -- `realLLe` is a negation, so transitivity is not available and
+the cut's own structure has to supply the step. -/
+theorem mem_lower_of_neg_of_nonneg {M Ml Mu p : ZFSet.{u}} (hMeq : M = opair Ml Mu)
+    (hlocM : IsLocated Ml Mu) (hnn : realLLe realLZero.{u} M)
+    (hpQ : p ∈ NumberTheory.Rat.{u}) (hp0 : ratLt p ratZero.{u}) : p ∈ Ml := by
+  rcases hlocM.located p hpQ ratZero.{u} ratZero_mem_Rat hp0 with hl | hu
+  · exact hl
+  · exfalso
+    obtain ⟨r, hrU, hr0⟩ := hlocM.upper_open ratZero.{u} hu
+    refine hnn ⟨r, ?_, ?_⟩
+    · rw [hMeq, snd_opair]; exact hrU
+    · rw [realLZero, realLOf, fst_opair]
+      exact (mem_ratCut_iff ratZero.{u} r).mpr ⟨hlocM.upper_subset r hrU, hr0⟩
+
+/-- The reals satisfying `P`, as a set.
+
+The infimum machinery below takes the bound predicate as a parameter rather than
+naming `IsOuterBound`, which is the one-dimensional notion and would tie these
+results to a single dimension. All the proofs require of `P` is that its bounds
+are reals and that they are nonnegative. -/
+def boundsOf (P : ZFSet.{u} → Prop) : ZFSet.{u} := sep P RealL.{u}
+
+theorem mem_boundsOf_iff {P : ZFSet.{u} → Prop} {M : ZFSet.{u}}
+    (hmem : ∀ N, P N → N ∈ RealL.{u}) : M ∈ boundsOf P ↔ P M :=
+  Iff.trans (mem_sep_iff _ _ _) ⟨And.right, fun h => ⟨hmem M h, h⟩⟩
+
+theorem boundsOf_subset {P : ZFSet.{u} → Prop}
+    (hmem : ∀ N, P N → N ∈ RealL.{u}) : boundsOf P ⊆ RealL.{u} :=
+  fun _ h => hmem _ ((mem_boundsOf_iff hmem).mp h)
+
+theorem lowerBound_boundsOf {P : ZFSet.{u} → Prop}
+    (hmem : ∀ N, P N → N ∈ RealL.{u})
+    (hnn : ∀ N, P N → realLLe realLZero.{u} N) :
+    ∃ p, p ∈ NumberTheory.Rat.{u} ∧ ∀ z, z ∈ boundsOf P → ∀ L U, z = opair L U → p ∈ L := by
+  obtain ⟨s, hsQ, hs0⟩ := rat_no_least ratZero_mem_Rat
+  refine ⟨s, hsQ, fun z hz L U heq => ?_⟩
+  have hb := (mem_boundsOf_iff hmem).mp hz
+  exact mem_lower_of_neg_of_nonneg heq
+    (isLocated_of_mem_RealL (hmem _ hb) heq) (hnn _ hb) hsQ hs0
+
+/-- The greatest lower bound of ANY nonnegative family of reals exists once the
+family is inf-located -- `LebesgueOuter`'s three clauses, with the bound
+predicate abstracted. -/
+theorem glb_of_familyLocatedInf {P : ZFSet.{u} → Prop}
+    (hmem : ∀ N, P N → N ∈ RealL.{u})
+    (hnn : ∀ N, P N → realLLe realLZero.{u} N)
+    (hne : ∃ M, P M) (hfam : FamilyLocatedInf (boundsOf P)) :
+    And (opair (infLower (boundsOf P)) (infUpper (boundsOf P)) ∈ RealL.{u})
+      (And (∀ M, P M → realLLe (opair (infLower (boundsOf P)) (infUpper (boundsOf P))) M)
+        (∀ K, K ∈ RealL.{u} → (∀ M, P M → realLLe K M) →
+          realLLe K (opair (infLower (boundsOf P)) (infUpper (boundsOf P))))) := by
+  obtain ⟨M₀, hM₀⟩ := hne
+  have hloc := isLocated_inf_of_familyLocatedInf (boundsOf_subset hmem)
+    ⟨M₀, (mem_boundsOf_iff hmem).mpr hM₀⟩ (lowerBound_boundsOf hmem hnn) hfam
+  refine ⟨(mem_RealL_iff _).mpr ⟨_, _, rfl, hloc⟩, ?_, ?_⟩
+  · intro M hM
+    obtain ⟨Ml, Mu, hMeq, hlocM⟩ := (mem_RealL_iff M).mp (hmem M hM)
+    exact inf_realLLe_of_mem ((mem_boundsOf_iff hmem).mpr hM) hMeq hlocM
+  · intro K hK hKlb
+    exact realLLe_inf_of_forall (fun z hz => hKlb z ((mem_boundsOf_iff hmem).mp hz))
+
+
+/-- The infimum of a set of located reals is its greatest lower bound.
+
+Stated over a SET rather than a carving predicate, which is the form
+`isLocated_sup_of_familyLocated` already takes on the dual side and the form
+every consumer holding a family actually has.
+
+What it asks for is a rational LOWER BOUND, not nonnegativity:
+`glb_of_familyLocatedInf` takes the latter only to derive the former through
+`lowerBound_boundsOf`, so nonnegativity is one way of meeting the hypothesis
+rather than the hypothesis itself. A finite family of located reals has a lower
+bound with no sign condition at all, and could not use the stronger form.
+
+The third clause does not restrict `K` to `RealL`, because
+`realLLe_inf_of_forall` does not. `glb_of_familyLocatedInf` does restrict it,
+and must: its conclusion has to stay definitionally equal to `LebesgueOuter`. -/
+theorem glb_of_familyLocatedInf_set {S : ZFSet.{u}}
+    (hS : S ⊆ RealL.{u})
+    (hbd : ∃ p, p ∈ NumberTheory.Rat.{u} ∧ ∀ z, z ∈ S → ∀ L U, z = opair L U → p ∈ L)
+    (hne : ∃ M, M ∈ S) (hfam : FamilyLocatedInf S) :
+    And (opair (infLower S) (infUpper S) ∈ RealL.{u})
+      (And (∀ M, M ∈ S → realLLe (opair (infLower S) (infUpper S)) M)
+        (∀ K, (∀ M, M ∈ S → realLLe K M) →
+          realLLe K (opair (infLower S) (infUpper S)))) := by
+  have hloc := isLocated_inf_of_familyLocatedInf hS hne hbd hfam
+  refine ⟨(mem_RealL_iff _).mpr ⟨_, _, rfl, hloc⟩, ?_, ?_⟩
+  · intro M hM
+    obtain ⟨Ml, Mu, hMeq, hlocM⟩ := (mem_RealL_iff M).mp (hS M hM)
+    exact inf_realLLe_of_mem hM hMeq hlocM
+  · intro K hKlb
+    exact realLLe_inf_of_forall hKlb
+
+/-- The supremum of a located family is its least upper bound, the dual of
+`glb_of_familyLocatedInf_set`.
+
+The three components were already here separately -- `isLocated_sup_of_familyLocated`,
+`le_sup_realLLe`, `sup_realLLe_of_forall_le`. What was missing is the statement
+that they compose, so a caller wanting the least upper bound had to know three
+names and that they fit together. -/
+theorem lub_of_familyLocated {S : ZFSet.{u}}
+    (hS : S ⊆ RealL.{u}) (hne : ∃ z, z ∈ S)
+    (hbd : ∃ r, r ∈ NumberTheory.Rat.{u} ∧ ∀ z, z ∈ S → ∀ L U, z = opair L U → r ∈ U)
+    (hfam : FamilyLocated S) :
+    And (opair (supLower S) (supUpper S) ∈ RealL.{u})
+      (And (∀ M, M ∈ S → realLLe M (opair (supLower S) (supUpper S)))
+        (∀ K, (∀ M, M ∈ S → realLLe M K) →
+          realLLe (opair (supLower S) (supUpper S)) K)) := by
+  have hloc := isLocated_sup_of_familyLocated hS hne hbd hfam
+  refine ⟨(mem_RealL_iff _).mpr ⟨_, _, rfl, hloc⟩, ?_, ?_⟩
+  · intro M hM
+    obtain ⟨Ml, Mu, hMeq, hlocM⟩ := (mem_RealL_iff M).mp (hS M hM)
+    exact le_sup_realLLe hM hMeq hlocM
+  · intro K hub
+    exact sup_realLLe_of_forall_le hub
+
 #print axioms Analysis.realLNeg_neg_of_pos
 #print axioms Analysis.apart_mul_apart
 
@@ -3207,6 +3667,30 @@ theorem shift_sub {z m : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hm : m ∈ RealL.{u}
 #print axioms Analysis.realLNeg_le_neg
 #print axioms Analysis.WithinOf
 #print axioms Analysis.Close
+#print axioms Analysis.dyadicLo
+#print axioms Analysis.dyadicHi
+#print axioms Analysis.realLLe_of_lower_subset
+#print axioms Analysis.sup_realLLe_of_forall
+#print axioms Analysis.sup_realLLe_of_forall_le
+#print axioms Analysis.le_sup_realLLe
+#print axioms Analysis.infLower
+#print axioms Analysis.infUpper
+#print axioms Analysis.mem_infLower_iff
+#print axioms Analysis.mem_infUpper_iff
+#print axioms Analysis.FamilyLocatedInf
+#print axioms Analysis.isLocated_inf_of_familyLocatedInf
+#print axioms Analysis.inf_realLLe_of_mem
+#print axioms Analysis.realLLe_inf_of_forall
+#print axioms Analysis.mem_lower_of_neg_of_nonneg
+#print axioms Analysis.boundsOf
+#print axioms Analysis.mem_boundsOf_iff
+#print axioms Analysis.boundsOf_subset
+#print axioms Analysis.lowerBound_boundsOf
+
+#print axioms Analysis.glb_of_familyLocatedInf
+#print axioms Analysis.glb_of_familyLocatedInf_set
+#print axioms Analysis.lub_of_familyLocated
+
 #print axioms Analysis.BoundedLocated
 end Analysis
 
@@ -3215,5 +3699,5 @@ end Analysis
 
 
 namespace ZFSet
-export Analysis (BoundedLocated Close IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_add_self_of_apart apart_mul_apart corners_of_refinement corners_of_refinement' eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket invLower invScale invScale_mem invUpper isLocated_add isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_ratCut located_bracket located_eq_of_subset lower_pair_bound lt_realLOf_iff_mem_upper mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_invLower_iff mem_invUpper_iff mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lt realLLe_refl realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
+export Analysis (BoundedLocated Close FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_add_self_of_apart apart_mul_apart boundsOf boundsOf_subset corners_of_refinement corners_of_refinement' dyadicHi dyadicLo eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket glb_of_familyLocatedInf glb_of_familyLocatedInf_set infLower infUpper inf_realLLe_of_mem invLower invScale invScale_mem invUpper isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_sup le_sup_realLLe located_bracket located_eq_of_subset lowerBound_boundsOf lower_pair_bound lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_refl realLLe_sub_nonneg realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum sub_pos_of_lt supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
 end ZFSet

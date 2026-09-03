@@ -863,6 +863,14 @@ theorem mem_or_not_mem_of_subset {S T : ZFSet.{u}} {n m : Nat}
   · exact Or.inl ha
   · exact Or.inr fun hmem => hno ⟨w, hmem, rfl⟩
 
+/-! ## Sets named by a list
+
+A duplicate-free list of length `n` names a set of size `n`. -/
+
+def Distinct : List ZFSet.{u} → Prop
+  | [] => True
+  | a :: as => a ∉ as ∧ Distinct as
+
 /-! ## Audit
 
 Nothing classical: the inverse is extracted from a singleton rather than chosen,
@@ -899,5 +907,5 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 
 end SetTheory
 namespace ZFSet
-export SetTheory (Dominates Equinumerous IsFinite SubsetFinite app_compOn app_invOn app_mem_of_isInjection card_unique compOn dominates_ofNat_le dominates_ofNat_of_subset dominates_of_equinumerous dominates_trans em_of_subset_finite eq_or_ne_of_finite equinumerous_erase equinumerous_insert equinumerous_prod equinumerous_prod_ofNat equinumerous_refl equinumerous_sdiff_singleton equinumerous_singleton_one equinumerous_symm equinumerous_trans equinumerous_union_disjoint exists_or_all_of_equinumerous exists_or_not_of_finite graphOn_range invApp invApp_eq invApp_mem invOn isFinite_ofNat isFinite_of_detachable isInjection_compOn isInjection_idOn isInjection_invOn isSurjection_idOn isSurjection_invOn mem_or_not_mem_of_subset mem_pairNumeral_iff pairNumeral sdiff_singleton_union)
+export SetTheory (Distinct Dominates Equinumerous IsFinite SubsetFinite app_compOn app_invOn app_mem_of_isInjection card_unique compOn dominates_ofNat_le dominates_ofNat_of_subset dominates_of_equinumerous dominates_trans em_of_subset_finite eq_or_ne_of_finite equinumerous_erase equinumerous_insert equinumerous_prod equinumerous_prod_ofNat equinumerous_refl equinumerous_sdiff_singleton equinumerous_singleton_one equinumerous_symm equinumerous_trans equinumerous_union_disjoint exists_or_all_of_equinumerous exists_or_not_of_finite graphOn_range invApp invApp_eq invApp_mem invOn isFinite_ofNat isFinite_of_detachable isInjection_compOn isInjection_idOn isInjection_invOn isSurjection_idOn isSurjection_invOn mem_or_not_mem_of_subset mem_pairNumeral_iff pairNumeral sdiff_singleton_union)
 end ZFSet

@@ -64,6 +64,18 @@ def tnum (c : Nat → Nat) : Nat → Nat
   | 0 => 0
   | n + 1 => 3 * tnum c n + 2 * c n
 
+/-- The walk's numerator stays strictly below its denominator: with digits at
+most `1`, `tnum c n ≤ 3^n - 1`. Induction, and the `+1` is what makes it usable
+against `thigh`. -/
+theorem tnum_lt_pow3 {c : Nat → Nat} (hc : ∀ i, c i ≤ 1) :
+    ∀ n, tnum c n + 1 ≤ pow3 n
+  | 0 => by simp [tnum, pow3]
+  | n + 1 => by
+    have ih := tnum_lt_pow3 hc n
+    have := hc n
+    simp only [tnum, pow3]
+    omega
+
 def tlow (c : Nat → Nat) (n : Nat) : ZFSet.{u} := ratNat (tnum c n) (pow3 n)
 
 def thigh (c : Nat → Nat) (n : Nat) : ZFSet.{u} := ratNat (tnum c n + 1) (pow3 n)
@@ -178,8 +190,9 @@ theorem isNested_ternary {c : Nat → Nat} (hc : ∀ n, c n ≤ 1) :
     exact ternary_width i
 
 #print axioms isNested_ternary
+#print axioms tnum_lt_pow3
 end Analysis
 
 namespace ZFSet
-export Analysis (app_thighSeq app_tlowSeq isNested_ternary pow3 pow3_pos succ_le_pow3 ternary_width thigh thighSeq thigh_anti thigh_mem_Rat thigh_step tlow tlowSeq tlow_lt_thigh tlow_mem_Rat tlow_mono tlow_step tnum)
+export Analysis (app_thighSeq app_tlowSeq isNested_ternary pow3 pow3_pos succ_le_pow3 ternary_width thigh thighSeq thigh_anti thigh_mem_Rat thigh_step tlow tlowSeq tlow_lt_thigh tlow_mem_Rat tlow_mono tlow_step tnum tnum_lt_pow3)
 end ZFSet
