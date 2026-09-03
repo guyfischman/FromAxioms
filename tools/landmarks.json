@@ -114,5 +114,9 @@
  "Algebra.isRing_polyRing": [
   "polynomial ring R[x] as an object",
   1882
+ ],
+ "Algebra.detN": [
+  "the determinant, by Laplace expansion",
+  1750
  ]
 }
