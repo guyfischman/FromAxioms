@@ -102,5 +102,17 @@
  "NumberTheory.isIntegralDomain_of_cancellative": [
   "the integral",
   1854
+ ],
+ "Algebra.binomial": [
+  "the binomial coefficients",
+  1650
+ ],
+ "Algebra.binomSum_mul": [
+  "the binomial theorem",
+  1665
+ ],
+ "Algebra.isRing_polyRing": [
+  "polynomial ring R[x] as an object",
+  1882
  ]
 }
