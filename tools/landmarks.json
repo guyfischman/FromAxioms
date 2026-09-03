@@ -126,5 +126,9 @@
  "Algebra.eisenstein_irreducible_int": [
   "the irreducibility criterion",
   1850
+ ],
+ "Algebra.detN_mul": [
+  "multiplicativity of the determinant",
+  1812
  ]
 }
