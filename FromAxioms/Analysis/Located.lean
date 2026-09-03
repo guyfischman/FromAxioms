@@ -888,7 +888,12 @@ theorem isLocated_mul {L₁ U₁ L₂ U₂ : ZFSet.{u}} (h₁ : IsLocated L₁ U
     IsLocated (mulLower L₁ U₁ L₂ U₂) (mulUpper L₁ U₁ L₂ U₂) :=
   isLocated_mul_of_located h₁ h₂ (fun p hp s hs hps => mul_located h₁ h₂ p hp s hs hps)
 
-/-! ## The operations, at the level of the reals -/
+/-! ## The operations, at the level of the reals
+
+Everything above works on a pair of sets `L`, `U` and a proof they are located.
+`RealL` is the set of such pairs, and a construction built on top of it -- `ℂ`,
+or a polynomial ring -- wants operations on its elements, not on the two
+halves. These package them, and `mem` lemmas say they land back in `RealL`. -/
 
 def realLAdd (z w : ZFSet.{u}) : ZFSet.{u} :=
   opair (addLower (fst z) (fst w)) (addUpper (snd z) (snd w))
@@ -1080,7 +1085,11 @@ theorem realLAdd_assoc {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Re
     addLower_assoc h₁.lower_subset h₂.lower_subset h₃.lower_subset,
     addUpper_assoc h₁.upper_subset h₂.upper_subset h₃.upper_subset]
 
-/-! ## Zero -/
+/-! ## Zero
+
+`x + 0 = x` is where openness earns its place in `IsLocated`: the sum's lower
+half holds the rationals strictly below `q + r` with `r < 0`, and recovering all
+of `L` needs a member of `L` strictly above the one in hand. -/
 
 theorem addLower_zero {L U : ZFSet.{u}} (h : IsLocated L U) :
     addLower L (ratCut ratZero.{u}) = L := by

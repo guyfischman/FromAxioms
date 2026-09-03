@@ -23,3 +23,5 @@ import FromAxioms.SetTheory.OrdinalArith
 import FromAxioms.SetTheory.Search
 import FromAxioms.SetTheory.Cardinal
 import FromAxioms.SetTheory.Uncountable
+import FromAxioms.SetTheory.DefinablePower
+import FromAxioms.SetTheory.Constructible

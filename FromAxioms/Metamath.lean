@@ -9,3 +9,5 @@ The Metamath area. This file is generated; it imports every module in
 `FromAxioms/Metamath/`.
 -/
 import FromAxioms.Metamath.FirstOrder
+import FromAxioms.Metamath.Godel
+import FromAxioms.Metamath.Robinson

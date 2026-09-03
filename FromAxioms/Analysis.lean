@@ -15,3 +15,4 @@ import FromAxioms.Analysis.Nested
 import FromAxioms.Analysis.Ternary
 import FromAxioms.Analysis.IVT
 import FromAxioms.Analysis.Deriv
+import FromAxioms.Analysis.Complete

@@ -59,11 +59,41 @@ inductive HAxiom : Formula → Prop where
   | eqSubst (φ : Formula) (s t : Term) :
       HAxiom (.imp (.eq s t) (.imp (subst (single s) φ) (subst (single t) φ)))
 
+/-- Derivability in the Hilbert system. No context: `T` is the theory and it
+never changes. -/
+inductive HDerives (A : Formula → Prop) (T : List Formula) : Formula → Prop where
+  | ax {φ} : A φ → HDerives A T φ
+  | thy {φ} : φ ∈ T → HDerives A T φ
+  | mp {φ ψ} : HDerives A T (.imp φ ψ) → HDerives A T φ → HDerives A T ψ
+  | gen {φ} : (∀ ψ, ψ ∈ T → FreeBelow 0 ψ) → HDerives A T φ →
+      HDerives A T (.all φ)
+
+/-- Citing one of the fifteen schemes, in a system whose axioms include them.
+Every chain lemma below goes through this rather than `ax`, so they hold of the
+classical system too. -/
+theorem HDerives.scheme {A : Formula → Prop} {T : List Formula}
+    (hA : ∀ φ, HAxiom φ → A φ) {φ : Formula} (h : HAxiom φ) :
+    HDerives A T φ := .ax (hA _ h)
+
 variable {A : Formula → Prop}
+
+/-! ## Reasoning with implications
+
+`S` and `K` are what a Hilbert system has instead of tactics. These two are the
+shapes the translation needs: composing implications, and pushing one under a
+common antecedent. -/
+
+/-- Under a common antecedent. -/
+theorem hmono (hA : ∀ φ, HAxiom φ → A φ) {T : List Formula} {φ ψ χ : Formula}
+    (h : HDerives A T (.imp ψ χ)) :
+    HDerives A T (.imp (.imp φ ψ) (.imp φ χ)) :=
+  .mp (HDerives.scheme hA (.s φ ψ χ)) (.mp (HDerives.scheme hA (.k (.imp ψ χ) φ)) h)
+
+#print axioms hmono
 
 #print axioms HAxiom
 end Geometry
 
 namespace ZFSet
-export Geometry (HAxiom)
+export Geometry (HAxiom HDerives hmono)
 end ZFSet

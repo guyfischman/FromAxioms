@@ -15,3 +15,4 @@ import FromAxioms.NumberTheory.Integer
 import FromAxioms.NumberTheory.Prime
 import FromAxioms.NumberTheory.Rational
 import FromAxioms.NumberTheory.Congruence
+import FromAxioms.NumberTheory.Fraction

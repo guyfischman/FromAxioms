@@ -94,5 +94,13 @@
  "Constructive.wlpo_of_ternary_zero_decidable": [
   "the principles of omniscience",
   1967
+ ],
+ "Analysis.realLLe_zero_of_forall_invWidth": [
+  "method of exhaustion",
+  -250
+ ],
+ "NumberTheory.isIntegralDomain_of_cancellative": [
+  "the integral",
+  1854
  ]
 }
