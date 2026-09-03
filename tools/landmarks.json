@@ -86,5 +86,13 @@
  "SetTheory.em_of_subset_finite": [
   "intuitionism: excluded middle refused",
   1907
+ ],
+ "Algebra.isRing_congQuotient": [
+  "ring, field, ideal",
+  1871
+ ],
+ "Constructive.wlpo_of_ternary_zero_decidable": [
+  "the principles of omniscience",
+  1967
  ]
 }

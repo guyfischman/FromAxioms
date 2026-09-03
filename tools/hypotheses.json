@@ -11,6 +11,41 @@
   "kind": "principle",
   "meaning": "excluded middle, over arbitrary propositions"
  },
+ "IsRing": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, not strength -- the ring is the thing under study",
+  "verdict": "never",
+  "kind": "structural",
+  "meaning": "the carrier with its operations is a ring"
+ },
+ "TernaryZeroDecidable": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "wlpo",
+   "reverse": "Constructive.wlpo_of_ternary_zero_decidable",
+   "shape": "omniscience"
+  },
+  "discharge": "reversed to WLPO",
+  "kind": "principle",
+  "meaning": "deciding a ternary expansion is zero"
+ },
+ "WLPO": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "wlpo",
+   "reverse": "n/a",
+   "shape": "omniscience"
+  },
+  "discharge": "same as LPO: a measurement point, not an assumption to remove",
+  "verdict": "never",
+  "kind": "principle",
+  "meaning": "it is identically zero, or is not"
+ },
  "_README": [
   "The hypothesis inventory: principles the library ASSUMES rather than",
   "proves, threaded through binders instead of axioms. A conditional theorem",

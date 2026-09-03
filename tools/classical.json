@@ -58,6 +58,14 @@
  "_unplaced": [],
  "_equivalences": [
   {
+   "statement": "Constructive.TernaryZeroDecidable",
+   "principle": "wlpo",
+   "landmark": "the principles of omniscience",
+   "reversal": "Constructive.wlpo_of_ternary_zero_decidable",
+   "forward": "Constructive.ternary_zero_decidable_of_wlpo",
+   "note": "deciding whether a walk-built real *is* zero. One quantifier weaker than membership in its cut, and correspondingly one step down the lattice from LPO"
+  },
+  {
    "statement": "SetTheory.SubsetFinite",
    "principle": "em",
    "reversal": "SetTheory.em_of_subset_finite",

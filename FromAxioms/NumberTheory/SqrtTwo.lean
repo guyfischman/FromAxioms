@@ -81,9 +81,22 @@ theorem sq_two_irrational : ∀ p q : Nat, p * p = 2 * (q * q) → q = 0 := by
           omega
       exact absurd (ih q hqp (p / 2) hr) (by omega)
 
+/-! ## The bisection -/
+
+def pow2 : Nat → Nat
+  | 0 => 1
+  | n + 1 => 2 * pow2 n
+
+theorem succ_le_pow2 : ∀ n : Nat, n + 1 ≤ pow2 n
+  | 0 => by simp [pow2]
+  | n + 1 => by
+    have := succ_le_pow2 n
+    simp only [pow2]
+    omega
+
 #print axioms sq_two_irrational
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (sq_two_irrational)
+export NumberTheory (pow2 sq_two_irrational succ_le_pow2)
 end ZFSet

@@ -22,3 +22,4 @@ import FromAxioms.SetTheory.EquivClass
 import FromAxioms.SetTheory.OrdinalArith
 import FromAxioms.SetTheory.Search
 import FromAxioms.SetTheory.Cardinal
+import FromAxioms.SetTheory.Uncountable

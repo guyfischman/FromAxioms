@@ -245,7 +245,13 @@ theorem mul_comm {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u})
   obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
   rw [mul_ofNat, mul_ofNat, Nat.mul_comm]
 
-/-! ## The laws a SEMIRING needs that a ring derives -/
+/-! ## The laws a SEMIRING needs that a ring derives
+
+`IsRing` states two multiplicative laws and gets their transposes from
+`mulComm`; `IsSemiring` must state four. These are the transposes for `omega`,
+each reduced through the `ofNat` bridge exactly as `mul_add` above is. They
+exist because `omega` is the witness that the semiring forms reach an object
+the ring forms do not --- it has no negation at all. -/
 
 /-- `0 * x = 0`. The transpose of `mul_empty`. -/
 @[simp] theorem empty_mul {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :

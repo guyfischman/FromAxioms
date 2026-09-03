@@ -10,3 +10,5 @@ The Algebra area. This file is generated; it imports every module in
 -/
 import FromAxioms.Algebra.Algebra
 import FromAxioms.Algebra.Group
+import FromAxioms.Algebra.FinProd
+import FromAxioms.Algebra.Ring
