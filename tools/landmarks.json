@@ -118,5 +118,13 @@
  "Algebra.detN": [
   "the determinant, by Laplace expansion",
   1750
+ ],
+ "Algebra.detN_rowk_add": [
+  "the determinant is alternating and multilinear",
+  1812
+ ],
+ "Algebra.eisenstein_irreducible_int": [
+  "the irreducibility criterion",
+  1850
  ]
 }

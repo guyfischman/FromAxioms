@@ -4082,7 +4082,352 @@ theorem isEisenstein_int {p : Nat} (hp : IsPrime p) {g h : ZFSet.{u}}
   const := hconst
 
 #print axioms IsEisenstein
+/-- `Φp(x+1)` by its coefficients: `choose p (i+1)`, as integers. -/
+def cycShiftPoly (p : Nat) : ZFSet.{u} :=
+  polyOfSeq NumberTheory.Int.{u} (fun i => intOfNat.{u} (choose p (i + 1)))
+
+/-- It is a polynomial over `ℤ`. Zero from `p` on, since `choose p k`
+vanishes for `k > p`. No primality needed. -/
+theorem isPolyOver_cycShiftPoly {p : Nat} :
+    IsPolyOver NumberTheory.Int.{u} intZero.{u} (cycShiftPoly.{u} p) :=
+  isPolyOver_polyOfSeq (fun k => intOfNat_mem_Int _)
+    (N := p) (fun i hi => by
+      rw [choose_gt p (i + 1) (by omega), intOfNat, ofNat_zero]; rfl)
+
+/-- `p` divides every coefficient of `Φp(x+1)` below the top. -/
+theorem cycShiftPoly_low {p : Nat} (hp : IsPrime p) {j : Nat} (hj : j < p - 1) :
+    ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app (cycShiftPoly.{u} p) (ofNat.{u} j)
+        = opAt intMulOp.{u} (intOfNat.{u} p) c := by
+  rw [cycShiftPoly, app_polyOfSeq (fun k => intOfNat_mem_Int _) j]
+  exact cyclotomicShift_dvd_int hp hj
+
+/-- The top index is `p-1` and the coefficient there is non-zero, being
+`choose p p = 1`. The one place primality is spent structurally. -/
+theorem cycShiftPoly_deg {p : Nat} (hp : IsPrime p) :
+    (∀ i : Nat, p - 1 < i -> app (cycShiftPoly.{u} p) (ofNat.{u} i) = intZero.{u})
+      ∧ app (cycShiftPoly.{u} p) (ofNat.{u} (p - 1)) ≠ intZero.{u} := by
+  have hc : ∀ k, intOfNat.{u} (choose p (k + 1)) ∈ NumberTheory.Int.{u} :=
+    fun k => intOfNat_mem_Int _
+  refine ⟨fun i hi => ?_, ?_⟩
+  · rw [cycShiftPoly, app_polyOfSeq hc i, choose_gt p (i + 1) (by omega),
+      intOfNat, ofNat_zero]; rfl
+  · rw [cycShiftPoly, app_polyOfSeq hc (p - 1)]
+    have hpp : choose p (p - 1 + 1) = 1 := by
+      have hq : p - 1 + 1 = p := by have := hp.left; omega
+      rw [hq, choose_self]
+    rw [hpp]
+    intro hz
+    have h10 : (1 : Nat) = 0 :=
+      intOfNat_injective (by rw [hz, intOfNat, ofNat_zero]; rfl)
+    exact absurd h10 (by omega)
+
+/-- `p` does not divide the top coefficient of `Φp(x+1)`. -/
+theorem cycShiftPoly_top {p : Nat} (hp : IsPrime p) :
+    ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app (cycShiftPoly.{u} p) (ofNat.{u} (p - 1))
+        = opAt intMulOp.{u} (intOfNat.{u} p) c := by
+  rw [cycShiftPoly, app_polyOfSeq (fun k => intOfNat_mem_Int _) (p - 1)]
+  rintro ⟨c, hcm, he⟩
+  rw [opAt_intMulOp (intOfNat_mem_Int p) hcm] at he
+  refine (cyclotomicShift_eisenstein hp).right.left ?_
+  rcases int_eq_ofNat_or_neg hcm with ⟨m, rfl⟩ | ⟨m, rfl⟩
+  · exact divides_of_intMul_ofNat he
+  · rw [intMul_neg (intOfNat_mem_Int p) (intOfNat_mem_Int m),
+      intOfNat_mul] at he
+    rcases Nat.eq_zero_or_pos (choose p (p - 1 + 1)) with hz | hz
+    · exact ⟨0, by rw [hz, Nat.mul_zero]⟩
+    · exact absurd (he ▸ intOfNat_mem_intPositive hz)
+        (not_intPositive_intNeg_intOfNat (p * m))
+
+/-- `p²` does not divide the constant term of `Φp(x+1)`, which is
+`choose p 1 = p`. -/
+theorem cycShiftPoly_const {p : Nat} (hp : IsPrime p) :
+    ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app (cycShiftPoly.{u} p) (ofNat.{u} 0)
+        = opAt intMulOp.{u} (intOfNat.{u} (p * p)) c := by
+  rw [cycShiftPoly, app_polyOfSeq (fun k => intOfNat_mem_Int _) 0]
+  rintro ⟨c, hcm, he⟩
+  rw [opAt_intMulOp (intOfNat_mem_Int (p * p)) hcm] at he
+  refine (cyclotomicShift_eisenstein hp).right.right.right ?_
+  rcases int_eq_ofNat_or_neg hcm with ⟨m, rfl⟩ | ⟨m, rfl⟩
+  · exact divides_of_intMul_ofNat he
+  · rw [intMul_neg (intOfNat_mem_Int (p * p)) (intOfNat_mem_Int m),
+      intOfNat_mul] at he
+    rcases Nat.eq_zero_or_pos (choose p (0 + 1)) with hz | hz
+    · exact ⟨0, by rw [hz, Nat.mul_zero]⟩
+    · exact absurd (he ▸ intOfNat_mem_intPositive hz)
+        (not_intPositive_intNeg_intOfNat (p * p * m))
+
+theorem convCoeff_multiple {R add mul zero one d f g : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hd : d ∈ R)
+    (hg : IsPolyOver R zero g) (k : Nat)
+    (hall : ∀ i, i <= k -> ∃ c, c ∈ R ∧ app f (ofNat.{u} i) = opAt mul d c) :
+    ∃ c, c ∈ R ∧ convCoeff R add mul zero f g k = opAt mul d c := by
+  obtain ⟨c, hc, hsplit⟩ :=
+    convCoeff_split hR hd hg k (fun i hi => hall i (by omega))
+  obtain ⟨c', hc', hk⟩ := hall k (by omega)
+  have hg0 : app g (ofNat.{u} 0) ∈ R := coeff_mem hg (ofNat_mem_omega _)
+  refine ⟨opAt add c (opAt mul c' (app g (ofNat.{u} 0))),
+    addAt_mem hR hc (mulAt_mem hR hc' hg0), ?_⟩
+  rw [hsplit, hk, hR.mulAssoc d hd c' hc' _ hg0,
+    hR.distrib d hd c hc _ (mulAt_mem hR hc' hg0)]
+
+theorem eisenstein_witness_of_convCoeff {R add mul zero one d g h : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hd : d ∈ R)
+    (he : IsEisenstein R mul zero d g h) (k : Nat)
+    (htop : ¬ ∃ c, c ∈ R ∧ convCoeff R add mul zero g h k = opAt mul d c) :
+    ∃ N : Nat, ¬ ∃ c, c ∈ R ∧ app g (ofNat.{u} N) = opAt mul d c := by
+  have hdec : ∀ j : Nat,
+      (¬ ∃ c, c ∈ R ∧ app g (ofNat.{u} j) = opAt mul d c)
+        ∨ ¬ ¬ ∃ c, c ∈ R ∧ app g (ofNat.{u} j) = opAt mul d c := by
+    intro j
+    rcases he.dec j with hy | hn
+    · exact Or.inr (fun hno => hno hy)
+    · exact Or.inl hn
+  rcases exists_lt_or_not hdec (k + 1) with ⟨j, -, hj⟩ | hno
+  · exact ⟨j, hj⟩
+  · exact absurd
+      (convCoeff_multiple hR hd he.polyH k
+        (fun i hi => by
+          rcases he.dec i with hy | hn
+          · exact hy
+          · exact absurd hn (fun hnn => hno i (by omega) hnn)))
+      htop
+
+
+/-- The constant term of a product is the product of the constant terms. -/
+theorem convCoeff_at_zero {R add mul zero one g h : ZFSet.{u}}
+    (hR : IsRing R add mul zero one)
+    (hg : IsPolyOver R zero g) (hh : IsPolyOver R zero h) :
+    convCoeff R add mul zero g h 0
+      = opAt mul (app g (ofNat.{u} 0)) (app h (ofNat.{u} 0)) := by
+  show opAt add (foldF add zero
+      (fun i => opAt mul (app g (ofNat.{u} i)) (app h (ofNat.{u} (0 - i)))) 0)
+      (opAt mul (app g (ofNat.{u} 0)) (app h (ofNat.{u} (0 - 0)))) = _
+  have hg0 : app g (ofNat.{u} 0) ∈ R := coeff_mem hg (ofNat_mem_omega _)
+  have hh0 : app h (ofNat.{u} 0) ∈ R := coeff_mem hh (ofNat_mem_omega _)
+  exact ringZero_add hR (mulAt_mem hR hg0 hh0)
+
+/-- `p²` not dividing a product means `p` misses one of the factors. Both
+divisibilities are decided by `intDvd_decidable`, so the split is free. -/
+theorem not_both_dvd_of_sq_not_dvd {p : Nat} {a b : ZFSet.{u}}
+    (ha : a ∈ NumberTheory.Int.{u}) (hb : b ∈ NumberTheory.Int.{u})
+    (hsq : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      opAt intMulOp.{u} a b = opAt intMulOp.{u} (intOfNat.{u} (p * p)) c) :
+    (¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧ a = opAt intMulOp.{u} (intOfNat.{u} p) c)
+      ∨ (¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧ b = opAt intMulOp.{u} (intOfNat.{u} p) c) := by
+  have hp : intOfNat.{u} p ∈ NumberTheory.Int.{u} := intOfNat_mem_Int _
+  rcases intDvd_decidable (a := p) ha with ⟨c₁, hc₁, he₁⟩ | hna
+  · rcases intDvd_decidable (a := p) hb with ⟨c₂, hc₂, he₂⟩ | hnb
+    · refine absurd ?_ hsq
+      refine ⟨intMul c₁ c₂, intMul_mem_Int hc₁ hc₂, ?_⟩
+      rw [opAt_intMulOp ha hb, he₁, he₂,
+        opAt_intMulOp (intOfNat_mem_Int _) (intMul_mem_Int hc₁ hc₂),
+        ← intOfNat_mul,
+        intMul_assoc hp hc₁ (intMul_mem_Int hp hc₂),
+        ← intMul_assoc hc₁ hp hc₂, intMul_comm hc₁ hp,
+        intMul_assoc hp hc₁ hc₂, ← intMul_assoc hp hp (intMul_mem_Int hc₁ hc₂)]
+    · refine Or.inr (fun hd => hnb ?_)
+      obtain ⟨c, hc, he⟩ := hd
+      exact ⟨c, hc, by rw [he, opAt_intMulOp hp hc]⟩
+  · refine Or.inl (fun hd => hna ?_)
+    obtain ⟨c, hc, he⟩ := hd
+    exact ⟨c, hc, by rw [he, opAt_intMulOp hp hc]⟩
+
+
+
+theorem exists_top {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul zero one)
+    (hdec : DecidableVanishing R zero) (hf : IsPolyOver R zero f) (hne : f ≠ polyZero R zero) :
+    ∃ t : Nat, (∀ i : Nat, t < i → app f (ofNat.{u} i) = zero) ∧ app f (ofNat.{u} t) ≠ zero := by
+  obtain ⟨d, hbound, hleast⟩ := exists_deg hdec hf
+  rcases Nat.eq_zero_or_pos d with rfl | hd
+  · exact absurd (poly_ext_coeff hf (isPolyOver_polyZero hR) (fun k => by
+      rw [hbound k (by omega), app_polyZero hR (ofNat_mem_omega k)])) hne
+  · refine ⟨d - 1, fun i hi => hbound i (by omega), fun hz => ?_⟩
+    refine hleast (d - 1) (by omega) (fun i hi => ?_)
+    rcases Nat.eq_or_lt_of_le hi with heq | hlt
+    · rw [← heq]
+      exact hz
+    · exact hbound i (by omega)
+
+/-- The exhibited top index of a polynomial: it vanishes above `d` and does
+not vanish at `d`.
+
+A telescope, not a convenience. The Eisenstein family takes EIGHT binders --
+two polynomials over `ℤ` and, for each, a vanishing bound and a non-vanishing
+coefficient -- and the four-binder group repeats verbatim at three sites. A
+binder list does not extract into a lemma; what it extracts into is a
+STRUCTURE, and `exists_top` witnesses this one immediately. -/
+structure IsTopIndex (zero f : ZFSet.{u}) (d : Nat) : Prop where
+  above : ∀ i : Nat, d < i → app f (ofNat.{u} i) = zero
+  here : app f (ofNat.{u} d) ≠ zero
+
+#print axioms IsTopIndex
+/-- One factor is constant, for ANY `f` over `ℤ` carrying Eisenstein's clauses.
+The cyclotomic case is this with `f := cycShiftPoly p`; the domain and
+decidability conditions are discharged here rather than carried. -/
+theorem eisenstein_factor_constant_int {f : ZFSet.{u}} {p : Nat} (hp : IsPrime p)
+    {n : Nat}
+    (hlow : ∀ i, i < n -> ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app f (ofNat.{u} i) = opAt intMulOp.{u} (intOfNat.{u} p) c)
+    (htop : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app f (ofNat.{u} n) = opAt intMulOp.{u} (intOfNat.{u} p) c)
+    (hfa : ∀ i : Nat, n < i -> app f (ofNat.{u} i) = intZero.{u})
+    {g h : ZFSet.{u}}
+    (hg : IsPolyOver NumberTheory.Int.{u} intZero.{u} g) (hh : IsPolyOver NumberTheory.Int.{u} intZero.{u} h)
+    {dg dh : Nat}
+    (hgT : IsTopIndex intZero.{u} g dg)
+    (hhT : IsTopIndex intZero.{u} h dh)
+    (hgh : f = polyMul NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZero.{u} g h)
+    (hconst : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app h (ofNat.{u} 0) = opAt intMulOp.{u} (intOfNat.{u} p) c) :
+    dh = 0 := by
+  obtain ⟨hga, hgne⟩ := hgT
+  obtain ⟨hha, hhne⟩ := hhT
+  have hpI : intOfNat.{u} p ∈ NumberTheory.Int.{u} := intOfNat_mem_Int _
+  have hconv : ∀ k : Nat, app f (ofNat.{u} k)
+      = convCoeff NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZero.{u} g h k := by
+    intro k
+    rw [hgh]
+    exact app_polyMul isRing_int hg hh k
+  have he := isEisenstein_int hp hg hh hconst
+  have htop' : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      convCoeff NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZero.{u} g h n
+        = opAt intMulOp.{u} (intOfNat.{u} p) c := by
+    rw [← hconv n]
+    exact htop
+  obtain ⟨N, hN⟩ := eisenstein_witness_of_convCoeff isRing_int hpI he n htop'
+  refine eisenstein_factor_constant isRing_int hpI
+    (fun a ha b hb ha0 hb0 => by
+      rw [opAt_intMulOp ha hb]; exact intMul_ne_zero ha hb ha0 hb0)
+    he hga hgne hha hhne (n := n) ?_ ?_ hN
+  · intro i hi
+    rw [← hconv i]
+    exact hlow i hi
+  · intro i hi
+    rw [← hgh]
+    exact hfa i hi
+
+/-- EISENSTEIN'S CRITERION OVER `ℤ`, in the form a caller wants.
+
+`f` has degree `n`, a prime `p` divides every coefficient below the top and not
+the top, and `p²` does not divide the constant term. Then `f` has no
+factorisation into two non-constant polynomials.
+
+The four clauses are exactly what `cyclotomicShift_eisenstein` produces, and the
+domain and decidability conditions are discharged here rather than carried.
+Which factor plays the criterion's `const` role is a decision `intDvd_decidable`
+makes for free, and `polyMul_comm` makes the second case the first with the
+factors swapped. -/
+theorem eisenstein_irreducible_int {f : ZFSet.{u}} {p n : Nat} (hp : IsPrime p)
+    (hlow : ∀ i, i < n -> ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app f (ofNat.{u} i) = opAt intMulOp.{u} (intOfNat.{u} p) c)
+    (htop : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app f (ofNat.{u} n) = opAt intMulOp.{u} (intOfNat.{u} p) c)
+    (hfa : ∀ i : Nat, n < i -> app f (ofNat.{u} i) = intZero.{u})
+    (hsq : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      app f (ofNat.{u} 0) = opAt intMulOp.{u} (intOfNat.{u} (p * p)) c)
+    {g h : ZFSet.{u}}
+    (hg : IsPolyOver NumberTheory.Int.{u} intZero.{u} g) (hh : IsPolyOver NumberTheory.Int.{u} intZero.{u} h)
+    {dg dh : Nat}
+    (hgT : IsTopIndex intZero.{u} g dg)
+    (hhT : IsTopIndex intZero.{u} h dh)
+    (hgh : f = polyMul NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZero.{u} g h) :
+    dg = 0 ∨ dh = 0 := by
+  obtain ⟨hga, hgne⟩ := hgT
+  obtain ⟨hha, hhne⟩ := hhT
+  have hg0 : app g (ofNat.{u} 0) ∈ NumberTheory.Int.{u} := coeff_mem hg (ofNat_mem_omega _)
+  have hh0 : app h (ofNat.{u} 0) ∈ NumberTheory.Int.{u} := coeff_mem hh (ofNat_mem_omega _)
+  have hsq' : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
+      opAt intMulOp.{u} (app g (ofNat.{u} 0)) (app h (ofNat.{u} 0))
+        = opAt intMulOp.{u} (intOfNat.{u} (p * p)) c := by
+    rw [← convCoeff_at_zero isRing_int hg hh, ← app_polyMul isRing_int hg hh 0, ← hgh]
+    exact hsq
+  rcases not_both_dvd_of_sq_not_dvd hg0 hh0 hsq' with hng | hnh
+  · refine Or.inl (eisenstein_factor_constant_int hp (g := h) (h := g)
+      hlow htop hfa hh hg ⟨hha, hhne⟩ ⟨hga, hgne⟩ ?_ hng)
+    rw [hgh, polyMul_comm isRing_int
+      ((mem_polyRing_iff _ _ _).mpr hg) ((mem_polyRing_iff _ _ _).mpr hh)]
+  · exact Or.inr (eisenstein_factor_constant_int hp hlow htop hfa hg hh
+      ⟨hga, hgne⟩ ⟨hha, hhne⟩ hgh hnh)
+
+/-- Vanishing is decidable in `ℤ`: `int_eq_or_ne` reduces it to an equality of
+naturals, so the degree arguments that take this as a hypothesis are free
+here. -/
+theorem decidableVanishing_int : DecidableVanishing NumberTheory.Int.{u} intZero.{u} :=
+  fun _ ha => int_eq_or_ne ha intZero_mem_Int
+
+/-- Deciding whether a polynomial over `ℤ` is the zero polynomial, free.
+
+`IsPolyOver` carries a support bound `N`, and `int_eq_or_ne` decides each
+coefficient below it, so `exists_lt_or_not` closes the question by a BOUNDED
+search. Above `N` both sides vanish, so the two agree there without a decision.
+
+Splitting by cases on a `ZFSet` equality would cost `Classical.choice`. The
+support bound the polynomial carries decides it instead. -/
+theorem polyOver_eq_polyZero_or_ne {q : ZFSet.{u}}
+    (hq : IsPolyOver NumberTheory.Int.{u} intZero.{u} q) :
+    q = polyZero NumberTheory.Int.{u} intZero.{u} ∨ q ≠ polyZero NumberTheory.Int.{u} intZero.{u} := by
+  obtain ⟨N, hN⟩ := hq.2.2.2
+  have hdec : ∀ j : Nat,
+      (app q (ofNat.{u} j) ≠ intZero.{u}) ∨ ¬ (app q (ofNat.{u} j) ≠ intZero.{u}) := by
+    intro j
+    rcases int_eq_or_ne (coeff_mem hq (ofNat_mem_omega j)) intZero_mem_Int with he | hne
+    · exact Or.inr (fun h => h he)
+    · exact Or.inl hne
+  rcases exists_lt_or_not hdec N with ⟨j, -, hj⟩ | hno
+  · refine Or.inr (fun heq => hj ?_)
+    rw [heq, app_polyZero isRing_int (ofNat_mem_omega j)]
+  · refine Or.inl (poly_ext hq (isPolyOver_polyZero isRing_int) (fun w hw => ?_))
+    obtain ⟨j, rfl⟩ := (mem_omega_iff w).mp hw
+    rw [app_polyZero isRing_int (ofNat_mem_omega j)]
+    rcases Nat.lt_or_ge j N with hlt | hge
+    · rcases int_eq_or_ne (coeff_mem hq (ofNat_mem_omega j)) intZero_mem_Int with he | hne
+      · exact he
+      · exact absurd hne (hno j hlt)
+    · exact hN j hge
+
+#print axioms eisenstein_factor_constant_int
+#print axioms eisenstein_irreducible_int
+#print axioms convCoeff_multiple
+#print axioms eisenstein_witness_of_convCoeff
+#print axioms convCoeff_at_zero
+#print axioms not_both_dvd_of_sq_not_dvd
+#print axioms decidableVanishing_int
+#print axioms polyOver_eq_polyZero_or_ne
 #print axioms isEisenstein_int
+#print axioms isPolyOver_cycShiftPoly
+/-- The constant coefficient of `Φp(x+1)` IS `p`, read straight off the
+coefficient sequence `choose p (i+1)` at `i = 0`.
+
+`cycShiftPoly_const` states that `p²` does not divide this coefficient and names
+the value only in its prose; this gives the value, in the tuple form the
+coordinate work consumes. -/
+theorem cycShiftPoly_tupleCoeff_zero {p : Nat} (hp : 0 < p) :
+    tupleCoeff (tupleOfPoly.{u} (cycShiftPoly.{u} p) p) p 0 = intOfNat.{u} p := by
+  rw [tupleOfPoly, tupleCoeff_tupleOf p 0 hp, cycShiftPoly,
+    app_polyOfSeq (fun k => intOfNat_mem_Int _) 0, choose_one]
+
+#print axioms cycShiftPoly_tupleCoeff_zero
+
+/-- Every coefficient of `Φp(x+1)`, in the tuple form: index `k` is
+`choose p (k+1)`.
+
+The general statement; `cycShiftPoly_tupleCoeff_zero` is its `k = 0` case
+composed with `choose_one`. -/
+theorem cycShiftPoly_tupleCoeff {p k : Nat} (hk : k < p) :
+    tupleCoeff (tupleOfPoly.{u} (cycShiftPoly.{u} p) p) p k
+      = intOfNat.{u} (choose p (k + 1)) := by
+  rw [tupleOfPoly, tupleCoeff_tupleOf p k hk, cycShiftPoly,
+    app_polyOfSeq (fun j => intOfNat_mem_Int _) k]
+
+#print axioms cycShiftPoly_tupleCoeff
+
+#print axioms cycShiftPoly_top
+#print axioms cycShiftPoly_const
+#print axioms cycShiftPoly_low
+#print axioms cycShiftPoly_deg
 #print axioms eisenstein_least_index
 #print axioms eisenstein_nonzero_high
 #print axioms eisenstein_factor_constant
@@ -4117,17 +4462,1569 @@ theorem isEisenstein_int {p : Nat} (hp : IsPrime p) {g h : ZFSet.{u}}
 #print axioms decidableVanishing_polyQuot
 #print axioms isRing_polyQuot
 
+/-- `x` is a polynomial. -/
+theorem isPolyOver_polyX {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one) :
+    IsPolyOver R zero (polyX R zero one) :=
+  isPolyOver_monomial hR hR.mem_one 1
+
+#print axioms isPolyOver_polyX
 #print axioms det2
 #print axioms det2_mem
 #print axioms det2_swap
 #print axioms det2_cramer
 #print axioms matMinor
 #print axioms detN
+/-- Deleting column `j`, then column `k` of what remains. -/
+def matMinor2 (E : Nat → Nat → ZFSet.{u}) (j k : Nat) : Nat → Nat → ZFSet.{u} :=
+  matMinor (matMinor E j) k
+
+/-- The two column choices commute, with the indices shifted. Deleting
+column `j` then column `k` of the rest is deleting column `k+1` then column `j`,
+when `j ≤ k` -- which is the correspondence the pairing argument runs on. -/
+theorem matMinor2_swap (E : Nat → Nat → ZFSet.{u}) {j k : Nat} (h : j ≤ k)
+    (i m : Nat) : matMinor2 E j k i m = matMinor2 E (k + 1) j i m := by
+  show E (i + 2) _ = E (i + 2) _
+  congr 1
+  rcases Nat.lt_or_ge m j with h1 | h1
+  · have hk : m < k := by omega
+    simp only [if_pos hk, if_pos h1, if_pos (show m < k + 1 by omega)]
+  · rcases Nat.lt_or_ge m k with h2 | h2
+    · simp only [if_pos h2, if_neg (show ¬ m < j by omega),
+        if_pos (show m + 1 < k + 1 by omega)]
+    · simp only [if_neg (show ¬ m < k by omega),
+        if_neg (show ¬ m < j by omega),
+        if_neg (show ¬ m + 1 < j by omega),
+        if_neg (show ¬ m + 1 < k + 1 by omega)]
+
+#print axioms matMinor2
+#print axioms matMinor2_swap
+
+/-- The signed term `detN` folds, named so the double form can talk about it. -/
+noncomputable def detTerm (R add mul zero one : ZFSet.{u})
+    (E : Nat → Nat → ZFSet.{u}) (n j : Nat) : ZFSet.{u} :=
+  let t := opAt mul (E 0 j) (detN R add mul zero one (matMinor E j) n)
+  if j % 2 = 0 then t else ringNeg R add zero t
+
+theorem detN_succ (R add mul zero one : ZFSet.{u}) (E : Nat → Nat → ZFSet.{u})
+    (n : Nat) :
+    detN R add mul zero one E (n + 1)
+      = foldF add zero (fun j => detTerm R add mul zero one E n j) (n + 1) := rfl
+
+/-- The double expansion: `detN` at `n+2` is a fold over `j` of terms whose
+inner factor is itself a fold over `k`. -/
+theorem detN_succ_succ (R add mul zero one : ZFSet.{u})
+    (E : Nat → Nat → ZFSet.{u}) (n : Nat) :
+    detN R add mul zero one E (n + 2)
+      = foldF add zero
+          (fun j =>
+            let t := opAt mul (E 0 j)
+              (foldF add zero
+                (fun k => detTerm R add mul zero one (matMinor E j) n k) (n + 1))
+            if j % 2 = 0 then t else ringNeg R add zero t)
+          (n + 2) := rfl
+
+#print axioms detTerm
+#print axioms detN_succ
+#print axioms detN_succ_succ
+
+/-- The determinant's pairing, on a FLATTENED index.
+
+`t` codes the pair `(t / m, t % m)`, with the first coordinate a column of the
+outer expansion (below `m + 1`) and the second a column of the inner one (below
+`m`). The pairing sends `(j, k)` with `j ≤ k` to `(k + 1, j)`, and its inverse
+branch sends `(j, k)` with `k < j` to `(k, j - 1)`.
+
+Stated on the code rather than on the pair because `foldF_involution` folds
+over one index. Every clause below is proved at a coded pair `j * m + k`, which
+is what the fold's hypotheses are instantiated at. -/
+def detPair (m t : Nat) : Nat :=
+  if t / m ≤ t % m then (t % m + 1) * m + t / m
+  else (t % m) * m + (t / m - 1)
+
+theorem detPair_ge {m j k : Nat} (hk : k < m) (h : j ≤ k) :
+    detPair m (j * m + k) = (k + 1) * m + j := by
+  obtain ⟨hd, hr⟩ := flat_div_mod (m := m) (j := j) hk
+  unfold detPair
+  rw [hd, hr, if_pos h]
+
+theorem detPair_lt {m j k : Nat} (hk : k < m) (h : k < j) :
+    detPair m (j * m + k) = k * m + (j - 1) := by
+  obtain ⟨hd, hr⟩ := flat_div_mod (m := m) (j := j) hk
+  unfold detPair
+  rw [hd, hr, if_neg (by omega)]
+
+/-- The pairing is an involution. -/
+theorem detPair_invol {m j k : Nat} (hj : j < m + 1) (hk : k < m) :
+    detPair m (detPair m (j * m + k)) = j * m + k := by
+  rcases Nat.lt_or_ge k j with h | h
+  · rw [detPair_lt hk h,
+      detPair_ge (show j - 1 < m by omega) (show k ≤ j - 1 by omega),
+      show j - 1 + 1 = j by omega]
+  · rw [detPair_ge hk h,
+      detPair_lt (show j < m by omega) (show j < k + 1 by omega),
+      show k + 1 - 1 = k by omega]
+
+/-- The pairing has no fixed point -- `(j, k)` never meets `(k + 1, j)`,
+because the first coordinate strictly rises on one branch and falls on the
+other. -/
+theorem detPair_nofix {m j k : Nat} (hj : j < m + 1) (hk : k < m) :
+    detPair m (j * m + k) ≠ j * m + k := by
+  obtain ⟨hd2, _⟩ := flat_div_mod (m := m) (j := j) hk
+  rcases Nat.lt_or_ge k j with h | h
+  · rw [detPair_lt hk h]
+    intro heq
+    obtain ⟨hd, _⟩ := flat_div_mod (m := m) (j := k) (show j - 1 < m by omega)
+    rw [heq, hd2] at hd
+    omega
+  · rw [detPair_ge hk h]
+    intro heq
+    obtain ⟨hd, _⟩ := flat_div_mod (m := m) (j := k + 1) (show j < m by omega)
+    rw [heq, hd2] at hd
+    omega
+
+/-- The pairing stays in range. -/
+theorem detPair_maps {m j k : Nat} (hj : j < m + 1) (hk : k < m) :
+    detPair m (j * m + k) < (m + 1) * m := by
+  rcases Nat.lt_or_ge k j with h | h
+  · rw [detPair_lt hk h]
+    exact flat_lt (show k < m + 1 by omega) (show j - 1 < m by omega)
+  · rw [detPair_ge hk h]
+    exact flat_lt (show k + 1 < m + 1 by omega) (show j < m by omega)
+
+
+
+
+
+/-! The conditioning refactor, drafted against the current lemmas under fresh
+names so it can be compiled before anything in the tree moves.
+
+`foldF_involution` takes its involutivity, no-fixed-point and inverse-values
+clauses over ALL of `Nat`, while its docstring scopes the involution to
+`{0..n-1}`. A genuinely partial involution -- the determinant's -- cannot be
+handed to it. Every index the recursion feeds the permutation is below `n + 2`,
+so the conditioning is mechanical. -/
+
+noncomputable def ringSign (R add zero : ZFSet.{u}) (c : Nat) (x : ZFSet.{u}) :
+    ZFSet.{u} :=
+  if c % 2 = 0 then x else ringNeg R add zero x
+
+theorem ringSign_mem {R add mul zero one x : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hx : x ∈ R) (c : Nat) :
+    ringSign R add zero c x ∈ R := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h]; exact hx
+  · rw [if_neg (by omega)]; exact ringNeg_mem hR hx
+
+theorem ringSign_succ {R add mul zero one x : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hx : x ∈ R) (c : Nat) :
+    ringSign R add zero (c + 1) x
+      = ringNeg R add zero (ringSign R add zero c x) := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h, if_neg (show ¬ (c + 1) % 2 = 0 by omega)]
+  · rw [if_neg (show ¬ c % 2 = 0 by omega),
+      if_pos (show (c + 1) % 2 = 0 by omega), ringNeg_neg hR hx]
+
+theorem ringSign_mul {R add mul zero one a x : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (ha : a ∈ R) (hx : x ∈ R) (c : Nat) :
+    ringSign R add zero c (opAt mul a x)
+      = opAt mul a (ringSign R add zero c x) := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h, if_pos h]
+  · rw [if_neg (by omega), if_neg (by omega),
+      hR.mulComm _ ha _ (ringNeg_mem hR hx), ringNeg_mul hR hx ha,
+      hR.mulComm _ hx _ ha]
+
+theorem ringSign_add {R add mul zero one x : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hx : x ∈ R) (a b : Nat) :
+    ringSign R add zero a (ringSign R add zero b x)
+      = ringSign R add zero (a + b) x := by
+  induction a with
+  | zero => rw [Nat.zero_add]; rfl
+  | succ k ih =>
+    rw [ringSign_succ hR (ringSign_mem hR hx b) k, ih,
+      ← ringSign_succ hR hx (k + b), show k + b + 1 = k + 1 + b by omega]
+
+theorem foldF_neg {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one)
+    {F : Nat → ZFSet.{u}} (hF : ∀ i, F i ∈ R) (n : Nat) :
+    ringNeg R add zero (foldF add zero F n)
+      = foldF add zero (fun i => ringNeg R add zero (F i)) n :=
+  foldF_map (g := fun x => ringNeg R add zero x) (isCommMonoid_ringAdd hR)
+    (ringNeg_zero hR)
+    (fun _ ha _ hb => ringNeg_addAt hR ha hb) hF n
+
+/-- A minor of an entry function with entries in `R` has entries in `R`. -/
+theorem matMinor_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (j : Nat) :
+    ∀ i m, matMinor E j i m ∈ R := fun _ _ => hE _ _
+
+/-- A determinant of entries in `R` lies in `R`. -/
+theorem detN_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one)
+    {E : Nat → Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R) :
+    ∀ n : Nat, detN R add mul zero one E n ∈ R
+  | 0 => hR.mem_one
+  | n + 1 => by
+    show foldF add zero _ (n + 1) ∈ R
+    refine foldF_mem (isCommMonoid_ringAdd hR) (n + 1) (fun j _ => ?_)
+    show (if j % 2 = 0 then _ else _) ∈ R
+    exact ringSign_mem (c := j) hR
+      (mulAt_mem hR (hE 0 j) (detN_mem hR (matMinor_mem hE j) n))
+
+/-- Pointwise-equal entry functions have equal determinants. -/
+theorem detN_congr {R add mul zero one : ZFSet.{u}}
+    {E F : Nat → Nat → ZFSet.{u}} (h : ∀ i m, E i m = F i m) (n : Nat) :
+    detN R add mul zero one E n = detN R add mul zero one F n := by
+  have : E = F := funext (fun i => funext (fun m => h i m))
+  rw [this]
+
+/-- The doubly-signed summand of the double expansion: the term of `detN` at
+size `n + 2` indexed by the outer column `j` and the inner column `k`. -/
+noncomputable def detSum (R add mul zero one : ZFSet.{u})
+    (E : Nat → Nat → ZFSet.{u}) (n j k : Nat) : ZFSet.{u} :=
+  ringSign R add zero j
+    (opAt mul (E 0 j) (detTerm R add mul zero one (matMinor E j) n k))
+
+/-- The summand, with both signs collected and the two entries exposed. -/
+theorem detSum_norm {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (n j k : Nat) :
+    detSum R add mul zero one E n j k
+      = ringSign R add zero (j + k)
+          (opAt mul (E 0 j)
+            (opAt mul (E 1 (origAt j k))
+              (detN R add mul zero one (matMinor2 E j k) n))) := by
+  have hd : detN R add mul zero one (matMinor2 E j k) n ∈ R :=
+    detN_mem hR (matMinor_mem (matMinor_mem hE j) k) n
+  show ringSign R add zero j
+      (opAt mul (E 0 j) (ringSign R add zero k
+        (opAt mul (E 1 (origAt j k))
+          (detN R add mul zero one (matMinor2 E j k) n)))) = _
+  rw [← ringSign_mul hR (hE 0 j) (mulAt_mem hR (hE 1 _) hd) k,
+    ringSign_add hR (mulAt_mem hR (hE 0 j) (mulAt_mem hR (hE 1 _) hd)) j k]
+
+/-- ALTERNATION, one summand at a time. With rows 0 and 1 equal, the term
+at `(j, k)` and the term at `(k + 1, j)` are negatives -- which is the whole
+mathematical content of the pairing argument.
+
+Both terms take the SAME two entries, `E 0 j` and `E 0 (k+1)`, in the other
+order, and the SAME minor by `matMinor2_swap`. Only the sign differs, and it
+differs by exactly one step. -/
+theorem detSum_swap {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (hrows : ∀ c, E 0 c = E 1 c)
+    (n : Nat) {j k : Nat} (h : j ≤ k) :
+    detSum R add mul zero one E n (k + 1) j
+      = ringNeg R add zero (detSum R add mul zero one E n j k) := by
+  have hd : detN R add mul zero one (matMinor2 E j k) n ∈ R :=
+    detN_mem hR (matMinor_mem (matMinor_mem hE j) k) n
+  have hswap : detN R add mul zero one (matMinor2 E (k + 1) j) n
+      = detN R add mul zero one (matMinor2 E j k) n :=
+    detN_congr (fun i m => (matMinor2_swap E h i m).symm) n
+  rw [detSum_norm hR hE n (k + 1) j, detSum_norm hR hE n j k,
+    show origAt (k + 1) j = j by unfold origAt; rw [if_pos (by omega)],
+    show origAt j k = k + 1 by unfold origAt; rw [if_neg (by omega)],
+    hswap, ← hrows, ← hrows,
+    ← hR.mulAssoc _ (hE 0 (k + 1)) _ (hE 0 j) _ hd,
+    hR.mulComm _ (hE 0 (k + 1)) _ (hE 0 j),
+    hR.mulAssoc _ (hE 0 j) _ (hE 0 (k + 1)) _ hd,
+    show k + 1 + j = j + k + 1 by omega,
+    ringSign_succ hR (mulAt_mem hR (hE 0 j) (mulAt_mem hR (hE 0 (k + 1)) hd))
+      (j + k)]
+
+/-- The sign passes through a fold, because it is an additive-group map. -/
+theorem foldF_ringSign {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {F : Nat → ZFSet.{u}}
+    (hF : ∀ i, F i ∈ R) (c n : Nat) :
+    ringSign R add zero c (foldF add zero F n)
+      = foldF add zero (fun i => ringSign R add zero c (F i)) n := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h]
+    exact foldF_congr n (fun i _ => (if_pos h).symm)
+  · rw [if_neg (by omega)]
+    rw [foldF_neg hR hF n]
+    exact foldF_congr n (fun i _ => (if_neg (show ¬ c % 2 = 0 by omega)).symm)
+
+/-- The double expansion, with both signs distributed into the inner fold.
+Each summand is `detSum`, so the whole determinant is a double fold over the
+two column indices with nothing left outside. -/
+theorem detN_double {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (n : Nat) :
+    detN R add mul zero one E (n + 2)
+      = foldF add zero
+          (fun j => foldF add zero (fun k => detSum R add mul zero one E n j k)
+            (n + 1)) (n + 2) := by
+  rw [detN_succ_succ]
+  refine foldF_congr (n + 2) (fun j _ => ?_)
+  have hterm : ∀ k, detTerm R add mul zero one (matMinor E j) n k ∈ R := by
+    intro k
+    exact ringSign_mem (c := k) hR
+      (mulAt_mem hR (hE 1 _) (detN_mem hR (matMinor_mem (matMinor_mem hE j) k) n))
+  show ringSign R add zero j
+      (opAt mul (E 0 j) (foldF add zero
+        (fun k => detTerm R add mul zero one (matMinor E j) n k) (n + 1))) = _
+  rw [foldF_mul_left hR (hE 0 j) hterm (n + 1),
+    foldF_ringSign hR
+      (fun k => mulAt_mem hR (hE 0 j) (hterm k)) j (n + 1)]
+  rfl
+
+theorem detSum_mem {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (n j k : Nat) :
+    detSum R add mul zero one E n j k ∈ R :=
+  ringSign_mem (c := j) hR (mulAt_mem hR (hE 0 j)
+    (ringSign_mem (c := k) hR (mulAt_mem hR (hE 1 _)
+      (detN_mem hR (matMinor_mem (matMinor_mem hE j) k) n))))
+
+/-- A code below `(m + 1) * m` decodes to a pair in range. -/
+theorem flat_decomp {m t : Nat} (hm : 0 < m) (ht : t < (m + 1) * m) :
+    And (t / m < m + 1) (And (t % m < m) ((t / m) * m + t % m = t)) := by
+  have hmod : t % m < m := Nat.mod_lt _ hm
+  have hsum : (t / m) * m + t % m = t := by
+    rw [Nat.mul_comm]; exact Nat.div_add_mod t m
+  rcases Nat.lt_or_ge (t / m) (m + 1) with h | h
+  · exact ⟨h, hmod, hsum⟩
+  · exact absurd ht (Nat.not_lt.mpr
+      (Nat.le_trans (Nat.mul_le_mul_right m h)
+        (Nat.le_trans (Nat.le_add_right _ (t % m)) (Nat.le_of_eq hsum))))
+
+/-- The pairing sends a summand to its negative, at a coded pair. Both
+branches are `detSum_swap`: the second reads it forwards, the first reads it
+backwards and undoes the negation. -/
+theorem detSum_pair {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (hrows : ∀ c, E 0 c = E 1 c) (n : Nat)
+    {j k : Nat} (hj : j < n + 1 + 1) (hk : k < n + 1) :
+    detSum R add mul zero one E n
+        (detPair (n + 1) (j * (n + 1) + k) / (n + 1))
+        (detPair (n + 1) (j * (n + 1) + k) % (n + 1))
+      = ginv R add zero (detSum R add mul zero one E n j k) := by
+  rcases Nat.lt_or_ge k j with h | h
+  · rw [detPair_lt hk h]
+    obtain ⟨hd, hr⟩ := flat_div_mod (m := n + 1) (j := k) (show j - 1 < n + 1 by omega)
+    rw [hd, hr]
+    have hsw := detSum_swap hR hE hrows n (j := k) (k := j - 1) (by omega)
+    rw [show j - 1 + 1 = j by omega] at hsw
+    show detSum R add mul zero one E n k (j - 1)
+      = ringNeg R add zero (detSum R add mul zero one E n j k)
+    rw [hsw, ringNeg_neg hR (detSum_mem hR hE n k (j - 1))]
+  · rw [detPair_ge hk h]
+    obtain ⟨hd, hr⟩ := flat_div_mod (m := n + 1) (j := k + 1) (show j < n + 1 by omega)
+    rw [hd, hr]
+    exact detSum_swap hR hE hrows n h
+
+/-- ALTERNATION. A determinant whose first two rows agree is zero, at every
+size -- by pairing each term of the double expansion with the term that takes
+the same two entries in the other order, whose sign is opposite.
+
+The pairing is `detPair` on the flattened index, and `foldF_involution` is what
+turns every term has a partner of opposite sign into the fold is zero. No
+characteristic hypothesis is used: the argument never forms `2 * det`, so it
+survives characteristic 2 where the antisymmetry route does not. -/
+theorem detN_rows01 {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (hrows : ∀ c, E 0 c = E 1 c) (n : Nat) :
+    detN R add mul zero one E (n + 2) = zero := by
+  have hm : 0 < n + 1 := by omega
+  have hmem : ∀ t, detSum R add mul zero one E n (t / (n + 1)) (t % (n + 1)) ∈ R :=
+    fun t => detSum_mem hR hE n _ _
+  rw [detN_double hR hE n,
+    foldF_flatten (isCommMonoid_ringAdd hR)
+      (fun j k => detSum_mem hR hE n j k) (n + 1) (n + 2)]
+  refine foldF_involution hR.addGroup hR.addComm ((n + 2) * (n + 1)) _
+    (detPair (n + 1)) hmem ?_ ?_ ?_ ?_
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]; exact detPair_invol hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]; exact detPair_nofix hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]
+    exact detPair_maps hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    have hp := detSum_pair hR hE hrows n hj hk
+    rw [hs] at hp
+    exact hp
+
+/-- The sign is additive, being an additive-group map. -/
+theorem ringSign_addAt {R add mul zero one x y : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hx : x ∈ R) (hy : y ∈ R) (c : Nat) :
+    ringSign R add zero c (opAt add x y)
+      = opAt add (ringSign R add zero c x) (ringSign R add zero c y) := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h, if_pos h, if_pos h]
+  · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega),
+      ringNeg_addAt hR hx hy]
+
+/-- MULTILINEARITY in row 0: a determinant is additive in its first row,
+the other rows held fixed. Expanding along row 0 leaves each minor untouched --
+`matMinor` reads rows `i + 1` only -- so the whole content is distributivity
+inside one fold. -/
+theorem detN_row0_add {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {A B C : Nat → Nat → ZFSet.{u}}
+    (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R)
+    (hrow : ∀ m, C 0 m = opAt add (A 0 m) (B 0 m))
+    (hAC : ∀ i m, A (i + 1) m = C (i + 1) m)
+    (hBC : ∀ i m, B (i + 1) m = C (i + 1) m) (n : Nat) :
+    detN R add mul zero one C (n + 1)
+      = opAt add (detN R add mul zero one A (n + 1))
+                 (detN R add mul zero one B (n + 1)) := by
+  rw [detN_succ, detN_succ, detN_succ]
+  refine (foldF_pointwise_add (isCommMonoid_ringAdd hR) (n + 1)
+    (fun j _ => ?_) (fun j _ => ?_) (fun j _ => ?_)).symm
+  · exact ringSign_mem (c := j) hR (mulAt_mem hR (hA 0 j)
+      (detN_mem hR (matMinor_mem hA j) n))
+  · exact ringSign_mem (c := j) hR (mulAt_mem hR (hB 0 j)
+      (detN_mem hR (matMinor_mem hB j) n))
+  · have hDA : detN R add mul zero one (matMinor A j) n
+        = detN R add mul zero one (matMinor C j) n :=
+      detN_congr (fun i m => hAC i _) n
+    have hDB : detN R add mul zero one (matMinor B j) n
+        = detN R add mul zero one (matMinor C j) n :=
+      detN_congr (fun i m => hBC i _) n
+    have hD : detN R add mul zero one (matMinor C j) n ∈ R := by
+      rw [← hDA]; exact detN_mem hR (matMinor_mem hA j) n
+    show opAt add (ringSign R add zero j (opAt mul (A 0 j) _))
+        (ringSign R add zero j (opAt mul (B 0 j) _))
+      = ringSign R add zero j (opAt mul (C 0 j) _)
+    rw [hDA, hDB, hrow j, hR.mulComm _ (opAt_mem_monoid (isCommMonoid_ringAdd hR)
+        (hA 0 j) (hB 0 j)) _ hD,
+      hR.distrib _ hD _ (hA 0 j) _ (hB 0 j),
+      hR.mulComm _ hD _ (hA 0 j), hR.mulComm _ hD _ (hB 0 j),
+      ringSign_addAt hR (mulAt_mem hR (hA 0 j) hD) (mulAt_mem hR (hB 0 j) hD) j]
+
+/-- An entry function with rows 0 and 1 replaced by `x` and `y`. -/
+def rows01 (E : Nat → Nat → ZFSet.{u}) (x y : Nat → ZFSet.{u}) :
+    Nat → Nat → ZFSet.{u} :=
+  fun i m => if i = 0 then x m else if i = 1 then y m else E i m
+
+theorem rows01_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
+    {x y : Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R)
+    (hx : ∀ m, x m ∈ R) (hy : ∀ m, y m ∈ R) :
+    ∀ i m, rows01 E x y i m ∈ R := by
+  intro i m
+  match i with
+  | 0 => exact hx m
+  | 1 => exact hy m
+  | i + 2 => exact hE _ _
+
+theorem ringSign_zero {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (c : Nat) :
+    ringSign R add zero c zero = zero := by
+  unfold ringSign
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h]
+  · rw [if_neg (by omega)]; exact ringNeg_zero hR
+
+theorem detTerm_eq (R add mul zero one : ZFSet.{u}) (E : Nat → Nat → ZFSet.{u})
+    (n j : Nat) :
+    detTerm R add mul zero one E n j
+      = ringSign R add zero j
+          (opAt mul (E 0 j) (detN R add mul zero one (matMinor E j) n)) := rfl
+
+/-- ALTERNATION at ANY adjacent pair of rows. Row 0 is `detN_rows01`; a row
+`r + 1` is row `r` of every minor, so one expansion along row 0 shifts the
+hypothesis down and the induction is on the ROW INDEX rather than the size. -/
+theorem detN_rows_adj {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) :
+    ∀ (r n : Nat) (E : Nat → Nat → ZFSet.{u}), (∀ i m, E i m ∈ R) →
+      (∀ c, E r c = E (r + 1) c) →
+      detN R add mul zero one E (r + n + 2) = zero := by
+  intro r
+  induction r with
+  | zero =>
+    intro n E hE hrows
+    rw [Nat.zero_add]
+    exact detN_rows01 hR hE hrows n
+  | succ k ih =>
+    intro n E hE hrows
+    rw [show k + 1 + n + 2 = (k + n + 2) + 1 from by omega, detN_succ]
+    refine foldF_zeros hR _ (fun j _ => ?_)
+    rw [detTerm_eq,
+      ih n (matMinor E j) (matMinor_mem hE j) (fun c => hrows _),
+      mul_zero_of_isRing hR (hE 0 j), ringSign_zero hR]
+
+/-- MULTILINEARITY at ANY row. Same shift as `detN_rows_adj`: row `r + 1`
+is row `r` of every minor, so the induction runs on the row index and each step
+is one application of the fold's pointwise additivity. -/
+theorem detN_rowk_add {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) :
+    ∀ (r n : Nat) (A B C : Nat → Nat → ZFSet.{u}),
+      (∀ i m, A i m ∈ R) → (∀ i m, B i m ∈ R) →
+      (∀ i m, i ≠ r → A i m = C i m) → (∀ i m, i ≠ r → B i m = C i m) →
+      (∀ m, C r m = opAt add (A r m) (B r m)) →
+      detN R add mul zero one C (r + n + 1)
+        = opAt add (detN R add mul zero one A (r + n + 1))
+                   (detN R add mul zero one B (r + n + 1)) := by
+  intro r
+  induction r with
+  | zero =>
+    intro n A B C hA hB hAC hBC hrow
+    rw [Nat.zero_add]
+    exact detN_row0_add hR hA hB hrow
+      (fun i m => hAC (i + 1) m (by omega)) (fun i m => hBC (i + 1) m (by omega)) n
+  | succ k ih =>
+    intro n A B C hA hB hAC hBC hrow
+    rw [show k + 1 + n + 1 = (k + n + 1) + 1 from by omega,
+      detN_succ, detN_succ, detN_succ]
+    refine (foldF_pointwise_add (isCommMonoid_ringAdd hR) _
+      (fun j _ => ?_) (fun j _ => ?_) (fun j _ => ?_)).symm
+    · rw [detTerm_eq]
+      exact ringSign_mem (c := j) hR (mulAt_mem hR (hA 0 j)
+        (detN_mem hR (matMinor_mem hA j) (k + n + 1)))
+    · rw [detTerm_eq]
+      exact ringSign_mem (c := j) hR (mulAt_mem hR (hB 0 j)
+        (detN_mem hR (matMinor_mem hB j) (k + n + 1)))
+    · have hsplit := ih n (matMinor A j) (matMinor B j) (matMinor C j)
+        (matMinor_mem hA j) (matMinor_mem hB j)
+        (fun i m hi => hAC (i + 1) _ (by omega))
+        (fun i m hi => hBC (i + 1) _ (by omega))
+        (fun m => hrow _)
+      have hDA : detN R add mul zero one (matMinor A j) (k + n + 1) ∈ R :=
+        detN_mem hR (matMinor_mem hA j) (k + n + 1)
+      have hDB : detN R add mul zero one (matMinor B j) (k + n + 1) ∈ R :=
+        detN_mem hR (matMinor_mem hB j) (k + n + 1)
+      rw [detTerm_eq, detTerm_eq, detTerm_eq, hsplit,
+        ← hAC 0 j (by omega), hR.distrib _ (hA 0 j) _ hDA _ hDB,
+        ringSign_addAt hR (mulAt_mem hR (hA 0 j) hDA)
+          (mulAt_mem hR (hA 0 j) hDB) j,
+        hAC 0 j (by omega), ← hBC 0 j (by omega)]
+
+/-- ANTISYMMETRY, and it is free of any characteristic hypothesis.
+Swapping rows 0 and 1 negates the determinant -- stated additively, as the two
+summing to zero, because that is the form alternation and multilinearity give
+and it needs no cancellation.
+
+The classical derivation: expand `det` of the matrix whose first two rows are
+both `a + b`. It is zero by alternation, and multilinearity splits it into four
+terms of which two vanish by alternation again. Nothing forms `2 · det`, so
+characteristic 2 is not excluded. -/
+theorem detN_antisym {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) {a b : Nat → ZFSet.{u}}
+    (ha : ∀ m, a m ∈ R) (hb : ∀ m, b m ∈ R) (n : Nat) :
+    opAt add (detN R add mul zero one (rows01 E a b) (n + 2))
+             (detN R add mul zero one (rows01 E b a) (n + 2)) = zero := by
+  have hM := isCommMonoid_ringAdd hR
+  have hab : ∀ m, opAt add (a m) (b m) ∈ R :=
+    fun m => opAt_mem_monoid hM (ha m) (hb m)
+  have hzero : detN R add mul zero one (rows01 E (fun m => opAt add (a m) (b m)) (fun m => opAt add (a m) (b m))) (n + 2) = zero :=
+    detN_rows01 hR (rows01_mem hE hab hab) (fun c => rfl) n
+  have haa : detN R add mul zero one (rows01 E a a) (n + 2) = zero :=
+    detN_rows01 hR (rows01_mem hE ha ha) (fun c => rfl) n
+  have hbb : detN R add mul zero one (rows01 E b b) (n + 2) = zero :=
+    detN_rows01 hR (rows01_mem hE hb hb) (fun c => rfl) n
+  have h0 : detN R add mul zero one (rows01 E (fun m => opAt add (a m) (b m)) (fun m => opAt add (a m) (b m))) (n + 2)
+      = opAt add (detN R add mul zero one (rows01 E a (fun m => opAt add (a m) (b m))) (n + 2))
+                 (detN R add mul zero one (rows01 E b (fun m => opAt add (a m) (b m))) (n + 2)) :=
+    detN_row0_add (A := rows01 E a (fun m => opAt add (a m) (b m))) (B := rows01 E b (fun m => opAt add (a m) (b m))) (C := rows01 E (fun m => opAt add (a m) (b m)) (fun m => opAt add (a m) (b m)))
+      hR (rows01_mem hE ha hab) (rows01_mem hE hb hab)
+      (fun m => rfl)
+      (fun i m => match i with | 0 => rfl | _ + 1 => rfl)
+      (fun i m => match i with | 0 => rfl | _ + 1 => rfl) (n + 1)
+  have h1 : detN R add mul zero one (rows01 E a (fun m => opAt add (a m) (b m))) (n + 2)
+      = opAt add (detN R add mul zero one (rows01 E a a) (n + 2))
+                 (detN R add mul zero one (rows01 E a b) (n + 2)) := by
+    have := detN_rowk_add hR 1 n (rows01 E a a) (rows01 E a b)
+      (rows01 E a (fun m => opAt add (a m) (b m)))
+      (rows01_mem hE ha ha) (rows01_mem hE ha hb)
+      (fun i m hi => match i with | 0 => rfl | 1 => absurd rfl hi | _ + 2 => rfl)
+      (fun i m hi => match i with | 0 => rfl | 1 => absurd rfl hi | _ + 2 => rfl)
+      (fun m => rfl)
+    rwa [show 1 + n + 1 = n + 2 from by omega] at this
+  have h2 : detN R add mul zero one (rows01 E b (fun m => opAt add (a m) (b m))) (n + 2)
+      = opAt add (detN R add mul zero one (rows01 E b a) (n + 2))
+                 (detN R add mul zero one (rows01 E b b) (n + 2)) := by
+    have := detN_rowk_add hR 1 n (rows01 E b a) (rows01 E b b)
+      (rows01 E b (fun m => opAt add (a m) (b m)))
+      (rows01_mem hE hb ha) (rows01_mem hE hb hb)
+      (fun i m hi => match i with | 0 => rfl | 1 => absurd rfl hi | _ + 2 => rfl)
+      (fun i m hi => match i with | 0 => rfl | 1 => absurd rfl hi | _ + 2 => rfl)
+      (fun m => rfl)
+    rwa [show 1 + n + 1 = n + 2 from by omega] at this
+  have hmab : detN R add mul zero one (rows01 E a b) (n + 2) ∈ R :=
+    detN_mem hR (rows01_mem hE ha hb) (n + 2)
+  have hmba : detN R add mul zero one (rows01 E b a) (n + 2) ∈ R :=
+    detN_mem hR (rows01_mem hE hb ha) (n + 2)
+  rw [h1, h2, haa, hbb, hM.left_id _ hmab,
+    right_id_monoid hM hmba] at h0
+  rw [← h0, hzero]
+
+/-- An entry function with rows `r` and `r + 1` replaced by `x` and `y`. The
+general form of `rows01`, which is this at `r = 0`. -/
+def rowsAdj (E : Nat → Nat → ZFSet.{u}) (r : Nat) (x y : Nat → ZFSet.{u}) :
+    Nat → Nat → ZFSet.{u} :=
+  fun i m => if i = r then x m else if i = r + 1 then y m else E i m
+
+theorem rowsAdj_at (E : Nat → Nat → ZFSet.{u}) (r : Nat)
+    (x y : Nat → ZFSet.{u}) (m : Nat) : rowsAdj E r x y r m = x m := by
+  unfold rowsAdj; rw [if_pos rfl]
+
+theorem rowsAdj_succ (E : Nat → Nat → ZFSet.{u}) (r : Nat)
+    (x y : Nat → ZFSet.{u}) (m : Nat) : rowsAdj E r x y (r + 1) m = y m := by
+  unfold rowsAdj; rw [if_neg (by omega), if_pos rfl]
+
+theorem rowsAdj_other (E : Nat → Nat → ZFSet.{u}) (r : Nat)
+    (x y : Nat → ZFSet.{u}) {i : Nat} (h1 : i ≠ r) (h2 : i ≠ r + 1) (m : Nat) :
+    rowsAdj E r x y i m = E i m := by
+  unfold rowsAdj; rw [if_neg h1, if_neg h2]
+
+theorem rowsAdj_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
+    {x y : Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R)
+    (hx : ∀ m, x m ∈ R) (hy : ∀ m, y m ∈ R) (r : Nat) :
+    ∀ i m, rowsAdj E r x y i m ∈ R := by
+  intro i m
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [rowsAdj_other E r x y (by omega) (by omega)]; exact hE _ _
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, rowsAdj_at]; exact hx m
+    · rcases Nat.lt_or_ge i (r + 2) with h3 | h3
+      · rw [show i = r + 1 from by omega, rowsAdj_succ]; exact hy m
+      · rw [rowsAdj_other E r x y (by omega) (by omega)]; exact hE _ _
+
+/-- Off row `r`, the first substituted row is invisible. -/
+theorem rowsAdj_congr_at (E : Nat → Nat → ZFSet.{u}) (r : Nat)
+    (u v y : Nat → ZFSet.{u}) {i : Nat} (hi : i ≠ r) (m : Nat) :
+    rowsAdj E r u y i m = rowsAdj E r v y i m := by
+  rcases Nat.lt_or_ge i (r + 1) with h | h
+  · rw [rowsAdj_other E r u y hi (by omega), rowsAdj_other E r v y hi (by omega)]
+  · rcases Nat.lt_or_ge i (r + 2) with h2 | h2
+    · rw [show i = r + 1 from by omega, rowsAdj_succ, rowsAdj_succ]
+    · rw [rowsAdj_other E r u y hi (by omega), rowsAdj_other E r v y hi (by omega)]
+
+/-- Off row `r + 1`, the second substituted row is invisible. -/
+theorem rowsAdj_congr_succ (E : Nat → Nat → ZFSet.{u}) (r : Nat)
+    (x u v : Nat → ZFSet.{u}) {i : Nat} (hi : i ≠ r + 1) (m : Nat) :
+    rowsAdj E r x u i m = rowsAdj E r x v i m := by
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [rowsAdj_other E r x u (by omega) hi, rowsAdj_other E r x v (by omega) hi]
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, rowsAdj_at, rowsAdj_at]
+    · rw [rowsAdj_other E r x u (by omega) hi, rowsAdj_other E r x v (by omega) hi]
+
+/-- Multilinearity at row `r`, in the `rowsAdj` vocabulary. -/
+theorem detN_rowsAdj_add_at {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) {u v y : Nat → ZFSet.{u}}
+    (hu : ∀ m, u m ∈ R) (hv : ∀ m, v m ∈ R) (hy : ∀ m, y m ∈ R) (r n : Nat) :
+    detN R add mul zero one
+        (rowsAdj E r (fun m => opAt add (u m) (v m)) y) (r + n + 2)
+      = opAt add (detN R add mul zero one (rowsAdj E r u y) (r + n + 2))
+                 (detN R add mul zero one (rowsAdj E r v y) (r + n + 2)) := by
+  have h := detN_rowk_add hR r (n + 1) (rowsAdj E r u y) (rowsAdj E r v y)
+    (rowsAdj E r (fun m => opAt add (u m) (v m)) y)
+    (rowsAdj_mem hE hu hy r) (rowsAdj_mem hE hv hy r)
+    (fun i m hi => rowsAdj_congr_at E r u (fun c => opAt add (u c) (v c)) y hi m)
+    (fun i m hi => rowsAdj_congr_at E r v (fun c => opAt add (u c) (v c)) y hi m)
+    (fun m => by rw [rowsAdj_at, rowsAdj_at, rowsAdj_at])
+  rwa [show r + (n + 1) + 1 = r + n + 2 from by omega] at h
+
+/-- Multilinearity at row `r + 1`, in the same vocabulary. -/
+theorem detN_rowsAdj_add_succ {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) {x u v : Nat → ZFSet.{u}}
+    (hx : ∀ m, x m ∈ R) (hu : ∀ m, u m ∈ R) (hv : ∀ m, v m ∈ R) (r n : Nat) :
+    detN R add mul zero one
+        (rowsAdj E r x (fun m => opAt add (u m) (v m))) (r + n + 2)
+      = opAt add (detN R add mul zero one (rowsAdj E r x u) (r + n + 2))
+                 (detN R add mul zero one (rowsAdj E r x v) (r + n + 2)) := by
+  have h := detN_rowk_add hR (r + 1) n (rowsAdj E r x u) (rowsAdj E r x v)
+    (rowsAdj E r x (fun m => opAt add (u m) (v m)))
+    (rowsAdj_mem hE hx hu r) (rowsAdj_mem hE hx hv r)
+    (fun i m hi => rowsAdj_congr_succ E r x u (fun c => opAt add (u c) (v c)) hi m)
+    (fun i m hi => rowsAdj_congr_succ E r x v (fun c => opAt add (u c) (v c)) hi m)
+    (fun m => by rw [rowsAdj_succ, rowsAdj_succ, rowsAdj_succ])
+  rwa [show r + 1 + n + 1 = r + n + 2 from by omega] at h
+
+/-- ANTISYMMETRY at ANY adjacent pair, still characteristic-free.
+`detN_antisym` is this at `r = 0`. The same four-term expansion: the matrix
+whose rows `r` and `r + 1` are both `a + b` is zero by `detN_rows_adj`,
+multilinearity at those two rows splits it into four, and two of the four
+vanish by `detN_rows_adj` again. -/
+theorem detN_antisym_adj {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) {a b : Nat → ZFSet.{u}}
+    (ha : ∀ m, a m ∈ R) (hb : ∀ m, b m ∈ R) (r n : Nat) :
+    opAt add (detN R add mul zero one (rowsAdj E r a b) (r + n + 2))
+             (detN R add mul zero one (rowsAdj E r b a) (r + n + 2)) = zero := by
+  have hM := isCommMonoid_ringAdd hR
+  have hab : ∀ m, opAt add (a m) (b m) ∈ R :=
+    fun m => opAt_mem_monoid hM (ha m) (hb m)
+  have vanish : ∀ x : Nat → ZFSet.{u}, (∀ m, x m ∈ R) →
+      detN R add mul zero one (rowsAdj E r x x) (r + n + 2) = zero :=
+    fun x hx => detN_rows_adj hR r n (rowsAdj E r x x) (rowsAdj_mem hE hx hx r)
+      (fun c => by rw [rowsAdj_at, rowsAdj_succ])
+  have h0 := detN_rowsAdj_add_at hR hE ha hb hab r n
+  have h1 := detN_rowsAdj_add_succ hR hE ha ha hb r n
+  have h2 := detN_rowsAdj_add_succ hR hE hb ha hb r n
+  have hmab : detN R add mul zero one (rowsAdj E r a b) (r + n + 2) ∈ R :=
+    detN_mem hR (rowsAdj_mem hE ha hb r) (r + n + 2)
+  have hmba : detN R add mul zero one (rowsAdj E r b a) (r + n + 2) ∈ R :=
+    detN_mem hR (rowsAdj_mem hE hb ha r) (r + n + 2)
+  rw [h1, h2, vanish a ha, vanish b hb, hM.left_id _ hmab,
+    right_id_monoid hM hmba] at h0
+  rw [← h0, vanish (fun m => opAt add (a m) (b m)) hab]
+
+/-- Substituting a row's own entries changes nothing. -/
+theorem rowsAdj_self (E : Nat → Nat → ZFSet.{u}) (r i m : Nat) :
+    rowsAdj E r (E r) (E (r + 1)) i m = E i m := by
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [rowsAdj_other E r _ _ (by omega) (by omega)]
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, rowsAdj_at]
+    · rcases Nat.lt_or_ge i (r + 2) with h3 | h3
+      · rw [show i = r + 1 from by omega, rowsAdj_succ]
+      · rw [rowsAdj_other E r _ _ (by omega) (by omega)]
+
+/-- Swapping two adjacent rows negates, in the additive form. -/
+theorem detN_swap_adj {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
+    (hE : ∀ i m, E i m ∈ R) (r n : Nat) :
+    opAt add (detN R add mul zero one E (r + n + 2))
+             (detN R add mul zero one
+               (rowsAdj E r (E (r + 1)) (E r)) (r + n + 2)) = zero := by
+  have h := detN_antisym_adj hR hE (a := E r) (b := E (r + 1))
+    (fun m => hE _ _) (fun m => hE _ _) r n
+  rwa [detN_congr (fun i m => rowsAdj_self E r i m) (r + n + 2)] at h
+
+/-- ALTERNATION at ANY two equal rows, not only adjacent ones. Induction on
+the GAP: swap the lower of the pair down one, which does not touch the other,
+and the swapped matrix has the same two entries one step closer.
+
+Not via antisymmetry applied to a matrix equal to itself -- that is `2 * det = 0`
+again, and useless in characteristic 2. The swapped matrix is zero by the
+induction hypothesis, and `x + 0 = 0` gives `x = 0` with no cancellation. -/
+theorem detN_rows_eq {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) :
+    ∀ (d i n : Nat) (E : Nat → Nat → ZFSet.{u}), (∀ a m, E a m ∈ R) →
+      (∀ c, E i c = E (i + d + 1) c) →
+      detN R add mul zero one E (i + d + n + 2) = zero := by
+  intro d
+  induction d with
+  | zero =>
+    intro i n E hE hrows
+    rw [show i + 0 + n + 2 = i + n + 2 from by omega]
+    exact detN_rows_adj hR i n E hE (fun c => by
+      have := hrows c; rwa [show i + 0 + 1 = i + 1 from by omega] at this)
+  | succ k ih =>
+    intro i n E hE hrows
+    have hswap := ih i (n + 1) (rowsAdj E (i + k + 1) (E (i + k + 2)) (E (i + k + 1)))
+      (rowsAdj_mem hE (fun m => hE _ _) (fun m => hE _ _) (i + k + 1))
+      (fun c => by
+        rw [rowsAdj_other E (i + k + 1) _ _ (by omega) (by omega),
+          show i + k + 1 = i + k + 1 from rfl, rowsAdj_at]
+        exact hrows c)
+    have h := detN_swap_adj hR hE (i + k + 1) n
+    rw [show i + k + 1 + n + 2 = i + (k + 1) + n + 2 from by omega] at h
+    rw [show i + k + (n + 1) + 2 = i + (k + 1) + n + 2 from by omega] at hswap
+    rw [show i + k + 2 = i + k + 1 + 1 from by omega] at hswap
+    rw [hswap, right_id_monoid (isCommMonoid_ringAdd hR)
+      (detN_mem hR hE (i + (k + 1) + n + 2))] at h
+    exact h
+
+
+#print axioms detN_antisym_adj
+#print axioms rowsAdj_self
+#print axioms detN_swap_adj
+#print axioms detN_rows_eq
+
+/-- Pairs `a < i` at which the permutation inverts against position `j`. -/
+def invRow (s : Nat → Nat) (j : Nat) : Nat → Nat
+  | 0 => 0
+  | i + 1 => invRow s j i + (if s j < s i then 1 else 0)
+
+theorem invRow_succ (s : Nat → Nat) (j i : Nat) :
+    invRow s j (i + 1) = invRow s j i + (if s j < s i then 1 else 0) := rfl
+
+/-- Inversions among the first `n` positions. -/
+def inversions (s : Nat → Nat) : Nat → Nat
+  | 0 => 0
+  | j + 1 => inversions s j + invRow s j j
+
+/-- Swapping a permutation's VALUES at `r` and `r + 1`.
+
+`swapAt`, in `GeomPolyhedron.lean`, is the index transposition this is
+precomposition with,
+and this would be `fun i => s (swapAt r (r+1) i)` if it could be reached --
+that file and this one are siblings, neither importing the other, so the
+definition is restated rather than shared. Lowering `swapAt` to a file both can
+see would retire this one. -/
+def swapVal (r : Nat) (s : Nat → Nat) : Nat → Nat :=
+  fun i => if i = r then s (r + 1) else if i = r + 1 then s r else s i
+
+theorem swapVal_at (r : Nat) (s : Nat → Nat) : swapVal r s r = s (r + 1) := by
+  unfold swapVal; rw [if_pos rfl]
+
+theorem swapVal_succ (r : Nat) (s : Nat → Nat) : swapVal r s (r + 1) = s r := by
+  unfold swapVal; rw [if_neg (by omega), if_pos rfl]
+
+theorem swapVal_other {r i : Nat} (s : Nat → Nat) (h1 : i ≠ r) (h2 : i ≠ r + 1) :
+    swapVal r s i = s i := by
+  unfold swapVal; rw [if_neg h1, if_neg h2]
+
+/-- Below the swapped pair, nothing moves, so the row counts agree. -/
+theorem invRow_below {r j : Nat} (s : Nat → Nat) (h1 : j ≠ r) (h2 : j ≠ r + 1)
+    (i : Nat) (hi : i ≤ r) : invRow (swapVal r s) j i = invRow s j i := by
+  induction i with
+  | zero => rfl
+  | succ k ih =>
+    show invRow (swapVal r s) j k + _ = invRow s j k + _
+    rw [ih (by omega), swapVal_other s (show k ≠ r by omega) (by omega),
+      swapVal_other s h1 h2]
+
+/-- Above the swapped pair the row count is unchanged: the two positions
+contribute the same two values in the other order, and every other position is
+untouched. This step is uniform in `r`, so the parity lemma splits by ROW RANGE
+and not by where the swap sits. -/
+theorem invRow_above {r j : Nat} (s : Nat → Nat) (h1 : j ≠ r) (h2 : j ≠ r + 1) :
+    ∀ i : Nat, r + 2 ≤ i → invRow (swapVal r s) j i = invRow s j i := by
+  intro i
+  induction i with
+  | zero => intro h; exact absurd h (by omega)
+  | succ k ih =>
+    intro hk
+    rw [invRow_succ, invRow_succ]
+    rcases Nat.lt_or_ge (r + 1) k with h | h
+    · rw [ih (by omega), swapVal_other s (show k ≠ r by omega) (by omega),
+        swapVal_other s h1 h2]
+    · obtain rfl : k = r + 1 := by omega
+      rw [invRow_succ, invRow_succ, invRow_below s h1 h2 r (by omega),
+        swapVal_at, swapVal_succ, swapVal_other s h1 h2]
+      omega
+
+#print axioms invRow
+#print axioms invRow_succ
+#print axioms inversions
+#print axioms swapVal
+#print axioms swapVal_at
+#print axioms swapVal_succ
+#print axioms swapVal_other
+#print axioms invRow_below
+#print axioms invRow_above
+
+/-- Positions `a < i` whose value `v` sits below. `invRow` is this at `v = s j`. -/
+def invCount (v : Nat) (s : Nat → Nat) : Nat → Nat
+  | 0 => 0
+  | i + 1 => invCount v s i + (if v < s i then 1 else 0)
+
+theorem invRow_eq_invCount (s : Nat → Nat) (j i : Nat) :
+    invRow s j i = invCount (s j) s i := by
+  induction i with
+  | zero => rfl
+  | succ k ih => show invRow s j k + _ = invCount (s j) s k + _; rw [ih]
+
+theorem invCount_succ (v : Nat) (s : Nat → Nat) (i : Nat) :
+    invCount v s (i + 1) = invCount v s i + (if v < s i then 1 else 0) := rfl
+
+/-- Below the swapped pair the count against any value is unchanged. -/
+theorem invCount_below {r : Nat} (v : Nat) (s : Nat → Nat) :
+    ∀ i, i ≤ r → invCount v (swapVal r s) i = invCount v s i := by
+  intro i
+  induction i with
+  | zero => intro _; rfl
+  | succ k ih =>
+    intro hk
+    rw [invCount_succ, invCount_succ, ih (by omega),
+      swapVal_other s (show k ≠ r by omega) (by omega)]
+
+/-- The two rows the swap touches, before and after. -/
+theorem invRow_at_swap {r : Nat} (s : Nat → Nat) :
+    invRow (swapVal r s) r r = invCount (s (r + 1)) s r := by
+  rw [invRow_eq_invCount, swapVal_at, invCount_below _ s r (by omega)]
+
+theorem invRow_succ_swap {r : Nat} (s : Nat → Nat) :
+    invRow (swapVal r s) (r + 1) (r + 1)
+      = invCount (s r) s r + (if s r < s (r + 1) then 1 else 0) := by
+  rw [invRow_eq_invCount, swapVal_succ, invCount_succ,
+    invCount_below _ s r (by omega), swapVal_at]
+
+theorem invRow_succ_id {r : Nat} (s : Nat → Nat) :
+    invRow s (r + 1) (r + 1)
+      = invCount (s (r + 1)) s r + (if s (r + 1) < s r then 1 else 0) := by
+  rw [invRow_eq_invCount, invCount_succ]
+
+/-- Below the pair, the whole inversion count is unchanged. -/
+theorem inversions_below {r : Nat} (s : Nat → Nat) :
+    ∀ i, i ≤ r → inversions (swapVal r s) i = inversions s i := by
+  intro i
+  induction i with
+  | zero => intro _; rfl
+  | succ k ih =>
+    intro hk
+    show inversions (swapVal r s) k + _ = inversions s k + _
+    rw [ih (by omega), invRow_eq_invCount, invRow_eq_invCount,
+      swapVal_other s (show k ≠ r by omega) (by omega),
+      invCount_below _ s k (by omega)]
+
+/-- The balanced identity, and it needs NO injectivity. The two rows the
+swap touches exchange their contributions from below, and the only asymmetry is
+the pair itself. -/
+theorem inversions_swapVal {r : Nat} (s : Nat → Nat) :
+    ∀ n, r + 2 ≤ n →
+      inversions (swapVal r s) n + (if s (r + 1) < s r then 1 else 0)
+        = inversions s n + (if s r < s (r + 1) then 1 else 0) := by
+  intro n
+  induction n with
+  | zero => intro h; exact absurd h (by omega)
+  | succ k ih =>
+    intro hk
+    rcases Nat.lt_or_ge (r + 1) k with h | h
+    · show inversions (swapVal r s) k + invRow (swapVal r s) k k + _
+        = inversions s k + invRow s k k + _
+      rw [invRow_above s (show k ≠ r by omega) (by omega) k (by omega)]
+      have hih := ih (by omega)
+      omega
+    · obtain rfl : k = r + 1 := by omega
+      show inversions (swapVal r s) (r + 1) + invRow (swapVal r s) (r + 1) (r + 1) + _
+        = inversions s (r + 1) + invRow s (r + 1) (r + 1) + _
+      show inversions (swapVal r s) r + invRow (swapVal r s) r r
+          + invRow (swapVal r s) (r + 1) (r + 1) + _
+        = inversions s r + invRow s r r + invRow s (r + 1) (r + 1) + _
+      rw [inversions_below s r (by omega), invRow_at_swap s, invRow_succ_swap s,
+        invRow_eq_invCount s r r, invRow_succ_id s]
+      omega
+
+#print axioms invCount
+#print axioms invRow_eq_invCount
+#print axioms invCount_succ
+#print axioms invCount_below
+#print axioms invRow_at_swap
+#print axioms invRow_succ_swap
+#print axioms invRow_succ_id
+#print axioms inversions_below
+#print axioms inversions_swapVal
+
+/-- Adjacent non-descent chains into non-descent at a distance. -/
+theorem mono_of_adj {s : Nat → Nat} {n : Nat}
+    (h : ∀ r, r + 1 < n → s r ≤ s (r + 1)) :
+    ∀ b a, a ≤ b → b < n → s a ≤ s b := by
+  intro b
+  induction b with
+  | zero => intro a hab _; rw [show a = 0 from by omega]; exact Nat.le_refl _
+  | succ k ih =>
+    intro a hab hb
+    rcases Nat.lt_or_ge a (k + 1) with hlt | hge
+    · exact Nat.le_trans (ih a (by omega) (by omega)) (h k (by omega))
+    · rw [show a = k + 1 from by omega]; exact Nat.le_refl _
+
+/-- No adjacent descent means no inversions at all. -/
+theorem inversions_eq_zero_of_adj {s : Nat → Nat} {n : Nat}
+    (h : ∀ r, r + 1 < n → s r ≤ s (r + 1)) : inversions s n = 0 := by
+  have hrow : ∀ j, j < n → invRow s j j = 0 := by
+    intro j hj
+    induction j with
+    | zero => rfl
+    | succ k ih =>
+      have hzero : ∀ i, i ≤ k + 1 → invRow s (k + 1) i = 0 := by
+        intro i
+        induction i with
+        | zero => intro _; rfl
+        | succ m ihm =>
+          intro hm
+          rw [invRow_succ, ihm (by omega),
+            if_neg (show ¬ s (k + 1) < s m from by
+              have := mono_of_adj h (k + 1) m (by omega) hj
+              omega)]
+      exact hzero (k + 1) (by omega)
+  induction n with
+  | zero => rfl
+  | succ k ihn =>
+    show inversions s k + invRow s k k = 0
+    rw [hrow k (by omega), ihn (fun r hr => h r (by omega))
+      (fun j hj => hrow j (by omega))]
+
+/-- A nonzero inversion count supplies an ADJACENT descent. The step the
+sign induction needs: a global inversion is not directly usable, because the
+only move that changes the count by one is an adjacent swap.
+
+Choice-free: the descent is found by `exists_lt_or_not`, a BOUNDED search with
+the decision supplied as a hypothesis, which `Nat` comparison discharges.
+Reading `¬ ∀` as `∃` would have cost a principle. -/
+theorem exists_descent {s : Nat → Nat} {n : Nat} (h : inversions s n ≠ 0) :
+    ∃ r, r + 1 < n ∧ s (r + 1) < s r := by
+  have hdec : ∀ r, s (r + 1) < s r ∨ ¬ s (r + 1) < s r := by
+    intro r
+    rcases Nat.lt_or_ge (s (r + 1)) (s r) with h1 | h1
+    · exact Or.inl h1
+    · exact Or.inr (by omega)
+  rcases exists_lt_or_not hdec (n - 1) with ⟨r, hr, hQ⟩ | hno
+  · exact ⟨r, by omega, hQ⟩
+  · exact absurd (inversions_eq_zero_of_adj (fun r hr => by
+      have := hno r (by omega); omega)) h
+
+/-- A determinant reads only the entries inside its own square. `detN_congr`
+asks for agreement everywhere; the permutation argument has two matrices that
+agree only on rows below `n`, so the bounded form is the one it needs.
+
+The column bound is what makes the recursion go: `matMinor` sends a column `m`
+to `m` or `m + 1`, and both stay below `n + 1` when `m < n`. -/
+theorem detN_congr_lt {R add mul zero one : ZFSet.{u}}
+    {E F : Nat → Nat → ZFSet.{u}} :
+    ∀ n : Nat, (∀ i m, i < n → m < n → E i m = F i m) →
+      detN R add mul zero one E n = detN R add mul zero one F n
+  | 0, _ => rfl
+  | n + 1, h => by
+    rw [detN_succ, detN_succ]
+    refine foldF_congr (n + 1) (fun j hj => ?_)
+    rw [detTerm_eq, detTerm_eq, h 0 j (by omega) hj,
+      detN_congr_lt (E := matMinor E j) (F := matMinor F j) n (fun i m hi hm => by
+        show E (i + 1) _ = F (i + 1) _
+        refine h (i + 1) _ (by omega) ?_
+        rcases Nat.lt_or_ge m j with hmj | hmj
+        · rw [if_pos hmj]; omega
+        · rw [if_neg (by omega)]; omega)]
+
+/-- Strict increase compounds: `f` rises at least as fast as the index. -/
+theorem strictMono_step {f : Nat → Nat} {n : Nat}
+    (h : ∀ r, r + 1 < n → f r < f (r + 1)) :
+    ∀ k i, i + k < n → f i + k ≤ f (i + k) := by
+  intro k
+  induction k with
+  | zero => intro i _; rw [Nat.add_zero, Nat.add_zero]; exact Nat.le_refl _
+  | succ m ih =>
+    intro i hi
+    have h1 := ih i (by omega)
+    have h2 := h (i + m) (by omega)
+    rw [show i + (m + 1) = (i + m) + 1 from by omega]
+    omega
+
+/-- No inversions means the identity, on the range. Nondecreasing plus
+injective is strictly increasing; strictly increasing bounds `f i` below by `i`,
+and running the same step up to `n - 1` bounds it above by `i` as well. -/
+theorem eq_self_of_no_descent {f finv : Nat → Nat} {n : Nat}
+    (hf : ∀ m, m < n → f m < n) (hinv : ∀ m, m < n → finv (f m) = m)
+    (hmono : ∀ r, r + 1 < n → f r ≤ f (r + 1)) :
+    ∀ i, i < n → f i = i := by
+  have hstrict : ∀ r, r + 1 < n → f r < f (r + 1) := by
+    intro r hr
+    have hne : f r ≠ f (r + 1) := by
+      intro heq
+      have h1 := hinv r (by omega)
+      have h2 := hinv (r + 1) (by omega)
+      rw [heq] at h1
+      omega
+    have := hmono r hr
+    omega
+  intro i hi
+  have hlow : i ≤ f i := by
+    have hs := strictMono_step hstrict i 0 (by omega)
+    rw [Nat.zero_add] at hs
+    omega
+  have hhigh : f i ≤ i := by
+    have hk := strictMono_step hstrict (n - 1 - i) i (by omega)
+    have hb : f (i + (n - 1 - i)) < n := hf _ (by omega)
+    omega
+  omega
+
+/-- Swapping AT a descent drops the inversion count by exactly one. The
+measure the sign induction runs on. Immediate from the balanced identity: at a
+descent the two indicator terms are `1` and `0`. -/
+theorem inversions_descent {f : Nat → Nat} {r n : Nat}
+    (hd : f (r + 1) < f r) (hn : r + 2 ≤ n) :
+    inversions (swapVal r f) n + 1 = inversions f n := by
+  have h := inversions_swapVal f n hn
+  rw [if_pos hd, if_neg (show ¬ f r < f (r + 1) from by omega)] at h
+  omega
+
+/-- Swapping two of a permutation's values keeps it inside the range. -/
+theorem swapVal_maps {f : Nat → Nat} {r n : Nat} (hr : r + 1 < n)
+    (hf : ∀ m, m < n → f m < n) : ∀ m, m < n → swapVal r f m < n := by
+  intro m hm
+  rcases Nat.lt_or_ge m r with h | h
+  · rw [swapVal_other f (by omega) (by omega)]; exact hf m hm
+  · rcases Nat.lt_or_ge m (r + 1) with h2 | h2
+    · rw [show m = r from by omega, swapVal_at]; exact hf _ (by omega)
+    · rcases Nat.lt_or_ge m (r + 2) with h3 | h3
+      · rw [show m = r + 1 from by omega, swapVal_succ]; exact hf _ (by omega)
+      · rw [swapVal_other f (by omega) (by omega)]; exact hf m hm
+
+/-- The swapped permutation's left inverse: undo `f`, then undo the swap. -/
+theorem swapVal_inv {f finv : Nat → Nat} {r n : Nat} (hr : r + 1 < n)
+    (hinv : ∀ m, m < n → finv (f m) = m) :
+    ∀ m, m < n → swapVal r (fun x => x) (finv (swapVal r f m)) = m := by
+  intro m hm
+  rcases Nat.lt_or_ge m r with h | h
+  · rw [swapVal_other f (by omega) (by omega), hinv m hm,
+      swapVal_other (fun x => x) (by omega) (by omega)]
+  · rcases Nat.lt_or_ge m (r + 1) with h2 | h2
+    · rw [show m = r from by omega, swapVal_at, hinv _ (by omega), swapVal_succ]
+    · rcases Nat.lt_or_ge m (r + 2) with h3 | h3
+      · rw [show m = r + 1 from by omega, swapVal_succ, hinv _ (by omega),
+          swapVal_at]
+      · rw [swapVal_other f (by omega) (by omega), hinv m hm,
+          swapVal_other (fun x => x) (by omega) (by omega)]
+
+/-- Permuting rows by a swapped permutation IS swapping two rows. -/
+theorem rows_swapVal (B : Nat → Nat → ZFSet.{u}) (f : Nat → Nat) (r i m : Nat) :
+    B (swapVal r f i) m
+      = rowsAdj (fun a => B (f a)) r (B (f (r + 1))) (B (f r)) i m := by
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [swapVal_other f (by omega) (by omega),
+      rowsAdj_other _ r _ _ (by omega) (by omega)]
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, swapVal_at, rowsAdj_at]
+    · rcases Nat.lt_or_ge i (r + 2) with h3 | h3
+      · rw [show i = r + 1 from by omega, swapVal_succ, rowsAdj_succ]
+      · rw [swapVal_other f (by omega) (by omega),
+          rowsAdj_other _ r _ _ (by omega) (by omega)]
+
+/-- A descent forces a nonzero inversion count -- the converse direction to
+`exists_descent`, and what makes the base case of the sign induction usable. -/
+theorem inversions_ne_zero_of_descent {f : Nat → Nat} {r n : Nat}
+    (hd : f (r + 1) < f r) (hn : r + 2 ≤ n) : inversions f n ≠ 0 := by
+  have h := inversions_descent hd hn
+  omega
+
+/-- PERMUTING THE ROWS MULTIPLIES THE DETERMINANT BY THE SIGN.
+
+The sign is `ringSign` applied to the inversion count -- a `Nat` parity, so
+nothing in `R` has to be invertible or distinguishable from its negative, and
+no characteristic hypothesis appears.
+
+Induction on the inversion count. At zero the permutation is the identity on
+the range (`eq_self_of_no_descent`, reached because a descent would force the
+count up); above zero a descent exists (`exists_descent`), swapping there drops
+the count by exactly one (`inversions_descent`) and negates the determinant
+(`detN_swap_adj`), and `ringSign_succ` matches the two. -/
+theorem detN_perm {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {B : Nat → Nat → ZFSet.{u}}
+    (hB : ∀ i m, B i m ∈ R) (n : Nat) :
+    ∀ k : Nat, ∀ f finv : Nat → Nat, inversions f n = k →
+      (∀ m, m < n → f m < n) → (∀ m, m < n → finv (f m) = m) →
+      detN R add mul zero one (fun i => B (f i)) n
+        = ringSign R add zero (inversions f n)
+            (detN R add mul zero one B n) := by
+  intro k
+  induction k using Nat.strongRecOn with
+  | _ k ih =>
+    intro f finv hk hf hinv
+    rcases Nat.eq_zero_or_pos k with hk0 | hkpos
+    · -- no inversions: the permutation is the identity on the range
+      have hno : ∀ r, r + 1 < n → f r ≤ f (r + 1) := by
+        intro r hr
+        rcases Nat.lt_or_ge (f (r + 1)) (f r) with hd | hd
+        · exact absurd (hk.trans hk0)
+            (inversions_ne_zero_of_descent hd (by omega))
+        · omega
+      have hid := eq_self_of_no_descent hf hinv hno
+      rw [hk, hk0, detN_congr_lt (E := fun i => B (f i)) (F := B) n
+        (fun i m hi _ => by show B (f i) m = B i m; rw [hid i hi])]
+      rfl
+    · -- a descent exists; swap there
+      have hne : inversions f n ≠ 0 := by omega
+      obtain ⟨r, hr, hd⟩ := exists_descent hne
+      have hdrop : inversions (swapVal r f) n + 1 = inversions f n :=
+        inversions_descent hd (by omega)
+      have hIH := ih (inversions (swapVal r f) n) (by omega)
+        (swapVal r f) (fun x => swapVal r (fun y => y) (finv x)) rfl
+        (swapVal_maps hr hf)
+        (fun m hm => swapVal_inv (finv := finv) hr hinv m hm)
+      -- the two matrices differ by one adjacent row swap
+      have hswap := detN_swap_adj hR (E := fun i => B (f i))
+        (fun i m => hB _ _) r (n - r - 2)
+      rw [show r + (n - r - 2) + 2 = n from by omega] at hswap
+      have hrows : detN R add mul zero one (fun i => B (swapVal r f i)) n
+          = detN R add mul zero one
+              (rowsAdj (fun a => B (f a)) r (B (f (r + 1))) (B (f r))) n :=
+        detN_congr (fun i m => rows_swapVal B f r i m) n
+      rw [hrows] at hIH
+      have hmem : detN R add mul zero one B n ∈ R := detN_mem hR hB n
+      have hm1 : detN R add mul zero one (fun i => B (f i)) n ∈ R :=
+        detN_mem hR (fun i m => hB _ _) n
+      have hm2 : detN R add mul zero one
+          (rowsAdj (fun a => B (f a)) r (B (f (r + 1))) (B (f r))) n ∈ R :=
+        detN_mem hR (rowsAdj_mem (fun i m => hB _ _)
+          (fun m => hB _ _) (fun m => hB _ _) r) n
+      have hcomm : opAt add
+          (detN R add mul zero one
+            (rowsAdj (fun a => B (f a)) r (B (f (r + 1))) (B (f r))) n)
+          (detN R add mul zero one (fun i => B (f i)) n) = zero := by
+        rw [hR.addComm _ hm2 _ hm1]; exact hswap
+      have hgoal := (ringNeg_eq_of_add_zero hR hm2 hm1 hcomm).symm
+      rw [hgoal, hIH, ← ringSign_succ hR hmem, hdrop]
+
+#print axioms mono_of_adj
+#print axioms inversions_eq_zero_of_adj
+#print axioms exists_descent
+#print axioms detN_congr_lt
+#print axioms strictMono_step
+#print axioms eq_self_of_no_descent
+#print axioms inversions_descent
+#print axioms swapVal_maps
+#print axioms swapVal_inv
+#print axioms rows_swapVal
+#print axioms inversions_ne_zero_of_descent
+#print axioms detN_perm
+
+/-- HOMOGENEITY at any row: scaling one row scales the determinant. The
+other half of multilinearity, and the half the `det (A*B)` expansion needs --
+each term of `(A*B) i k` is `A i j` TIMES a row of `B`, so the expansion peels a
+scalar as well as a sum.
+
+Same row-index shift as `detN_rowk_add`: row `r + 1` is row `r` of every minor,
+so the induction runs on the row and each step pulls the scalar out of one
+fold. -/
+theorem detN_row_smul {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) :
+    ∀ (r n : Nat) (c : ZFSet.{u}) (A C : Nat → Nat → ZFSet.{u}), c ∈ R →
+      (∀ i m, A i m ∈ R) →
+      (∀ i m, i ≠ r → A i m = C i m) →
+      (∀ m, C r m = opAt mul c (A r m)) →
+      detN R add mul zero one C (r + n + 1)
+        = opAt mul c (detN R add mul zero one A (r + n + 1)) := by
+  intro r
+  induction r with
+  | zero =>
+    intro n c A C hc hA hAC hrow
+    rw [Nat.zero_add, detN_succ, detN_succ,
+      foldF_mul_left hR hc (fun j => by
+        rw [detTerm_eq]
+        exact ringSign_mem (c := j) hR (mulAt_mem hR (hA 0 j)
+          (detN_mem hR (matMinor_mem hA j) n))) (n + 1)]
+    refine foldF_congr (n + 1) (fun j _ => ?_)
+    have hD : detN R add mul zero one (matMinor A j) n ∈ R :=
+      detN_mem hR (matMinor_mem hA j) n
+    have hmin : detN R add mul zero one (matMinor C j) n
+        = detN R add mul zero one (matMinor A j) n :=
+      detN_congr (fun i m => (hAC (i + 1) _ (by omega)).symm) n
+    rw [detTerm_eq, detTerm_eq, hmin, hrow j,
+      hR.mulAssoc _ hc _ (hA 0 j) _ hD,
+      ringSign_mul hR hc (mulAt_mem hR (hA 0 j) hD) j]
+  | succ k ih =>
+    intro n c A C hc hA hAC hrow
+    rw [show k + 1 + n + 1 = (k + n + 1) + 1 from by omega, detN_succ, detN_succ,
+      foldF_mul_left hR hc (fun j => by
+        rw [detTerm_eq]
+        exact ringSign_mem (c := j) hR (mulAt_mem hR (hA 0 j)
+          (detN_mem hR (matMinor_mem hA j) (k + n + 1)))) (k + n + 2)]
+    refine foldF_congr (k + n + 2) (fun j _ => ?_)
+    have hD : detN R add mul zero one (matMinor A j) (k + n + 1) ∈ R :=
+      detN_mem hR (matMinor_mem hA j) (k + n + 1)
+    have hmin := ih n c (matMinor A j) (matMinor C j) hc (matMinor_mem hA j)
+      (fun i m hi => hAC (i + 1) _ (by omega)) (fun m => hrow _)
+    rw [detTerm_eq, detTerm_eq, hmin, ← hAC 0 j (by omega),
+      ← hR.mulAssoc _ (hA 0 j) _ hc _ hD,
+      hR.mulComm _ (hA 0 j) _ hc,
+      hR.mulAssoc _ hc _ (hA 0 j) _ hD,
+      ringSign_mul hR hc (mulAt_mem hR (hA 0 j) hD) j]
+
+/-- An entry function with row `r` replaced. The single-row form of `rowsAdj`,
+which the expansion needs because it substitutes one row at a time. -/
+def rowAt (E : Nat → Nat → ZFSet.{u}) (r : Nat) (x : Nat → ZFSet.{u}) :
+    Nat → Nat → ZFSet.{u} :=
+  fun i m => if i = r then x m else E i m
+
+theorem rowAt_at (E : Nat → Nat → ZFSet.{u}) (r : Nat) (x : Nat → ZFSet.{u})
+    (m : Nat) : rowAt E r x r m = x m := by
+  unfold rowAt; rw [if_pos rfl]
+
+theorem rowAt_other (E : Nat → Nat → ZFSet.{u}) (r : Nat) (x : Nat → ZFSet.{u})
+    {i : Nat} (h : i ≠ r) (m : Nat) : rowAt E r x i m = E i m := by
+  unfold rowAt; rw [if_neg h]
+
+theorem rowAt_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
+    {x : Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R) (hx : ∀ m, x m ∈ R) (r : Nat) :
+    ∀ i m, rowAt E r x i m ∈ R := by
+  intro i m
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [rowAt_other E r x (by omega)]; exact hE _ _
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, rowAt_at]; exact hx m
+    · rw [rowAt_other E r x (by omega)]; exact hE _ _
+
+/-- A zero row kills the determinant -- homogeneity at `c = zero`. -/
+theorem detN_row_zero {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (r n : Nat) {C : Nat → Nat → ZFSet.{u}}
+    (hC : ∀ i m, C i m ∈ R) (hz : ∀ m, C r m = zero) :
+    detN R add mul zero one C (r + n + 1) = zero := by
+  have hzm := hR.addGroup.mem_e
+  have h := detN_row_smul hR r n zero C C hzm hC (fun i m _ => rfl)
+    (fun m => by rw [hz m, mul_zero_of_isRing hR hzm])
+  rw [h, hR.mulComm _ hzm _ (detN_mem hR hC (r + n + 1)),
+    mul_zero_of_isRing hR (detN_mem hR hC (r + n + 1))]
+
+/-- A row that is a FOLD of rows expands the determinant into a fold.
+Multilinearity at length `p`, which is what `det (A*B)` needs: each entry of
+`A*B` is a fold, so one row of the product is a fold of scaled rows of `B`. -/
+theorem detN_row_foldF {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (r n : Nat) {E : Nat → Nat → ZFSet.{u}}
+    {G : Nat → Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R) (hG : ∀ j m, G j m ∈ R) :
+    ∀ p : Nat,
+      detN R add mul zero one
+          (rowAt E r (fun m => foldF add zero (fun j => G j m) p)) (r + n + 1)
+        = foldF add zero
+            (fun j => detN R add mul zero one (rowAt E r (G j)) (r + n + 1)) p := by
+  intro p
+  induction p with
+  | zero =>
+    exact detN_row_zero hR r n
+      (rowAt_mem hE (fun m => hR.addGroup.mem_e) r) (fun m => rowAt_at _ _ _ m)
+  | succ q ih =>
+    show detN R add mul zero one
+        (rowAt E r (fun m => opAt add (foldF add zero (fun j => G j m) q) (G q m)))
+        (r + n + 1) = opAt add _ (detN R add mul zero one (rowAt E r (G q)) _)
+    rw [← ih]
+    exact detN_rowk_add hR r n
+      (rowAt E r (fun m => foldF add zero (fun j => G j m) q))
+      (rowAt E r (G q))
+      (rowAt E r (fun m => opAt add (foldF add zero (fun j => G j m) q) (G q m)))
+      (rowAt_mem hE (fun m => foldF_mem (isCommMonoid_ringAdd hR) q
+        (fun j _ => hG j m)) r)
+      (rowAt_mem hE (fun m => hG q m) r)
+      (fun i m hi => by rw [rowAt_other E r _ hi, rowAt_other E r _ hi])
+      (fun i m hi => by rw [rowAt_other E r _ hi, rowAt_other E r _ hi])
+      (fun m => by rw [rowAt_at, rowAt_at, rowAt_at])
+
+#print axioms detN_row_smul
+#print axioms rowAt
+#print axioms rowAt_at
+#print axioms rowAt_other
+#print axioms rowAt_mem
+#print axioms detN_row_zero
+#print axioms detN_row_foldF
+
+/-- The `k`-th base-`b` digit of `m`.
+
+Named `natDigit` rather than `digitOf`, which `TreeDC.lean` already uses for an
+unrelated thing -- a `Bool` rendered as a member of `two`. Same name, different
+subject, and the two files are siblings, so the clash is only visible where
+both land in one environment. -/
+def natDigit (b k m : Nat) : Nat := (m / b ^ k) % b
+
+theorem natDigit_lt {b : Nat} (hb : 0 < b) (k m : Nat) : natDigit b k m < b :=
+  Nat.mod_lt _ hb
+
+/-! Appending at the TOP instead. `foldF_flatten` naturally produces
+`m' = m * b + j`, which puts the new digit at index 0 and shifts every older
+one up -- so a digit written for row `r` at one step no longer names row `r` at
+the next, and the row-to-digit correspondence reverses. Appending at the top
+leaves the old digits where they are, which is what the expansion needs. -/
+
+/-- A digit below the append point is untouched. -/
+theorem natDigit_below_high {b k t j m : Nat} (hb : 0 < b) (hk : k < t) :
+    natDigit b k (j * b ^ t + m) = natDigit b k m := by
+  obtain ⟨d, hd⟩ : ∃ d, t = k + 1 + d := ⟨t - k - 1, by omega⟩
+  have hq : b ^ t = b ^ k * (b * b ^ d) := by
+    rw [hd, Nat.pow_add, Nat.pow_succ, Nat.mul_assoc]
+  have hmul : j * (b ^ k * (b * b ^ d)) = b ^ k * (b * b ^ d * j) := by
+    rw [Nat.mul_comm j (b ^ k * (b * b ^ d)), Nat.mul_assoc]
+  have hnum : j * b ^ t + m = m + b ^ k * (b * b ^ d * j) := by
+    rw [hq, hmul, Nat.add_comm]
+  show (j * b ^ t + m) / b ^ k % b = m / b ^ k % b
+  rw [hnum, Nat.add_mul_div_left _ _ (Nat.pow_pos hb),
+    Nat.mul_assoc, Nat.add_mul_mod_self_left]
+
+/-- The digit AT the append point is the one appended. -/
+theorem natDigit_at_high {b t j m : Nat} (hj : j < b) (hm : m < b ^ t) :
+    natDigit b t (j * b ^ t + m) = j := by
+  have hb : 0 < b := Nat.lt_of_le_of_lt (Nat.zero_le j) hj
+  show (j * b ^ t + m) / b ^ t % b = j
+  rw [show j * b ^ t + m = m + b ^ t * j from by rw [Nat.mul_comm, Nat.add_comm],
+    Nat.add_mul_div_left _ _ (Nat.pow_pos hb),
+    Nat.div_eq_of_lt hm, Nat.zero_add, Nat.mod_eq_of_lt hj]
+
+#print axioms natDigit
+#print axioms natDigit_lt
+#print axioms natDigit_below_high
+#print axioms natDigit_at_high
+
+/-- Injective below `n`. -/
+def InjUpto (f : Nat → Nat) (n : Nat) : Prop :=
+  ∀ a b, a < n → b < n → f a = f b → a = b
+
+/-- Some position below `i` already carries `f k`'s value. -/
+def anyEqBelow (f : Nat → Nat) (k : Nat) : Nat → Bool
+  | 0 => false
+  | i + 1 => anyEqBelow f k i || decide (f i = f k)
+
+/-- Some pair below `n` repeats a value. -/
+def anyRepeat (f : Nat → Nat) : Nat → Bool
+  | 0 => false
+  | k + 1 => anyRepeat f k || anyEqBelow f k k
+
+/-- Injective below `n`, as a decision rather than a proposition. -/
+def injUptoB (f : Nat → Nat) (n : Nat) : Bool := !(anyRepeat f n)
+
+theorem anyEqBelow_of_true (f : Nat → Nat) (k : Nat) :
+    ∀ i, anyEqBelow f k i = true → ∃ j, j < i ∧ f j = f k := by
+  intro i
+  induction i with
+  | zero => intro h; exact Bool.noConfusion h
+  | succ m ih =>
+    intro h
+    rcases Bool.or_eq_true_iff.mp h with h1 | h2
+    · obtain ⟨j, hj, hf⟩ := ih h1
+      exact ⟨j, by omega, hf⟩
+    · exact ⟨m, by omega, of_decide_eq_true h2⟩
+
+theorem anyEqBelow_true (f : Nat → Nat) (k : Nat) :
+    ∀ i, (∃ j, j < i ∧ f j = f k) → anyEqBelow f k i = true := by
+  intro i
+  induction i with
+  | zero => intro hex; obtain ⟨j, hj, _⟩ := hex; exact absurd hj (by omega)
+  | succ m ih =>
+    intro hex
+    obtain ⟨j, hj, hf⟩ := hex
+    refine Bool.or_eq_true_iff.mpr ?_
+    rcases Nat.lt_or_ge j m with h | h
+    · exact Or.inl (ih ⟨j, h, hf⟩)
+    · exact Or.inr (decide_eq_true (by rw [show m = j from by omega]; exact hf))
+
+theorem anyRepeat_of_true (f : Nat → Nat) :
+    ∀ n, anyRepeat f n = true → ∃ j k, j < k ∧ k < n ∧ f j = f k := by
+  intro n
+  induction n with
+  | zero => intro h; exact Bool.noConfusion h
+  | succ p ih =>
+    intro h
+    rcases Bool.or_eq_true_iff.mp h with h1 | h2
+    · obtain ⟨j, k, hjk, hk, hf⟩ := ih h1
+      exact ⟨j, k, hjk, by omega, hf⟩
+    · obtain ⟨j, hj, hf⟩ := anyEqBelow_of_true f p p h2
+      exact ⟨j, p, hj, by omega, hf⟩
+
+theorem anyRepeat_true (f : Nat → Nat) :
+    ∀ n, (∃ j k, j < k ∧ k < n ∧ f j = f k) → anyRepeat f n = true := by
+  intro n
+  induction n with
+  | zero => intro hex; obtain ⟨j, k, _, hk, _⟩ := hex; exact absurd hk (by omega)
+  | succ p ih =>
+    intro hex
+    obtain ⟨j, k, hjk, hk, hf⟩ := hex
+    refine Bool.or_eq_true_iff.mpr ?_
+    rcases Nat.lt_or_ge k p with h | h
+    · exact Or.inl (ih ⟨j, k, hjk, h, hf⟩)
+    · refine Or.inr (anyEqBelow_true f p p ⟨j, by omega, ?_⟩)
+      rw [show p = k from by omega]; exact hf
+
+/-- The decision reflects the proposition. -/
+theorem injUptoB_iff (f : Nat → Nat) (n : Nat) :
+    injUptoB f n = true ↔ InjUpto f n := by
+  rcases Bool.eq_false_or_eq_true (anyRepeat f n) with hyes | hno
+  · obtain ⟨j, k, hjk, hk, hf⟩ := anyRepeat_of_true f n hyes
+    refine ⟨fun hc => ?_, fun hinj => absurd (hinj j k (by omega) hk hf) (by omega)⟩
+    unfold injUptoB at hc
+    rw [hyes] at hc
+    exact Bool.noConfusion hc
+  · have hfalse : ∀ hc : anyRepeat f n = true, False :=
+      fun hc => Bool.noConfusion (hc.symm.trans hno)
+    refine ⟨fun _ a b ha hb hab => ?_, fun _ => by unfold injUptoB; rw [hno]; rfl⟩
+    rcases Nat.lt_trichotomy a b with h | h | h
+    · exact absurd (anyRepeat_true f n ⟨a, b, h, hb, hab⟩) hfalse
+    · exact h
+    · exact absurd (anyRepeat_true f n ⟨b, a, h, ha, hab.symm⟩) hfalse
+
+#print axioms InjUpto
+#print axioms anyEqBelow
+#print axioms anyRepeat
+#print axioms injUptoB
+#print axioms anyEqBelow_of_true
+#print axioms anyEqBelow_true
+#print axioms anyRepeat_of_true
+#print axioms anyRepeat_true
+#print axioms injUptoB_iff
+
+/-- The product `A 0 (g 0) * ... * A (n-1) (g (n-1))`, with `g` read off `m`.
+
+Not `leibTerm` -- that name is taken in this file by the Leibniz rule for the
+DERIVATIVE of a product, which is a different theorem of the same person. -/
+noncomputable def permProd (mul one : ZFSet.{u}) (A : Nat → Nat → ZFSet.{u})
+    (n m : Nat) : ZFSet.{u} :=
+  foldF mul one (fun i => A i (natDigit n i m)) n
+
+theorem permProd_mem {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {A : Nat → Nat → ZFSet.{u}}
+    (hA : ∀ i m, A i m ∈ R) (n m : Nat) : permProd mul one A n m ∈ R :=
+  foldF_mem (isCommMonoid_ringMul hR) n (fun _ _ => hA _ _)
+
+/-- The Leibniz sum: signed products over every assignment, with the
+non-injective ones sent to `zero` rather than excluded from the index set. The
+fold runs over a `Nat` range and injectivity is DECIDED, so nothing has to be
+carved out and nothing is chosen. -/
+noncomputable def leibSum (R add mul zero one : ZFSet.{u})
+    (A : Nat → Nat → ZFSet.{u}) (n : Nat) : ZFSet.{u} :=
+  foldF add zero
+    (fun m => cond (injUptoB (fun i => natDigit n i m) n)
+      (ringSign R add zero (inversions (fun i => natDigit n i m) n)
+        (permProd mul one A n m))
+      zero)
+    (n ^ n)
+
+#print axioms permProd
+#print axioms permProd_mem
+#print axioms leibSum
+/-- `(A * B) i k = sum over j < n of A i j * B j k`. -/
+noncomputable def matMulOn (add mul zero : ZFSet.{u})
+    (A B : Nat → Nat → ZFSet.{u}) (n : Nat) : Nat → Nat → ZFSet.{u} :=
+  fun i k => foldF add zero (fun j => opAt mul (A i j) (B j k)) n
+
+theorem matMulOn_mem {R add mul zero one : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) {A B : Nat → Nat → ZFSet.{u}}
+    (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R) (n : Nat) :
+    ∀ i k, matMulOn add mul zero A B n i k ∈ R :=
+  fun i k => foldF_mem (isCommMonoid_ringAdd hR) n
+    (fun j _ => mulAt_mem hR (hA i j) (hB j k))
+
+#print axioms matMulOn
+#print axioms matMulOn_mem
+#print axioms detN_mem
+#print axioms detN_congr
 end Algebra
+
+#print axioms Algebra.detPair
+#print axioms Algebra.detPair_ge
+#print axioms Algebra.detPair_lt
+#print axioms Algebra.detPair_invol
+#print axioms Algebra.detPair_nofix
+#print axioms Algebra.detPair_maps
+#print axioms Algebra.ringSign
+#print axioms Algebra.ringSign_mem
+#print axioms Algebra.ringSign_succ
+#print axioms Algebra.ringSign_mul
+#print axioms Algebra.ringSign_add
+#print axioms Algebra.foldF_neg
+#print axioms Algebra.matMinor_mem
+#print axioms Algebra.detN_mem
+#print axioms Algebra.detN_congr
+#print axioms Algebra.detSum
+#print axioms Algebra.detSum_norm
+#print axioms Algebra.detSum_swap
+#print axioms Algebra.foldF_ringSign
+#print axioms Algebra.detN_double
+#print axioms Algebra.detSum_mem
+#print axioms Algebra.flat_decomp
+#print axioms Algebra.detSum_pair
+#print axioms Algebra.detN_rows01
+#print axioms Algebra.ringSign_addAt
+#print axioms Algebra.detN_row0_add
+#print axioms Algebra.rows01
+#print axioms Algebra.rows01_mem
+#print axioms Algebra.ringSign_zero
+#print axioms Algebra.detTerm_eq
+#print axioms Algebra.detN_rows_adj
+#print axioms Algebra.detN_rowk_add
+#print axioms Algebra.detN_antisym
+#print axioms Algebra.rowsAdj
+#print axioms Algebra.rowsAdj_at
+#print axioms Algebra.rowsAdj_succ
+#print axioms Algebra.rowsAdj_other
+#print axioms Algebra.rowsAdj_mem
+#print axioms Algebra.rowsAdj_congr_at
+#print axioms Algebra.rowsAdj_congr_succ
+#print axioms Algebra.detN_rowsAdj_add_at
+#print axioms Algebra.detN_rowsAdj_add_succ
 
 #print axioms Algebra.polyOne_mem
 #print axioms Algebra.polyNeg_mem
 #print axioms Algebra.app_polyOfList
 namespace ZFSet
-export Algebra (IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit PolyRing app_evalPoint app_foldF_polyAdd app_linearPoly app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_comm convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_least_index eisenstein_nonzero_high eq_polyZero_of_coeffs eq_polyZero_of_monic_mul equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_tuple exists_tuple_cls foldF_extend foldF_last foldF_last_semi foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_single foldF_single_below foldF_telescope foldF_zeros foldF_zeros_semi isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff monomial monomialCoeff monomialCoeff_mem monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyQuot polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi)
+export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_mem detN_perm detN_row0_add detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls flat_decomp foldF_extend foldF_last foldF_last_semi foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_ringSign foldF_single foldF_single_below foldF_telescope foldF_zeros foldF_zeros_semi injUptoB injUptoB_iff invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing leibSum leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_mem matMulOn matMulOn_mem mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal strictMono_step swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi)
 end ZFSet
