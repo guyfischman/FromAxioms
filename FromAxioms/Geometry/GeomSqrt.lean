@@ -429,13 +429,48 @@ private theorem not_lt_sq {L U : ZFSet.{u}} (h : IsLocated L U)
     have := ratMul_le_mul_right hrQ hqQ hqQ hle hq0
     rwa [ratMul_comm hrQ hqQ] at this
 
+private theorem not_sq_lt {L U : ZFSet.{u}} (h : IsLocated L U) :
+    ¬ realLLt (realLMul (realLSqrt (opair L U)) (realLSqrt (opair L U)))
+        (opair L U) := by
+  rintro ⟨p, hpM, hpL⟩
+  rw [fst_opair] at hpL
+  rw [realLMul, snd_opair, realLSqrt, fst_opair, snd_opair, fst_opair, snd_opair] at hpM
+  obtain ⟨hpQ, q, hq, q', hq', r, hr, r', hr', d₁, d₂, d₃, d₄⟩ :=
+    (mem_mulUpper_iff _ _ _ _ p).mp hpM
+  obtain ⟨hq'Q, hq'0, hq'U⟩ := (mem_sqrtUpper_iff U q').mp hq'
+  obtain ⟨hr'Q, hr'0, hr'U⟩ := (mem_sqrtUpper_iff U r').mp hr'
+  have hpU : p ∈ U := by
+    rcases ratLe_total hq'Q hr'Q with hle | hle
+    · refine h.upper_up _ hq'U _ hpQ ?_
+      refine ratLt_of_le_of_lt (ratMul_mem_Rat hq'Q hq'Q) (ratMul_mem_Rat hq'Q hr'Q)
+        hpQ ?_ d₄
+      have := ratMul_le_mul_right hq'Q hr'Q hq'Q hle hq'0.left
+      rwa [ratMul_comm hr'Q hq'Q] at this
+    · refine h.upper_up _ hr'U _ hpQ ?_
+      refine ratLt_of_le_of_lt (ratMul_mem_Rat hr'Q hr'Q) (ratMul_mem_Rat hq'Q hr'Q)
+        hpQ ?_ d₄
+      exact ratMul_le_mul_right hr'Q hq'Q hr'Q hle hr'0.left
+  exact ratLt_irrefl (h.ordered p hpL p hpU)
+
+/-- `√x · √x = x` for every non-negative located real, at the ambient axioms.
+Existence of square roots -- the Euclidean field axiom -- is therefore free on
+this encoding, and any geometric statement that reduces to one is free with
+it. -/
+theorem realLSqrt_sq {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
+    (hnn : realLLe realLZero.{u} z) :
+    realLMul (realLSqrt z) (realLSqrt z) = z := by
+  obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff z).mp hz
+  exact realLLe_antisymm (realLMul_mem (realLSqrt_mem hz hnn) (realLSqrt_mem hz hnn))
+    hz (not_lt_sq hloc (upper_pos_of_nonneg hloc hnn)) (not_sq_lt hloc)
+
 end Geometry
 
 #print axioms Geometry.isLocated_sqrt
 #print axioms Geometry.realLSqrt_mem
+#print axioms Geometry.realLSqrt_sq
 #print axioms Geometry.exists_gt_sq_lt
 #print axioms Geometry.exists_lt_sq_gt
 
 namespace ZFSet
-export Geometry (exists_gt_sq_lt exists_lt_sq_gt exists_small_step isLocated_sqrt mem_sqrtLower_iff mem_sqrtUpper_iff ratLt_of_sq_lt_sq ratSq_le_sq ratSq_lt_sq realLSqrt realLSqrt_mem sq_shift sqrtLower sqrtUpper upper_pos_of_nonneg)
+export Geometry (exists_gt_sq_lt exists_lt_sq_gt exists_small_step isLocated_sqrt mem_sqrtLower_iff mem_sqrtUpper_iff ratLt_of_sq_lt_sq ratSq_le_sq ratSq_lt_sq realLSqrt realLSqrt_mem realLSqrt_sq sq_shift sqrtLower sqrtUpper upper_pos_of_nonneg)
 end ZFSet

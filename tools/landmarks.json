@@ -74,5 +74,17 @@
  "Constructive.EM": [
   "law of excluded middle, informally",
   -350
+ ],
+ "Analysis.isNested_ternary": [
+  "nested intervals, bisection",
+  1817
+ ],
+ "Algebra.isGroup_congQuotient": [
+  "abstract group",
+  1854
+ ],
+ "SetTheory.em_of_subset_finite": [
+  "intuitionism: excluded middle refused",
+  1907
  ]
 }

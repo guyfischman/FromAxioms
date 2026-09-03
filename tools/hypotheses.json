@@ -1,4 +1,16 @@
 {
+ "EM": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "em",
+   "reverse": "n/a",
+   "shape": "omniscience"
+  },
+  "discharge": "never: it is the thing being measured; every use is a deliberate classical reading",
+  "verdict": "never",
+  "kind": "principle",
+  "meaning": "excluded middle, over arbitrary propositions"
+ },
  "_README": [
   "The hypothesis inventory: principles the library ASSUMES rather than",
   "proves, threaded through binders instead of axioms. A conditional theorem",

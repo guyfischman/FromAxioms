@@ -9,3 +9,4 @@ The Algebra area. This file is generated; it imports every module in
 `FromAxioms/Algebra/`.
 -/
 import FromAxioms.Algebra.Algebra
+import FromAxioms.Algebra.Group

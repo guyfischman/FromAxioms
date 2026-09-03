@@ -56,7 +56,15 @@
   "says nothing."
  ],
  "_unplaced": [],
- "_equivalences": [],
+ "_equivalences": [
+  {
+   "statement": "SetTheory.SubsetFinite",
+   "principle": "em",
+   "reversal": "SetTheory.em_of_subset_finite",
+   "note": "every subset of a finite set is finite. Both directions now: deciding how many elements {z in 1 | p} has decides p, and em supplies the detachability that isFinite_of_detachable needs",
+   "forward": "SetTheory.subsetFinite_of_em"
+  }
+ ],
  "Analysis.realMul": "the sign split. Reversed to EM, but no forward direction is possible: defining data by cases needs the decision as data (Decidable), which EM cannot supply. Proving by cases needs em; defining by cases needs choice; the general form is Constructive.decider_of_em",
  "_open_budget": 0,
  "_choice_budget": 16,

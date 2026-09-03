@@ -11,3 +11,5 @@ The Analysis area. This file is generated; it imports every module in
 import FromAxioms.Analysis.Real
 import FromAxioms.Analysis.Located
 import FromAxioms.Analysis.Cauchy
+import FromAxioms.Analysis.Nested
+import FromAxioms.Analysis.Ternary

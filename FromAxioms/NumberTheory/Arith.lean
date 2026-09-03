@@ -23,7 +23,7 @@ of the union-of-singleton trick that keeps `SetTheory.app` choice-free.
 recursion alone does not give.
 -/
 
-import FromAxioms.NumberTheory.Natural
+import FromAxioms.SetTheory.Relation
 
 universe u
 

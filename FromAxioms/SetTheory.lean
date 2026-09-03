@@ -20,3 +20,5 @@ import FromAxioms.SetTheory.Relation
 import FromAxioms.SetTheory.Cantor
 import FromAxioms.SetTheory.EquivClass
 import FromAxioms.SetTheory.OrdinalArith
+import FromAxioms.SetTheory.Search
+import FromAxioms.SetTheory.Cardinal

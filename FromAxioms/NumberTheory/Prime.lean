@@ -27,7 +27,6 @@ statement is the `Nat` one read through it.
 
 import FromAxioms.Core.NatSearch
 import FromAxioms.NumberTheory.Arith
-import FromAxioms.SetTheory.Pair
 
 universe u
 
