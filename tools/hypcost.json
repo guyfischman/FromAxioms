@@ -1,5 +1,1 @@
-{
- "EM": [
-  "FromAxioms/Constructive/Reverse.lean::decider_of_em"
- ]
-}
+{}
