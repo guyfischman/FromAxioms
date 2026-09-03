@@ -85,8 +85,8 @@ theorem not_and_or_of_wem (h : ∀ a : Prop, Or (Not a) (Not (Not a))) (a b : Pr
 
 `exists_not_of_not_forall` and `drinker` were the open entries in
 `tools/classical.json`. Both reverse, and both reverse to `WEM` rather than
-`em`, so the earlier attempts over `Prop` kept failing: they were aiming at the
-wrong target.
+`em`, so the earlier attempts over `Prop` kept failing: they were
+aiming at the wrong target.
 
 The witness is a genuine two-element type, so that a case split on the witness
 is available -- over `Prop` there is nothing to split on. The family sends one
@@ -143,7 +143,11 @@ def choice_of_witness
 `em` gives `Or p (Not p)`, which lives in `Prop` and so cannot eliminate into
 `Type`. A proof may split on it; a definition may not. The gap between the two
 is measured here rather than described: `Decider` is the decision as data, and
-the two directions below carry different audit lines. -/
+the two directions below carry different audit lines.
+
+Four classical results in Phase 2 sit on exactly this -- `realMul`, `dcNum`,
+`dcDigit` and `dcNum` all define data by cases and so are marked `reversed`
+with no forward direction. -/
 
 /-- A decision as data: which side holds, in a `Type`. -/
 inductive Decider (p : Prop) : Type where

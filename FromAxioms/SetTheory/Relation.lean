@@ -589,11 +589,23 @@ def idOn (x : ZFSet.{u}) : ZFSet.{u} := graphOn x x (fun w => w)
 theorem app_idOn {x w : ZFSet.{u}} (hw : w ∈ x) : app (idOn x) w = w :=
   app_graphOn (fun _ hm => hm) hw
 
-/-- The identity map on a set, as a set of ordered pairs. -/
-def idMap (x : ZFSet.{u}) : ZFSet.{u} := graphOn x x (fun z => z)
+/-! `idMap` AND `app_idMap` STOOD HERE AND ARE RETIRED, 2026-09-02. `idMap x`
+was `graphOn x x (fun z => z)` and `idOn x` above is `graphOn x x (fun w => w)`
+--- ONE definition under two names, 66 lines apart in this file, each with its
+own accessor proved by the same one-liner.
 
-theorem app_idMap {x a : ZFSet.{u}} (ha : a ∈ x) : app (idMap x) a = a :=
-  app_graphOn (fun _ hm => hm) ha
+REPORTED BY `flt`, WHO PAID FOR IT WITH A RED BUILD, and that is the reason it
+is a retirement rather than a note. Elaboration crosses the defeq; `rw` does
+not. The identity-hom API was SPLIT between the two --- `polyMap_idOn` and
+`isEmbedding_idOn` at `idOn`, `isRingHom_id` at `idMap` --- so
+`const_coeff_eq_foldF_neg_of_split_self` built a hypothesis spelled `idOn` and
+got a result spelling `idMap`, and `rw [app_idOn ..]` reported the pattern
+absent from a goal that visibly contained it.
+
+`idOn` IS THE KEEPER BY MEASUREMENT, not by which read better: 744 mentions
+under `FromAxioms/` against 27. The letter reporting the pair counted only the
+identity-hom API and made it 3 against 2; taking that as a count of the tree
+would have been a peer's figure standing in for a measurement. -/
 
 /-- Two functions with disjoint domains are a function. What lets a map
 defined by cases be assembled from pieces, each of which is the graph of a
@@ -726,11 +738,10 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 #print axioms peanoMap_injective
 #print axioms graphOn_domain
 #print axioms app_graphOn
-#print axioms app_idMap
 #print axioms app_mem_of_isSurjection
 
 end SetTheory
 
 namespace ZFSet
-export SetTheory (IsFunction IsInjection IsPeano IsRecApprox IsRelation IsSurjection app app_eq app_extendAt_of_mem app_extendAt_self app_graphOn app_idMap app_idOn app_mem_of_isSurjection app_mem_range app_natSeq app_recFun_empty app_recFun_eq app_recFun_mem app_recFun_succ domain domain_empty domain_extendAt_succ domain_recFun exists_recApprox extendAt funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idMap idOn imageIn imageIn_subset isFunction_empty isFunction_extendAt isFunction_graphOn isFunction_recFun isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_extendAt_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_recFun_iff mem_recSet_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq opAt opair_app_mem opair_mem_extendAt peanoMap peanoMap_injective peanoMap_mem peanoMap_succ peanoMap_surjective peanoMap_zero range range_empty recApprox_agree recApprox_mem_recSet recFun recSet sep_range_eq_singleton subset_extendAt)
+export SetTheory (IsFunction IsInjection IsPeano IsRecApprox IsRelation IsSurjection app app_eq app_extendAt_of_mem app_extendAt_self app_graphOn app_idOn app_mem_of_isSurjection app_mem_range app_natSeq app_recFun_empty app_recFun_eq app_recFun_mem app_recFun_succ domain domain_empty domain_extendAt_succ domain_recFun exists_recApprox extendAt funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idOn imageIn imageIn_subset isFunction_empty isFunction_extendAt isFunction_graphOn isFunction_recFun isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_extendAt_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_recFun_iff mem_recSet_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq opAt opair_app_mem opair_mem_extendAt peanoMap peanoMap_injective peanoMap_mem peanoMap_succ peanoMap_surjective peanoMap_zero range range_empty recApprox_agree recApprox_mem_recSet recFun recSet sep_range_eq_singleton subset_extendAt)
 end ZFSet

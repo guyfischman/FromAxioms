@@ -30,6 +30,7 @@ it for a real produced by the ternary walk from a binary sequence is exactly
 -/
 
 import FromAxioms.Analysis.Ternary
+import FromAxioms.SetTheory.LeastSearch
 
 set_option autoImplicit false
 
@@ -163,11 +164,37 @@ def TernaryZeroDecidable : Prop := ∀ α : Nat → Bool,
   nestLower (tlowSeq.{u} (boolDigit α)) = ratCut ratZero.{u} ∨
     nestLower (tlowSeq.{u} (boolDigit α)) ≠ ratCut ratZero.{u}
 
-theorem wlpo_of_ternary_zero_decidable (h : TernaryZeroDecidable.{u}) : WLPO := by
+/-- Deciding any predicate equivalent to `α` never fires IS `WLPO`.
+
+THIS IS THE LOCAL CONVENTION, NOT A NEW IDEA. `LLPO` is already factored
+exactly this way one principle over: `llpo_of_signDisjunction`
+(`Vanishing.lean`) is the transport --- its own comment says the principle is
+spent in ONE place --- with fourteen `signDisjunction_of_*` bridges and eight
+one-line citations in `Calibrate.lean`, e.g.
+
+    llpo_of_rolle01 h := llpo_of_signDisjunction (signDisjunction_of_rolle01 h)
+
+FOUR `WLPO` CARRIERS WERE NEVER BROUGHT INTO IT: `TernaryZeroDecidable` here,
+`DiscIsoDecidable`, `SetCatIsoDecidable` and `EqualizerInitialDecidable`. Each
+already has its own bridge `S α ↔ ∀ n, α n = false` and then writes the same
+four-line `rcases` out again --- character-for-character identical but for the
+bridge cited, in both directions, so eight copies. The content of each row is
+its bridge; the reversal was boilerplate.
+
+A FIFTH IS NOT IN THIS CLASS and is easy to miscount as one:
+`wlpo_of_meet_coincidence_decidable` already CITES the ternary transport and
+composes three bridges inside a lambda. It was the one that had been factored
+before, which is exactly the member a grouping-by-appearance gets wrong. -/
+theorem wlpo_of_decidable_bridge {S : (Nat → Bool) → Prop}
+    (hiff : ∀ α, S α ↔ ∀ n, α n = false)
+    (hdec : ∀ α, S α ∨ ¬ S α) : WLPO := by
   intro α
-  rcases h α with he | hne
-  · exact Or.inl ((ternary_eq_zero_iff α).mp he)
-  · exact Or.inr (fun hall => hne ((ternary_eq_zero_iff α).mpr hall))
+  rcases hdec α with h | h
+  · exact Or.inl ((hiff α).mp h)
+  · exact Or.inr (fun hall => h ((hiff α).mpr hall))
+
+theorem wlpo_of_ternary_zero_decidable (h : TernaryZeroDecidable.{u}) : WLPO :=
+  wlpo_of_decidable_bridge ternary_eq_zero_iff h
 
 /-! ## The fan theorem
 
@@ -189,6 +216,7 @@ def take (α : Nat → Bool) : Nat → List Bool
   | n + 1 => take α n ++ [α n]
 
 #print axioms Constructive.WLPO
+#print axioms Constructive.wlpo_of_decidable_bridge
 #print axioms Constructive.LPO
 
 /-! ## What the fan theorem says about trees

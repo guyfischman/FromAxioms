@@ -48,7 +48,7 @@ theorem mul_lt_mul_right' {m n k : Nat} (hk : 0 < k) (h : m < n) : m * k < n * k
 
 /-- `Nat.pow_lt_pow_right` without the axiom. -/
 theorem pow_lt_pow_right' {b j k : Nat} (hb : 1 < b) (hjk : j < k) : b ^ j < b ^ k := by
-  have hpos : 0 < b ^ j := Nat.pos_pow_of_pos (by omega)
+  have hpos : 0 < b ^ j := Nat.pow_pos (by omega)
   have hsplit : b ^ k = b ^ j * b ^ (k - j) := by
     rw [← Nat.pow_add]
     exact congrArg _ (by omega)
@@ -78,6 +78,64 @@ theorem eq_or_lt_of_le' {n m : Nat} (h : n ≤ m) : n = m ∨ n < m :=
 #print axioms pow_lt_pow_right'
 #print axioms pow_right_injective
 
+/-
+The core lemmas named below were probed for classical dependencies while
+proving `denom_one_of_rat_root` in `Field.lean`. This records the extent of
+that probe,
+because a list of names with nothing said about it reads as a guarantee and is
+not one.
+
+Probed, and constructive:
+
+    Nat.coprime_div_gcd_div_gcd   Nat.mul_div_assoc   Nat.le_of_dvd
+    Nat.gcd_dvd_left              Nat.gcd_zero_left   Nat.dvd_gcd
+    Nat.gcd_pos_of_pos_right
+
+Three things about that list are load-bearing:
+
+1. It covers the dependencies of ONE proof and the chain beneath it. It is not
+   a survey of core, and a lemma's absence says only that this proof did not
+   reach it.
+
+2. The candidates came from ERROR TEXT, not from the export. Each name entered
+   the list because an audit line moved and the failing rewrite named it. So
+   the list is complete for the failures observed, which is weaker than
+   complete for the proof: a classical lemma whose use happened not to move an
+   audit line would not appear.
+
+3. The list GREW after it was first believed closed -- `Nat.div_pos` was found
+   classical only when the audit line moved a second time, so the
+   lemma below exists. That is the evidence for (2) rather than a story about
+   it.
+
+Probed, and CLASSICAL -- each `[propext, Classical.choice, Quot.sound]`,
+re-measured in this tree 2026-09-01 with `Nat.div_pos` alongside as a control:
+
+    Nat.div_pos            Nat.mul_lt_mul_left
+    Nat.instLawfulEqOrd    Nat.instTransOrd
+
+THE TWO INSTANCES ARE WHY THIS HALF OF THE TABLE EXISTS. The other names are
+lemmas, which a proof cites by name and a reader can find in the source text.
+`Nat.instLawfulEqOrd` and `Nat.instTransOrd` are INSTANCES: they arrive through
+Std's order machinery with nothing at the use site naming them, so a declaration
+goes classical with no classical name written anywhere in it. Finding them took
+`set_option pp.explicit true in #print` after three guesses at the instance name
+failed -- the guesses were all wrong, and the printed term is what settled it.
+
+WHICH IS THE SAME LESSON AS `by_cases` ONE LAYER DOWN (`.agent/chains/
+bycases-door.leantxt`): the door does not have to appear in the source. There
+the tactic supplied `Classical.propDecidable` for an undecidable argument; here
+instance resolution supplies a classical instance for a decidable-looking one.
+`#print axioms` names the declaration that PAYS, never the step that charged it,
+so between the two the only reliable instrument is the axiom line plus an
+explicit print of the term.
+
+NOT A REPAIR LIST. These are recorded as measured, not shimmed. `Nat.div_pos`
+has `div_pos_of_dvd` below because a use site needed it; the other three have no
+constructive replacement here because nothing in this development has yet been
+blocked on them. A name in this list is a warning to the next caller, not a
+claim that the tree is clear of it.
+-/
 
 /-- `Nat.div_lt_of_lt_mul`, constructively. The core lemma is classical,
 and its content is not. Dividing is a

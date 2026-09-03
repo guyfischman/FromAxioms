@@ -185,7 +185,8 @@ private theorem mul_shuffle (a x d : Nat) : a * (x * d) = a * d * x := by
   rw [Nat.mul_assoc, Nat.mul_comm d x]
 
 /-- Bezout's identity. One of the two sides carries the coefficient; which
-one flips with each Euclidean step, so the statement is a disjunction. -/
+one flips with each Euclidean step, so the statement is a
+disjunction. -/
 theorem bezout : ∀ x y : Nat, ∃ a b : Nat,
     a * x = b * y + Nat.gcd x y ∨ a * y = b * x + Nat.gcd x y := by
   intro x
@@ -289,6 +290,20 @@ theorem gcd_eq_one_of_prime_not_divides {p a : Nat} (hp : IsPrime p)
       omega
     · omega
   · exact absurd ((hp.right _ hge hd) ▸ (Nat.gcd_dvd_right p a : Divides (Nat.gcd p a) a)) h
+
+/-! `exists_mul_mod_one_of_gcd_one` AND `mod_inverse_lt` STOOD HERE AND ARE
+WITHDRAWN, 2026-09-02, as DUPLICATES of `Congruence.lean`'s `exists_inverse`
+and of the normalisation `padicUnitInv` performs inline.
+
+`Congruence.lean` IMPORTS this file, so its versions are DOWNSTREAM of mine and
+mine could have been cited where its cannot --- but the statements are the
+same, and the tree does not carry a lemma twice for reach alone.
+
+`Congruence.lean` states the chain through `Cong n a b`, a NAMED `Prop` for
+`a % n = b % n`, which is a different type from its own definition even though
+the two are DEFEQ.
+
+-/
 
 /-- Euclid's lemma. Divisibility is decidable, so the case split is free;
 Bézout does the rest. -/

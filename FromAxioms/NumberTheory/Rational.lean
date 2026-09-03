@@ -359,6 +359,12 @@ theorem ratAdd_neg {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
   refine (ratOf_eq_ratOf_iff intZero_mem_Int hbb intZero_mem_Int one_mem_intPositive).mpr ?_
   rw [intZero_mul (intPositive_subset _ one_mem_intPositive), intZero_mul (intPositive_subset _ hbb)]
 
+/-! THE LEFT FORM IS ALREADY BELOW, at `ratAdd_left_cancel`, and I landed a
+duplicate of it here before the build caught the clash.
+
+The right form above is genuinely absent; only the left one was the duplicate.
+-/
+
 /-- One. -/
 def ratOne : ZFSet.{u} := ratOf intOne.{u} intOne.{u}
 

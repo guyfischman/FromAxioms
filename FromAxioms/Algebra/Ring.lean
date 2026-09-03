@@ -315,7 +315,6 @@ theorem ideal_inverse {I R add mul zero a : ZFSet.{u}} (hI : IsIdeal I R add mul
 theorem ideal_absorbs {I R add mul zero r a : ZFSet.{u}} (hI : IsIdeal I R add mul zero)
     (hr : r ∈ R) (ha : a ∈ I) : opAt mul r a ∈ I := hI.right.right.right.right r hr a ha
 
-
 theorem mul_zero_of_isRing {R add mul zero one a : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) : opAt mul a zero = zero :=
   mul_zero_of_isRingNC hR.toNC ha
@@ -325,9 +324,9 @@ def units (R mul zero : ZFSet.{u}) : ZFSet.{u} := R \ singleton zero
 /-! ## Quotient rings
 
 A relation that is a congruence for both operations gives a ring on the
-classes. The additive half is `isGroup_congQuotient`; the multiplicative half
-is the same `congOp`, so `congOp_isFunction` was stated for a closed operation
-rather than a group's. -/
+classes. The additive half is `isGroup_congQuotient`; the multiplicative half is
+the same `congOp`, so `congOp_isFunction` was stated for a closed
+operation rather than a group's. -/
 
 theorem isRing_congQuotient {r R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hadd : IsCongruence r R add)
@@ -605,8 +604,8 @@ theorem ringSub_self_nc {R add mul zero one a : ZFSet.{u}}
 
 /-- Differences compose: `(a-b) + (b-c) = a-c`, over the non-commutative
 base. Associativity, the inverse law and the additive unit -- every step is a
-group fact, so this needed nothing from the split beyond the additive helpers
-already moved. -/
+group fact, so this needed nothing from the split beyond the
+additive helpers already moved. -/
 theorem ringSub_trans_nc {R add mul zero one a b c : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) :
     opAt add (ringSub R add zero a b) (ringSub R add zero b c)
@@ -834,10 +833,10 @@ additive iterate.
 
 Asked by statement before writing, and the queries returned SAME SHAPE only,
 never an exact type: PROVES-CHECKED: ringNsmul_mem_semi, ringNsmul_sum_semi,
-ringNsmul_mul_semi, ringPow_mem_semi, isCommSemiring_of_isRing. The same sweep
-found `IsCommMonoid.toMonoid` ALREADY PROVED (FinProd.lean 53) and surfaced
-`gpow_add_of_commMonoid`, so two of these are one-liners rather than the ports
-they were sized as. -/
+ringNsmul_mul_semi, ringPow_mem_semi, isCommSemiring_of_isRing.
+The same sweep found `IsCommMonoid.toMonoid` ALREADY PROVED (FinProd.lean 53)
+and surfaced `gpow_add_of_commMonoid`, so two of these are one-liners
+rather than the ports they were sized as. -/
 
 theorem ringNsmul_mem_semi {R add mul zero one a : ZFSet.{u}}
     (h : IsSemiring R add mul zero one) (ha : a ∈ R) :
@@ -1031,6 +1030,9 @@ theorem hom_app_mem {h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂ a : Z
     (hh : IsRingHom h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂) (ha : a ∈ R₁) : app h a ∈ R₂ :=
   app_mem_of_isHom hh.left ha
 
+/-! A ring hom out of a FIELD kills nothing --- that is `hom_ne_zero`, in
+`SetTheory/Extension.lean`, and NOT here. -/
+
 /-- Vanishing is decidable: the hypothesis degree needs.
 
 Sited here rather than beside the first degree argument that wanted it. Its body
@@ -1094,11 +1096,11 @@ theorem hom_pow {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ one₂ a
 A ring is an extension of itself, and saying so needs a homomorphism whose
 underlying set of pairs is the identity graph. `imageIn_id` is the clause that
 makes the statement about `R` rather than about a copy of it: without it, *`R`
-embeds in `R` with basis `{1}`* would be a claim about `imageIn (idMap R) R R`,
+embeds in `R` with basis `{1}`* would be a claim about `imageIn (idOn R) R R`,
 which reads as true while naming a different set. -/
 
 theorem isRingHom_id {R add mul zero one : ZFSet.{u}} (h : IsRing R add mul zero one) :
-    IsRingHom (idMap R) R add mul one R add mul one := by
+    IsRingHom (idOn R) R add mul one R add mul one := by
   refine ⟨⟨graphOn_isFunction R R _, graphOn_domain (fun _ hm => hm), ?_, ?_⟩, ?_, ?_⟩
   · intro b hb
     obtain ⟨a, hab⟩ := (mem_range_iff b _).mp hb
@@ -1106,19 +1108,19 @@ theorem isRingHom_id {R add mul zero one : ZFSet.{u}} (h : IsRing R add mul zero
     obtain ⟨-, rfl⟩ := opair_injective he
     exact hn
   · intro a ha b hb
-    rw [app_idMap (opAt_mem h.addGroup ha hb), app_idMap ha, app_idMap hb]
+    rw [app_idOn (opAt_mem h.addGroup ha hb), app_idOn ha, app_idOn hb]
   · intro a ha b hb
-    rw [app_idMap (mulAt_mem h ha hb), app_idMap ha, app_idMap hb]
-  · exact app_idMap h.mem_one
+    rw [app_idOn (mulAt_mem h ha hb), app_idOn ha, app_idOn hb]
+  · exact app_idOn h.mem_one
 
 theorem isEmbedding_id {R add mul zero one : ZFSet.{u}} (h : IsRing R add mul zero one) :
-    IsEmbedding (idMap R) R add mul one R add mul one :=
-  ⟨isRingHom_id h, fun _ ha _ hb he => (app_idMap ha).symm.trans (he.trans (app_idMap hb))⟩
+    IsEmbedding (idOn R) R add mul one R add mul one :=
+  ⟨isRingHom_id h, fun _ ha _ hb he => (app_idOn ha).symm.trans (he.trans (app_idOn hb))⟩
 
-/-- The image of the identity is the ring itself, not a copy of it. -/
-theorem imageIn_id (R : ZFSet.{u}) : imageIn (idMap R) R R = R :=
+/-- The image of the identity is the ring itself,not a copy of it. -/
+theorem imageIn_id (R : ZFSet.{u}) : imageIn (idOn R) R R = R :=
   ext _ _ fun v => ⟨fun hv => ((mem_imageIn_iff _ R R v).mp hv).left,
-    fun hv => (mem_imageIn_iff _ R R v).mpr ⟨hv, v, hv, (app_idMap hv).symm⟩⟩
+    fun hv => (mem_imageIn_iff _ R R v).mpr ⟨hv, v, hv, (app_idOn hv).symm⟩⟩
 
 /-- A finite commutative ring with no zero divisors is a field. -/
 theorem isField_of_finite_domain {R add mul zero one : ZFSet.{u}}
@@ -1166,6 +1168,10 @@ def ringMultiples (R mul a : ZFSet.{u}) : ZFSet.{u} :=
 theorem mem_ringMultiples_iff (R mul a w : ZFSet.{u}) :
     w ∈ ringMultiples R mul a ↔ w ∈ R ∧ ∃ y, y ∈ R ∧ w = opAt mul a y :=
   mem_sep_iff _ _ _
+
+/-! `ringMultiples_natIn_mul_unit` --- a unit numeral factor is invisible to the
+ideal --- belongs beside these two and is sited instead beside
+`ringMultiples_unit_mul`, some nine thousand lines below, which it cites. -/
 
 theorem isIdeal_ringMultiples {R add mul zero one a : ZFSet.{u}}
     (h : IsRing R add mul zero one) (ha : a ∈ R) :
@@ -1570,6 +1576,7 @@ theorem isField_quotient_of_prime {I R add mul zero one : ZFSet.{u}}
 #print axioms isRing_quotientByIdeal
 #print axioms isSubring_imageIn
 #print axioms isSubring_imageIn_of_subring
+
 #print axioms isField_imageIn_of_embedding
 #print axioms decidableVanishing_imageIn_of_embedding
 #print axioms stableVanishing_of_decidableVanishing
@@ -1678,6 +1685,7 @@ theorem opAt_restrictLeft_of_isSubring {S R add mul zero one : ZFSet.{u}}
       obtain ⟨a, ha, b, hb, rfl⟩ := (mem_prod_iff z _ _).mp hz
       rw [hR.mulDom]; exact opair_mem_prod (hSub.sub _ ha) hb)
     (fun a ha b hb => mulAt_mem hR (hSub.sub _ ha) hb) hc hw
+
 /-- The subring restriction, quantified.
 
 `opAt_restrictLeft_of_isSubring` at both arguments, which seven proofs in
@@ -1694,13 +1702,12 @@ theorem opAt_restrictLeft_bridge {S R add mul zero one : ZFSet.{u}}
 
 /-- Every entry of `powerList` lies in the ring.
 
-The four-line discharge this replaces stands at the head of four proofs ---
-once in `GeomTower.lean`, three times in `CycIntegrallyClosed.lean` --- and in
-every one it feeds `isSubmodule_spanSet` and
-`exists_coeffs_len_of_mem_spanSet`, which both demand exactly this membership.
-It asks nothing of the subring: `IsRing` and `x ∈ R` are the whole of it, so
-the four copies could each be written without reference to their surroundings.
--/
+The four-line discharge this replaces stands at the head of four proofs --- once
+in `GeomTower.lean`, three times in `CycIntegrallyClosed.lean` --- and in every
+one it feeds `isSubmodule_spanSet` and `exists_coeffs_len_of_mem_spanSet`, which
+both demand exactly this membership. It asks nothing of the subring: `IsRing`
+and `x ∈ R` are the whole of it, so the four copies could each be
+written without reference to their surroundings. -/
 theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hx : x ∈ R) (d : Nat) :
     ∀ v, v ∈ powerList mul one x d → v ∈ R := by

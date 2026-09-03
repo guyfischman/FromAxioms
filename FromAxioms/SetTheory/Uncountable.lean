@@ -42,7 +42,12 @@ The locator is a dependent binary choice: the disjunction at stage `n` is
 about the interval reached by the digits already taken. Naming that as a
 principle turns the whole diagonal choice-free -- `exists_missed_of_binaryDC`
 uses no axiom -- and leaves the classical content in one theorem, `binaryDC`,
-which is a single `if`. -/
+which is a single `if`.
+
+`em` alone does not prove `binaryDC`, for the familiar reason: `p ∨ ¬p` is a
+`Prop`, and building a digit sequence from it is elimination into data.
+`Decidable` is what is needed, and only choice supplies it for an arbitrary
+proposition. -/
 
 /-- Binary dependent choice: at each stage, a decision that may depend on the
 digits already taken. -/

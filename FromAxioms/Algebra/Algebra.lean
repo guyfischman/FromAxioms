@@ -139,7 +139,11 @@ theorem union_sdiff_self {x y : ZFSet.{u}} (hsub : ∀ w, w ∈ y → w ∈ x)
     · exact ((mem_sdiff_iff _ _ _).mp h).left
 
 #print axioms union
-/-! ### Difference against itself -/
+/-! ### `sdiff_sdiff_cancel` IS RETIRED ON THE SAME GROUND
+
+THE THREE ARE NOT INTERCHANGEABLE, and that is the reason for keeping all of
+them: detachability decides `y`, double negation does not, and the gap between
+those two is the content. -/
 
 /-- Removing `x` from anything already inside `x` leaves nothing. -/
 @[simp] theorem sdiff_sdiff_left_self (x y : ZFSet.{u}) : (x \ y) \ x = empty.{u} :=

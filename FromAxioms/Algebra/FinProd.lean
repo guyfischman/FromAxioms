@@ -485,6 +485,17 @@ theorem foldF_trunc {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F : Nat →
       rw [foldF_trunc hM hmem hz m (by omega), hz m (by omega),
         right_id_monoid hM (foldF_mem hM n hmem)]
 
+/-! ### `foldF_peel_front` WAS LANDED HERE AND WITHDRAWN THE SAME DAY
+
+It stated `foldF op e F (n+1) = op (F 0) (foldF op e (fun i => F (i+1)) n)`.
+That is `foldF_cons`, 260 lines ABOVE, whose docstring reads *Peel off the
+first term instead of the last* --- and whose membership hypothesis is the
+BOUNDED `∀ i, i < n+1 → F i ∈ M` where mine demanded it at every index, so the
+landed one is strictly more general.
+
+Nothing cites the withdrawn name; the probes that used it restate their own
+copy and are being repointed at `foldF_cons`. -/
+
 /-- Triangular Fubini. Summing over `a + b ≤ k` by the diagonal `a + b = i`
 or by rows `a` fixed gives the same answer. -/
 theorem foldF_triangle {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)

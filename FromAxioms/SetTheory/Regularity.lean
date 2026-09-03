@@ -19,19 +19,27 @@ property they could not have failed to have.
 
 ## Two statements, two costs
 
-The file proves the same fact twice, and the audit at the bottom is what
-separates the two costs.
+What remains here is the constructive half:
 
 * `inductionOn` -- ∈-induction. Constructive, modulo the quotient machinery
   (`propext`, `Quot.sound`). This is the real content.
-* `regularity` -- the classical existence statement: a non-empty set has a
-  minimal element. This needs `Classical.choice`.
 
-The gap between them is the familiar one. Knowing that no infinite descent
-exists does not hand you a minimal element; extracting one from `x ≠ ∅` means
-reasoning by contradiction, and `x ≠ ∅` carries no witness. This is the same
-barrier `Quantifiers.lean` demonstrated, met again where it has mathematical
-consequences.
+The classical half is GONE, and the section beginning ZFC's regularity
+(foundation) is not proved here below says so and why. It has been priced
+instead: `Constructive.Regularity` is the statement, `regularityProp_of_em`
+proves it from `EM`, and `em_of_regularity` derives `EM` back --- so foundation
+over this tree's other axioms IS excluded middle rather than merely following
+from it.
+
+The gap the retired half displayed is still the familiar one. Knowing that no
+infinite descent exists does not hand you a minimal element; extracting one from
+`x ≠ ∅` means reasoning by contradiction, and `x ≠ ∅` carries no witness. That
+is the same barrier `Quantifiers.lean` demonstrated in Phase 1.
+
+CORRECTED 2026-09-01. This header used to list a `regularity` declaration as
+present, describe it as needing `Classical.choice`, and call this file the
+first appearance of `Classical.choice` in Phase 2 --- a claim `CLAUDE.md`
+asked to be a noticed event rather than a drift. THE DECLARATION IS RETIRED.
 -/
 
 import FromAxioms.SetTheory.ZFSet
@@ -90,6 +98,7 @@ theorem not_mem_self : ∀ x : ZFSet.{u}, x ∉ x :=
 
 #print axioms inductionOn     -- expect: propext, Quot.sound
 #print axioms not_mem_self    -- expect: propext, Quot.sound
+
 end SetTheory
 
 namespace ZFSet

@@ -1,1 +1,8 @@
-{}
+{
+ "SubsetFinite": [
+  "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
+ ],
+ "TernaryZeroDecidable": [
+  "FromAxioms/Constructive/Omniscience.lean::wlpo_of_ternary_zero_decidable"
+ ]
+}

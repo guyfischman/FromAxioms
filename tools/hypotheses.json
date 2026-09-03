@@ -77,7 +77,16 @@
   "forward: theorem deriving the hypothesis from the principle; reverse:",
   "theorem recovering the principle from the hypothesis schema; 'open' marks",
   "a direction owed, 'n/a' one that does not apply. _uncalibrated counts",
-  "entries owing (no block, or an open direction) and must be met exactly."
+  "entries owing (no block, or an open direction) and must be met exactly.",
+  "",
+  "_uncalibrated RAISED 5 -> 6 on 2026-09-03, for HasBaireSelectorsAll's",
+  "reverse. Its FORWARD is now proved --- Topology.hasBaireSelectorsAll_of_",
+  "setChoice, the incoming edge that took the row off undischarged-allow.txt",
+  "--- and the reverse, recovering SetChoice from a Baire selector, is a",
+  "question that ARISES and is unanswered. 'n/a' would say it does not, so",
+  "the budget is spent rather than bought with a wrong field. WWKLBool is the",
+  "precedent and its own entry records the same trade at 4 -> 5. Raising this",
+  "is two edits on purpose: the entry, and this line."
  ],
  "_uncalibrated": 0
 }

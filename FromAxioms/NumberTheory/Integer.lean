@@ -737,6 +737,21 @@ theorem intOne_eq_intOfNat_one : intOne.{u} = intOfNat.{u} 1 := rfl
 
 #print axioms intOne_eq_intOfNat_one
 
+/-! ### The `ofNat` face of the pairing
+
+`intAdd_intOf` and `intMul_intOf` are stated over `omega` members, which is the
+right generality for `Integer.lean` itself and the wrong one for any map OUT of
+`Int` that is indexed by `Nat` --- such a map's graph quantifies over
+`intOf (ofNat a) (ofNat b)`, and every ring law it has to satisfy must be put
+back into that form before the `Nat`-level law can be handed over. The three
+below are that translation, done once.
+
+`intMul_intOf`'s PAIRING IS `(ac + bd, ad + bc)`. `(a - b)(c - d) =
+(ac + bd) - (ad + bc)`, and with everything a natural that is the only way to
+state it: both components are sums and the sign lives in which pair goes where.
+A wrong pairing still typechecks and still names an integer, so the
+identity is written here rather than inlined at a rewrite site. -/
+
 theorem intOfNat_succ (n : Nat) :
     intOfNat.{u} (n + 1) = intAdd (intOfNat.{u} n) intOne.{u} := by
   rw [intOfNat, intOfNat, intOne, intAdd_intOf (ofNat_mem_omega n) empty_mem_omega

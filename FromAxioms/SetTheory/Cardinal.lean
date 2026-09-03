@@ -557,12 +557,7 @@ theorem exists_or_not_of_finite {P : ZFSet.{u} → Prop} : ∀ n : Nat, ∀ y : 
 
 An injection between numerals cannot decrease the index, so a set is
 equinumerous to at most one numeral, so `IsFinite` is a statement about size
-rather than about the existence of some bijection.
-
-The step is a construction: given an injection `ofNat (m+1) → ofNat (n+1)`,
-send `w` to `f w` unless `f w` is the last point, in which case send it to
-`f (ofNat m)`. Deciding which is a `Prop`-level disjunction (equality of
-numerals), and the function is built by separation, so nothing is chosen. -/
+rather than about the existence of some bijection. -/
 
 theorem dominates_ofNat_le : ∀ m n : Nat, Dominates (ofNat.{u} m) (ofNat.{u} n) → m ≤ n
   | 0, n, _ => by omega

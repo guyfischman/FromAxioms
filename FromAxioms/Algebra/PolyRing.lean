@@ -458,11 +458,11 @@ theorem foldF_mul_left_semi {R add mul zero one c : ZFSet.{u}}
 /-- A constant multiplies into a finite sum on the RIGHT, over a semiring:
 `(Σ T i) · c = Σ (T i · c)`.
 
-`foldF_mul_right` reaches this by COMMUTING to the left form, so the polynomial
-ring inherited commutativity it never needed: the statement is right
-distributivity over a finite sum, and `distribRight` proves it directly by the
-same induction the left form uses. That detour was one of only two `mulComm`
-sites among the forty-one lemmas the ring structure rests on. -/
+`foldF_mul_right` reaches this by COMMUTING to the left form, so the
+polynomial ring inherited commutativity it never needed: the statement is
+right distributivity over a finite sum, and `distribRight` proves it directly
+by the same induction the left form uses. That detour was one of only two
+`mulComm` sites among the forty-one lemmas the ring structure rests on. -/
 theorem foldF_mul_right_semi {R add mul zero one c : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one) (hc : c ∈ R) {T : Nat → ZFSet.{u}}
     (hT : ∀ i, T i ∈ R) :
@@ -784,9 +784,9 @@ polynomial satisfying the Eisenstein conditions is irreducible -- follows by
 degree counting: `n` is the degree, so `g` has at least `n` coefficients before
 its first `d`-free one, hence degree at least `n`, hence `h` is constant.
 
-No reduction mod `d`, no quotient ring, no unique factorisation. The textbook
-route passes to `(R/d)[x]`, observes the product is `x^n`, and appeals to
-factorisation there. Read off the convolution instead and the argument is
+No reduction mod `d`, no quotient ring, no unique factorisation. The
+textbook route passes to `(R/d)[x]`, observes the product is `x^n`, and appeals
+to factorisation there. Read off the convolution instead and the argument is
 divisibility in `R` throughout, so nothing here costs a principle. -/
 theorem eisenstein_least_index {R add mul zero one d g h : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hd : d ∈ R)
@@ -1048,8 +1048,8 @@ theorem isCommMonoid_polyAdd_semi {R add mul zero one : ZFSet.{u}}
 `convCoeff polyZero g k = zero`.
 
 Every summand is `0 . g_(k-i)`, which is `zero` by the semiring's `zeroMul`
-AXIOM -- a ring proves the same step by cancelling, so `isRing_polyRing` never
-had to state this clause at all. -/
+AXIOM -- a ring proves the same step by cancelling, so
+`isRing_polyRing` never had to state this clause at all. -/
 theorem convCoeff_zero_left_semi {R add mul zero one g : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one) (hg : IsPolyOver R zero g) (k : Nat) :
     convCoeff R add mul zero (polyZero R zero) g k = zero := by
@@ -1535,6 +1535,22 @@ sums. -/
 
 def binomTerm (R add mul zero one a b : ZFSet.{u}) (n k : Nat) : ZFSet.{u} :=
   gpow add zero (opAt mul (gpow mul one a k) (gpow mul one b (n - k))) (choose n k)
+
+/-- Monomials of the same degree add coefficientwise. -/
+theorem monomial_add {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
+    (ha : a ∈ R) (hb : b ∈ R) (k : Nat) :
+    polyAdd R add (monomial R zero a k) (monomial R zero b k)
+      = monomial R zero (opAt add a b) k := by
+  refine poly_ext_coeff (isPolyOver_polyAdd hR (isPolyOver_monomial hR ha k)
+    (isPolyOver_monomial hR hb k)) (isPolyOver_monomial hR (addAt_mem hR ha hb) k)
+    (fun i => ?_)
+  rw [app_polyAdd hR (isPolyOver_monomial hR ha k) (isPolyOver_monomial hR hb k)
+      (ofNat_mem_omega i),
+    app_monomial hR ha k i, app_monomial hR hb k i,
+    app_monomial hR (addAt_mem hR ha hb) k i, monomialCoeff, monomialCoeff, monomialCoeff]
+  rcases Nat.decEq i k with hne | heq
+  · rw [if_neg hne, if_neg hne, if_neg hne, ringAdd_zero hR hR.addGroup.mem_e]
+  · rw [if_pos heq, if_pos heq, if_pos heq]
 
 /-- `x^j · x^k = x^(j+k)`, with coefficients multiplied. -/
 theorem monomial_mul_monomial {R add mul zero one a b : ZFSet.{u}}
@@ -2940,6 +2956,7 @@ theorem polyMul_top_of_top {R add mul zero one g h : ZFSet.{u}}
     exact htop
 
 #print axioms polyMul_top_of_top
+
 /-- A monic modulus cancels, and nothing is decided.
 
 `remainder_unique_monic` used to reach `p = 0` by asking whether `p` vanishes,
@@ -3580,26 +3597,45 @@ theorem polyAdd_neg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul ze
     app_polyNeg hR hf (ofNat_mem_omega k), app_polyZero hR (ofNat_mem_omega k)]
   exact ringAdd_neg hR (coeff_mem hf (ofNat_mem_omega k))
 
+/-- `monomial_add` at `k = 0`, reversed. Kept as a name because two call sites
+want this orientation, but NOT as a second proof: the fifteen-line induction
+that used to stand here proved the general lemma over again at one exponent.
+
+The duplicate arose because the lemma was asked for with `k := 0` already
+substituted, and an instantiated query is a DIFFERENT type from the general
+theorem that answers it, and the null across 31,990 declarations was true of
+the question asked and false of the question meant. That is a third
+null-mechanism beside orientation and a folded definition --- and it is the one
+a rewriting session hits most, because a collapse IS a specialisation.
+`find.py --concl` on the head symbol found both in one command. -/
 theorem monomial_zero_add {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) :
     monomial R zero (opAt add a b) 0
-      = polyAdd R add (monomial R zero a 0) (monomial R zero b 0) := by
-  refine poly_ext_coeff (isPolyOver_monomial hR (addAt_mem hR ha hb) 0)
-    (isPolyOver_polyAdd hR (isPolyOver_monomial hR ha 0) (isPolyOver_monomial hR hb 0))
-    (fun k => ?_)
-  rw [app_monomial hR (addAt_mem hR ha hb) 0 k,
-    app_polyAdd hR (isPolyOver_monomial hR ha 0) (isPolyOver_monomial hR hb 0)
-      (ofNat_mem_omega k),
-    app_monomial hR ha 0 k, app_monomial hR hb 0 k, monomialCoeff, monomialCoeff,
-    monomialCoeff]
-  rcases Nat.decEq k 0 with hne | heq
-  · rw [if_neg hne, if_neg hne, if_neg hne, ringAdd_zero hR hR.addGroup.mem_e]
-  · rw [if_pos heq, if_pos heq, if_pos heq]
+      = polyAdd R add (monomial R zero a 0) (monomial R zero b 0) :=
+  (monomial_add hR ha hb 0).symm
 
+/-- `x`, the polynomial. It is an ABBREVIATION, and that has cost a duplicate:
+`gpow_polyX` below and a retired `polyX_pow` in `SetTheory/Extension.lean` were
+one statement, differing only in whether this definition was written out. A
+statement query cannot see such a pair --- it is written in one spelling and
+matches its own --- so the check that finds them is to grep a one-line
+definition's BODY as well as its name.
 
-/-- `x`, the polynomial. `polyX_pow` was written about `monomial R zero one 1`
-before it had a name. -/
-def polyX (R zero one : ZFSet.{u}) : ZFSet.{u} := monomial R zero one 1
+`abbrev` AND NOT `def`, AND THAT IS LOAD-BEARING. As a plain `def` this is
+semi-reducible, and the retirement above FAILED THE BUILD on it: four of the six
+call sites reach the lemma through `rw`, whose keyed matching unifies at
+`instances` transparency, which reaches reducible definitions and stops at
+semi-reducible ones. So `rw [gpow_polyX hR i]` could not see `polyX R zero one`
+in a goal that spelled `monomial R zero one 1`, and reported the pattern simply
+absent.
+
+A TERM-LEVEL PROBE CANNOT ANSWER THIS AND MINE DID NOT.
+`.agent/chains/probe-polyx-fold.lean` proves `polyX_pow`'s statement by
+`gpow_polyX hR` alone and is honest --- elaborating a term against an expected
+type unifies at DEFAULT transparency, where a `def` unfolds fine. `rw` is
+strictly weaker, so a green probe of the term form says nothing about the
+tactic form, and reducibility is the only thing standing between them. -/
+abbrev polyX (R zero one : ZFSet.{u}) : ZFSet.{u} := monomial R zero one 1
 
 /-- `polyNeg` is the additive inverse of the polynomial ring. -/
 theorem polyNeg_eq_ringNeg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul zero one)
@@ -3637,7 +3673,6 @@ theorem polySub_eq_ringSub {R add mul zero one f g : ZFSet.{u}}
 
 #print axioms polySub_eq_ringSub
 
-
 theorem monomial_zero {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (k : Nat) : monomial R zero zero k = polyZero R zero := by
   refine poly_ext_coeff (isPolyOver_monomial hR hR.addGroup.mem_e k)
@@ -3670,7 +3705,6 @@ theorem evalAt_monomial {R add mul zero one x a : ZFSet.{u}} (hR : IsRing R add 
     exact mulAt_mem hR ha (ringPow_mem hR hx k)
   rw [evalUpTo, foldF_single hR hTk hz (k + 1) (by omega), app_monomial hR ha k k,
     monomialCoeff, if_pos rfl]
-
 
 theorem evalAt_polyZero {R add mul zero one x : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (hx : x ∈ R) : evalAt R add mul zero one x (polyZero R zero) = zero := by
@@ -3929,6 +3963,13 @@ theorem polyMul_assoc {R add mul zero one f g h : ZFSet.{u}} (hR : IsRing R add 
     ← opAt_polyMulOp hR (mulAt_mem hP hf hg) hh,
     ← opAt_polyMulOp hR hf (mulAt_mem hP hg hh)]
   exact hP.mulAssoc _ hf _ hg _ hh
+
+/-! ### Multiplying by a degree-one factor, coefficientwise
+
+`(c + dX) * h` read at one index, and the tight support bound that follows.
+Filed here rather than beside `polyMul_bound` because the split below needs
+`polyMul_comm` and `polyMul_add`, both declared above this point and below that
+one. -/
 
 /-- The 2x2 determinant over a commutative ring.
 
@@ -4398,6 +4439,7 @@ theorem polyOver_eq_polyZero_or_ne {q : ZFSet.{u}}
 #print axioms polyOver_eq_polyZero_or_ne
 #print axioms isEisenstein_int
 #print axioms isPolyOver_cycShiftPoly
+
 /-- The constant coefficient of `Φp(x+1)` IS `p`, read straight off the
 coefficient sequence `choose p (i+1)` at `i = 0`.
 
@@ -6697,8 +6739,8 @@ theorem detN_permOn {R add mul zero one : ZFSet.{u}}
     (fun m hm => invBelow_eq n g hinj m hm)
 
 /-- An assignment that repeats a value repeats a row, so its determinant
-vanishes -- so the non-injective terms of the expansion cost nothing and need
-not be carved out of the index set. -/
+vanishes -- so the non-injective terms of the expansion cost nothing
+and need not be carved out of the index set. -/
 theorem detN_repeatOn {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {B : Nat → Nat → ZFSet.{u}}
     (hB : ∀ i k, B i k ∈ R) {g : Nat → Nat} {n a b : Nat}
@@ -8011,5 +8053,8 @@ end Algebra
 #print axioms Algebra.app_polyOfList
 #print axioms Algebra.polyQuotBy
 namespace ZFSet
-export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi)
+-- ONE LINE, NOT TWO: a continuation line is invisible to any reader that keys
+-- on `^export Algebra (`, which is how my own union check missed the second
+-- name while resolving this very conflict.
+export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_add monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi)
 end ZFSet

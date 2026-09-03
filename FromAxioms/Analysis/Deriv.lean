@@ -51,18 +51,7 @@ theorem withinOf_mono {x c d : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hc : c ∈ Num
   · exact realLLe_trans hx (realLOf_mem hc) (realLOf_mem hd) h.right
       ((realLOf_le_realLOf hc hd).mpr hcd)
 
-/-! ## The derivative
-
-Stated as `IVT.lean` states uniform continuity: with the witness explicit, and
-with the error bounded by `ε` times a rational bound `w` on the step, so the
-right-hand side is a rational and no absolute value on the reals is needed.
-
-The constructive content sits in that `w`. The classical statement divides by
-`x - a`, which needs `x - a` apart from zero -- a positive fact, not the
-negation `x ≠ a` -- and there is no way to produce it for an arbitrary `x` near
-`a`. Multiplying through by the step instead asks for nothing: the inequality
-`|F x - F a - L·(x - a)| ≤ ε·w` is exactly the classical one, with the division
-already cleared. -/
+/-! ## The derivative -/
 
 /-- Every located real has a rational bound, and it is read off a bracket
 rather than chosen: locatedness hands over `lo < x < hi`, and any rational above

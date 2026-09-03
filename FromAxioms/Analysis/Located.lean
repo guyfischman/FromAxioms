@@ -79,7 +79,13 @@ theorem isLocated_ratCut {q : ZFSet.{u}} (hq : q ∈ NumberTheory.Rat.{u}) :
     · exact Or.inr ((mem_sep_iff _ r _).mpr ⟨hr, h ▸ hlt⟩)
     · exact Or.inr ((mem_sep_iff _ r _).mpr ⟨hr, ratLt_trans hq hp hr h hlt⟩)
 
-/-! ## Locatedness, constructively -/
+/-! ## Locatedness, constructively
+
+The same ladder as `cut_located`, and the same walk up it. The difference is the
+step: there, `by_cases` on whether the rung is still inside the cut; here, the
+`located` field applied to two consecutive rungs. The bracket it produces spans
+two rungs rather than one, so the ladder is built over `2b` and a
+bracket of `2/(2b) = 1/b` still fits inside `ε`. -/
 
 /-- A readout for `located`, indexed on the cuts rather than on a real.
 `SideReadout` names which side of a rational pair a given real falls; this

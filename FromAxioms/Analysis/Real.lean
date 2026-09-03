@@ -17,14 +17,20 @@ antisymmetry extensionality. Completeness is then literally a union: `⋃ S` is 
 cut whenever `S` is a non-empty family of cuts with an upper bound, and
 `subset_sUnion` and `sUnion_subset` say it is the least one.
 
-Classical logic enters at exactly two places, and both are the same step:
-deciding a comparison that no witness has been produced for. `realLe_of_witness`
--- a rational in `x` but not in `y` forces `y ⊆ x` -- is constructive, and it is
-the whole mathematical content of linearity; `realLe_total` pays `em` only to
-decide that such a rational exists. `realMul` is the same story one level up:
-the four sign cases are each constructive, and choosing between them is not. On
-ℚ the corresponding trichotomy was free, because equality of rationals reduces
-to equality of naturals.
+Classical logic USED TO enter at exactly two places, and both were the same
+step: deciding a comparison that no witness has been produced for.
+`realLe_of_witness` -- a rational in `x` but not in `y` forces `y ⊆ x` -- is
+constructive, and it is the whole mathematical content of linearity; the retired
+`realLe_total` paid `em` only to decide that such a rational exists.
+Multiplication was the same story one level up: the four sign cases are each
+constructive, and choosing between them is not. On ℚ the corresponding
+trichotomy was free, because equality of rationals reduces to equality of
+naturals.
+
+NEITHER PLACE IS IN THIS FILE ANY MORE. The comparisons are stated in
+`Constructive/` with `EM` as a binder and reversed back to it, so each is priced
+exactly rather than merely bounded; the sign decision is a `Decidable` parameter
+of `realMulOf`. Nothing here depends on `Classical.choice`.
 
 Addition, negation and multiplication on the non-negative cone are all
 choice-free. `x + (-x) = 0` is not: it needs locatedness, which a one-sided cut
@@ -85,9 +91,9 @@ def realNeg (x : ZFSet.{u}) : ZFSet.{u} :=
 `{q·r}` is only the right set of products when both factors are non-negative,
 so multiplication is given on the cone first. Extending it to all of ℝ is a
 different matter: the textbook definition splits on the sign of each factor, and
-deciding the sign of a real is `realLe_total` again -- classical. Nothing below
-uses excluded middle, because `realNonneg` is a hypothesis here rather than
-something to be decided. -/
+deciding the sign of a real is the same comparison `Constructive.realLe_total_of_em`
+prices at excluded middle. Nothing below uses it, because `realNonneg` is a
+hypothesis here rather than something to be decided. -/
 
 def realNonneg (x : ZFSet.{u}) : Prop := realLe realZero.{u} x
 
@@ -95,25 +101,6 @@ def realNonneg (x : ZFSet.{u}) : Prop := realLe realZero.{u} x
 def realMulNonneg (x y : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun p => ratLt p ratZero.{u} ∨ ∃ q, q ∈ x ∧ ∃ r, r ∈ y ∧
         ratLe ratZero.{u} q ∧ ratLe ratZero.{u} r ∧ ratLt p (ratMul q r)) NumberTheory.Rat.{u}
-
-/-! ## Multiplication on all of ℝ
-
-The four sign cases, and the decision between them. `realNonneg_neg_of_witness`
-is the constructive half -- a negative rational outside `x` makes `-x`
-non-negative -- and `realNonneg_or` extracts that witness from `¬ realNonneg x`,
-which is excluded middle. `realMul` therefore depends on `Classical.choice`, and
-so does everything proved about it. The cone version above does not. -/
-
-open Classical in
-/-- Multiplication, by the four sign cases. Deciding which case applies is the
-classical step, and it is the only one. -/
-noncomputable def realMul (x y : ZFSet.{u}) : ZFSet.{u} :=
-  if realNonneg x then
-    if realNonneg y then realMulNonneg x y
-    else realNeg (realMulNonneg x (realNeg y))
-  else
-    if realNonneg y then realNeg (realMulNonneg (realNeg x) y)
-    else realMulNonneg (realNeg x) (realNeg y)
 
 #print axioms Real
 #print axioms IsCut

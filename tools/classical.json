@@ -73,10 +73,9 @@
    "forward": "SetTheory.subsetFinite_of_em"
   }
  ],
- "Analysis.realMul": "the sign split. Reversed to EM, but no forward direction is possible: defining data by cases needs the decision as data (Decidable), which EM cannot supply. Proving by cases needs em; defining by cases needs choice; the general form is Constructive.decider_of_em",
  "_open_budget": 0,
- "_choice_budget": 16,
- "_choice_doors": 9,
+ "_choice_budget": 0,
+ "_choice_doors": 0,
  "dne": "reversed by `em_of_dne`. Pinned: Phase 1. Equivalent to em, not weaker",
  "byContradiction": "reversed by `em_of_byContradiction`. Pinned: Phase 1. dne under another name",
  "byCases": "reversed by `em_of_dne`. Pinned: Phase 1. Case analysis on an arbitrary proposition -- em applied",
