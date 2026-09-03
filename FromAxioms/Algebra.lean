@@ -12,3 +12,4 @@ import FromAxioms.Algebra.Algebra
 import FromAxioms.Algebra.Group
 import FromAxioms.Algebra.FinProd
 import FromAxioms.Algebra.Ring
+import FromAxioms.Algebra.Field

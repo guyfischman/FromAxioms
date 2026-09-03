@@ -2983,9 +2983,9 @@ theorem realLAdd_interchange {A B C D : ZFSet.{u}} (hA : A ∈ RealL.{u})
     ← realLAdd_assoc hA hC (realLAdd_mem hB hD)]
 /-! ## More rearrangements
 
-The rest of the block whose first six moved earlier. `misfiled.py` names each
-of these: none references anything from the file it sat in, so each belongs
-here and each move typechecks by construction. -/
+The rest of the block whose first six moved earlier. None of these references
+anything from the file it sat in, so each belongs here and each move typechecks
+by construction. -/
 
 /-- `-(A - B) = B - A`. -/
 theorem realLNeg_sub {A B : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.{u}) :
@@ -3044,10 +3044,9 @@ theorem realLLt_of_lt_of_le {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b �
 /-! ### Located-reals algebra placed from the geometry files
 
 Eight lemmas that mention no geometry, moved here under geometry's 3164/3200.
-They sat in the geometry files because that is
-where they were first needed; `misfiled.py` scored the first five at +13 toward
-this file, and `realLApart` is defined here, so the apartness three belong here
-by dependency and not merely by vocabulary. -/
+They sat in the geometry files because that is where they were first needed,
+and `realLApart` is defined here, so the apartness three belong here by
+dependency and not merely by vocabulary. -/
 
 /-- `0 < r` turns into `-r < 0` by shifting the whole inequality, which is what
 `realLLt_add_right` is for. -/
@@ -3105,8 +3104,7 @@ theorem apart_mul_apart {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
 Supersedes `realLAdd_le_add`, which stated the same thing; do not add new uses
 of that name. A branch that has not merged the supersession still defines both,
 and a use written there is correct on that branch and breaks at the merge -- so
-the marker belongs here, where a proof is being written, rather than only in
-`lost-allow.txt`. -/
+the marker belongs here, where a proof is being written. -/
 theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) (h₁ : realLLe a b) (h₂ : realLLe c d) :
     realLLe (realLAdd a c) (realLAdd b d) := by

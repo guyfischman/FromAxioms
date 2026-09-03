@@ -13,3 +13,5 @@ import FromAxioms.Analysis.Located
 import FromAxioms.Analysis.Cauchy
 import FromAxioms.Analysis.Nested
 import FromAxioms.Analysis.Ternary
+import FromAxioms.Analysis.IVT
+import FromAxioms.Analysis.Deriv

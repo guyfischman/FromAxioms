@@ -171,11 +171,11 @@ theorem wlpo_of_ternary_zero_decidable (h : TernaryZeroDecidable.{u}) : WLPO := 
 
 /-! ## The fan theorem
 
-Brouwer's principle, and the first gap in the foundations frontier
-(`tools/dating.py`). It sits with `LPO` and friends because it is the same kind
-of object -- a statement about `Nat → Bool` that is classically true, is not
-constructively provable, and is false under Russian constructivism, which
-makes it a boundary rather than a theorem.
+Brouwer's principle, and the first gap in the foundations frontier. It sits
+with `LPO` and friends because it is the same kind of object -- a statement
+about `Nat → Bool` that is classically true, is not constructively provable,
+and is false under Russian constructivism, which makes it a boundary rather
+than a theorem.
 
 Stated over `List Bool` for the finite paths. A bar is a set of finite paths
 that every infinite path meets; the theorem says a bar is met uniformly, at a

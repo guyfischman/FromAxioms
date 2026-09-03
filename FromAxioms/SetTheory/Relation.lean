@@ -92,7 +92,7 @@ theorem isFunction_empty : IsFunction empty.{u} :=
 This is how a `ZFSet → ZFSet` becomes an object the theory can quantify over,
 and it is the same three lines everywhere it is done: single-valuedness is
 `opair_injective` twice and then the two second components agree because the
-first ones did. Extracted after `dupes.py` found the block written THREE times
+first ones did. Extracted from three copies
 -- `Cardinal.lean`, `FiniteSubsets.lean` and `Halving.lean` -- each building a
 graph for a different family.
 

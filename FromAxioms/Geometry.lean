@@ -9,3 +9,4 @@ The Geometry area. This file is generated; it imports every module in
 `FromAxioms/Geometry/`.
 -/
 import FromAxioms.Geometry.GeomSqrt
+import FromAxioms.Geometry.Hilbert

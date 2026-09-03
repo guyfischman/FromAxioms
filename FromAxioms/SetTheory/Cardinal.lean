@@ -34,6 +34,7 @@ transplants to count it.
 import FromAxioms.Constructive.Reverse
 import FromAxioms.Core.NatSearch
 import FromAxioms.NumberTheory.Arith
+import FromAxioms.SetTheory.Relation
 
 universe u
 
