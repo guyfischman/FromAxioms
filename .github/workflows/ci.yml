@@ -32,3 +32,11 @@ jobs:
 
       - name: Where principles are spent
         run: python3 tools/hypcost.py --check
+
+      # The tower's dependency claim, checked in both directions: nothing under
+      # `FromAxioms/` imports Mathlib, Batteries or a comparator, and nothing
+      # reachable from `Foundations.lean` reaches the comparator package. The
+      # README says the build needs the toolchain alone, and `comparator/`
+      # imports Mathlib, so without this the sentence is a promise.
+      - name: No Mathlib under FromAxioms
+        run: python3 tools/nomathlib.py --check

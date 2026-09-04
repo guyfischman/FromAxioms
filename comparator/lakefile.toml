@@ -1,0 +1,40 @@
+# THE COMPARATOR PACKAGE --- the ONLY place Mathlib is imported, and it is
+# imported to STATE a theorem, never to prove one.
+#
+# SEPARATE FROM THE ROOT PACKAGE ON PURPOSE. `lake build` at the repository root
+# builds the tower and must not acquire a Mathlib dependency; checking a
+# comparator pair is `cd comparator && lake build`, a different command with a
+# different dependency set. `tools/nomathlib.py --check` gates the other
+# direction --- nothing under `FromAxioms/` may import Mathlib, Batteries, or
+# anything under `Comparator`.
+#
+# PINNED TO THE TOWER'S TOOLCHAIN, v4.24.0, and not to Mathlib's tip. A pair
+# imports BOTH Mathlib and `FromAxioms`, so one Lean must build both.
+# `.compare/mathlib4` sits at v4.34.0-rc2 and cannot serve: it is the
+# name-level comparison corpus `tools/compare.py` regexes, not something to
+# elaborate against.
+name = "comparator"
+version = "0.1.0"
+defaultTargets = ["Comparator"]
+
+# `version = "v4.24.0"` is REFUSED by lake --- `unsupported dependency version
+# format (should be "git#<rev>")`. The tag is a git rev, so it is spelled that
+# way; the tag name is what pins Mathlib to the same Lean this tower uses.
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+version = "git#v4.24.0"
+
+# THE TOWER ITSELF, BY PATH. A `solution.lean` has to import `FromAxioms`, so
+# the dependency edge comparator -> FromAxioms is the whole point of the pair.
+# It is also the edge `tools/nomathlib.py --check` refuses to see reversed: the
+# tower may not reach `Comparator`, and the check runs from
+# `FromAxioms/Foundations.lean` outward so that a reversal is caught at the
+# import graph rather than argued about in prose.
+[[require]]
+name = "FromAxioms"
+path = ".."
+
+[[lean_lib]]
+name = "Comparator"
+globs = ["Comparator.+"]

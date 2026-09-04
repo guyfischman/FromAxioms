@@ -7,7 +7,11 @@ cost of every result measured rather than assumed.
 -- every declaration, what it rests on, and where each axiom and each named
 principle first enters beneath it. Regenerated on every push.
 
-No dependencies aside from the Lean toolchain.
+`lake build` needs the Lean toolchain and nothing else. Mathlib appears in one
+place, `comparator/`, which is a separate package built by a separate command:
+it is imported there to STATE the theorems this library is measured against,
+never to prove one. `tools/nomathlib.py --check` holds both directions, so the
+sentence above is a checked fact rather than a promise.
 
 ## The point
 
@@ -77,6 +81,29 @@ forward it. A new spend site is the event nothing else reports.
 
 Per-declaration costs are in [AXIOMS.md](AXIOMS.md), regenerated with each
 commit.
+
+## The comparators
+
+A theorem here can always be doubted on the grounds that the statement was bent
+to fit the proof. `comparator/` answers that by not writing the statement. Each
+pair is two files: `Challenge.lean` imports Mathlib and states the theorem in
+Mathlib's vocabulary, and `Solution.lean` discharges that exact statement from
+this library. `challenge_is_mathlibs` proves the challenge from Mathlib, so the
+statement being matched is certified as Mathlib's before anything here touches
+it.
+
+```sh
+cd comparator && lake build      # needs Mathlib; pinned in lake-manifest.json
+```
+
+`Comparator/Audit.lean` runs on that build and asks the kernel two questions
+per pair: whether the proof reaches a proposition proved under `FromAxioms/`,
+and whether it reaches any Mathlib theorem that Mathlib's own proof of the
+challenge uses. The second is what a comparator may not do, and prose cannot
+establish either.
+
+`comparator/formalization.yaml` records the pairs and the Mathlib revision they
+were checked against.
 
 ## Building
 

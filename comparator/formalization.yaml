@@ -1,0 +1,59 @@
+# Comparator pairs: what this library discharges when the theorem is
+# stated in Mathlib's own words.
+#
+# Each pair is a directory under `comparator/Comparator/`.
+# `Challenge.lean` imports Mathlib and states the theorem in Mathlib's
+# vocabulary, and `challenge_is_mathlibs` discharges that statement
+# from Mathlib, so the statement being matched is certified as
+# Mathlib's. `Solution.lean` then proves the same statement from
+# `FromAxioms` alone. A reader who trusts Mathlib and distrusts
+# everything here can still read the pair, because the proposition
+# being proved was not ours to bend.
+#
+# A pair counts when `lake build` in `comparator/` is green, which
+# runs `Comparator/Audit.lean`: it fails the build if a solution
+# reaches no proposition proved under `FromAxioms/`, or reaches a
+# Mathlib theorem that Mathlib's own proof of the challenge uses.
+#
+# Nothing under `FromAxioms/` imports Mathlib.
+# `python3 tools/nomathlib.py --check` gates that in both directions.
+
+version: 1
+
+toolchain:
+  lean: leanprover/lean4:v4.24.0
+  mathlib: v4.24.0
+  checkout: comparator/.lake/packages/mathlib
+  note: >
+    A pair imports both Mathlib and FromAxioms, so one Lean must build both.
+    Statements are read from the pinned checkout above, whose exact revision is
+    recorded in `comparator/lake-manifest.json`.
+
+pairs:
+  - id: nat-add-succ
+    date: 1861
+    rows: [recursive definition of + on ℕ]
+    mathlib: Nat.add_succ
+    mathlib_source: Lean core, inherited by Mathlib
+    ours: NumberTheory.add_succ
+    status: complete
+    note: >
+      THE STATEMENT IS FREE ON MATHLIB'S SIDE, SO THE ROUTE IS WHAT IS
+      CHECKED. Lean core proves `Nat.add_succ` by `rfl` on an inductive
+      type and mathlib does not define its own naturals, so a Solution
+      that also said `rfl` would prove NOTHING about this tower; ours is a
+      theorem about a set construction.
+      The Solution embeds both naturals as von
+      Neumann ordinals, uses `Arith.add_succ` --- `add x (succ y) =
+      succ (add x y)` for ARBITRARY `ZFSet`s, proved by EXTENSIONALITY and not
+      by computation --- returns through `add_ofNat`, which says the tower's
+      addition agrees with Lean's under the embedding, and closes with
+      `ofNat_injective`. What is verified is that the set-theoretic recursion
+      DISCHARGES Lean's arithmetic equation.
+      `Solution.lean` CONTAINS NO `rfl`, and that is the only thing separating a
+      real Solution here from a vacuous one, so it is stated in the file rather
+      than left for a reader to check. The three `rfl` occurrences a grep finds
+      are all in the docstring explaining the absence.
+      IT ALSO PRINTS `[propext, Quot.sound]` --- no `Classical.choice` ---
+      since this route never touches the type encoding the algebraic pairs
+      need.

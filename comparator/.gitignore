@@ -1,0 +1,9 @@
+# Lake's build and dependency tree. `comparator/.lake/packages/mathlib` is a
+# full Mathlib checkout --- it is a DEPENDENCY, resolved by
+# `lake update` from the pinned tag in `lakefile.toml`, and must never enter
+# this repository's history.
+#
+# `lake-manifest.json` is NOT ignored: it records the exact Mathlib revision the
+# pair was checked against, which is the difference between "we matched Mathlib"
+# and "we matched some Mathlib".
+.lake/
