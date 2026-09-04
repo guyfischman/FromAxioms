@@ -11,3 +11,4 @@ The Metamath area. This file is generated; it imports every module in
 import FromAxioms.Metamath.FirstOrder
 import FromAxioms.Metamath.Godel
 import FromAxioms.Metamath.Robinson
+import FromAxioms.Metamath.Incompleteness

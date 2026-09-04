@@ -130,5 +130,9 @@
  "Algebra.detN_mul": [
   "multiplicativity of the determinant",
   1812
+ ],
+ "Algebra.isModule_submodule": [
+  "module over a ring",
+  1888
  ]
 }
