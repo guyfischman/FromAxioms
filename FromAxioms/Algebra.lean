@@ -17,3 +17,5 @@ import FromAxioms.Algebra.Poly
 import FromAxioms.Algebra.PolyRing
 import FromAxioms.Algebra.Conjugation
 import FromAxioms.Algebra.Module
+import FromAxioms.Algebra.PolyDomain
+import FromAxioms.Algebra.Sylow
