@@ -642,8 +642,8 @@ def ratLt (r s : ZFSet.{u}) : Prop := ratLe r s ∧ r ≠ s
 `ratLe` names `ratOf` on BOTH sides, so neither argument can be a set that is
 not one of those classes. The consequences are three one-liners, and they
 matter because `realLOf` is total: it accepts any `ZFSet`, so every interval
-`realLIcc p q` is defined at junk endpoints too, and what it MEANS there is
-decided here rather than in the analysis files. -/
+`realLIcc p q` is defined at junk endpoints too, and these fix what it means
+there. -/
 
 theorem ratLt_ratOf {a b c d : ZFSet.{u}}
     (ha : a ∈ Int.{u}) (hb : b ∈ intPositive.{u})

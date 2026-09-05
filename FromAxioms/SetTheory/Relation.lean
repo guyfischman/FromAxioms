@@ -586,9 +586,9 @@ and costs nothing: the graph is a separation of the product, and single-valuedne
 is the uniqueness hypothesis.
 
 THIS IS THE DISCRIMINATOR THE Prop-TO-DATA WALL TURNS ON. An `∃` over functions
-is unreachable in general --- that is what makes `DerivModulusChoice`, `DCOn` and
-the selection principles cost something. It is FREE whenever the witness is
-unique, and `theOnly` (Algebra.lean) is only the pointwise case of it. -/
+is unreachable in general, so `DerivModulusChoice`, `DCOn` and the selection
+principles cost something. It is FREE whenever the witness is unique, and
+`theOnly` (Algebra.lean) is only the pointwise case of it. -/
 
 #print axioms graphOn_isFunction
 

@@ -956,13 +956,11 @@ theorem ringMul_shuffle_pair {R add mul zero one a b c d : ZFSet.{u}}
 
 /-! ### The quadratic over a LEAN TYPE
 
-STRICTLY WEAKER HYPOTHESES THAN MATHLIB'S. mathlib asks `[Field K]`,
-`[NeZero (2 : K)]` and `a ≠ 0`. This asks for a commutative ring with no zero
-divisors, an `e` inverting THIS `a`, and a `u` with `u + u = B` --- neither
-inverse need exist for any other element, and `a ≠ 0` is never assumed. That last
-omission is why the proof carries a branch mathlib never meets: `a * E = 0`
-splits, and `a = 0` forces `one = a * e = 0`, making the ring trivial so `E = 0`
-regardless.
+THE HYPOTHESES ARE WEAK ON PURPOSE. This asks for a commutative ring with no
+zero divisors, an `e` inverting THIS `a`, and a `u` with `u + u = B`: no other
+element need be invertible, and `a ≠ 0` is never assumed. That last omission is
+why the proof carries an extra branch: `a * E = 0` splits, and `a = 0` forces
+`one = a * e = 0`, making the ring trivial so `E = 0` regardless.
 
 Every declaration here prints `does not depend on any axioms`, a lower floor than
 the `ZFSet` forms above, since nothing set-theoretic is used. -/
