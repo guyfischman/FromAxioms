@@ -637,6 +637,14 @@ where the shift is `b·b`, positive because `b` is. -/
 
 def ratLt (r s : ZFSet.{u}) : Prop := ratLe r s ∧ r ≠ s
 
+/-! ### What the order does at an argument that is not a rational
+
+`ratLe` names `ratOf` on BOTH sides, so neither argument can be a set that is
+not one of those classes. The consequences are three one-liners, and they
+matter because `realLOf` is total: it accepts any `ZFSet`, so every interval
+`realLIcc p q` is defined at junk endpoints too, and what it MEANS there is
+decided here rather than in the analysis files. -/
+
 theorem ratLt_ratOf {a b c d : ZFSet.{u}}
     (ha : a ∈ Int.{u}) (hb : b ∈ intPositive.{u})
     (hc : c ∈ Int.{u}) (hd : d ∈ intPositive.{u}) :
@@ -1050,9 +1058,7 @@ theorem exists_between_two' {p a b : ZFSet.{u}} (hp : p ∈ Rat.{u}) (ha : a ∈
   · obtain ⟨t, htQ, hat, htp⟩ := rat_dense ha hp h₁
     exact ⟨t, htQ, htp, hat, ratLt_of_le_of_lt hb ha htQ h hat⟩
 
-/-! ### The corner lemma
-
-Stated as a disjunction rather than with `min`/`max`, for the same reason. -/
+/-! ### The corner lemma -/
 
 theorem corner_le_mul {q q' r r' Q R : ZFSet.{u}} (hq : q ∈ Rat.{u}) (hq' : q' ∈ Rat.{u})
     (hr : r ∈ Rat.{u}) (hr' : r' ∈ Rat.{u}) (hQ : Q ∈ Rat.{u}) (hR : R ∈ Rat.{u})

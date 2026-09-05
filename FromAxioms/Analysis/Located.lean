@@ -2864,12 +2864,6 @@ theorem exists_rat_bracket {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) {ε : ZFSet.{u
     hlt⟩
 
 /-! ## The smaller of two reals
-
-`min` on located pairs is the intersection of the lower halves against the union
-of the upper ones, and it is choice-free: `located` for the pair follows from the
-two `located`s by cases on their disjunctions, never on a comparison of the two
-numbers. Where a comparison is needed -- to inhabit the lower half, and to keep
-it open -- it is a comparison of rationals, which `ratLt_trichotomy` decides.
 -/
 
 /-- The smaller of two located reals. -/

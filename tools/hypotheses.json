@@ -86,7 +86,22 @@
   "question that ARISES and is unanswered. 'n/a' would say it does not, so",
   "the budget is spent rather than bought with a wrong field. WWKLBool is the",
   "precedent and its own entry records the same trade at 4 -> 5. Raising this",
-  "is two edits on purpose: the entry, and this line."
+  "is two edits on purpose: the entry, and this line.",
+  "",
+  "_uncalibrated RAISED 6 -> 7 on 2026-09-04, for UnstraddledBundles'",
+  "FORWARD. Its REVERSE is proved --- Analysis.cutAtRat_of_unstraddledBundles,",
+  "the bundle giving CutAtRat --- and the forward, building a bundle FROM the",
+  "decision, asks for an OBJECT where the node gives a DECISION. That question",
+  "arises and is unanswered, so 'n/a' would be false and the budget is spent",
+  "rather than bought with a wrong field. Same trade as WWKLBool at 4 -> 5 and",
+  "HasBaireSelectorsAll at 5 -> 6.",
+  "",
+  "AND THE RAISE IS THE POINT, NOT A COST. This entry came off criterion 1's",
+  "unregistered list, where `_uncalibrated` could not see it: that counter",
+  "reads only what the registry HOLDS. So registering moved one hypothesis",
+  "from INVISIBLE to COUNTED, and the budget going up is the debt becoming",
+  "legible rather than new debt. Criterion 2 is unmoved: it counts entries",
+  "with NEITHER direction proved, and this one has its reverse."
  ],
  "_uncalibrated": 0
 }

@@ -578,6 +578,18 @@ theorem app_graphOn {x y n : ZFSet.{u}} {F : ZFSet.{u} → ZFSet.{u}}
   app_eq (graphOn_isFunction x y F) ((mem_graphOn_iff x y F _).mpr
     ⟨opair_mem_prod hn (hF n hn), n, hn, rfl⟩)
 
+/-! ### Unique choice
+
+`graphOn` needs `F` as a LEAN function, so it cannot turn a RELATION into one.
+When a relation picks exactly one value per argument, the function exists anyway
+and costs nothing: the graph is a separation of the product, and single-valuedness
+is the uniqueness hypothesis.
+
+THIS IS THE DISCRIMINATOR THE Prop-TO-DATA WALL TURNS ON. An `∃` over functions
+is unreachable in general --- that is what makes `DerivModulusChoice`, `DCOn` and
+the selection principles cost something. It is FREE whenever the witness is
+unique, and `theOnly` (Algebra.lean) is only the pointwise case of it. -/
+
 #print axioms graphOn_isFunction
 
 /-- The operation applied to a pair, written the way the axioms read. -/

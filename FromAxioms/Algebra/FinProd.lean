@@ -27,7 +27,6 @@ so `setFold` is a definition rather than a choice.
 
 import FromAxioms.Algebra.Group
 import FromAxioms.Analysis.Located
-import FromAxioms.Core.CoreShim
 import FromAxioms.SetTheory.Cantor
 
 universe u
@@ -858,5 +857,5 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 end Algebra
 
 namespace ZFSet
-export Algebra (IsCommMonoid flat_div_mod flat_lt foldF foldF_add foldF_congr foldF_cons foldF_const foldF_drop_last foldF_flatten foldF_involution foldF_map foldF_mem foldF_mem_closed foldF_mem_closed_below foldF_peel_pair foldF_peel_pair_collapse foldF_pointwise_add foldF_reverse foldF_single_below_monoid foldF_skip foldF_split foldF_swap foldF_triangle foldF_trunc foldF_unit foldF_zeros_monoid ginv ginv_ginv ginv_mem gpow_add_of_commMonoid hom_foldF_monoid isCommMonoid_of_isGroup left_comm_monoid opAt_ginv opAt_mem_monoid opAt_shuffle4 origAt origAt_ne origAt_pair_lt origAt_pair_ne origAt_pair_survAt origAt_survAt right_id_monoid sigma_survives skipAt skipAt_ge skipAt_lt skipAt_origAt skipAt_skipAt_origAt survAt survAt_origAt survAt_pair_lt survAt_pair_origAt survPair survPair_invol survPair_maps survPair_nofix survPair_pairs)
+export Algebra (flat_div_mod flat_lt foldF foldF_add foldF_congr foldF_cons foldF_const foldF_drop_last foldF_flatten foldF_involution foldF_map foldF_mem foldF_mem_closed foldF_mem_closed_below foldF_peel_pair foldF_peel_pair_collapse foldF_pointwise_add foldF_reverse foldF_single_below_monoid foldF_skip foldF_split foldF_swap foldF_triangle foldF_trunc foldF_unit foldF_zeros_monoid ginv ginv_ginv ginv_mem gpow_add_of_commMonoid hom_foldF_monoid IsCommMonoid isCommMonoid_of_isGroup left_comm_monoid opAt_ginv opAt_mem_monoid opAt_shuffle4 origAt origAt_ne origAt_pair_lt origAt_pair_ne origAt_pair_survAt origAt_survAt right_id_monoid sigma_survives skipAt skipAt_ge skipAt_lt skipAt_origAt skipAt_skipAt_origAt survAt survAt_origAt survAt_pair_lt survAt_pair_origAt survPair survPair_invol survPair_maps survPair_nofix survPair_pairs)
 end ZFSet

@@ -23,6 +23,7 @@ Everything is `[propext, Quot.sound]`. Nothing about groups needs a decision:
 the operation is given, not chosen.
 -/
 
+import FromAxioms.Core.CoreShim
 import FromAxioms.NumberTheory.Integer
 import FromAxioms.SetTheory.Cardinal
 
@@ -364,11 +365,27 @@ theorem gpow_id {G op e : ZFSet.{u}} (hG : IsGroup G op e) :
     show opAt op (gpow op e e k) e = e
     rw [gpow_id hG k, hG.right_id e hG.mem_e]
 
-/-- Pigeonhole for a sequence in a finite set. Two of the first `n+1` values
-coincide. -/
-theorem exists_repeat_of_finite {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
+/-- Pigeonhole for a sequence in a finite set, WITH THE BOUND. Two of the
+first `n+1` values coincide, and the later index is one of those `n+1`.
+
+THE BOUND WAS PROVED HERE AND DISCARDED, AND THE DOCSTRING KNEW. The old
+statement returned `∃ j k, j < k ∧ F j = F k` while the sentence above it said
+two of the first `n+1` values --- the prose was right and the type was weaker.
+`exists_pair_or_inj` hands back `hj : j < n + 1` and `hk : k < n + 1`, and both
+branches of the final `rcases` dropped them.
+
+IT IS NOT A COSMETIC STRENGTHENING. Dirichlet's theorem is this lemma with
+the bound: the difference of the two indices is the approximation's denominator,
+so `k <= n` is the whole quantitative content, and an unbounded collision carries
+none of it. `exists_dirichlet_collision` (`PolyRing`) was rewritten onto the weak
+form and inherited the defect --- true, green, and unusable by its own consumer.
+
+`exists_repeat_of_finite` below is this with the bound forgotten, for the callers
+that never wanted it.
+-/
+theorem exists_repeat_of_finite_lt {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     (hmaps : ∀ k : Nat, F k ∈ G) {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) :
-    ∃ j k : Nat, j < k ∧ F j = F k := by
+    ∃ j k : Nat, j < k ∧ k < n + 1 ∧ F j = F k := by
   have hnotinj : ¬ ∀ j k : Nat, j < n + 1 → k < n + 1 → F j = F k → j = k := by
     intro hinj
     have hdom : Dominates (ofNat.{u} (n + 1)) (ofNat.{u} n) := by
@@ -394,9 +411,20 @@ theorem exists_repeat_of_finite {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     (fun j k => eq_or_ne_of_finite hGfin (hmaps j) (hmaps k)) (n + 1) with
     ⟨j, k, hj, hk, hne, hjk⟩ | hinj
   · rcases Nat.lt_or_ge j k with hlt | hge
-    · exact ⟨j, k, hlt, hjk⟩
-    · exact ⟨k, j, by omega, hjk.symm⟩
+    · exact ⟨j, k, hlt, hk, hjk⟩
+    · exact ⟨k, j, by omega, hj, hjk.symm⟩
   · exact absurd hinj hnotinj
+
+#print axioms exists_repeat_of_finite_lt
+
+/-- Pigeonhole for a sequence in a finite set. Two of the first `n+1` values
+coincide. The bound on the later index is available from
+`exists_repeat_of_finite_lt`; this is the form for callers that do not need it. -/
+theorem exists_repeat_of_finite {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
+    (hmaps : ∀ k : Nat, F k ∈ G) {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) :
+    ∃ j k : Nat, j < k ∧ F j = F k :=
+  let ⟨j, k, hlt, _, hjk⟩ := exists_repeat_of_finite_lt hmaps hGfin
+  ⟨j, k, hlt, hjk⟩
 
 /-- In an abelian group the power of a product is the product of the powers. -/
 theorem gpow_opAt {G op e a b : ZFSet.{u}} (hG : IsGroup G op e) (hab : IsAbelian G op)
