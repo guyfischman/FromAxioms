@@ -116,9 +116,10 @@ Lean 4.24.0, pinned in `lean-toolchain`.
 ## Status
 
 Early, and released in dependency order: what is here builds, and every commit
-builds, but this is the beginning of the development rather than all of it.
-Names and statements in published files are stable; the tree above them is not
-yet here.
+builds, but this is the beginning of the development rather than all of it. The
+tree above what is published is not yet here.
+
+Names can still change as development continues where this is cut from.
 
 ## Licence
 
