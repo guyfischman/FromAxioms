@@ -57,3 +57,45 @@ pairs:
       IT ALSO PRINTS `[propext, Quot.sound]` --- no `Classical.choice` ---
       since this route never touches the type encoding the algebraic pairs
       need.
+
+  - id: det-mul
+    rows:
+      - "multiplicativity of the determinant"
+    mathlib: Matrix.det_mul
+    mathlib_source: Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean:134
+    ours: Algebra.detN_mul
+    status: complete
+    note: >
+            TWO ROUTES LOOKED FORCED AND NEITHER IS REQUIRED. Stating a challenge
+      with `Matrix.det` seemed to need `Matrix.det = detT` first, by either
+      the permutation transfer, which needs
+      `Equiv.Perm.sign s = (-1)^(inversions s)` and MATHLIB DOES NOT HAVE IT,
+      or the uniqueness route through `AlternatingMap.eq_smul_basis_det`,
+      needing this tree's seven-lemma alternating ladder over a Lean type.
+      THE ROUTE IS A THIRD ONE. `Comparator.DetTransfer.detN_encMat` proves
+      `detN (encMat M) = encode M.det` by INDUCTION ON THE SIZE, using
+      mathlib's own Laplace expansion `Matrix.det_succ_row_zero` --- which is
+      how `detN` is defined, so the step is term-by-term and no permutation
+      parity appears.
+      THE OBSTRUCTION WAS READ FROM MATHLIB'S DEFINITION RATHER THAN ITS
+      THEOREMS. `Matrix.det` IS the Leibniz sum definitionally, which is what
+      made both routes above look forced; a proved Laplace expansion is as
+      usable as a definitional one.
+      THE PAIR ITSELF IS AN ASSEMBLY: one theorem plus a bounded congruence
+      over a carrier that was already built. `detN_congr_lt` is the only
+      step beyond a rewrite --- `matMulOn_encMat` matches the transported
+      product with `encMat (M * N)` ONLY ON THE SQUARE, and the unbounded
+      congruence would not apply.
+      `m = 0` IS A CASE SPLIT, NOT A WEAKENING. `detN_mul` carries `0 < n` and
+      mathlib's holds at every size; at zero both determinants are `1` by
+      `Matrix.det_fin_zero`. The challenge is discharged over an arbitrary
+      `CommRing` rather than a fixed one. It is NARROWER THAN MATHLIB ON THE
+      INDEX: mathlib's `det_mul` is over any `[Fintype n] [DecidableEq n]`
+      and this fixes `Fin m`, so transporting along `n ≃ Fin (card n)` is
+      the step still owed.
+      THE TOWER THEOREM UNDER THE PAIR IS CHOICE-FREE AND THE STATEMENT IS
+      NOT. `detN_mul` and `detN_congr_lt` are `[propext, Quot.sound]`, while
+      `Matrix.det` itself is `[propext, Quot.sound, Classical.choice]`, so no
+      proof of this statement prints without choice whatever route it takes.
+      The encoding spends choice too; the axiom line cannot separate the two
+      sources once both are present.

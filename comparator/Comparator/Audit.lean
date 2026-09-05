@@ -35,6 +35,7 @@ Only removing the citation and rebuilding settles that, one pair at a time.
 -- happened to import Mathlib would drag `Lean` in behind it and hide the need.
 import Lean
 import Comparator.NatAddSucc.Solution
+import Comparator.DetMul.Solution
 
 open Lean
 
