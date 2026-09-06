@@ -37,3 +37,11 @@ jobs:
       - name: Build the pairs and run the audit
         working-directory: comparator
         run: lake build
+
+      # `PAIRS.md` is written by the audit during that build, so a stale one
+      # means the committed table no longer describes the pairs. Same contract
+      # as `AXIOMS.md`: generated, committed, and checked to be current rather
+      # than trusted.
+      - name: The pair table is current
+        working-directory: comparator
+        run: git diff --exit-code -- PAIRS.md

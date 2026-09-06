@@ -102,8 +102,13 @@ and whether it reaches any Mathlib theorem that Mathlib's own proof of the
 challenge uses. The second is what a comparator may not do, and prose cannot
 establish either.
 
-`comparator/formalization.yaml` records the pairs and the Mathlib revision they
-were checked against.
+[comparator/PAIRS.md](comparator/PAIRS.md) is written by that build: per pair,
+what the statement is certified as, which propositions of this library the proof
+reaches, and what it costs in axioms beyond the tower theorems it uses and
+Mathlib's own proof of the same statement. Generality is not there, because
+comparing two binder lists is a reading rather than a computation;
+`comparator/formalization.yaml` carries that per pair, along with the Mathlib
+revision they were checked against.
 
 ## Building
 
