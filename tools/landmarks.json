@@ -130,5 +130,9 @@
  "Algebra.isModule_submodule": [
   "module over a ring",
   1888
+ ],
+ "Constructive.acOmega_of_dc": [
+  "dependent choice",
+  1942
  ]
 }

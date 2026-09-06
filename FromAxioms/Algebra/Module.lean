@@ -1875,7 +1875,14 @@ The expensive direction, and the price is named rather than assumed. `ACC`
 quantifies over a sequence and returns a bound; `IsNoetherian` must hand back a
 LIST. Producing generators from a chain condition means asking, of a finite list
 already inside the ideal, whether it spans -- and not yet in the span is
-exactly the negative membership test this tower prices. -/
+exactly the negative membership test this tower prices.
+
+It is a READOUT, not `DC`. The obvious route builds the chain by choosing an
+escaping element at each step, which is dependent choice. A SELECTOR is a
+function, so the chain it generates is a plain `Nat` recursion and no principle
+is spent iterating it -- the same three-way split `Baire.lean` makes between
+`DC`, a selector, and a readout. What remains is the decision, and that is the
+whole cost. -/
 
 #print axioms isModule_self
 #print axioms IsNoetherian

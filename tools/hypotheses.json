@@ -1,4 +1,28 @@
 {
+ "BinaryDC": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "binarydc",
+   "reverse": "n/a",
+   "shape": "choice"
+  },
+  "discharge": "PINNED EXACTLY, and `maybe` understated what was already proved. `binaryDC_iff_countableBoolChoice` (Vanishing.lean:2239) is an EQUIVALENCE with `CountableBoolChoice`, so this is not a principle awaiting a presentation -- it IS countable Boolean choice. The reason is that the hypothesis asks for a decision at EVERY numerator, so every decision precedes the recursion and the walk collapses. Weaker than DC follows rather than being guessed, since DC gives countable choice through `acOmega_of_dc`. WHAT IS ACTUALLY OPEN is STRICTNESS -- whether it sits strictly below DC -- which is a question about MODELS that no edge answers, and `BinaryDCOn`'s docstring records it the same way.",
+  "verdict": "lattice",
+  "kind": "principle",
+  "meaning": "dependent choice along a two-valued step"
+ },
+ "DC": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "dc",
+   "reverse": "n/a",
+   "shape": "choice"
+  },
+  "discharge": "PLACED, and this entry asked the question as open until 2026-08-31. The point is known exactly: `dc_of_setChoice` bounds it above and six edges run below it -- `acOmega_of_dc`, `dcOmega_of_dc`, `baire_of_dc`, `baireL_of_dc`, `binaryDCOn_of_dc`, `treeDCZ_of_dc` -- so Baire's dependence on choice along a sequence is not merely suspected but registered. The calibration fields are n/a BY CONSTRUCTION: this entry's `principle` is `dc`, so a forward deriving it from itself is not a thing to write, and its placement lives in lattice.json where `lattice.one_sided` reports it bracketed.",
+  "verdict": "lattice",
+  "kind": "principle",
+  "meaning": "dependent choice"
+ },
  "EM": {
   "calibration": {
    "forward": "n/a",
@@ -33,6 +57,18 @@
   "discharge": "reversed to WLPO",
   "kind": "principle",
   "meaning": "deciding a ternary expansion is zero"
+ },
+ "UniformlyContinuousOn": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "modulus"
+  },
+  "discharge": "per-function: concrete functions carry a modulus; the blanket form scopes the theory",
+  "verdict": "per_instance",
+  "kind": "structural",
+  "meaning": "a modulus of continuity on the interval"
  },
  "WLPO": {
   "calibration": {

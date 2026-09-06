@@ -12,3 +12,4 @@ import FromAxioms.Metamath.FirstOrder
 import FromAxioms.Metamath.Godel
 import FromAxioms.Metamath.Robinson
 import FromAxioms.Metamath.Incompleteness
+import FromAxioms.Metamath.Calibrate

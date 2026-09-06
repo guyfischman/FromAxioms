@@ -71,6 +71,22 @@
    "reversal": "SetTheory.em_of_subset_finite",
    "note": "every subset of a finite set is finite. Both directions now: deciding how many elements {z in 1 | p} has decides p, and em supplies the detachability that isFinite_of_detachable needs",
    "forward": "SetTheory.subsetFinite_of_em"
+  },
+  {
+   "statement": "Metamath.ExactIVT01",
+   "principle": "llpo",
+   "landmark": "the intermediate value theorem, constructively",
+   "reversal": "Metamath.llpo_of_exact_ivt",
+   "note": "an exact zero-crossing, as against the approximate one which is free. PINNED AT THE ANALYTIC LLPO: signDisjunction_of_exact_ivt recovers SignDisjunction from the theorem and attainment_of_signDisjunction_binaryDCOn returns it, so only the choice layer BinaryDCOn sits between the two directions. llpo_of_exact_ivt gives the sequential form as well, and the forward named here composes that same route through DC.",
+   "forward": "Metamath.exactIVT_of_llpo_binaryDC_dc",
+   "forward_extra": [
+    "binarydc",
+    "dc"
+   ],
+   "extra": [
+    "BinaryDC",
+    "DC"
+   ]
   }
  ],
  "_open_budget": 0,

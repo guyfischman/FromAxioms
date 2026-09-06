@@ -26,7 +26,7 @@ a natural number, and does so as data rather than as an existential a
 construction cannot consume.
 -/
 
-import FromAxioms.NumberTheory.Rational
+import FromAxioms.Analysis.Cauchy
 import FromAxioms.SetTheory.LeastSearch
 -- Re-exported: four files reach `seekFrom` and `natFind` through this one and
 -- none imports `NatSearch.lean` directly.

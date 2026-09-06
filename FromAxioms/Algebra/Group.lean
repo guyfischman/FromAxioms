@@ -24,7 +24,6 @@ the operation is given, not chosen.
 -/
 
 import FromAxioms.Core.CoreShim
-import FromAxioms.NumberTheory.Integer
 import FromAxioms.SetTheory.Cardinal
 
 universe u

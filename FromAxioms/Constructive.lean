@@ -11,3 +11,4 @@ The Constructive area. This file is generated; it imports every module in
 import FromAxioms.Constructive.Reverse
 import FromAxioms.Constructive.Omniscience
 import FromAxioms.Constructive.Vanishing
+import FromAxioms.Constructive.ContentLocated

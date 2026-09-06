@@ -16,3 +16,5 @@ import FromAxioms.NumberTheory.Prime
 import FromAxioms.NumberTheory.Rational
 import FromAxioms.NumberTheory.Congruence
 import FromAxioms.NumberTheory.Fraction
+import FromAxioms.NumberTheory.Halving
+import FromAxioms.NumberTheory.CycPowerBasis

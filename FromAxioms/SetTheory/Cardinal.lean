@@ -30,8 +30,7 @@ does, so `equinumerous_powSet`'s induction transplants to count it.
 
 import FromAxioms.Constructive.Reverse
 import FromAxioms.Core.NatSearch
-import FromAxioms.NumberTheory.Arith
-import FromAxioms.SetTheory.Relation
+import FromAxioms.NumberTheory.Rational
 
 universe u
 
