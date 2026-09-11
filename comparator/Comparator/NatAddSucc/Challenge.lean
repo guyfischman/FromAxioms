@@ -29,6 +29,17 @@ A reader who wants to confirm the Solution does not cheat should look for
 `rfl` in it: there is none, and `ofNat_injective` is what closes it.
 -/
 
+-- THE NAMESPACE WAS DOUBLED AND THE PAIR DID NOT BUILD. `88fdb3085`
+-- (namespace the 23 root-level pairs) added `namespace Comparator.NatAddSucc`
+-- to a file that already had it, so `challenge` was declared at
+-- `Comparator.NatAddSucc.Comparator.NatAddSucc.challenge` and `Solution.lean`
+-- could not see it: `type of theorem solution is not a proposition`, which
+-- reads as a broken Solution and is a broken namespace one file away.
+--
+-- IT PASSED EVERY SCOPE CHECK BECAUSE IT WAS BALANCED --- two `namespace`
+-- lines and two `end`s, so `mergecheck.py`'s check 5 correctly reported 0. A
+-- doubled namespace is not an imbalance; it is a rename, and only elaboration
+-- sees it.
 namespace Comparator.NatAddSucc
 
 /-- Lean core's recursion equation, as a closed proposition. -/

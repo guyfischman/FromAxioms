@@ -67,7 +67,40 @@ theorem foldF_eq_encode_sum (F : Nat → α) (n : Nat) :
       = encode (∑ i ∈ Finset.range n, F i) :=
   (encode_sum_eq_foldF F n).symm
 
+/-- An encoded finite PRODUCT is a fold on the encoded carrier.
+
+Word-for-word the additive proof with `(· * ·)` and `1` --- `foldF` and
+`opAt_opSet` are stated for an arbitrary operation, so nothing about the
+additive one was specific to addition. It is here rather than in a `ProdFold`
+file for exactly that reason: one mechanism, and splitting it would hide that
+the second is free.
+
+`permProdOn mul one A g n` IS this fold at `F i = A i (g i)`, which is what the
+Leibniz row needs to cross the encoding. -/
+theorem encode_prod_eq_foldF (F : Nat → α) :
+    ∀ n : Nat,
+      encode (∏ i ∈ Finset.range n, F i)
+        = foldF (opSet (α := α) (· * ·)) (encode (1 : α))
+            (fun i => encode (F i)) n
+  | 0 => by rw [Finset.prod_range_zero]; rfl
+  | n + 1 => by
+    rw [Finset.prod_range_succ, show
+      foldF (opSet (α := α) (· * ·)) (encode (1 : α)) (fun i => encode (F i)) (n + 1)
+        = opAt (opSet (α := α) (· * ·))
+            (foldF (opSet (α := α) (· * ·)) (encode (1 : α))
+              (fun i => encode (F i)) n)
+            (encode (F n)) from rfl,
+      ← encode_prod_eq_foldF F n, opAt_opSet]
+
+/-- The direction a rewrite in a tower-shaped goal wants. -/
+theorem foldF_eq_encode_prod (F : Nat → α) (n : Nat) :
+    foldF (opSet (α := α) (· * ·)) (encode (1 : α)) (fun i => encode (F i)) n
+      = encode (∏ i ∈ Finset.range n, F i) :=
+  (encode_prod_eq_foldF F n).symm
+
 #print axioms encode_sum_eq_foldF
 #print axioms foldF_eq_encode_sum
+#print axioms encode_prod_eq_foldF
+#print axioms foldF_eq_encode_prod
 
 end Comparator.SumFold

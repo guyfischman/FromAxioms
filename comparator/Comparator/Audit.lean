@@ -36,6 +36,8 @@ Only removing the citation and rebuilding settles that, one pair at a time.
 import Lean
 import Comparator.NatAddSucc.Solution
 import Comparator.DetMul.Solution
+import Comparator.PairEncoding.Solution
+import Comparator.IrrationalSqrtPrime.Solution
 
 open Lean
 
@@ -143,6 +145,36 @@ def mathlibTheorems (env : Environment) (n : Name) : MetaM (Array Name × Bool) 
     if ← isProofContent env c then out := out.push c
   return (out, fuel == 0)
 
+/-- The Mathlib theorem each pair claims to match, keyed by the pair's module
+prefix. Generated from `formalization.yaml`'s `mathlib:` field by the emitter,
+so the audit checks the registry's claim rather than restating it. -/
+def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
+  (`Comparator.DetMul, `Matrix.det_mul),
+  (`Comparator.PairEncoding, `none),
+  (`Comparator.IrrationalSqrtPrime, `Nat.Prime.irrational_sqrt)]
+
+/-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
+
+The other walks stop at the first Mathlib constant, which is right for asking
+what a proof leans on and wrong here: a solution that calls some Mathlib lemma
+whose own proof uses the matched theorem has used it, one step removed. So this
+one follows every edge until it finds the target or runs out of fuel, and the
+caller reports exhaustion rather than reading it as a pass. -/
+partial def reaches (env : Environment) (target : Name) (start : Name) :
+    StateM (Bool × NameSet × Nat) Unit := do
+  let (found, seen, fuel) ← get
+  if found || fuel == 0 || seen.contains start then return
+  set (found, seen.insert start, fuel - 1)
+  if start == target then
+    let (_, seen, fuel) ← get
+    set (true, seen, fuel)
+    return
+  match env.find? start with
+  | some ci => match ci.value? with
+    | some v => for c in v.getUsedConstants do reaches env target c
+    | none => return
+  | none => return
+
 /-- **The audit.** Both halves, per pair, with the witnesses named so the
 output reads as evidence rather than as a verdict. -/
 def report : MetaM Unit := do
@@ -150,6 +182,7 @@ def report : MetaM Unit := do
   let names := (solutionNames env).qsort (fun a b => a.toString < b.toString)
   let mut noProp := 0
   let mut onMathlib := 0
+  let mut calls := 0
   for n in names do
     let ((), (tower, _, fuel)) := (depsOf env isTowerConst n).run (#[], {}, 400000)
     let mut props : Array Name := #[]
@@ -166,6 +199,36 @@ def report : MetaM Unit := do
     else
       IO.println s!"ok  {n}   tower props={props.size} data={data.size}"
       for c in props.toList.take 3 do IO.println s!"      {c}"
+    -- THE CHECK THAT FAILS THE BUILD. A pair is void if its solution reaches
+    -- the theorem it claims to match. Sharing `one_mul` with Mathlib's proof is
+    -- not that: any proof of a ring identity over Mathlib's `R` has to use
+    -- Mathlib's lemmas about `R`, so the intersection below reports and does
+    -- not fail. It accused four pairs of ring plumbing before this split.
+    let pair := (moduleOf env n).map Name.getPrefix
+    match pair.bind (fun p => (matched.find? (·.1 == p)).map (·.2)) with
+    | none =>
+      calls := calls + 1
+      IO.println s!"    NO MATCHED THEOREM registered for this pair"
+    | some tgt =>
+      -- A PAIR CAN HAVE NO COUNTERPART. `pair-encoding` matches a definitional
+      -- convention rather than a theorem, and its registry says `mathlib:
+      -- none`, so there is nothing to reach and nothing to check. Reported,
+      -- because a pair nothing can check should say so, and not failed.
+      if tgt == `none || tgt == `«n/a» then
+        IO.println s!"    NO MATHLIB COUNTERPART -- unchecked by this rule"
+      else if !env.contains tgt then
+        calls := calls + 1
+        IO.println s!"    MATCHED THEOREM `{tgt}` DOES NOT EXIST in this Mathlib"
+      else
+        let ((), (hit, _, left)) := (reaches env tgt n).run (false, {}, 2000000)
+        if hit then
+          calls := calls + 1
+          IO.println s!"    CALLS THE THEOREM IT MATCHES: `{tgt}`"
+        else if left == 0 then
+          calls := calls + 1
+          IO.println s!"    INCONCLUSIVE -- fuel exhausted before `{tgt}` was ruled out"
+        else
+          IO.println s!"    does not reach `{tgt}`"
     let (mine, _) ← mathlibTheorems env n
     match witnessFor env n with
     | none => IO.println s!"    NO WITNESS -- no `challenge_is_*` certifies this statement"
@@ -175,15 +238,16 @@ def report : MetaM Unit := do
       let shared := mine.filter wset.contains
       if !shared.isEmpty then
         onMathlib := onMathlib + 1
-        IO.println s!"    RESTS ON MATHLIB'S OWN PROOF ({shared.size})"
+        IO.println s!"    shares {shared.size} Mathlib theorem(s) with Mathlib's own proof"
         for c in shared.toList.take 5 do
           IO.println s!"      {c}   [{(moduleOf env c).getD Name.anonymous}]"
       else if !mine.isEmpty then
         IO.println s!"    mathlib theorems reached: {mine.size}, none of Mathlib's own proof"
   IO.println s!"--- solutions: {names.size} | with no tower proposition: {noProp} \
-| resting on Mathlib's own proof: {onMathlib}"
-  if noProp != 0 || onMathlib != 0 then
-    throwError "the audit found {noProp + onMathlib} pair(s) to answer for"
+| calling the theorem they match: {calls} | sharing a lemma with Mathlib's \
+proof (reported, not failed): {onMathlib}"
+  if noProp != 0 || calls != 0 then
+    throwError "the audit found {noProp + calls} pair(s) to answer for"
 
 #eval report
 
@@ -246,7 +310,10 @@ def writePairs : MetaM Unit := do
     if !applied.isEmpty then
       out := out ++ s!"- Mathlib's own proof applies {applied.size} theorem(s), among them\n"
       for c in applied.toList.take 3 do out := out ++ s!"    - `{c}`\n"
-    out := out ++ s!"- surcharge beyond both: `{extra.toList}`\n\n"
+    out := out ++ s!"- surcharge beyond both: `{extra.toList}`\n"
+    -- SAID PER PAIR, not only in the header. A table that silently omits
+    -- the axis a reader most wants is read as having found nothing there.
+    out := out ++ "- generality: not computed here; see `formalization.yaml`\n\n"
   IO.FS.writeFile "PAIRS.md" out
   IO.println s!"PAIRS.md written: {rows.size} pair(s)"
 

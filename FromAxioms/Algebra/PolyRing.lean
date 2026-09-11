@@ -1943,6 +1943,41 @@ so there is no cycle.
 `Nat.choose` is a MATHLIB name and Lean core has none, so the tree defines its
 own. -/
 
+def sumUptoT {α : Type u} (add : α → α → α) (zero : α) (f : Nat → α) :
+    Nat → α
+  | 0 => zero
+  | n + 1 => add (sumUptoT add zero f n) (f n)
+
+theorem sumUptoT_succ {α : Type u} (add : α → α → α) (zero : α) (f : Nat → α)
+    (n : Nat) :
+    sumUptoT add zero f (n + 1) = add (sumUptoT add zero f n) (f n) := rfl
+
+theorem sumUptoT_mul_right {α : Type u} (add mul : α → α → α) (zero : α)
+    (hzm : ∀ p, mul zero p = zero)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (c : α) (f : Nat → α) :
+    ∀ n, mul (sumUptoT add zero f n) c
+        = sumUptoT add zero (fun k => mul (f k) c) n
+  | 0 => hzm c
+  | n + 1 => by
+    rw [sumUptoT_succ, sumUptoT_succ, hdistr (sumUptoT add zero f n) (f n) c,
+      sumUptoT_mul_right add mul zero hzm hdistr c f n]
+
+/-- Congruence UNDER A BOUND. The unbounded form is unusable in the binomial
+step, where the two summand families agree only up to the diagonal. -/
+theorem sumUptoT_congr_lt {α : Type u} (add : α → α → α) (zero : α)
+    (f g : Nat → α) :
+    ∀ m, (∀ k, k < m → f k = g k) →
+      sumUptoT add zero f m = sumUptoT add zero g m
+  | 0, _ => rfl
+  | m + 1, h => by
+    rw [sumUptoT_succ, sumUptoT_succ,
+      sumUptoT_congr_lt add zero f g m (fun k hk => h k (by omega)),
+      h m (by omega)]
+
+#print axioms sumUptoT
+#print axioms sumUptoT_mul_right
+#print axioms sumUptoT_congr_lt
 /-- The binomial theorem over a commutative ring, now a corollary of the
 semiring form. The 108 call sites across 14 files are untouched: the statement
 is unchanged and only its proof moved. -/
@@ -6155,6 +6190,35 @@ is defined by that recursion; `leibSumF_eq_detN` bridges to the Leibniz sum
 separately. The signed-sum-over-permutations landmark is a different row.
 
 Every declaration here prints `does not depend on any axioms`. -/
+def matMinorT {α : Type u} (E : Nat → Nat → α) (j : Nat) : Nat → Nat → α :=
+  fun i k => E (i + 1) (if k < j then k else k + 1)
+
+/-- The determinant by Laplace along row 0, over an arbitrary carrier with
+its ring operations as arguments. -/
+def detT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero one : α)
+    (E : Nat → Nat → α) : Nat → α
+  | 0 => one
+  | n + 1 =>
+    sumUptoT add zero
+      (fun j =>
+        let t := mul (E 0 j) (detT add mul neg zero one (matMinorT E j) n)
+        if j % 2 = 0 then t else neg t)
+      (n + 1)
+
+/-- The expansion is the definition, at every size --- stated so a consumer
+can cite the shape without unfolding a recursion. -/
+theorem detT_succ {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α) (E : Nat → Nat → α) (n : Nat) :
+    detT add mul neg zero one E (n + 1)
+      = sumUptoT add zero
+          (fun j =>
+            let t := mul (E 0 j) (detT add mul neg zero one (matMinorT E j) n)
+            if j % 2 = 0 then t else neg t)
+          (n + 1) := rfl
+
+#print axioms matMinorT
+#print axioms detT
+#print axioms detT_succ
 /-- `(A * B) i k = sum over j < n of A i j * B j k`. -/
 noncomputable def matMulOn (add mul zero : ZFSet.{u})
     (A B : Nat → Nat → ZFSet.{u}) (n : Nat) : Nat → Nat → ZFSet.{u} :=
@@ -6491,6 +6555,1433 @@ theorem prodPrefix_succ (mul one : ZFSet.{u}) (A : Nat → Nat → ZFSet.{u})
     (n t m : Nat) :
     prodPrefix mul one A n (t + 1) m
       = opAt mul (prodPrefix mul one A n t m) (A t (mixAssign n m t)) := rfl
+
+/-! ### The Leibniz machinery over a LEAN TYPE
+
+WHY IT IS HERE. A statement about an arbitrary Lean type is reached either
+by RE-SITING it, as below, or by encoding the type as a `ZFSet`. The encoding
+spends `Classical.choice` and the re-siting spends nothing, and a Lean-typed
+caller can apply the re-sited form directly.
+
+THE MEASUREMENT THAT MADE IT TRACTABLE. Reading `detN_mul` and
+`leibSum_eq_detN`, the machinery splits in two, and only half needs a twin:
+
+    ALREADY LEAN-NATIVE --- `Nat`- and `Bool`-valued, defined over Lean types
+    already, compiling unchanged:
+        natDigit  mixAssign  injUptoB  anyRepeat  inversions  invRow
+    ENTRY-VALUED --- everything returning a ring element, and this is the list
+    below:
+        foldF -> `sumUptoT` (landed) and `prodUptoT` (here)
+        matMulOn  idMat  ringSign  prodPrefix  permProd  mixRows  leibSum
+
+So NO PERMUTATIONS ARE RE-SITED. The Leibniz argument reads as though it needs
+`Equiv.Perm` over a Lean type; `detT`'s own docstring already records that the
+INDEXING is Lean-native and only the ENTRIES are set-sited, and that stays true
+one layer down.
+
+`Core.prodUpto` IS THE NEIGHBOUR AND DOES NOT SERVE. It is
+`(Nat → Nat) → Nat → Nat`, the `Nat` specialisation landed for the CRT modulus
+product; what is needed here is the fold over an arbitrary `α` with `mul` and
+`one` as arguments. Found by `grep -rn "^def prodUpto" FromAxioms/`.
+
+Every declaration in this section prints `does not depend on any axioms`. -/
+
+/-- THE MULTIPLICATIVE FOLD OVER A TYPE.
+
+`foldF` in the `ZFSet` layer serves both operations --- `foldF add zero` for
+sums and `foldF mul one` for `prodPrefix` and `permProd` --- because there the
+operation is an ARGUMENT. Over a Lean type the operation is a FUNCTION, so the
+two folds are two definitions and `sumUptoT` covers only one of them. -/
+def prodUptoT {α : Type u} (mul : α → α → α) (one : α) (f : Nat → α) :
+    Nat → α
+  | 0 => one
+  | n + 1 => mul (prodUptoT mul one f n) (f n)
+
+theorem prodUptoT_succ {α : Type u} (mul : α → α → α) (one : α) (f : Nat → α)
+    (n : Nat) :
+    prodUptoT mul one f (n + 1) = mul (prodUptoT mul one f n) (f n) := rfl
+
+/-- `(A * B) i k = sum over j < n of A i j * B j k`, over a Lean type. -/
+def matMulOnT {α : Type u} (add mul : α → α → α) (zero : α)
+    (A B : Nat → Nat → α) (n : Nat) : Nat → Nat → α :=
+  fun i k => sumUptoT add zero (fun j => mul (A i j) (B j k)) n
+
+def idMatT {α : Type u} (zero one : α) : Nat → Nat → α :=
+  fun i k => if i = k then one else zero
+
+theorem idMatT_diag {α : Type u} (zero one : α) (i : Nat) :
+    idMatT zero one i i = one := by
+  unfold idMatT; rw [if_pos rfl]
+
+theorem idMatT_off {α : Type u} (zero one : α) {i k : Nat} (h : i ≠ k) :
+    idMatT zero one i k = zero := by
+  unfold idMatT; rw [if_neg h]
+
+/-- The sign, taking the NEGATION as a function rather than a ring. -/
+def ringSignT {α : Type u} (neg : α → α) (c : Nat) (x : α) : α :=
+  if c % 2 = 0 then x else neg x
+
+/-- The product of the `A`-entries consumed by the first `t` rows. -/
+def prodPrefixT {α : Type u} (mul : α → α → α) (one : α)
+    (A : Nat → Nat → α) (n t m : Nat) : α :=
+  prodUptoT mul one (fun i => A i (mixAssign n m i)) t
+
+def permProdT {α : Type u} (mul : α → α → α) (one : α)
+    (A : Nat → Nat → α) (n m : Nat) : α :=
+  prodUptoT mul one (fun i => A i (natDigit n i m)) n
+
+/-- `prodPrefixT` AT FULL LENGTH IS `permProdT`, by `rfl` --- `mixAssign` is
+definitionally `natDigit`, so the two differ only in the name the index map is
+written under. Worth stating because the `ZFSet` proof moves between the two
+spellings inside one rewrite chain, and a reader who expects a lemma there will
+otherwise look for one. -/
+theorem prodPrefixT_eq_permProdT {α : Type u} (mul : α → α → α) (one : α)
+    (A : Nat → Nat → α) (n m : Nat) :
+    prodPrefixT mul one A n n m = permProdT mul one A n m := rfl
+
+def mixRowsT {α : Type u} (add mul : α → α → α) (zero : α)
+    (A B : Nat → Nat → α) (g : Nat → Nat) (n t : Nat) : Nat → Nat → α :=
+  fun i k => if i < t then B (g i) k else matMulOnT add mul zero A B n i k
+
+theorem mixRowsT_lt {α : Type u} (add mul : α → α → α) (zero : α)
+    (A B : Nat → Nat → α) (g : Nat → Nat) (n t i k : Nat) (h : i < t) :
+    mixRowsT add mul zero A B g n t i k = B (g i) k := by
+  unfold mixRowsT; rw [if_pos h]
+
+theorem mixRowsT_ge {α : Type u} (add mul : α → α → α) (zero : α)
+    (A B : Nat → Nat → α) (g : Nat → Nat) (n t i k : Nat) (h : ¬ i < t) :
+    mixRowsT add mul zero A B g n t i k
+      = matMulOnT add mul zero A B n i k := by
+  unfold mixRowsT; rw [if_neg h]
+
+/-- The Leibniz sum in the `n ^ n` encoding, over a Lean type. -/
+def leibSumT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero one : α)
+    (A : Nat → Nat → α) (n : Nat) : α :=
+  sumUptoT add zero
+    (fun m => cond (injUptoB (fun i => natDigit n i m) n)
+      (ringSignT neg (inversions (fun i => natDigit n i m) n)
+        (permProdT mul one A n m))
+      zero)
+    (n ^ n)
+
+#print axioms prodUptoT
+#print axioms prodUptoT_succ
+#print axioms matMulOnT
+#print axioms idMatT
+#print axioms idMatT_diag
+#print axioms idMatT_off
+#print axioms ringSignT
+#print axioms prodPrefixT
+#print axioms permProdT
+#print axioms prodPrefixT_eq_permProdT
+#print axioms mixRowsT
+#print axioms mixRowsT_lt
+#print axioms mixRowsT_ge
+#print axioms leibSumT
+
+/-! ### The sum lemmas the Leibniz argument runs on, over a Lean type
+
+All of these mirror `FinProd.lean`'s `foldF_*` family with `ZFSet` replaced by a
+parameter and the commutative-monoid structure passed as FUNCTION hypotheses.
+
+WHAT THE RE-SITING DELETES IS MOST OF EACH PROOF. `foldF_skip`'s body is
+dominated by membership --- `hmem`, two `foldF_mem` obligations, and a pair of
+`∈ M` facts for the two entries being swapped. None of it exists over a type, so
+what survives is the induction and one comparison. `foldF_involution_below`, a
+whole lemma whose only job is to guard `foldF_involution`'s *membership at EVERY
+index* hypothesis, has no counterpart here for the same reason.
+
+AND THE INDEX FAMILY IS CITED UNCHANGED. `origAt`, `survAt`, `survPair`,
+`survPair_invol`, `survPair_nofix`, `survPair_maps`, `flat_div_mod` and
+`detPair` are `Nat → Nat` statements with no carrier anywhere in them. They
+appear in the `ZFSet` proofs, so a first sizing listed them as owed; nothing in
+their STATEMENTS is set-sited. Only `survPairT_pairs`, which mentions the
+entries, needed a twin.
+-/
+
+def skipAtT {α : Type u} (j : Nat) (F : Nat → α) : Nat → α :=
+  fun i => if i < j then F i else F (i + 1)
+
+theorem skipAtT_lt {α : Type u} {j : Nat} {F : Nat → α} {i : Nat} (h : i < j) :
+    skipAtT j F i = F i := if_pos h
+
+theorem skipAtT_ge {α : Type u} {j : Nat} {F : Nat → α} {i : Nat} (h : j ≤ i) :
+    skipAtT j F i = F (i + 1) := if_neg (by omega)
+
+/-- THE PEEL IS `origAt` ON THE INDEX, which is what lets every `Nat` lemma
+below be reused verbatim. -/
+theorem skipAtT_origAt {α : Type u} (j : Nat) (F : Nat → α) (i : Nat) :
+    skipAtT j F i = F (origAt j i) := by
+  rcases Nat.lt_or_ge i j with h | h
+  · rw [skipAtT_lt h]
+    show _ = F (if i < j then i else i + 1)
+    rw [if_pos h]
+  · rw [skipAtT_ge h]
+    show _ = F (if i < j then i else i + 1)
+    rw [if_neg (by omega)]
+
+theorem skipAtT_skipAtT_origAt {α : Type u} (p : Nat) (F : Nat → α) (i : Nat) :
+    skipAtT 0 (skipAtT p F) i = F (origAt p (origAt 0 i)) := by
+  rw [skipAtT_origAt, skipAtT_origAt]
+
+/-- THE PAIRING SURVIVES THE PEEL --- `survPair_pairs` with `ginv` replaced
+by a bare `neg`. -/
+theorem survPairT_pairs {α : Type u} {neg : α → α} {F : Nat → α}
+    {sigma : Nat → Nat} {p n : Nat} (hp : 0 < p)
+    (hinvol : ∀ i, i < n + 2 → sigma (sigma i) = i) (h0p : sigma 0 = p)
+    (hpairs : ∀ j, j < n + 2 → F (sigma j) = neg (F j))
+    {i : Nat} (hi : i < n) :
+    skipAtT 0 (skipAtT p F) (survPair sigma p i)
+      = neg (skipAtT 0 (skipAtT p F) i) := by
+  have hx := origAt_pair_ne p i
+  have hX : origAt p (origAt 0 i) < n + 2 := origAt_pair_lt hi
+  have hs := sigma_survives (hinvol 0 (by omega)) (hinvol _ hX) h0p
+    hx.left hx.right
+  rw [skipAtT_skipAtT_origAt, skipAtT_skipAtT_origAt]
+  -- `origAt_pair_survAt` is stated about `survAt 0 (survAt p x)` and the goal
+  -- carries `survPair sigma p i`, which is DEFINITIONALLY that; `rw` matches
+  -- syntactically, so the definition is unfolded first
+  unfold survPair
+  rw [origAt_pair_survAt hp hs.left hs.right]
+  exact hpairs _ hX
+
+/-- ONE INDEX OUT OF THE SUM. -/
+theorem sumUptoT_skip {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (G : Nat → α) :
+    ∀ k j : Nat, j ≤ k →
+      sumUptoT add zero G (k + 1)
+        = add (sumUptoT add zero (skipAtT j G) k) (G j)
+  | 0, j, hj => by
+    obtain rfl : j = 0 := by omega
+    rfl
+  | k + 1, j, hj => by
+    rcases Nat.lt_or_ge j (k + 1) with hlt | hge
+    · have hstep := sumUptoT_skip add zero hassoc hcomm G k j (by omega)
+      have hlast : skipAtT j G k = G (k + 1) := skipAtT_ge (by omega)
+      rw [sumUptoT_succ, hstep, sumUptoT_succ, hlast,
+        hassoc _ (G j) (G (k + 1)), hcomm (G j) (G (k + 1)),
+        ← hassoc _ (G (k + 1)) (G j)]
+    · obtain rfl : j = k + 1 := by omega
+      rw [sumUptoT_succ]
+      congr 1
+      exact (sumUptoT_congr_lt add zero G (skipAtT (k + 1) G) (k + 1)
+        (fun i hi => (skipAtT_lt hi).symm))
+
+/-- TWO INDICES OUT, which is what the involution's recursion peels each
+step: index `p` first, then index `0` of what is left. -/
+theorem sumUptoT_peel_pair {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) {F : Nat → α} (n p : Nat)
+    (hp : 0 < p) (hpn : p < n + 2) :
+    sumUptoT add zero F (n + 2)
+      = add (add (sumUptoT add zero (skipAtT 0 (skipAtT p F)) n) (F 0)) (F p) := by
+  rw [sumUptoT_skip add zero hassoc hcomm F (n + 1) p (by omega),
+    sumUptoT_skip add zero hassoc hcomm (skipAtT p F) n 0 (by omega),
+    skipAtT_lt hp]
+
+/-- AND THE PAIR CANCELS, when the two entries are negatives. -/
+theorem sumUptoT_peel_pair_collapse {α : Type u} (add : α → α → α)
+    (neg : α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    {F : Nat → α} (n p : Nat) (hp : 0 < p) (hpn : p < n + 2)
+    (hpair : F p = neg (F 0)) :
+    sumUptoT add zero F (n + 2)
+      = sumUptoT add zero (skipAtT 0 (skipAtT p F)) n := by
+  rw [sumUptoT_peel_pair add zero hassoc hcomm n p hp hpn, hpair,
+    hassoc _ (F 0) (neg (F 0)), hneg, ha0]
+
+/-- A FIXED-POINT-FREE INVOLUTION COLLAPSES THE SUM.
+
+`n = 1` is impossible and that is the second base case: a self-inverse map on a
+one-element range must fix its only point. -/
+theorem sumUptoT_involution {α : Type u} (add : α → α → α) (neg : α → α)
+    (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hneg : ∀ q, add q (neg q) = zero) :
+    ∀ n : Nat, ∀ F : Nat → α, ∀ sigma : Nat → Nat,
+      (∀ i, i < n → sigma (sigma i) = i) → (∀ i, i < n → sigma i ≠ i) →
+      (∀ i, i < n → sigma i < n) →
+      (∀ i, i < n → F (sigma i) = neg (F i)) →
+      sumUptoT add zero F n = zero := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | _ n ih =>
+    match n with
+    | 0 => intro _ _ _ _ _ _; rfl
+    | 1 =>
+      intro _ sigma _ hnofix hmaps _
+      exact absurd (show sigma 0 = 0 by have := hmaps 0 (by omega); omega)
+        (hnofix 0 (by omega))
+    | m + 2 =>
+      intro F sigma hinvol hnofix hmaps hpairs
+      have h0 : (0 : Nat) < m + 2 := by omega
+      have hppos : 0 < sigma 0 := by
+        rcases Nat.eq_zero_or_pos (sigma 0) with h | h
+        · exact absurd h (hnofix 0 h0)
+        · exact h
+      rw [sumUptoT_peel_pair_collapse add neg zero hassoc hcomm ha0 hneg
+        m (sigma 0) hppos (hmaps 0 h0) (hpairs 0 h0)]
+      exact ih m (by omega) _ (survPair sigma (sigma 0))
+        (fun i hi => survPair_invol hppos hinvol rfl hi)
+        (fun i hi => survPair_nofix hppos hinvol rfl hnofix hi)
+        (fun i hi => survPair_maps hppos (hmaps 0 h0) hmaps hinvol rfl hi)
+        (fun i hi => survPairT_pairs hppos hinvol rfl hpairs hi)
+
+/-- A SUM SPLITS AT ANY POINT. -/
+theorem sumUptoT_split {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (ha0 : ∀ q, add q zero = q) (f : Nat → α) (a : Nat) :
+    ∀ b : Nat, sumUptoT add zero f (a + b)
+      = add (sumUptoT add zero f a)
+          (sumUptoT add zero (fun i => f (a + i)) b)
+  | 0 => (ha0 _).symm
+  | b + 1 => by
+    rw [show a + (b + 1) = (a + b) + 1 from by omega, sumUptoT_succ,
+      sumUptoT_split add zero hassoc ha0 f a b, sumUptoT_succ, hassoc]
+
+/-- A DOUBLE SUM IS A SINGLE SUM OVER THE FLATTENED INDEX.
+
+`flat_div_mod` is the landed `Nat` fact and is cited unchanged. Hand-rolling it
+from core fails twice: `Nat.add_mul_div_left` is stated as `(a + m * b) / m` and
+the goal is `(n * m + i) / m`, the other multiplication order, and
+`Nat.add_mul_emod_self_left` does not exist under that name. -/
+theorem sumUptoT_flatten {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (ha0 : ∀ q, add q zero = q) (G : Nat → Nat → α) (m : Nat) :
+    ∀ n : Nat, sumUptoT add zero (fun i => sumUptoT add zero (G i) m) n
+      = sumUptoT add zero (fun t => G (t / m) (t % m)) (n * m)
+  | 0 => by rw [Nat.zero_mul]; rfl
+  | n + 1 => by
+    show add (sumUptoT add zero (fun i => sumUptoT add zero (G i) m) n)
+        (sumUptoT add zero (G n) m) = _
+    rw [sumUptoT_flatten add zero hassoc ha0 G m n,
+      show (n + 1) * m = n * m + m from Nat.succ_mul n m,
+      sumUptoT_split add zero hassoc ha0 _ (n * m) m]
+    congr 1
+    exact sumUptoT_congr_lt add zero _ _ m (fun i hi => by
+      obtain ⟨hd, hr⟩ := flat_div_mod (m := m) (j := n) hi
+      rw [hd, hr])
+
+#print axioms skipAtT
+#print axioms skipAtT_lt
+#print axioms skipAtT_ge
+#print axioms skipAtT_origAt
+#print axioms skipAtT_skipAtT_origAt
+#print axioms survPairT_pairs
+#print axioms sumUptoT_skip
+#print axioms sumUptoT_peel_pair
+#print axioms sumUptoT_peel_pair_collapse
+#print axioms sumUptoT_involution
+#print axioms sumUptoT_split
+#print axioms sumUptoT_flatten
+
+/-! ### Multilinearity and the expansion, over a Lean type
+
+The `detN_*` row laws with `ZFSet` replaced by a parameter and `IsRing` by
+FUNCTION hypotheses. Every membership obligation in the originals disappears,
+and three lemmas collapse into instances of their neighbours:
+
+    mixRows_zero    -> `mixRowsT_ge` at `t = 0`   (`¬ i < 0` always)
+    detN_row_zero   -> `detT_row_smul` at `c = zero`
+    detN_rowAt_smul -> `detT_row_smul` at `c = A r j`
+
+ONE LEMMA GOES THE OTHER WAY. `prodUptoT_congr_lt` has no `ZFSet` twin
+because there `foldF` takes the operation as an ARGUMENT, so one `foldF_congr`
+serves the sum and the product both. Over a type the two folds are two
+definitions and each needs its own congruence --- the only place on this stack
+where re-siting ADDS a declaration.
+-/
+
+theorem detT_congr {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α) {E F : Nat → Nat → α} (h : ∀ i m, E i m = F i m) (n : Nat) :
+    detT add mul neg zero one E n = detT add mul neg zero one F n := by
+  have : E = F := funext (fun i => funext (fun m => h i m))
+  rw [this]
+
+/-- The signed Laplace summand, over a Lean type. -/
+def detTermT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero one : α)
+    (E : Nat → Nat → α) (n j : Nat) : α :=
+  let t := mul (E 0 j) (detT add mul neg zero one (matMinorT E j) n)
+  if j % 2 = 0 then t else neg t
+
+/-- THE DETERMINANT SEES ONLY THE LIVE BLOCK. -/
+theorem detT_congr_lt {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α) {E F : Nat → Nat → α} :
+    ∀ n : Nat, (∀ i m, i < n → m < n → E i m = F i m) →
+      detT add mul neg zero one E n = detT add mul neg zero one F n
+  | 0, _ => rfl
+  | n + 1, h => by
+    rw [detT_succ, detT_succ]
+    refine sumUptoT_congr_lt add zero _ _ (n + 1) (fun j hj => ?_)
+    have hrow : E 0 j = F 0 j := h 0 j (by omega) hj
+    have hmin : detT add mul neg zero one (matMinorT E j) n
+        = detT add mul neg zero one (matMinorT F j) n :=
+      detT_congr_lt add mul neg zero one (E := matMinorT E j) (F := matMinorT F j)
+        n (fun i m hi hm => by
+          show E (i + 1) _ = F (i + 1) _
+          refine h (i + 1) _ (by omega) ?_
+          rcases Nat.lt_or_ge m j with hmj | hmj
+          · rw [if_pos hmj]; omega
+          · rw [if_neg (by omega)]; omega)
+    show (if j % 2 = 0 then mul (E 0 j) _ else neg (mul (E 0 j) _)) = _
+    rw [hrow, hmin]
+
+/-- THE MULTIPLICATIVE FOLD'S CONGRUENCE, which `foldF_congr` covers on the
+`ZFSet` side because the operation is an argument there. -/
+theorem prodUptoT_congr_lt {α : Type u} (mul : α → α → α) (one : α)
+    (f g : Nat → α) :
+    ∀ m, (∀ k, k < m → f k = g k) →
+      prodUptoT mul one f m = prodUptoT mul one g m
+  | 0, _ => rfl
+  | m + 1, h => by
+    rw [prodUptoT_succ, prodUptoT_succ,
+      prodUptoT_congr_lt mul one f g m (fun k hk => h k (by omega)),
+      h m (by omega)]
+
+/-- THE SUM OF A POINTWISE SUM IS THE SUM OF THE SUMS. -/
+theorem sumUptoT_pointwise_add {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (f g h : Nat → α) :
+    ∀ n, (∀ j, j < n → h j = add (f j) (g j)) →
+      sumUptoT add zero h n
+        = add (sumUptoT add zero f n) (sumUptoT add zero g n)
+  | 0, _ => (ha0 zero).symm
+  | n + 1, hrow => by
+    rw [sumUptoT_succ, sumUptoT_succ, sumUptoT_succ,
+      sumUptoT_pointwise_add add zero hassoc hcomm ha0 f g h n
+        (fun j hj => hrow j (by omega)),
+      hrow n (by omega)]
+    rw [hassoc (sumUptoT add zero f n) (sumUptoT add zero g n) _,
+      ← hassoc (sumUptoT add zero g n) (f n) (g n),
+      hcomm (sumUptoT add zero g n) (f n),
+      hassoc (f n) (sumUptoT add zero g n) (g n),
+      ← hassoc (sumUptoT add zero f n) (f n) _]
+
+/-- A SCALAR COMES OUT OF A SUM. -/
+theorem sumUptoT_mul_left {α : Type u} (add mul : α → α → α) (zero : α)
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero) (c : α) (f : Nat → α) :
+    ∀ n, mul c (sumUptoT add zero f n)
+      = sumUptoT add zero (fun i => mul c (f i)) n
+  | 0 => hmul0 c
+  | n + 1 => by
+    rw [sumUptoT_succ, sumUptoT_succ, hdistl,
+      sumUptoT_mul_left add mul zero hdistl hmul0 c f n]
+
+/-- One row replaced. -/
+def rowAtT {α : Type u} (E : Nat → Nat → α) (r : Nat) (x : Nat → α) :
+    Nat → Nat → α :=
+  fun i m => if i = r then x m else E i m
+
+theorem rowAtT_at {α : Type u} (E : Nat → Nat → α) (r : Nat) (x : Nat → α)
+    (m : Nat) : rowAtT E r x r m = x m := by
+  unfold rowAtT; rw [if_pos rfl]
+
+theorem rowAtT_other {α : Type u} (E : Nat → Nat → α) (r : Nat) (x : Nat → α)
+    {i : Nat} (h : i ≠ r) (m : Nat) : rowAtT E r x i m = E i m := by
+  unfold rowAtT; rw [if_neg h]
+
+/-- MULTILINEARITY AT ROW 0. -/
+theorem detT_row0_add {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    {A B C : Nat → Nat → α}
+    (hrow : ∀ m, C 0 m = add (A 0 m) (B 0 m))
+    (hAC : ∀ i m, A (i + 1) m = C (i + 1) m)
+    (hBC : ∀ i m, B (i + 1) m = C (i + 1) m) (n : Nat) :
+    detT add mul neg zero one C (n + 1)
+      = add (detT add mul neg zero one A (n + 1))
+            (detT add mul neg zero one B (n + 1)) := by
+  rw [detT_succ, detT_succ, detT_succ]
+  refine sumUptoT_pointwise_add add zero hassoc hcomm ha0 _ _ _ (n + 1)
+    (fun j _ => ?_)
+  have hDA : detT add mul neg zero one (matMinorT A j) n
+      = detT add mul neg zero one (matMinorT C j) n :=
+    detT_congr add mul neg zero one (fun i m => hAC i _) n
+  have hDB : detT add mul neg zero one (matMinorT B j) n
+      = detT add mul neg zero one (matMinorT C j) n :=
+    detT_congr add mul neg zero one (fun i m => hBC i _) n
+  show (if j % 2 = 0 then mul (C 0 j) _ else neg (mul (C 0 j) _))
+    = add (if j % 2 = 0 then mul (A 0 j) _ else neg (mul (A 0 j) _))
+          (if j % 2 = 0 then mul (B 0 j) _ else neg (mul (B 0 j) _))
+  rw [hDA, hDB, hrow j]
+  by_cases hp : j % 2 = 0
+  · rw [if_pos hp, if_pos hp, if_pos hp, hdistr]
+  · rw [if_neg hp, if_neg hp, if_neg hp, hdistr, hnegadd]
+
+/-- MULTILINEARITY AT ANY ROW. Row `r + 1` is row `r` of every minor, so one
+induction on the row index suffices. -/
+theorem detT_rowk_add {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q)) :
+    ∀ (r n : Nat) (A B C : Nat → Nat → α),
+      (∀ i m, i ≠ r → A i m = C i m) → (∀ i m, i ≠ r → B i m = C i m) →
+      (∀ m, C r m = add (A r m) (B r m)) →
+      detT add mul neg zero one C (r + n + 1)
+        = add (detT add mul neg zero one A (r + n + 1))
+              (detT add mul neg zero one B (r + n + 1)) := by
+  intro r
+  induction r with
+  | zero =>
+    intro n A B C hAC hBC hrow
+    rw [Nat.zero_add]
+    exact detT_row0_add add mul neg zero one hassoc hcomm ha0 hdistr hnegadd
+      hrow (fun i m => hAC (i + 1) m (by omega))
+      (fun i m => hBC (i + 1) m (by omega)) n
+  | succ k ih =>
+    intro n A B C hAC hBC hrow
+    rw [show k + 1 + n + 1 = (k + n + 1) + 1 from by omega,
+      detT_succ, detT_succ, detT_succ]
+    refine sumUptoT_pointwise_add add zero hassoc hcomm ha0 _ _ _ (k + n + 1 + 1)
+      (fun j _ => ?_)
+    have hsplit := ih n (matMinorT A j) (matMinorT B j) (matMinorT C j)
+      (fun i m hi => hAC (i + 1) _ (by omega))
+      (fun i m hi => hBC (i + 1) _ (by omega))
+      (fun m => hrow _)
+    show (if j % 2 = 0 then mul (C 0 j) _ else neg (mul (C 0 j) _))
+      = add (if j % 2 = 0 then mul (A 0 j) _ else neg (mul (A 0 j) _))
+            (if j % 2 = 0 then mul (B 0 j) _ else neg (mul (B 0 j) _))
+    rw [hsplit, ← hAC 0 j (by omega)]
+    by_cases hp : j % 2 = 0
+    · rw [if_pos hp, if_pos hp, if_pos hp, hdistl, hAC 0 j (by omega),
+        ← hBC 0 j (by omega)]
+    · rw [if_neg hp, if_neg hp, if_neg hp, hdistl, hnegadd,
+        hAC 0 j (by omega), ← hBC 0 j (by omega)]
+
+/-- HOMOGENEITY AT ANY ROW. Commutativity is spent only in the SUCC branch,
+where the scalar comes out of the MINOR and travels back past the row-0 entry;
+the base branch pulls it out of the entry itself. -/
+theorem detT_row_smul {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q)) :
+    ∀ (r n : Nat) (c : α) (A C : Nat → Nat → α),
+      (∀ i m, i ≠ r → A i m = C i m) →
+      (∀ m, C r m = mul c (A r m)) →
+      detT add mul neg zero one C (r + n + 1)
+        = mul c (detT add mul neg zero one A (r + n + 1)) := by
+  intro r
+  induction r with
+  | zero =>
+    intro n c A C hAC hrow
+    rw [Nat.zero_add, detT_succ, detT_succ,
+      sumUptoT_mul_left add mul zero hdistl hmul0 c _ (n + 1)]
+    refine sumUptoT_congr_lt add zero _ _ (n + 1) (fun j _ => ?_)
+    have hD : detT add mul neg zero one (matMinorT C j) n
+        = detT add mul neg zero one (matMinorT A j) n :=
+      detT_congr add mul neg zero one
+        (fun i m => (hAC (i + 1) _ (by omega)).symm) n
+    show (if j % 2 = 0 then mul (C 0 j) _ else neg (mul (C 0 j) _))
+      = mul c (if j % 2 = 0 then mul (A 0 j) _ else neg (mul (A 0 j) _))
+    rw [hD, hrow j]
+    by_cases hp : j % 2 = 0
+    · rw [if_pos hp, if_pos hp, hassocm]
+    · rw [if_neg hp, if_neg hp, hassocm, hmulneg]
+  | succ k ih =>
+    intro n c A C hAC hrow
+    rw [show k + 1 + n + 1 = (k + n + 1) + 1 from by omega,
+      detT_succ, detT_succ,
+      sumUptoT_mul_left add mul zero hdistl hmul0 c _ (k + n + 1 + 1)]
+    refine sumUptoT_congr_lt add zero _ _ (k + n + 1 + 1) (fun j _ => ?_)
+    have hD := ih n c (matMinorT A j) (matMinorT C j)
+      (fun i m hi => hAC (i + 1) _ (by omega))
+      (fun m => hrow _)
+    show (if j % 2 = 0 then mul (C 0 j) _ else neg (mul (C 0 j) _))
+      = mul c (if j % 2 = 0 then mul (A 0 j) _ else neg (mul (A 0 j) _))
+    rw [hD, ← hAC 0 j (by omega)]
+    have hpull : ∀ x y : α, mul x (mul c y) = mul c (mul x y) := by
+      intro x y
+      rw [← hassocm, hcommm x c, hassocm]
+    by_cases hp : j % 2 = 0
+    · rw [if_pos hp, if_pos hp, hpull]
+    · rw [if_neg hp, if_neg hp, hpull, hmulneg]
+
+/-- A ZERO ROW KILLS THE DETERMINANT --- `detT_row_smul` at `c = zero`, not
+a separate induction. -/
+theorem detT_row_zero {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (h0mul : ∀ p, mul zero p = zero)
+    (r n : Nat) (E : Nat → Nat → α)
+    (hrow : ∀ m, E r m = zero) :
+    detT add mul neg zero one E (r + n + 1) = zero := by
+  have h := detT_row_smul add mul neg zero one hdistl hmul0 hassocm hcommm
+    hmulneg r n zero E E (fun i m _ => rfl)
+    (fun m => by rw [hrow m, h0mul])
+  rw [h, h0mul]
+
+/-- A ROW THAT IS ITSELF A SUM SPLITS THE DETERMINANT INTO A SUM. -/
+theorem detT_row_sumUptoT {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (h0mul : ∀ p, mul zero p = zero)
+    (r n : Nat) (E G : Nat → Nat → α) :
+    ∀ p : Nat,
+      detT add mul neg zero one
+          (rowAtT E r (fun m => sumUptoT add zero (fun j => G j m) p))
+          (r + n + 1)
+        = sumUptoT add zero
+            (fun j => detT add mul neg zero one (rowAtT E r (G j)) (r + n + 1)) p
+  | 0 => detT_row_zero add mul neg zero one hdistl hmul0 hassocm hcommm hmulneg
+      h0mul r n _ (fun m => rowAtT_at _ _ _ m)
+  | q + 1 => by
+    show detT add mul neg zero one
+        (rowAtT E r (fun m => add (sumUptoT add zero (fun j => G j m) q) (G q m)))
+        (r + n + 1) = add _ (detT add mul neg zero one (rowAtT E r (G q)) _)
+    rw [← detT_row_sumUptoT add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+      hnegadd hmul0 hassocm hcommm hmulneg h0mul r n E G q]
+    exact detT_rowk_add add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+      hnegadd r n
+      (rowAtT E r (fun m => sumUptoT add zero (fun j => G j m) q))
+      (rowAtT E r (G q))
+      (rowAtT E r (fun m => add (sumUptoT add zero (fun j => G j m) q) (G q m)))
+      (fun i m hi => by rw [rowAtT_other E r _ hi, rowAtT_other E r _ hi])
+      (fun i m hi => by rw [rowAtT_other E r _ hi, rowAtT_other E r _ hi])
+      (fun m => by rw [rowAtT_at, rowAtT_at, rowAtT_at])
+
+/-- EXPANDING ROW `t` OF THE STAGE-`t` MATRIX. -/
+theorem detT_mixRowsT_step {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (h0mul : ∀ p, mul zero p = zero)
+    (A B : Nat → Nat → α) (g : Nat → Nat) (n r s t : Nat)
+    (ht : t = r) (hn : r + s + 1 = n) :
+    detT add mul neg zero one (mixRowsT add mul zero A B g n t) (r + s + 1)
+      = sumUptoT add zero
+          (fun j => detT add mul neg zero one
+            (rowAtT (mixRowsT add mul zero A B g n t) r
+              (fun k => mul (A r j) (B j k))) (r + s + 1)) n := by
+  have hrow : ∀ k, mixRowsT add mul zero A B g n t r k
+      = sumUptoT add zero (fun j => mul (A r j) (B j k)) n := by
+    intro k
+    rw [mixRowsT_ge add mul zero A B g n t r k (by omega)]
+    rfl
+  have hcong : mixRowsT add mul zero A B g n t
+      = rowAtT (mixRowsT add mul zero A B g n t) r
+          (fun k => sumUptoT add zero (fun j => mul (A r j) (B j k)) n) := by
+    funext i k
+    rcases Nat.lt_or_ge i r with h | h
+    · rw [rowAtT_other _ r _ (by omega)]
+    · rcases Nat.lt_or_ge r i with h2 | h2
+      · rw [rowAtT_other _ r _ (by omega)]
+      · rw [show i = r from by omega, rowAtT_at, hrow]
+  have hstep := detT_row_sumUptoT add mul neg zero one hassoc hcomm ha0 hdistr
+    hdistl hnegadd hmul0 hassocm hcommm hmulneg h0mul r s
+    (mixRowsT add mul zero A B g n t) (fun j k => mul (A r j) (B j k)) n
+  exact (congrArg (fun M => detT add mul neg zero one M (r + s + 1)) hcong).trans
+    hstep
+
+/-- PULLING THE SCALAR OUT OF ONE EXPANDED ROW --- `detT_row_smul` at
+`c = A r j`. -/
+theorem detT_rowAtT_smul {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (M B : Nat → Nat → α) (c : α) (r s j : Nat) :
+    detT add mul neg zero one
+        (rowAtT M r (fun k => mul c (B j k))) (r + s + 1)
+      = mul c
+          (detT add mul neg zero one (rowAtT M r (B j)) (r + s + 1)) :=
+  detT_row_smul add mul neg zero one hdistl hmul0 hassocm hcommm hmulneg
+    r s c (rowAtT M r (B j)) (rowAtT M r (fun k => mul c (B j k)))
+    (fun i k hi => by rw [rowAtT_other _ r _ hi, rowAtT_other _ r _ hi])
+    (fun k => by rw [rowAtT_at, rowAtT_at])
+
+/-- THE BRIDGE BETWEEN TWO EXPANSION STAGES. -/
+theorem mixRowsT_rowAtT_succ {α : Type u} (add mul : α → α → α) (zero : α)
+    (A B : Nat → Nat → α) {n : Nat} (hn : 0 < n) {t j m : Nat}
+    (hj : j < n) (hm : m < n ^ t) (i k : Nat) :
+    rowAtT (mixRowsT add mul zero A B (mixAssign n m) n t) t (B j) i k
+      = mixRowsT add mul zero A B (mixAssign n (j * n ^ t + m)) n (t + 1) i k := by
+  rcases Nat.lt_trichotomy i t with h | h | h
+  · rw [rowAtT_other _ _ _ (by omega : i ≠ t) k,
+      mixRowsT_lt add mul zero A B (mixAssign n m) n t i k h,
+      mixRowsT_lt add mul zero A B (mixAssign n (j * n ^ t + m)) n (t + 1) i k
+        (by omega),
+      show mixAssign n (j * n ^ t + m) i = mixAssign n m i from
+        natDigit_below_high hn h]
+  · subst h
+    rw [rowAtT_at, mixRowsT_lt add mul zero A B (mixAssign n (j * n ^ i + m)) n
+        (i + 1) i k (Nat.lt_succ_self i),
+      show mixAssign n (j * n ^ i + m) i = j from natDigit_at_high hj hm]
+  · rw [rowAtT_other _ _ _ (by omega : i ≠ t) k,
+      mixRowsT_ge add mul zero A B (mixAssign n m) n t i k (by omega),
+      mixRowsT_ge add mul zero A B (mixAssign n (j * n ^ t + m)) n (t + 1) i k
+        (by omega)]
+
+/-- `prodPrefixT` at `t` reads only the digits BELOW `t`. -/
+theorem prodPrefixT_low {α : Type u} (mul : α → α → α) (one : α)
+    (A : Nat → Nat → α) {n : Nat} (hn : 0 < n) (t j m : Nat) :
+    prodPrefixT mul one A n t (j * n ^ t + m) = prodPrefixT mul one A n t m :=
+  prodUptoT_congr_lt mul one _ _ t (fun i hi => by
+    rw [show mixAssign n (j * n ^ t + m) i = mixAssign n m i from
+      natDigit_below_high hn hi])
+
+/-- The expansion's summand: the `A`-entries chosen so far, times the
+determinant of the partly-expanded matrix. -/
+def expandTermT {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α) (A B : Nat → Nat → α) (n t m : Nat) : α :=
+  mul (prodPrefixT mul one A n t m)
+    (detT add mul neg zero one
+      (mixRowsT add mul zero A B (mixAssign n m) n t) n)
+
+/-- AT `t = 0` THE SUM IS A SINGLE TERM AND THE MATRIX IS THE PRODUCT. -/
+theorem expandTermT_zero {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α) (hm1 : ∀ p, mul one p = p)
+    (A B : Nat → Nat → α) (n m : Nat) :
+    expandTermT add mul neg zero one A B n 0 m
+      = detT add mul neg zero one (matMulOnT add mul zero A B n) n := by
+  have hp : prodPrefixT mul one A n 0 m = one := rfl
+  unfold expandTermT
+  rw [hp, hm1]
+  have h : ∀ i k, mixRowsT add mul zero A B (mixAssign n m) n 0 i k
+      = matMulOnT add mul zero A B n i k :=
+    fun i k => mixRowsT_ge add mul zero A B (mixAssign n m) n 0 i k (by omega)
+  rw [funext (fun i => funext (fun k => h i k))]
+
+#print axioms detT_congr
+#print axioms detTermT
+#print axioms detT_congr_lt
+#print axioms prodUptoT_congr_lt
+#print axioms sumUptoT_pointwise_add
+#print axioms sumUptoT_mul_left
+#print axioms rowAtT
+#print axioms rowAtT_at
+#print axioms rowAtT_other
+#print axioms detT_row0_add
+#print axioms detT_rowk_add
+#print axioms detT_row_smul
+#print axioms detT_row_zero
+#print axioms detT_row_sumUptoT
+#print axioms detT_mixRowsT_step
+#print axioms detT_rowAtT_smul
+#print axioms mixRowsT_rowAtT_succ
+#print axioms prodPrefixT_low
+#print axioms expandTermT
+#print axioms expandTermT_zero
+
+/-! ### Alternation over a Lean type
+
+The determinant vanishes on a repeated row and picks up the sign of a
+permutation --- both at mathlib's generality over an arbitrary carrier, and both
+free of any characteristic hypothesis. The argument pairs terms and never
+forms `2 · det`, so it holds in characteristic two where the antisymmetry route
+does not; no `2 ≠ 0` appears in any binder list below, which is the evidence.
+
+THE INDEX FAMILY IS CITED UNCHANGED --- `detPair`, `flat_decomp`,
+`flat_div_mod`, `swapVal`, `inversions`, `invBelow` and their lemmas are
+`Nat`-only statements and were never set-sited. Only the entry-valued pieces
+needed twins.
+-/
+
+/-- The doubly-signed summand of the double expansion. -/
+def detSumT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero one : α)
+    (E : Nat → Nat → α) (n j k : Nat) : α :=
+  ringSignT neg j
+    (mul (E 0 j) (detTermT add mul neg zero one (matMinorT E j) n k))
+
+/-- The double minor: drop row 0 and column `j`, then again at `k`, so rows 0
+and 1 of the original are both consumed. -/
+def matMinor2T {α : Type u} (E : Nat → Nat → α) (j k : Nat) : Nat → Nat → α :=
+  matMinorT (matMinorT E j) k
+
+/-- THE TWO COLUMNS COMMUTE, at `j ≤ k` with the index shifted. -/
+theorem matMinor2T_swap {α : Type u} (E : Nat → Nat → α) {j k : Nat} (h : j ≤ k)
+    (i m : Nat) : matMinor2T E j k i m = matMinor2T E (k + 1) j i m := by
+  show E (i + 2) _ = E (i + 2) _
+  congr 1
+  rcases Nat.lt_or_ge m j with h1 | h1
+  · have hk : m < k := by omega
+    simp only [if_pos hk, if_pos h1, if_pos (show m < k + 1 by omega)]
+  · rcases Nat.lt_or_ge m k with h2 | h2
+    · simp only [if_pos h2, if_neg (show ¬ m < j by omega),
+        if_pos (show m + 1 < k + 1 by omega)]
+    · simp only [if_neg (show ¬ m < k by omega),
+        if_neg (show ¬ m < j by omega),
+        if_neg (show ¬ m + 1 < k + 1 by omega),
+        if_neg (show ¬ m + 1 < j by omega)]
+
+/-- THE SIGN FLIPS ONE STEP, needing only that `neg` is an involution. -/
+theorem ringSignT_succ {α : Type u} (neg : α → α)
+    (hnn : ∀ q, neg (neg q) = q) (x : α) (c : Nat) :
+    ringSignT neg (c + 1) x = neg (ringSignT neg c x) := by
+  unfold ringSignT
+  rcases Nat.eq_zero_or_pos (c % 2) with h | h
+  · rw [if_pos h, if_neg (show ¬ (c + 1) % 2 = 0 by omega)]
+  · rw [if_neg (show ¬ c % 2 = 0 by omega),
+      if_pos (show (c + 1) % 2 = 0 by omega), hnn]
+
+/-- TWO SIGNS COMPOSE INTO ONE, at the sum of the exponents. -/
+theorem ringSignT_add {α : Type u} (neg : α → α)
+    (hnn : ∀ q, neg (neg q) = q) (x : α) (c d : Nat) :
+    ringSignT neg c (ringSignT neg d x) = ringSignT neg (c + d) x := by
+  induction c with
+  | zero => rw [Nat.zero_add]; rfl
+  | succ c ih =>
+    rw [ringSignT_succ neg hnn _ c, ih,
+      show c + 1 + d = (c + d) + 1 from by omega,
+      ringSignT_succ neg hnn x (c + d)]
+
+/-- THE SUMMAND WITH BOTH SIGNS COLLECTED AND BOTH ENTRIES EXPOSED.
+
+`matMinorT E j 0 k` IS `E 1 (origAt j k)` by `rfl` --- the minor's row 0 is the
+original's row 1 --- so the double expansion consumes rows 0 and 1 and is the
+fact the whole alternating argument turns on. -/
+theorem detSumT_norm {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (E : Nat → Nat → α) (n j k : Nat) :
+    detSumT add mul neg zero one E n j k
+      = ringSignT neg (j + k)
+          (mul (E 0 j)
+            (mul (E 1 (origAt j k))
+              (detT add mul neg zero one (matMinor2T E j k) n))) := by
+  show ringSignT neg j
+      (mul (E 0 j)
+        (if k % 2 = 0
+         then mul (matMinorT E j 0 k) (detT add mul neg zero one _ n)
+         else neg (mul (matMinorT E j 0 k) (detT add mul neg zero one _ n)))) = _
+  rw [← ringSignT_add neg hnn _ j k]
+  congr 1
+  show mul (E 0 j) (ringSignT neg k _) = ringSignT neg k _
+  unfold ringSignT
+  by_cases hk : k % 2 = 0
+  · rw [if_pos hk, if_pos hk]; rfl
+  · rw [if_neg hk, if_neg hk, hmulneg]; rfl
+
+/-- THE PAIRING. With rows 0 and 1 equal, the summand at `(k + 1, j)` is the
+negative of the summand at `(j, k)` --- the ONLY place the equal-rows hypothesis
+is spent in the whole argument. -/
+theorem detSumT_swap {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    {E : Nat → Nat → α} (hrows : ∀ c, E 0 c = E 1 c)
+    (n : Nat) {j k : Nat} (h : j ≤ k) :
+    detSumT add mul neg zero one E n (k + 1) j
+      = neg (detSumT add mul neg zero one E n j k) := by
+  have hswap : detT add mul neg zero one (matMinor2T E (k + 1) j) n
+      = detT add mul neg zero one (matMinor2T E j k) n :=
+    detT_congr add mul neg zero one (fun i m => (matMinor2T_swap E h i m).symm) n
+  rw [detSumT_norm add mul neg zero one hnn hmulneg E n (k + 1) j,
+    detSumT_norm add mul neg zero one hnn hmulneg E n j k,
+    show origAt (k + 1) j = j from by unfold origAt; rw [if_pos (by omega)],
+    show origAt j k = k + 1 from by unfold origAt; rw [if_neg (by omega)],
+    hswap, ← hrows, ← hrows,
+    ← hassocm (E 0 (k + 1)) (E 0 j) _,
+    hcommm (E 0 (k + 1)) (E 0 j),
+    hassocm (E 0 j) (E 0 (k + 1)) _,
+    show k + 1 + j = j + k + 1 from by omega,
+    ringSignT_succ neg hnn _ (j + k)]
+
+/-- THE PAIRING AT THE FLATTENED INDEX, the form the involution consumes. -/
+theorem detSumT_pair {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    {E : Nat → Nat → α} (hrows : ∀ c, E 0 c = E 1 c) (n : Nat)
+    {j k : Nat} (hj : j < n + 1 + 1) (hk : k < n + 1) :
+    detSumT add mul neg zero one E n
+        (detPair (n + 1) (j * (n + 1) + k) / (n + 1))
+        (detPair (n + 1) (j * (n + 1) + k) % (n + 1))
+      = neg (detSumT add mul neg zero one E n j k) := by
+  rcases Nat.lt_or_ge k j with h | h
+  · rw [detPair_lt hk h]
+    obtain ⟨hd, hr⟩ := flat_div_mod (m := n + 1) (j := k)
+      (show j - 1 < n + 1 by omega)
+    rw [hd, hr]
+    have hsw := detSumT_swap add mul neg zero one hnn hmulneg hassocm hcommm
+      hrows n (j := k) (k := j - 1) (by omega)
+    rw [show j - 1 + 1 = j from by omega] at hsw
+    show detSumT add mul neg zero one E n k (j - 1)
+      = neg (detSumT add mul neg zero one E n j k)
+    rw [hsw, hnn]
+  · rw [detPair_ge hk h]
+    obtain ⟨hd, hr⟩ := flat_div_mod (m := n + 1) (j := k + 1)
+      (show j < n + 1 by omega)
+    rw [hd, hr]
+    exact detSumT_swap add mul neg zero one hnn hmulneg hassocm hcommm hrows n h
+
+/-- `detT` AT SIZE `n + 2` IS A SUM OF SUMS. -/
+theorem detT_double {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (E : Nat → Nat → α) (n : Nat) :
+    detT add mul neg zero one E (n + 2)
+      = sumUptoT add zero
+          (fun j => sumUptoT add zero
+            (fun k => detSumT add mul neg zero one E n j k) (n + 1)) (n + 2) := by
+  rw [detT_succ]
+  refine sumUptoT_congr_lt add zero _ _ (n + 2) (fun j _ => ?_)
+  show (if j % 2 = 0 then mul (E 0 j) _ else neg (mul (E 0 j) _)) = _
+  show (if j % 2 = 0
+        then mul (E 0 j) (sumUptoT add zero
+          (fun k => detTermT add mul neg zero one (matMinorT E j) n k) (n + 1))
+        else neg (mul (E 0 j) (sumUptoT add zero
+          (fun k => detTermT add mul neg zero one (matMinorT E j) n k) (n + 1)))) = _
+  have hpush : ∀ m : Nat,
+      mul (E 0 j) (sumUptoT add zero
+          (fun k => detTermT add mul neg zero one (matMinorT E j) n k) m)
+        = sumUptoT add zero
+          (fun k => mul (E 0 j)
+            (detTermT add mul neg zero one (matMinorT E j) n k)) m := by
+    intro m
+    induction m with
+    | zero => exact hmul0 _
+    | succ m ih => rw [sumUptoT_succ, sumUptoT_succ, hdistr, ih]
+  have hnegsum : ∀ (g : Nat → α) (m : Nat),
+      neg (sumUptoT add zero g m) = sumUptoT add zero (fun k => neg (g k)) m := by
+    intro g m
+    induction m with
+    | zero => exact hneg0
+    | succ m ih => rw [sumUptoT_succ, sumUptoT_succ, hnegadd, ih]
+  by_cases hp : j % 2 = 0
+  · rw [if_pos hp, hpush]
+    refine sumUptoT_congr_lt add zero _ _ (n + 1) (fun k _ => ?_)
+    show _ = ringSignT neg j _
+    unfold ringSignT
+    rw [if_pos hp]
+  · rw [if_neg hp, hpush, hnegsum]
+    refine sumUptoT_congr_lt add zero _ _ (n + 1) (fun k _ => ?_)
+    show _ = ringSignT neg j _
+    unfold ringSignT
+    rw [if_neg hp]
+
+/-- EVERY TERM ZERO MAKES THE SUM ZERO, in the bounded form the row
+induction can actually supply. -/
+theorem sumUptoT_zeros {α : Type u} (add : α → α → α) (zero : α)
+    (ha0 : ∀ q, add q zero = q) (f : Nat → α) :
+    ∀ n, (∀ j, j < n → f j = zero) → sumUptoT add zero f n = zero
+  | 0, _ => rfl
+  | n + 1, h => by
+    rw [sumUptoT_succ, h n (by omega),
+      sumUptoT_zeros add zero ha0 f n (fun j hj => h j (by omega)), ha0]
+
+#print axioms detSumT
+#print axioms matMinor2T
+#print axioms matMinor2T_swap
+#print axioms ringSignT_succ
+#print axioms ringSignT_add
+#print axioms detSumT_norm
+#print axioms detSumT_swap
+#print axioms detSumT_pair
+#print axioms detT_double
+#print axioms sumUptoT_zeros
+
+/-! ### Alternation's second half --- from two equal rows to the permutation sign
+
+The first half (`detSumT` through `detT_double`) landed above. What follows is
+the rest of the chain the two capstones need, and the SPLIT that runs through
+this whole stack holds at its top exactly as at its bottom: every combinatorial
+lemma is `Nat`- or `Bool`-valued and is cited UNCHANGED --- `detPair` and its
+four properties, `flat_decomp`, `flat_div_mod`, `swapVal` and its three,
+`inversions` and its descent lemmas, `invBelow`, `invBelow_eq`. Only the
+declarations that mention an ENTRY need a twin, and those are the eighteen here.
+
+NO CHARACTERISTIC HYPOTHESIS APPEARS IN ANY BINDER LIST BELOW, AND THAT IS THE
+EVIDENCE RATHER THAN A CLAIM. The alternation argument pairs terms under an
+involution and never forms `2 * det`, so it survives characteristic two, where
+the usual antisymmetry route does not. `detT_swap_adj` is stated ADDITIVELY ---
+the two determinants SUM to zero --- for the same reason: a subtraction would
+need the cancellation the pairing avoids. A reader who doubts it can check the
+signatures; a `2 ≠ 0` would have to be in one of them.
+-/
+
+/-- A DETERMINANT WHOSE FIRST TWO ROWS AGREE IS ZERO, over a Lean type, at
+every size.
+
+Double expansion, flatten, then collapse under `detPair`. No characteristic
+hypothesis: the argument never forms `2 * det`, so it holds in characteristic
+two where the antisymmetry route does not --- and the binder list below is the
+evidence, since a `2 ≠ 0` would have to appear in it. -/
+theorem detT_rows01 {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    {E : Nat → Nat → α} (hrows : ∀ c, E 0 c = E 1 c) (n : Nat) :
+    detT add mul neg zero one E (n + 2) = zero := by
+  have hm : 0 < n + 1 := by omega
+  rw [detT_double add mul neg zero one hdistr hmul0 hnegadd hneg0 E n,
+    sumUptoT_flatten add zero hassoc ha0
+      (fun j k => detSumT add mul neg zero one E n j k) (n + 1) (n + 2)]
+  refine sumUptoT_involution add neg zero hassoc hcomm ha0 hneg
+    ((n + 2) * (n + 1)) _ (detPair (n + 1)) ?_ ?_ ?_ ?_
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]; exact detPair_invol hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]; exact detPair_nofix hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    rw [← hs]; exact detPair_maps hj hk
+  · intro i hi
+    obtain ⟨hj, hk, hs⟩ := flat_decomp hm hi
+    have hp := detSumT_pair add mul neg zero one hnn hmulneg hassocm hcommm
+      hrows n hj hk
+    rw [hs] at hp
+    exact hp
+
+/-- TWO EQUAL ADJACENT ROWS ANYWHERE KILL THE DETERMINANT.
+
+The induction is on the ROW INDEX and it is one step: at `r + 1`, row `r + 1`
+of the matrix is row `r` of every minor, so every Laplace term has a minor with
+two equal adjacent rows and vanishes by the induction hypothesis;
+`sumUptoT_zeros` turns every term is zero into the sum is zero. That shift
+is the same one multilinearity uses, and it is why neither needs more than a
+single induction.
+
+The base case is `detT_rows01` --- rows 0 and 1 --- which is where all the
+content is. -/
+theorem detT_rows_adj {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p) :
+    ∀ (r n : Nat) (E : Nat → Nat → α), (∀ c, E r c = E (r + 1) c) →
+      detT add mul neg zero one E (r + n + 2) = zero := by
+  intro r
+  induction r with
+  | zero =>
+    intro n E hrows
+    rw [Nat.zero_add]
+    exact detT_rows01 add mul neg zero one hassoc hcomm ha0 hneg hdistr hmul0
+      hnegadd hneg0 hnn hmulneg hassocm hcommm hrows n
+  | succ k ih =>
+    intro n E hrows
+    rw [show k + 1 + n + 2 = (k + n + 2) + 1 from by omega, detT_succ]
+    refine sumUptoT_zeros add zero ha0 _ (k + n + 2 + 1) (fun j _ => ?_)
+    have hmin := ih n (matMinorT E j) (fun c => hrows _)
+    show (if j % 2 = 0 then mul (E 0 j) _ else neg (mul (E 0 j) _)) = zero
+    rw [hmin]
+    by_cases hp : j % 2 = 0
+    · rw [if_pos hp, hmul0]
+    · rw [if_neg hp, hmul0, hneg0]
+
+def rowsAdjT {α : Type u} (E : Nat → Nat → α) (r : Nat) (x y : Nat → α) :
+    Nat → Nat → α :=
+  fun i m => if i = r then x m else if i = r + 1 then y m else E i m
+
+theorem rowsAdjT_at {α : Type u} (E : Nat → Nat → α) (r : Nat)
+    (x y : Nat → α) (m : Nat) : rowsAdjT E r x y r m = x m := by
+  unfold rowsAdjT; rw [if_pos rfl]
+
+theorem rowsAdjT_succ {α : Type u} (E : Nat → Nat → α) (r : Nat)
+    (x y : Nat → α) (m : Nat) : rowsAdjT E r x y (r + 1) m = y m := by
+  unfold rowsAdjT; rw [if_neg (by omega), if_pos rfl]
+
+theorem rowsAdjT_other {α : Type u} (E : Nat → Nat → α) (r : Nat)
+    (x y : Nat → α) {i : Nat} (h1 : i ≠ r) (h2 : i ≠ r + 1) (m : Nat) :
+    rowsAdjT E r x y i m = E i m := by
+  unfold rowsAdjT; rw [if_neg h1, if_neg h2]
+
+theorem rowsAdjT_self {α : Type u} (E : Nat → Nat → α) (r i m : Nat) :
+    rowsAdjT E r (E r) (E (r + 1)) i m = E i m := by
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [rowsAdjT_other E r _ _ (by omega) (by omega)]
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, rowsAdjT_at]
+    · rcases Nat.lt_or_ge i (r + 2) with h3 | h3
+      · rw [show i = r + 1 from by omega, rowsAdjT_succ]
+      · rw [rowsAdjT_other E r _ _ (by omega) (by omega)]
+
+theorem detT_rowsAdj_add_at {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (E : Nat → Nat → α) (u v y : Nat → α) (r n : Nat) :
+    detT add mul neg zero one
+        (rowsAdjT E r (fun m => add (u m) (v m)) y) (r + n + 2)
+      = add (detT add mul neg zero one (rowsAdjT E r u y) (r + n + 2))
+            (detT add mul neg zero one (rowsAdjT E r v y) (r + n + 2)) := by
+  have h := detT_rowk_add add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+    hnegadd r (n + 1) (rowsAdjT E r u y) (rowsAdjT E r v y)
+    (rowsAdjT E r (fun m => add (u m) (v m)) y)
+    (fun i m hi => by
+      by_cases h2 : i = r + 1
+      · subst h2; rw [rowsAdjT_succ, rowsAdjT_succ]
+      · rw [rowsAdjT_other E r _ _ hi h2, rowsAdjT_other E r _ _ hi h2])
+    (fun i m hi => by
+      by_cases h2 : i = r + 1
+      · subst h2; rw [rowsAdjT_succ, rowsAdjT_succ]
+      · rw [rowsAdjT_other E r _ _ hi h2, rowsAdjT_other E r _ _ hi h2])
+    (fun m => by rw [rowsAdjT_at, rowsAdjT_at, rowsAdjT_at])
+  rwa [show r + (n + 1) + 1 = r + n + 2 from by omega] at h
+
+theorem detT_rowsAdj_add_succ {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (E : Nat → Nat → α) (x u v : Nat → α) (r n : Nat) :
+    detT add mul neg zero one
+        (rowsAdjT E r x (fun m => add (u m) (v m))) (r + n + 2)
+      = add (detT add mul neg zero one (rowsAdjT E r x u) (r + n + 2))
+            (detT add mul neg zero one (rowsAdjT E r x v) (r + n + 2)) := by
+  have h := detT_rowk_add add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+    hnegadd (r + 1) n (rowsAdjT E r x u) (rowsAdjT E r x v)
+    (rowsAdjT E r x (fun m => add (u m) (v m)))
+    (fun i m hi => by
+      by_cases h1 : i = r
+      · subst h1; rw [rowsAdjT_at, rowsAdjT_at]
+      · rw [rowsAdjT_other E r _ _ h1 hi, rowsAdjT_other E r _ _ h1 hi])
+    (fun i m hi => by
+      by_cases h1 : i = r
+      · subst h1; rw [rowsAdjT_at, rowsAdjT_at]
+      · rw [rowsAdjT_other E r _ _ h1 hi, rowsAdjT_other E r _ _ h1 hi])
+    (fun m => by rw [rowsAdjT_succ, rowsAdjT_succ, rowsAdjT_succ])
+  rwa [show r + 1 + n + 1 = r + n + 2 from by omega] at h
+
+/-- ANTISYMMETRY AT AN ADJACENT PAIR, FREE OF ANY CHARACTERISTIC HYPOTHESIS.
+
+Stated ADDITIVELY --- the two determinants sum to zero --- because that is the
+form alternation and multilinearity give and it needs no cancellation. The
+classical derivation expands the matrix whose two rows are both `a + b`: it is
+zero by alternation, multilinearity splits it into four, and two of the four
+vanish by alternation again. Nothing forms `2 · det`, so characteristic two
+is not excluded, and the binder list below carries no `2 ≠ 0`. -/
+theorem detT_antisym_adj {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (E : Nat → Nat → α) (a b : Nat → α) (r n : Nat) :
+    add (detT add mul neg zero one (rowsAdjT E r a b) (r + n + 2))
+        (detT add mul neg zero one (rowsAdjT E r b a) (r + n + 2)) = zero := by
+  have vanish : ∀ x : Nat → α,
+      detT add mul neg zero one (rowsAdjT E r x x) (r + n + 2) = zero :=
+    fun x => detT_rows_adj add mul neg zero one hassoc hcomm ha0 hneg hdistr
+      hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm r n (rowsAdjT E r x x)
+      (fun c => by rw [rowsAdjT_at, rowsAdjT_succ])
+  have h0 := detT_rowsAdj_add_at add mul neg zero one hassoc hcomm ha0 hdistrR
+    hdistr hnegadd E a b (fun m => add (a m) (b m)) r n
+  have h1 := detT_rowsAdj_add_succ add mul neg zero one hassoc hcomm ha0 hdistrR
+    hdistr hnegadd E a a b r n
+  have h2 := detT_rowsAdj_add_succ add mul neg zero one hassoc hcomm ha0 hdistrR
+    hdistr hnegadd E b a b r n
+  rw [h1, h2, vanish a, vanish b, h0a, ha0] at h0
+  rw [← h0, vanish (fun m => add (a m) (b m))]
+
+/-- SWAPPING TWO ADJACENT ROWS NEGATES, in the additive form. -/
+theorem detT_swap_adj {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (E : Nat → Nat → α) (r n : Nat) :
+    add (detT add mul neg zero one E (r + n + 2))
+        (detT add mul neg zero one
+          (rowsAdjT E r (E (r + 1)) (E r)) (r + n + 2)) = zero := by
+  have h := detT_antisym_adj add mul neg zero one hassoc hcomm ha0 h0a hneg
+    hdistr hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm
+    E (E r) (E (r + 1)) r n
+  rwa [detT_congr add mul neg zero one (fun i m => rowsAdjT_self E r i m)
+    (r + n + 2)] at h
+
+/-- ALTERNATION AT ANY TWO EQUAL ROWS, not only adjacent ones, over a Lean
+type.
+
+INDUCTION ON THE GAP. Swap the lower of the pair down one step --- which does
+not touch the other --- and the swapped matrix has the same two entries one step
+closer, so the induction hypothesis kills it. `detT_swap_adj` then says the
+original and the swapped one sum to zero, and `x + 0 = 0` gives `x = 0`.
+
+NOT VIA ANTISYMMETRY APPLIED TO A MATRIX EQUAL TO ITSELF. That route reads
+`det = -det`, i.e. `2 · det = 0`, and is useless in characteristic two. The
+additive statement of `detT_swap_adj` is what makes the gap induction work with
+no cancellation at all --- which is the same reason `detT_rows01` was proved by
+pairing rather than by antisymmetry. -/
+theorem detT_rows_eq {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p) :
+    ∀ (d i n : Nat) (E : Nat → Nat → α), (∀ c, E i c = E (i + d + 1) c) →
+      detT add mul neg zero one E (i + d + n + 2) = zero := by
+  intro d
+  induction d with
+  | zero =>
+    intro i n E hrows
+    rw [show i + 0 + n + 2 = i + n + 2 from by omega]
+    exact detT_rows_adj add mul neg zero one hassoc hcomm ha0 hneg hdistr
+      hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm i n E (fun c => by
+        have := hrows c; rwa [show i + 0 + 1 = i + 1 from by omega] at this)
+  | succ k ih =>
+    intro i n E hrows
+    have hswap := ih i (n + 1)
+      (rowsAdjT E (i + k + 1) (E (i + k + 2)) (E (i + k + 1)))
+      (fun c => by
+        rw [rowsAdjT_other E (i + k + 1) _ _ (by omega) (by omega),
+          show i + k + 1 = i + k + 1 from rfl, rowsAdjT_at]
+        exact hrows c)
+    have h := detT_swap_adj add mul neg zero one hassoc hcomm ha0 h0a hneg
+      hdistr hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm
+      E (i + k + 1) n
+    rw [show i + k + 1 + n + 2 = i + (k + 1) + n + 2 from by omega] at h
+    rw [show i + k + (n + 1) + 2 = i + (k + 1) + n + 2 from by omega] at hswap
+    rw [show i + k + 2 = i + k + 1 + 1 from by omega] at hswap
+    rw [hswap, ha0] at h
+    exact h
+
+#print axioms detT_rows01
+#print axioms detT_rows_adj
+#print axioms detT_rowsAdj_add_at
+#print axioms detT_rowsAdj_add_succ
+#print axioms detT_antisym_adj
+#print axioms detT_swap_adj
+/-- AN ASSIGNMENT THAT REPEATS A VALUE REPEATS A ROW, so its determinant
+vanishes --- over a Lean type.
+
+This is what lets the Leibniz expansion sum over ALL `n ^ n` assignments rather
+than only the injective ones: the non-injective terms cost nothing and need not
+be carved out of the index set. It is one of the two hypotheses
+`leibSumT_eq_detT` will need, and the shorter one --- `detT_permOn` is a strong
+recursion on the inversion count and is the next real rung. -/
+theorem detT_repeatOn {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (B : Nat → Nat → α) {g : Nat → Nat} {n a b : Nat}
+    (hab : a < b) (hb : b < n) (heq : g a = g b) :
+    detT add mul neg zero one (fun i => B (g i)) n = zero := by
+  have hn : n = a + (b - a - 1) + (n - b - 1) + 2 := by omega
+  rw [hn]
+  exact detT_rows_eq add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr
+    hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm
+    (b - a - 1) a (n - b - 1) _
+    (fun c => by rw [show a + (b - a - 1) + 1 = b from by omega, heq])
+
+/-! ### The permutation sign --- the last substantial rung
+
+`detT_permOn` goes through `detT_perm`, a STRONG RECURSION ON THE INVERSION
+COUNT: with no inversions the permutation is the identity on the range; with
+one, swap at a descent, which drops the count by exactly one and negates the
+determinant by `detT_swap_adj`.
+
+EVERY COMBINATORIAL LEMMA IT USES IS PURE `Nat` AND IS CITED UNCHANGED ---
+`swapVal`, `swapVal_maps`, `swapVal_inv`, `inversions`, `inversions_descent`,
+`inversions_ne_zero_of_descent`, `exists_descent`, `eq_self_of_no_descent`,
+`invBelow`, `invBelow_eq`. That is the same split as everywhere on this stack,
+holding at the top of it as well as the bottom. Only `rows_swapVal`, which
+mentions the entries, needs a twin.
+-/
+
+/-- `B` composed with a swapped index map IS the two-row substitution. -/
+theorem rows_swapValT {α : Type u} (B : Nat → Nat → α) (f : Nat → Nat)
+    (r i m : Nat) :
+    B (swapVal r f i) m
+      = rowsAdjT (fun a => B (f a)) r (B (f (r + 1))) (B (f r)) i m := by
+  rcases Nat.lt_or_ge i r with h | h
+  · rw [swapVal_other f (by omega) (by omega),
+      rowsAdjT_other _ r _ _ (by omega) (by omega)]
+  · rcases Nat.lt_or_ge i (r + 1) with h2 | h2
+    · rw [show i = r from by omega, swapVal_at, rowsAdjT_at]
+    · rcases Nat.lt_or_ge i (r + 2) with h3 | h3
+      · rw [show i = r + 1 from by omega, swapVal_succ, rowsAdjT_succ]
+      · rw [swapVal_other f (by omega) (by omega),
+          rowsAdjT_other _ r _ _ (by omega) (by omega)]
+
+/-- `a + b = zero` gives `neg a = b`, over a type. -/
+theorem negT_eq_of_add_eq_zero {α : Type u} (add : α → α → α) (neg : α → α)
+    (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero) (a b : α)
+    (hab : add a b = zero) : neg a = b := by
+  have h : add (neg a) (add a b) = add (neg a) zero := by rw [hab]
+  -- ONE `hcomm` ON THE LEFT, not two. After `← hassoc` the left is
+  -- `add (add (neg a) a) b`; `hcomm (neg a) a` turns the inner pair into
+  -- `add a (neg a)`, which is what `hneg` matches. A second `← hcomm a (neg a)`
+  -- undoes exactly that and the rewrite then has no occurrence to find --- the
+  -- error prints `add (neg a) a` as the missing pattern against a goal that
+  -- already contains `add a (neg a)`
+  rw [← hassoc, hcomm (neg a) a, hneg, h0a, hcomm (neg a) zero, h0a] at h
+  exact h.symm
+
+/-- PERMUTING THE ROWS MULTIPLIES BY THE SIGN, over a Lean type. -/
+theorem detT_perm {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (B : Nat → Nat → α) (n : Nat) :
+    ∀ k : Nat, ∀ f finv : Nat → Nat, inversions f n = k →
+      (∀ m, m < n → f m < n) → (∀ m, m < n → finv (f m) = m) →
+      detT add mul neg zero one (fun i => B (f i)) n
+        = ringSignT neg (inversions f n)
+            (detT add mul neg zero one B n) := by
+  intro k
+  induction k using Nat.strongRecOn with
+  | _ k ih =>
+    intro f finv hk hf hinv
+    rcases Nat.eq_zero_or_pos k with hk0 | hkpos
+    · have hno : ∀ r, r + 1 < n → f r ≤ f (r + 1) := by
+        intro r hr
+        rcases Nat.lt_or_ge (f (r + 1)) (f r) with hd | hd
+        · exact absurd (hk.trans hk0)
+            (inversions_ne_zero_of_descent hd (by omega))
+        · omega
+      have hid := eq_self_of_no_descent hf hinv hno
+      rw [hk, hk0, detT_congr_lt add mul neg zero one (E := fun i => B (f i))
+        (F := B) n (fun i m hi _ => by show B (f i) m = B i m; rw [hid i hi])]
+      rfl
+    · have hne : inversions f n ≠ 0 := by omega
+      obtain ⟨r, hr, hd⟩ := exists_descent hne
+      have hdrop : inversions (swapVal r f) n + 1 = inversions f n :=
+        inversions_descent hd (by omega)
+      have hIH := ih (inversions (swapVal r f) n) (by omega)
+        (swapVal r f) (fun x => swapVal r (fun y => y) (finv x)) rfl
+        (swapVal_maps hr hf)
+        (fun m hm => swapVal_inv (finv := finv) hr hinv m hm)
+      have hswap := detT_swap_adj add mul neg zero one hassoc hcomm ha0 h0a
+        hneg hdistr hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm
+        (fun i => B (f i)) r (n - r - 2)
+      rw [show r + (n - r - 2) + 2 = n from by omega] at hswap
+      have hrows : detT add mul neg zero one (fun i => B (swapVal r f i)) n
+          = detT add mul neg zero one
+              (rowsAdjT (fun a => B (f a)) r (B (f (r + 1))) (B (f r))) n :=
+        detT_congr add mul neg zero one (fun i m => rows_swapValT B f r i m) n
+      rw [hrows] at hIH
+      have hc : add
+          (detT add mul neg zero one
+            (rowsAdjT (fun a => B (f a)) r (B (f (r + 1))) (B (f r))) n)
+          (detT add mul neg zero one (fun i => B (f i)) n) = zero := by
+        rw [hcomm]; exact hswap
+      have hgoal := (negT_eq_of_add_eq_zero add neg zero hassoc hcomm h0a hneg
+        _ _ hc).symm
+      rw [hgoal, hIH, ← ringSignT_succ neg hnn _ (inversions (swapVal r f) n),
+        hdrop]
+
+
+#print axioms rowsAdjT
+#print axioms rowsAdjT_at
+#print axioms rowsAdjT_succ
+#print axioms rowsAdjT_other
+#print axioms rowsAdjT_self
+#print axioms detT_rows_eq
+#print axioms detT_repeatOn
+#print axioms rows_swapValT
+#print axioms negT_eq_of_add_eq_zero
+#print axioms detT_perm
 
 #print axioms mixAssign
 #print axioms prodPrefix
@@ -6881,6 +8372,43 @@ theorem invBelow_eq : ∀ (n : Nat) (g : Nat → Nat),
     · rw [if_pos h]
       exact hinj n i (by omega) hi h
 
+/-! ### `detT_permOn` is sited HERE, not with the rest of alternation
+
+Its two suppliers, `invBelow` and `invBelow_eq`, are declared just above, and
+they are `Nat`-valued --- part of the indexing half this whole stack cites
+unchanged. So the one declaration of alternation whose position is decided by
+the COMBINATORICS rather than by the entries sits beside the combinatorics.
+-/
+
+/-- AND FROM INJECTIVITY DIRECTLY, which is the form the Leibniz expansion
+hands over: `invBelow` supplies the inverse. -/
+theorem detT_permOn {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (B : Nat → Nat → α) {g : Nat → Nat} {n : Nat}
+    (hmaps : ∀ m, m < n → g m < n)
+    (hinj : ∀ a b, a < n → b < n → g a = g b → a = b) :
+    detT add mul neg zero one (fun i => B (g i)) n
+      = ringSignT neg (inversions g n) (detT add mul neg zero one B n) :=
+  detT_perm add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr hdistrR
+    hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm B n
+    (inversions g n) g (invBelow g n) rfl hmaps
+    (fun m hm => invBelow_eq n g hinj m hm)
+
+#print axioms detT_permOn
+
 /-! ### The two inputs the capstones still lacked: the identity and the expansion
 
 `leibSum_eq_detN` is the case `B = I` of the expansion and `detN_mul` is the
@@ -6894,6 +8422,250 @@ THE SPLIT HOLDS ONCE MORE. `natDigit`, `natDigit_at_high`, `natDigit_lt`,
 declarations mentioning an ENTRY needed twins, which is every one of the eight
 here and none of the six they call.
 -/
+
+theorem sumUptoT_single {α : Type u} (add : α → α → α) (zero : α)
+    (ha0 : ∀ p, add p zero = p) (h0a : ∀ p, add zero p = p)
+    (f : Nat → α) (k : Nat) :
+    ∀ n, k < n → (∀ j, j < n → j ≠ k → f j = zero) →
+      sumUptoT add zero f n = f k
+  | 0, hk, _ => absurd hk (by omega)
+  | n + 1, hk, hz => by
+    rw [sumUptoT_succ]
+    rcases Nat.lt_or_ge k n with hlt | hge
+    · rw [hz n (by omega) (by omega), ha0,
+        sumUptoT_single add zero ha0 h0a f k n hlt
+          (fun j hj hjk => hz j (by omega) hjk)]
+    · have hkn : k = n := by omega
+      subst hkn
+      have hzero : ∀ m, m ≤ k → sumUptoT add zero f m = zero := by
+        intro m
+        induction m with
+        | zero => intro _; rfl
+        | succ m ih =>
+          intro hm
+          rw [sumUptoT_succ, ih (by omega), hz m (by omega) (by omega), ha0]
+      rw [hzero k (Nat.le_refl k), h0a]
+
+theorem matMinorT_idMatT_zero {α : Type u} (zero one : α) (i k : Nat) :
+    matMinorT (fun a b => if a = b then one else zero) 0 i k
+      = (if i = k then one else zero) := by
+  show (if i + 1 = (if k < 0 then k else k + 1) then one else zero) = _
+  rw [if_neg (by omega : ¬ k < 0)]
+  by_cases h : i = k
+  · rw [if_pos (by omega), if_pos h]
+  · rw [if_neg (by omega), if_neg h]
+
+/-- THE DETERMINANT OF THE IDENTITY IS `one`, over a Lean type.
+
+Laplace along row 0 has exactly one surviving term because `idMat 0 j` is `zero`
+off the diagonal; `sumUptoT_single` collapses the sum to `j = 0`, the minor is
+the identity one size down by `matMinorT_idMatT_zero`, and the induction closes.
+
+`0 % 2 = 0` puts the SURVIVING term on the unsigned branch, so `neg` never
+touches the answer. `neg zero = zero` IS STILL REQUIRED, and I first wrote
+this signature without it. The vanishing terms at odd `j` are `neg (mul zero
+_)`, and knowing they are `zero` is what `sumUptoT_single` demands of them ---
+the hypothesis is spent on the terms that DISAPPEAR, not on the one that
+survives. Reading which branch the ANSWER takes and concluding `neg` is unused
+is the error; the sum's other terms have to be shown zero too. -/
+theorem detT_idMatT {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (ha0 : ∀ p, add p zero = p) (h0a : ∀ p, add zero p = p)
+    (hm1 : ∀ p, mul one p = p) (hm0 : ∀ p, mul zero p = zero)
+    (hn0 : neg zero = zero) :
+    ∀ n, detT add mul neg zero one
+        (fun a b => if a = b then one else zero) n = one
+  | 0 => rfl
+  | n + 1 => by
+    rw [detT_succ]
+    rw [sumUptoT_single add zero ha0 h0a _ 0 (n + 1) (by omega) ?zeros]
+    case zeros =>
+      intro j hj hj0
+      show (if j % 2 = 0 then mul (if (0 : Nat) = j then one else zero) _
+            else neg (mul (if (0 : Nat) = j then one else zero) _)) = zero
+      rw [if_neg (by omega : ¬ (0 : Nat) = j)]
+      by_cases hp : j % 2 = 0
+      · rw [if_pos hp, hm0]
+      · rw [if_neg hp, hm0, hn0]
+    show (if (0 : Nat) % 2 = 0 then mul (if (0:Nat) = 0 then one else zero) _
+          else neg _) = one
+    rw [if_pos rfl, if_pos rfl, hm1,
+      detT_congr_lt add mul neg zero one (n := n)
+        (fun i k _ _ => matMinorT_idMatT_zero zero one i k),
+      detT_idMatT add mul neg zero one ha0 h0a hm1 hm0 hn0 n]
+
+/-- `A · I = A` ENTRYWISE, below the bound.
+
+The bound falls on the COLUMN: the surviving fold term is at `j = k`, so `k < n`
+is what is needed and the row index is free. The `ZFSet` layer keeps a separate
+lemma for the identity on the LEFT precisely because there the bound falls on
+the row instead --- the two are not the same statement. -/
+theorem matMulOnT_idMatT {α : Type u} (add mul : α → α → α) (zero one : α)
+    (ha0 : ∀ p, add p zero = p) (h0a : ∀ p, add zero p = p)
+    (hm1 : ∀ p, mul p one = p) (hmul0 : ∀ p, mul p zero = zero)
+    (A : Nat → Nat → α) {n : Nat} (i : Nat) {k : Nat} (hk : k < n) :
+    matMulOnT add mul zero A (idMatT zero one) n i k = A i k := by
+  show sumUptoT add zero (fun j => mul (A i j) (idMatT zero one j k)) n = _
+  rw [sumUptoT_single add zero ha0 h0a _ k n hk ?zeros]
+  case zeros =>
+    intro j hj hjk
+    rw [idMatT_off zero one hjk, hmul0]
+  rw [idMatT_diag, hm1]
+
+theorem sumUptoT_const_zero {α : Type u} (add : α → α → α) (zero : α)
+    (ha0 : ∀ q, add q zero = q) :
+    ∀ n, sumUptoT add zero (fun _ => zero) n = zero
+  | 0 => rfl
+  | n + 1 => by
+    rw [sumUptoT_succ, sumUptoT_const_zero add zero ha0 n, ha0]
+
+theorem sumUptoT_swap {α : Type u} (add : α → α → α) (zero : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (G : Nat → Nat → α) (a : Nat) :
+    ∀ b : Nat,
+      sumUptoT add zero (fun m => sumUptoT add zero (G m) a) b
+        = sumUptoT add zero (fun j => sumUptoT add zero (fun m => G m j) b) a
+  | 0 => (sumUptoT_const_zero add zero ha0 a).symm
+  | b + 1 => by
+    rw [sumUptoT_succ, sumUptoT_swap add zero hassoc hcomm ha0 G a b]
+    exact (sumUptoT_pointwise_add add zero hassoc hcomm ha0
+      (fun j => sumUptoT add zero (fun m => G m j) b) (fun j => G b j)
+      (fun j => sumUptoT add zero (fun m => G m j) (b + 1)) a
+      (fun j _ => sumUptoT_succ add zero (fun m => G m j) b)).symm
+
+theorem expandTermT_step {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (h0mul : ∀ p, mul zero p = zero)
+    (A B : Nat → Nat → α) {n t m : Nat} (htn : t < n) (hm : m < n ^ t) :
+    expandTermT add mul neg zero one A B n t m
+      = sumUptoT add zero
+          (fun j => expandTermT add mul neg zero one A B n (t + 1)
+            (j * n ^ t + m)) n := by
+  obtain ⟨s, rfl⟩ : ∃ s, n = t + s + 1 := ⟨n - t - 1, by omega⟩
+  have hn : 0 < t + s + 1 := by omega
+  unfold expandTermT
+  rw [detT_mixRowsT_step add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+      hnegadd hmul0 hassocm hcommm hmulneg h0mul A B
+      (mixAssign (t + s + 1) m) (t + s + 1) t s t rfl rfl,
+    sumUptoT_mul_left add mul zero hdistl hmul0
+      (prodPrefixT mul one A (t + s + 1) t m) _ (t + s + 1)]
+  refine sumUptoT_congr_lt add zero _ _ (t + s + 1) (fun j hj => ?_)
+  rw [detT_rowAtT_smul add mul neg zero one hdistl hmul0 hassocm hcommm hmulneg
+      (mixRowsT add mul zero A B (mixAssign (t + s + 1) m) (t + s + 1) t)
+      B (A t j) t s j]
+  have hrows : ∀ i k,
+      rowAtT (mixRowsT add mul zero A B (mixAssign (t + s + 1) m) (t + s + 1) t)
+          t (B j) i k
+        = mixRowsT add mul zero A B
+            (mixAssign (t + s + 1) (j * (t + s + 1) ^ t + m)) (t + s + 1)
+            (t + 1) i k :=
+    fun i k => mixRowsT_rowAtT_succ add mul zero A B hn hj hm i k
+  rw [detT_congr add mul neg zero one hrows (t + s + 1)]
+  have hpre : prodPrefixT mul one A (t + s + 1) (t + 1)
+        (j * (t + s + 1) ^ t + m)
+      = mul (prodPrefixT mul one A (t + s + 1) t m) (A t j) := by
+    show mul (prodPrefixT mul one A (t + s + 1) t (j * (t + s + 1) ^ t + m))
+      (A t (mixAssign (t + s + 1) (j * (t + s + 1) ^ t + m) t)) = _
+    rw [prodPrefixT_low mul one A hn t j m,
+      show mixAssign (t + s + 1) (j * (t + s + 1) ^ t + m) t = j from
+        natDigit_at_high hj hm]
+  rw [hpre, hassocm]
+
+/-- THE EXPANSION, over a Lean type: `detT (A · B)` as `n ^ t` terms. -/
+theorem expandSumT {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hm1 : ∀ p, mul one p = p)
+    (hdistr : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (h0mul : ∀ p, mul zero p = zero)
+    (A B : Nat → Nat → α) {n : Nat} :
+    ∀ t : Nat, t ≤ n →
+      detT add mul neg zero one (matMulOnT add mul zero A B n) n
+        = sumUptoT add zero
+            (expandTermT add mul neg zero one A B n t) (n ^ t)
+  | 0, _ => by
+    show _ = add zero (expandTermT add mul neg zero one A B n 0 0)
+    rw [h0a]
+    exact (expandTermT_zero add mul neg zero one hm1 A B n 0).symm
+  | t + 1, ht => by
+    rw [expandSumT add mul neg zero one hassoc hcomm ha0 h0a hm1 hdistr hdistl
+        hnegadd hmul0 hassocm hcommm hmulneg h0mul A B t (by omega),
+      sumUptoT_congr_lt add zero _ _ (n ^ t) (fun m hm =>
+        expandTermT_step add mul neg zero one hassoc hcomm ha0 hdistr hdistl
+          hnegadd hmul0 hassocm hcommm hmulneg h0mul A B (by omega : t < n) hm),
+      sumUptoT_swap add zero hassoc hcomm ha0
+        (fun m j => expandTermT add mul neg zero one A B n (t + 1)
+          (j * n ^ t + m)) n (n ^ t),
+      sumUptoT_flatten add zero hassoc ha0
+        (fun j m => expandTermT add mul neg zero one A B n (t + 1)
+          (j * n ^ t + m)) (n ^ t) n,
+      show n ^ (t + 1) = n * n ^ t from by rw [Nat.pow_succ, Nat.mul_comm]]
+    -- THE CODES AGREE, by division with remainder: the flattened index `s`
+    -- carries `s / n ^ t` as the new digit and `s % n ^ t` as the old code
+    exact sumUptoT_congr_lt add zero _ _ (n * n ^ t) (fun s _ => congrArg _
+      (by rw [Nat.mul_comm]; exact Nat.div_add_mod s (n ^ t)))
+
+#print axioms sumUptoT_single
+#print axioms matMinorT_idMatT_zero
+#print axioms detT_idMatT
+#print axioms matMulOnT_idMatT
+#print axioms sumUptoT_const_zero
+#print axioms sumUptoT_swap
+#print axioms expandTermT_step
+#print axioms expandSumT
+
+
+
+/-- THE SIGN COMES OUT OF THE LEFT FACTOR, over a Lean type.
+
+`ringSignT` is an `if` on the parity, so both branches are decided by the same
+`Nat` test and the odd branch is exactly `hnegmul`. The `ZFSet` twin below
+carries `(hR : IsRing ...) (ha : a in R) (hb : b in R)`; the re-siting takes all
+three off, and with the membership goes the only route to a quotient --- these
+print `does not depend on any axioms`. -/
+theorem ringSignT_mul_left {α : Type u} (mul : α → α → α) (neg : α → α)
+    (hnegmul : ∀ p q, mul (neg p) q = neg (mul p q)) (a b : α) (c : Nat) :
+    mul (ringSignT neg c a) b = ringSignT neg c (mul a b) := by
+  unfold ringSignT
+  rcases Nat.decEq (c % 2) 0 with h | h
+  · rw [if_neg h, if_neg h, hnegmul]
+  · rw [if_pos h, if_pos h]
+
+/-- ...and out of the right factor, by `hmulneg` instead. -/
+theorem ringSignT_mul_right {α : Type u} (mul : α → α → α) (neg : α → α)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q)) (a b : α) (c : Nat) :
+    mul a (ringSignT neg c b) = ringSignT neg c (mul a b) := by
+  unfold ringSignT
+  rcases Nat.decEq (c % 2) 0 with h | h
+  · rw [if_neg h, if_neg h, hmulneg]
+  · rw [if_pos h, if_pos h]
+
+/-- AND THE SIGN ABSORBS A UNIT ON THE RIGHT, which is the shape the Leibniz
+identity reaches for once the inner determinant has become `one`. -/
+theorem ringSignT_mul_one {α : Type u} (mul : α → α → α) (neg : α → α)
+    (one : α) (hm1 : ∀ p, mul p one = p)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q)) (a : α) (c : Nat) :
+    mul a (ringSignT neg c one) = ringSignT neg c a := by
+  rw [ringSignT_mul_right mul neg hmulneg a one c, hm1]
+
 
 /-- A sign passes through the left factor of a product. -/
 theorem ringSign_mul_left {R add mul zero one a b : ZFSet.{u}}
@@ -6949,7 +8721,140 @@ theorem anyRepeat_of_injUptoB_false {f : Nat → Nat} {n : Nat}
   | true => rfl
 
 /-! ### The two capstones, over a Lean type
+
+`leibSumT_eq_detT` is the case `B = I` of `expandSumT` and `detT_mul` is the
+general case, so the two share every rung above. WHAT THE RE-SITING BUYS.
+Reaching an arbitrary Lean type by encoding it as a `ZFSet` costs
+`Classical.choice`; with `detT_mul` stated here a Lean-typed caller applies it
+directly and no encoding is needed.
 -/
+
+/-- THE LEIBNIZ IDENTITY OVER A LEAN TYPE: the signed sum over all
+assignments in the `n ^ n` encoding IS the determinant.
+
+The route is the `ZFSet` twin's: `expandSumT` at `B = I`, then per term a case
+split on whether the assignment is injective. Injective, it is a permutation and
+`detT_permOn` plus `detT_idMatT` turn the inner determinant into a sign;
+repeated, `detT_repeatOn` kills it. `ringSignT_mul_one` collects the sign onto
+the outside, which is the step the `ZFSet` proof spends two membership lemmas
+on. -/
+theorem leibSumT_eq_detT {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hm1 : ∀ p, mul one p = p) (hmul1 : ∀ p, mul p one = p)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (h0mul : ∀ p, mul zero p = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (A : Nat → Nat → α) {n : Nat} (hn : 0 < n) :
+    leibSumT add mul neg zero one A n = detT add mul neg zero one A n := by
+  have hexp := expandSumT add mul neg zero one hassoc hcomm ha0 h0a hm1 hdistrR
+    hdistr hnegadd hmul0 hassocm hcommm hmulneg h0mul A (idMatT zero one)
+    (n := n) n (Nat.le_refl n)
+  rw [detT_congr_lt add mul neg zero one n
+    (fun i m _ hm => matMulOnT_idMatT add mul zero one ha0 h0a hmul1 hmul0
+      A i hm)] at hexp
+  show sumUptoT add zero _ (n ^ n) = _
+  rw [hexp]
+  refine sumUptoT_congr_lt add zero _ _ (n ^ n) (fun m _ => ?_)
+  show cond (injUptoB (fun i => natDigit n i m) n) _ _
+    = mul (prodPrefixT mul one A n n m) _
+  have hrows : detT add mul neg zero one
+      (mixRowsT add mul zero A (idMatT zero one) (mixAssign n m) n n) n
+      = detT add mul neg zero one
+          (fun i => idMatT zero one (natDigit n i m)) n :=
+    detT_congr_lt add mul neg zero one n (fun i k hi _ =>
+      mixRowsT_lt add mul zero A (idMatT zero one) (mixAssign n m) n n i k hi)
+  rw [hrows]
+  -- `detT_idMatT` IS STATED AT THE LAMBDA, NOT AT `idMatT`, so `rw` cannot see
+  -- it under the goal's `idMatT zero one`; the two are definitionally equal, and
+  -- a `have` at the wanted spelling is what crosses that gap
+  have hid : detT add mul neg zero one (idMatT zero one) n = one :=
+    detT_idMatT add mul neg zero one ha0 h0a hm1 h0mul hneg0 n
+  rcases Bool.eq_false_or_eq_true (injUptoB (fun i => natDigit n i m) n) with h | h
+  · rw [h, detT_permOn add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr
+      hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm (idMatT zero one)
+      (fun i _ => natDigit_lt hn i m) ((injUptoB_iff _ n).mp h), hid,
+      ringSignT_mul_one mul neg one hmul1 hmulneg,
+      prodPrefixT_eq_permProdT]
+    rfl
+  · obtain ⟨j, k, hjk, hk, hf⟩ := anyRepeat_of_injUptoB_false h
+    rw [h, detT_repeatOn add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr
+      hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm (idMatT zero one)
+      hjk hk hf, hmul0]
+    rfl
+
+/-- THE DETERMINANT IS MULTIPLICATIVE, OVER AN ARBITRARY LEAN TYPE.
+
+`Algebra.detN_mul` says this for a `ZFSet` ring at `[propext, Quot.sound]`.
+This is the statement that makes the encoding unnecessary, and its binder list
+is the whole cost: eleven equations on `add`, `mul` and `neg`, no membership,
+no carrier, and no decision. -/
+theorem detT_mul {α : Type u} (add mul : α → α → α) (neg : α → α)
+    (zero one : α)
+    (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
+    (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
+    (h0a : ∀ q, add zero q = q)
+    (hneg : ∀ q, add q (neg q) = zero)
+    (hm1 : ∀ p, mul one p = p) (hmul1 : ∀ p, mul p one = p)
+    (hdistr : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
+    (hdistrR : ∀ p q r, mul (add p q) r = add (mul p r) (mul q r))
+    (hmul0 : ∀ p, mul p zero = zero)
+    (h0mul : ∀ p, mul zero p = zero)
+    (hnegadd : ∀ p q, neg (add p q) = add (neg p) (neg q))
+    (hneg0 : neg zero = zero)
+    (hnn : ∀ q, neg (neg q) = q)
+    (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q))
+    (hassocm : ∀ p q r, mul (mul p q) r = mul p (mul q r))
+    (hcommm : ∀ p q, mul p q = mul q p)
+    (A B : Nat → Nat → α) {n : Nat} (hn : 0 < n) :
+    detT add mul neg zero one (matMulOnT add mul zero A B n) n
+      = mul (detT add mul neg zero one A n) (detT add mul neg zero one B n) := by
+  rw [expandSumT add mul neg zero one hassoc hcomm ha0 h0a hm1 hdistrR hdistr
+      hnegadd hmul0 hassocm hcommm hmulneg h0mul A B (n := n) n (Nat.le_refl n),
+    ← leibSumT_eq_detT add mul neg zero one hassoc hcomm ha0 h0a hneg hm1 hmul1
+      hdistr hdistrR hmul0 h0mul hnegadd hneg0 hnn hmulneg hassocm hcommm A hn]
+  show _ = mul (sumUptoT add zero _ (n ^ n)) _
+  rw [sumUptoT_mul_right add mul zero h0mul hdistrR
+      (detT add mul neg zero one B n) _ (n ^ n)]
+  refine sumUptoT_congr_lt add zero _ _ (n ^ n) (fun m _ => ?_)
+  show mul (prodPrefixT mul one A n n m) _ = _
+  have hrows : detT add mul neg zero one
+      (mixRowsT add mul zero A B (mixAssign n m) n n) n
+      = detT add mul neg zero one (fun i => B (natDigit n i m)) n :=
+    detT_congr_lt add mul neg zero one n (fun i k hi _ =>
+      mixRowsT_lt add mul zero A B (mixAssign n m) n n i k hi)
+  rw [hrows]
+  rcases Bool.eq_false_or_eq_true (injUptoB (fun i => natDigit n i m) n) with h | h
+  · rw [h, detT_permOn add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr
+      hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm B
+      (fun i _ => natDigit_lt hn i m) ((injUptoB_iff _ n).mp h),
+      ringSignT_mul_right mul neg hmulneg,
+      ← ringSignT_mul_left mul neg (fun p q => by rw [hcommm (neg p) q, hmulneg,
+        hcommm q p]) _ (detT add mul neg zero one B n),
+      prodPrefixT_eq_permProdT]
+    rfl
+  · obtain ⟨j, k, hjk, hk, hf⟩ := anyRepeat_of_injUptoB_false h
+    rw [h, detT_repeatOn add mul neg zero one hassoc hcomm ha0 h0a hneg hdistr
+      hdistrR hmul0 hnegadd hneg0 hnn hmulneg hassocm hcommm B hjk hk hf,
+      hmul0]
+    -- the `cond` on the right is at `false` and reduces, but only after a
+    -- `show`: `rw` matches syntactically and `bif false then _ else zero` is
+    -- not the literal `zero` its pattern wants
+    show zero = mul zero (detT add mul neg zero one B n)
+    rw [h0mul]
+
+#print axioms leibSumT_eq_detT
+#print axioms detT_mul
 
 /-- The Leibniz identity in the `n ^ n` encoding, as the case `B = I` of the
 expansion: the sum over ALL assignments is the determinant. -/
@@ -8395,6 +10300,7 @@ theorem exists_dirichlet_collision {A : Nat → Nat} {b Q r : Nat}
 #print axioms binomSum_succ
 #print axioms binomUp_succ
 #print axioms binomSum_recombine
+#print axioms sumUptoT_succ
 #print axioms ringNsmul_foldF
 #print axioms evalUpTo_mem
 #print axioms evalUpTo_stable
@@ -8450,6 +10356,9 @@ theorem exists_dirichlet_collision {A : Nat → Nat} {b Q r : Nat}
 #print axioms polyMul_comm
 #print axioms polyMul_assoc
 #print axioms exists_top
+#print axioms ringSignT_mul_left
+#print axioms ringSignT_mul_right
+#print axioms ringSignT_mul_one
 #print axioms natSumUpto_choose
 #print axioms intOfNat_natSumUpto
 end Algebra
@@ -8507,5 +10416,5 @@ namespace ZFSet
 -- name while resolving this very conflict.
 export Algebra (exists_dirichlet_collision)
 
-export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_congr_left matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_neg_right matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_add matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_add monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_eq_zero_of_matMulOn_scalar ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi weierPoly weierX)
+export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detT detT_succ detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMinorT matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_congr_left matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_neg_right matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_add matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_add monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_eq_zero_of_matMulOn_scalar ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step sumUptoT sumUptoT_congr_lt sumUptoT_mul_right sumUptoT_succ swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi weierPoly weierX prodUptoT prodUptoT_succ matMulOnT idMatT idMatT_diag idMatT_off ringSignT prodPrefixT permProdT prodPrefixT_eq_permProdT mixRowsT mixRowsT_lt mixRowsT_ge leibSumT skipAtT skipAtT_lt skipAtT_ge skipAtT_origAt skipAtT_skipAtT_origAt survPairT_pairs sumUptoT_skip sumUptoT_peel_pair sumUptoT_peel_pair_collapse sumUptoT_involution sumUptoT_split sumUptoT_flatten detT_congr detTermT detT_congr_lt prodUptoT_congr_lt sumUptoT_pointwise_add sumUptoT_mul_left rowAtT rowAtT_at rowAtT_other detT_row0_add detT_rowk_add detT_row_smul detT_row_zero detT_row_sumUptoT detT_mixRowsT_step detT_rowAtT_smul mixRowsT_rowAtT_succ prodPrefixT_low expandTermT expandTermT_zero detSumT matMinor2T matMinor2T_swap ringSignT_succ ringSignT_add detSumT_norm detSumT_swap detSumT_pair detT_double sumUptoT_zeros detT_rows01 detT_rows_adj rowsAdjT rowsAdjT_at rowsAdjT_succ rowsAdjT_other rowsAdjT_self detT_rowsAdj_add_at detT_rowsAdj_add_succ detT_antisym_adj detT_swap_adj detT_rows_eq detT_repeatOn rows_swapValT negT_eq_of_add_eq_zero detT_perm detT_permOn ringSignT_mul_left ringSignT_mul_right ringSignT_mul_one sumUptoT_single matMinorT_idMatT_zero detT_idMatT matMulOnT_idMatT sumUptoT_const_zero sumUptoT_swap expandTermT_step expandSumT leibSumT_eq_detT detT_mul)
 end ZFSet

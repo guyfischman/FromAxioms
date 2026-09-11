@@ -22,14 +22,26 @@ a pair is narrower than what it matches.
 
 - statement certified as Mathlib's: yes
 - this pair costs: `[propext, Quot.sound, Classical.choice]`
-- rests on 24 tower proposition(s), costing `[Quot.sound, propext]`
-    - `PSet.mem_congr_right`
-    - `PSet.Equiv.refl`
-    - `PSet.Equiv.symm`
-    - `Algebra.detN_succ`
+- rests on 5 tower proposition(s), costing `[Quot.sound, propext]`
+    - `Algebra.detT_succ`
+    - `Algebra.sumUptoT_succ`
+    - `Algebra.sumUptoT_congr_lt`
+    - `Algebra.detT_congr_lt`
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Matrix.det_mul`
 - surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
+## `Comparator.IrrationalSqrtPrime.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Classical.choice, Quot.sound]`
+- rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.prime_sq_irrational`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `Nat.Prime.irrational_sqrt`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.NatAddSucc.solution`
 
@@ -41,4 +53,15 @@ a pair is narrower than what it matches.
     - `NumberTheory.ofNat_succ`
     - `NumberTheory.add_succ`
 - surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
+## `Comparator.PairEncoding.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[Quot.sound, propext]`
+- rests on 2 tower proposition(s), costing `[Quot.sound, propext]`
+    - `SetTheory.opair_eq_opair_iff`
+    - `NumberTheory.ofNat_injective`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
 

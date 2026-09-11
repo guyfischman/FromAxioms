@@ -25,6 +25,8 @@ Solution here from a vacuous one.
 import Comparator.NatAddSucc.Challenge
 import FromAxioms.NumberTheory.Arith
 
+open Comparator.NatAddSucc
+
 open SetTheory NumberTheory
 
 namespace Comparator.NatAddSucc

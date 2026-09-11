@@ -32,7 +32,8 @@ toolchain:
 pairs:
   - id: nat-add-succ
     date: 1861
-    rows: [recursive definition of + on ℕ]
+    rows:
+      - "recursive definition of + on ℕ"
     mathlib: Nat.add_succ
     mathlib_source: Lean core, inherited by Mathlib
     ours: NumberTheory.add_succ
@@ -99,3 +100,36 @@ pairs:
       proof of this statement prints without choice whatever route it takes.
       The encoding spends choice too; the axiom line cannot separate the two
       sources once both are present.
+
+  - id: pair-encoding
+    date: 1921
+    rows:
+      - "the ⟨a,b⟩ = {{a},{a,b}} encoding"
+    mathlib: none --- the challenge is discharged from Lean CORE
+    ours: ZFSet.opair_eq_opair_iff
+    status: complete
+    note: >
+      NO MATHLIB THEOREM IS NAMED BECAUSE THERE IS NONE TO NAME, and
+      that is measured rather than assumed: `Comparator/Audit.lean`
+      walks this challenge's compiled witness and reports ZERO Mathlib
+      propositions in its dependency set --- it rests on Lean core
+      (`Classical.em`, `Classical.choose`, `Nat.rec`, `Prod.ext`).
+      `mathlib_source` is omitted for the same reason: there is no
+      declaration to cite, and a line number invented to fill the
+      field would be worse than the blank.
+
+  - id: irrational-sqrt-prime
+    date: -540
+    rows:
+      - "irrationality of √2"
+    mathlib: Nat.Prime.irrational_sqrt
+    mathlib_source: Mathlib/RingTheory/Real/Irrational.lean:131
+    ours: NumberTheory.prime_sq_irrational
+    status: complete
+    note: >
+      The challenge quantifies over every prime, as Mathlib's theorem does. Our
+      side is `∀ a b : Nat, a * a = n * (b * b) → b = 0` --- no reals, no
+      subtraction --- so no number system is transferred, only a bridge between
+      two spellings of primality over the same `Nat`. Mathlib supplies the
+      plumbing from `Real.sqrt` down to that statement and none of the
+      arithmetic.

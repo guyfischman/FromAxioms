@@ -1451,6 +1451,12 @@ WHY THEY ARE OWED. `Comparator.ModuleQuotient.solution` and
 choice. Both are on the eleven-pair list the corrected `surcharge` check reports
 as paying choice that neither the tower nor mathlib's own proof needs. These
 three statements are what let those pairs drop it. Roadmap rung 19.
+
+AND THE THIRD IS NOT NEW MATHEMATICS AT ALL: `(-c) • x = -(c • x)` is uniqueness
+of the additive inverse, which is `Algebra.negT_eq_of_add_eq_zero` --- written
+for the determinant's ALTERNATION and applying here unchanged. That is the case
+for re-siting over per-pair bridges: a type-sited lemma has no carrier to be
+wrong about, so it composes across subjects sharing no mathematics.
 -/
 
 #print axioms lincomb_add
