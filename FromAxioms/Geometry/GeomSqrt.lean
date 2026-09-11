@@ -463,6 +463,20 @@ theorem realLSqrt_sq {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
   exact realLLe_antisymm (realLMul_mem (realLSqrt_mem hz hnn) (realLSqrt_mem hz hnn))
     hz (not_lt_sq hloc (upper_pos_of_nonneg hloc hnn)) (not_sq_lt hloc)
 
+
+#print axioms nonneg_or_neg
+#print axioms sq_mem_of_nonneg
+#print axioms not_lt_sq
+#print axioms not_sq_lt
+
+#print axioms sq_shift
+#print axioms exists_small_step
+#print axioms ratSq_lt_sq
+#print axioms ratSq_le_sq
+#print axioms ratLt_of_sq_lt_sq
+#print axioms mem_sqrtLower_iff
+#print axioms mem_sqrtUpper_iff
+#print axioms upper_pos_of_nonneg
 end Geometry
 
 #print axioms Geometry.isLocated_sqrt

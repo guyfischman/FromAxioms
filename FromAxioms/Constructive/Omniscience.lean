@@ -30,7 +30,7 @@ it for a real produced by the ternary walk from a binary sequence is exactly
 -/
 
 import FromAxioms.Analysis.Ternary
-import FromAxioms.SetTheory.LeastSearch
+import FromAxioms.SetTheory.Search
 
 set_option autoImplicit false
 
@@ -304,8 +304,10 @@ that `CantorBernstein → EM` follows from it without smuggling `LPO` in. Their
 The separation lemma is stated at a differing index; this produces the index,
 along with the shared prefix and the two heads.
 
-Splitting on the two bits directly is choice-free, and it keeps the recursion
-visibly decidable.
+THE SIMP TACTICS ARE AVOIDED HERE. They close the head comparison and the
+length contradictions, and the axiom print then comes back with
+`Classical.choice`. Splitting on the two bits directly is choice-free, and it
+keeps the recursion visibly decidable.
 
 The conclusion is a DISJUNCTION over which side carries the true bit, because
 the separation is directional: it bounds the false-headed value below the
@@ -341,6 +343,11 @@ theorem exists_first_diff : ∀ u v : List Bool, u.length = v.length → u ≠ v
 #print axioms Constructive.exists_first_diff
 
 
+#print axioms not_exists_true
+#print axioms boolDigit_le_one
+#print axioms boolDigit_eq_one_iff
+#print axioms tnum_pos_iff
+#print axioms tnum_eq_zero
 end Constructive
 namespace ZFSet
 export Constructive (Extendable LLPO LPO MP TernaryLLPO TernaryZeroDecidable TreeReadout Unbounded WLPO boolDigit boolDigit_eq_one_iff boolDigit_le_one extend llpo_of_ternary_llpo not_exists_true take ternary_eq_zero_iff tnum_eq_zero tnum_pos_iff wlpo_of_ternary_zero_decidable zero_mem_ternary_iff)

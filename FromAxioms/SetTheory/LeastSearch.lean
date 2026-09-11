@@ -115,6 +115,8 @@ is a term.
 def condP (P : Prop) (A B : ZFSet.{u}) : ZFSet.{u} :=
   sUnion (union (sep (fun _ => P) (singleton A)) (sep (fun _ => ¬ P) (singleton B)))
 
+#print axioms nat_least_le
+
 end SetTheory
 
 namespace ZFSet

@@ -160,3 +160,11 @@ theorem proof_irrel {a : Prop} (h₁ h₂ : a) : Eq h₁ h₂ := rfl
 #print axioms cast
 #print axioms cast_refl
 #print axioms proof_irrel
+
+#print axioms rfl
+#print axioms Eq.trans
+#print axioms congrArg
+#print axioms congrFun
+#print axioms Ne.symm
+#print axioms Ne.irrefl
+#print axioms ne_absurd

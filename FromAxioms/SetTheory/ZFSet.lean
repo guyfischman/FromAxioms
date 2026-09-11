@@ -209,6 +209,11 @@ theorem succ_mem_omega : ∀ x : ZFSet.{u}, x ∈ omega.{u} → succ x ∈ omega
 #print axioms sep              -- SEPARATION, as the constructor
 #print axioms omega            -- INFINITY, as the constructor
 
+#print axioms mk_eq_mk
+#print axioms mk_subset_mk
+#print axioms ext_iff
+#print axioms mem_insert_iff
+#print axioms empty_mem_omega
 end SetTheory
 
 namespace ZFSet

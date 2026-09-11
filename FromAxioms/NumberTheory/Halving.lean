@@ -20,21 +20,13 @@ The integral-sign bisection, the exact IVT and the extreme value climb
 are all instantiations.
 -/
 
+import FromAxioms.Analysis.Complete
 import FromAxioms.Constructive.Vanishing
 
 universe u
 
 open Analysis Constructive SetTheory
 namespace NumberTheory
-
-/-- `Close z w δ` reads as an order bound: `z ≤ w + δ`. -/
-theorem realLLe_add_of_close {z w δ : ZFSet.{u}} (hz : z ∈ RealL.{u})
-    (hw : w ∈ RealL.{u}) (hδ : δ ∈ RealL.{u}) (h : Close z w δ) :
-    realLLe z (realLAdd w δ) := by
-  have hstep := realLLe_add_right (realLAdd_mem hz (realLNeg_mem hw)) hδ hw h.right
-  rwa [realLAdd_assoc hz (realLNeg_mem hw) hw,
-    realLAdd_comm (realLNeg_mem hw) hw, realLAdd_neg hw, realLAdd_zero hz,
-    realLAdd_comm hδ hw] at hstep
 
 /-- The midpoint facts every halving step re-derives: membership, the two
 strict inequalities, and the unit-interval bounds. -/
@@ -962,6 +954,10 @@ structure HalveDecider (P : ZFSet.{u} → ZFSet.{u} → Prop) where
     ratLt a b → ratLe b ratOne.{u} → P a b → ¬ goLeft (opair a b) →
     P (ratMid a b) b
 
+#print axioms halveB_mem_ratSeqs
+#print axioms halveS_lt
+#print axioms halveS_snd_le_one
+#print axioms halveIter_mem
 end NumberTheory
 
 #print axioms NumberTheory.halve_total
@@ -979,7 +975,6 @@ end NumberTheory
 #print axioms NumberTheory.domain_halveMove
 #print axioms NumberTheory.halveLeft_mem_prod
 #print axioms NumberTheory.halveRight_mem_prod
-#print axioms NumberTheory.realLLe_add_of_close
 #print axioms NumberTheory.ratMid_facts
 #print axioms NumberTheory.halve_chain_mem
 #print axioms NumberTheory.halveS_spec
@@ -997,5 +992,5 @@ end NumberTheory
 #print axioms NumberTheory.halveStep_rel
 #print axioms NumberTheory.halve_limit_of_selector
 namespace ZFSet
-export NumberTheory (BinaryDCOn BinaryDCOnAt HalveDecider HalveSelector HasHalveLimit app_halveA app_halveB app_halveMove binaryDCOn_of_dc binaryDCOnAt_of_binaryDCOn domain_halveMove halveA halveA_mem_ratSeqs halveB halveB_mem_ratSeqs halveChain_isNested halveChain_mono halveChain_width_le halveInv halveIter halveIter_mem halveLeft halveLeft_mem_prod halveMove halveR halveR_step halveRight halveRight_mem_prod halveS halveS_lt halveS_payload halveS_snd_le_one halveS_spec halveStep halveStep_mem halveStep_rel halve_binary halve_chain_mem halve_limit halve_limit_of_selector halve_total isFunction_halveMove mem_halveMove nest_mem_Icc_of_ends ratMid_facts realLLe_add_of_close)
+export NumberTheory (BinaryDCOn BinaryDCOnAt HalveDecider HalveSelector HasHalveLimit app_halveA app_halveB app_halveMove binaryDCOn_of_dc binaryDCOnAt_of_binaryDCOn domain_halveMove halveA halveA_mem_ratSeqs halveB halveB_mem_ratSeqs halveChain_isNested halveChain_mono halveChain_width_le halveInv halveIter halveIter_mem halveLeft halveLeft_mem_prod halveMove halveR halveR_step halveRight halveRight_mem_prod halveS halveS_lt halveS_payload halveS_snd_le_one halveS_spec halveStep halveStep_mem halveStep_rel halve_binary halve_chain_mem halve_limit halve_limit_of_selector halve_total isFunction_halveMove mem_halveMove nest_mem_Icc_of_ends ratMid_facts)
 end ZFSet

@@ -344,6 +344,69 @@ theorem prime_divides_mul {p a b : Nat} (hp : IsPrime p) (h : Divides p (a * b))
     rw [Nat.mul_sub]
     omega
 
+/-! ## The irrationality of a prime's square root, at the Nat level
+
+`SqrtTwo.lean` proves `p² = 2q² → q = 0` by descent, with a parity step that
+expands `(2r+1)²`. Nothing in that descent is about `2` beyond `2 ≤ 2`: the step
+only needs the prime divides `a` when it divides `a²`, which is Euclid's lemma
+with both factors the same. Stated that way the argument runs for every prime,
+which is the generality `Nat.Prime.irrational_sqrt` has. -/
+
+/-- `(n·c)² = n²·c²`, the shape the descent rewrites through. This is
+`SqrtTwo.lean`'s `four_sq` with the `2` released: the same five rewrites, none
+of them about `2`. -/
+private theorem nat_sq_mul_sq (n c : Nat) : (n * c) * (n * c) = n * n * (c * c) := by
+  rw [Nat.mul_assoc, ← Nat.mul_assoc c n c, Nat.mul_comm c n, Nat.mul_assoc,
+    ← Nat.mul_assoc]
+
+/-- A prime divides a square only by dividing its root. Euclid's lemma with
+both factors the same. -/
+theorem prime_divides_sq {n a : Nat} (hn : IsPrime n) (h : Divides n (a * a)) :
+    Divides n a :=
+  (prime_divides_mul hn h).elim id id
+
+#print axioms prime_divides_sq
+
+/-- The irrationality of `√n` for every prime `n`, with no reals in the
+statement: `a² = n·b²` forces `b = 0`.
+
+The descent is the one `sq_two_irrational` runs. Where `2 ∣ a²` gave `2 ∣ a` by
+an expansion of `(2r+1)²`, `prime_divides_sq` gives `n ∣ a` for any prime, and
+the only other use of the modulus is `2 ≤ n`, which every prime satisfies. -/
+theorem prime_sq_irrational {n : Nat} (hn : IsPrime n) :
+    ∀ a b : Nat, a * a = n * (b * b) → b = 0 := by
+  intro a
+  induction a using Nat.strongRecOn with
+  | _ a ih =>
+    intro b hab
+    rcases Nat.eq_zero_or_pos b with rfl | hb
+    · rfl
+    · exfalso
+      have hn2 : 2 ≤ n := hn.left
+      have hbb : 0 < b * b := Nat.mul_pos hb hb
+      -- `n` divides `a²`, hence `a`; write `a = n·c`
+      obtain ⟨c, hc⟩ : Divides n a := prime_divides_sq hn ⟨b * b, hab⟩
+      -- and then `b² = n·c²`, the same equation one step down
+      have hbc : b * b = n * (c * c) := by
+        have h1 : n * n * (c * c) = n * (b * b) := by
+          rw [← nat_sq_mul_sq, ← hc]; exact hab
+        have h2 : n * (n * (c * c)) = n * (b * b) := by
+          rw [← Nat.mul_assoc]; exact h1
+        exact (Nat.eq_of_mul_eq_mul_left (by omega) h2).symm
+      -- the descent step: `b < a`, because `n ≥ 2` makes `a²` exceed `b²`
+      have hba : b < a := by
+        rcases Nat.lt_or_ge b a with h | h
+        · exact h
+        · exfalso
+          have h2 : a * a ≤ b * b := Nat.mul_le_mul h h
+          have h3 : 2 * (b * b) ≤ n * (b * b) := Nat.mul_le_mul_right _ hn2
+          omega
+      have hc0 : c = 0 := ih b hba c hbc
+      rw [hc0, Nat.zero_mul, Nat.mul_zero] at hbc
+      omega
+
+#print axioms prime_sq_irrational
+
 /-! ## Factorization
 
 Lists are core's; the product is not, so it is defined here. Existence is
@@ -875,13 +938,43 @@ theorem dvd_or_not (a x : Eis) (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
 #print axioms dvd_iff_norm_dvd_coords
 #print axioms dvd_or_not
 #print axioms add_comm
+#print axioms int_sq_nonneg
+#print axioms int_sq_eq_zero
+#print axioms sq_sub_expand
+#print axioms norm_split
+#print axioms mul_one
+#print axioms one_mul
+#print axioms mul_ofInt
+#print axioms ext_of_coords
 end Eis
 
 #print axioms NumberTheory.divides_or_not_nat
 
 
+#print axioms mul_shuffle
+#print axioms nat_sq_mul_sq
+
+#print axioms divides_refl
+#print axioms divides_trans
+#print axioms divides_of_mod_eq_zero
+#print axioms mod_eq_zero_of_divides
+#print axioms divides_le
+#print axioms eq_one_of_divides_one
+#print axioms minFacAux_divides
+#print axioms minFac_divides
+#print axioms minFacAux_ge
+#print axioms minFac_ge
+#print axioms minFacAux_least
+#print axioms minFac_least
+#print axioms gcd_eq_one_of_prime_not_divides
+#print axioms choose_zero
+#print axioms choose_succ_succ
+#print axioms choose_gt
+#print axioms choose_self
+#print axioms choose_one
+#print axioms succ_mul_choose
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_dvd_choose prodList succ_mul_choose)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_divides_sq prime_dvd_choose prime_sq_irrational prodList succ_mul_choose)
 end ZFSet

@@ -91,6 +91,12 @@ theorem app_clsMap {r G a : ZFSet.{u}} (ha : a ∈ G) :
 #print axioms cls_eq_cls_iff
 #print axioms mem_quotientSet_iff
 #print axioms app_clsMap
+#print axioms mem_cls_iff
+#print axioms cls_subset
+#print axioms mem_cls_self
+#print axioms cls_empty
+#print axioms quotientSet_empty
+#print axioms cls_mem_quotientSet
 end SetTheory
 
 namespace ZFSet

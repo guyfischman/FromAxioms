@@ -172,3 +172,21 @@ theorem and_or_distrib {a b c : Prop} :
 #print axioms not_and_not_of_not_or
 #print axioms absurd
 #print axioms not_not_not
+
+#print axioms And.left
+#print axioms And.right
+#print axioms And.symm
+#print axioms Or.elim
+#print axioms Or.symm
+#print axioms Iff.mp
+#print axioms Iff.mpr
+#print axioms Iff.refl
+#print axioms Iff.symm
+#print axioms Iff.trans
+#print axioms mp
+#print axioms contrapose
+#print axioms not_not_intro
+#print axioms not_and_self
+#print axioms not_or_of_not_and_not
+#print axioms curry
+#print axioms uncurry

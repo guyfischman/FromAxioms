@@ -281,6 +281,16 @@ anything: `And` and `Or` are associative and commutative constructively. -/
 def PSet (α : Type u) : Type u := α → Prop
 
 #print axioms Algebra.PSet
+#print axioms mem_singleton_iff
+#print axioms mem_singleton_self
+#print axioms singleton_injective
+#print axioms mem_inter_iff
+#print axioms mem_sdiff_iff
+#print axioms sdiff_self
+#print axioms sdiff_empty
+#print axioms sdiff_subset
+#print axioms sUnion_singleton
+#print axioms sUnion_empty
 end Algebra
 #print axioms Algebra.empty_inter
 #print axioms Algebra.empty_sdiff

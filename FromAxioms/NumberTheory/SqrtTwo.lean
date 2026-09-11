@@ -28,7 +28,7 @@ irrationality is needed: the middle point could a priori equal `2·4ⁿ`, and
 `sq_two_irrational` is what rules that out.
 -/
 
-import FromAxioms.SetTheory.ZFSet
+import FromAxioms.NumberTheory.Prime
 
 universe u
 
@@ -42,44 +42,18 @@ private theorem four_sq (m : Nat) : (2 * m) * (2 * m) = 4 * (m * m) := by
   rw [Nat.mul_assoc, ← Nat.mul_assoc m 2 m, Nat.mul_comm m 2, Nat.mul_assoc,
     ← Nat.mul_assoc]
 
-private theorem odd_sq (r : Nat) : (2 * r + 1) * (2 * r + 1) = 4 * (r * r) + 4 * r + 1 := by
-  rw [Nat.add_mul, Nat.mul_add, four_sq]
-  omega
+/-- The irrationality of √2, as the prime case at `2`.
 
-private theorem even_of_sq_even {p : Nat} (h : p * p % 2 = 0) : p % 2 = 0 := by
-  rcases (by omega : p % 2 = 0 ∨ p % 2 = 1) with h0 | h1
-  · exact h0
-  · exfalso
-    obtain ⟨r, rfl⟩ : ∃ r, p = 2 * r + 1 := ⟨p / 2, by omega⟩
-    rw [odd_sq] at h
-    omega
+`prime_sq_irrational` runs the descent for an arbitrary prime modulus, and the
+only thing this row adds is `isPrime_two`. The descent WAS written out here once,
+with a private `odd_sq` and `even_of_sq_even` supplying `2 ∣ p² → 2 ∣ p` by
+expanding `(2r+1)²`; the general lemma gets that step from `prime_divides_sq` and
+needs no expansion, so the specialised proof and both helpers came out together.
 
-/-- The irrationality of √2, by descent: a solution forces a smaller
-one. -/
-theorem sq_two_irrational : ∀ p q : Nat, p * p = 2 * (q * q) → q = 0 := by
-  intro p
-  induction p using Nat.strongRecOn with
-  | _ p ih =>
-    intro q hpq
-    rcases Nat.eq_zero_or_pos q with rfl | hq
-    · rfl
-    · exfalso
-      -- `p` is even, so `p = 2r` and `q² = 2r²`
-      have hpe : p % 2 = 0 := even_of_sq_even (by omega)
-      have hp : p = 2 * (p / 2) := by omega
-      have hr : q * q = 2 * ((p / 2) * (p / 2)) := by
-        have h4 : (2 * (p / 2)) * (2 * (p / 2)) = 2 * (q * q) := by rw [← hp]; exact hpq
-        rw [four_sq] at h4
-        omega
-      -- and `q < p`, so the induction hypothesis applies to the smaller pair
-      have hqp : q < p := by
-        rcases Nat.lt_or_ge q p with h | h
-        · exact h
-        · exfalso
-          have h2 : p * p ≤ q * q := Nat.mul_le_mul h h
-          have h3 : 0 < q * q := Nat.mul_pos hq hq
-          omega
-      exact absurd (ih q hqp (p / 2) hr) (by omega)
+The two case of `prime_sq_irrational`, whose type quantifies over `n` under
+`IsPrime n` and so is a different statement from this one. -/
+theorem sq_two_irrational : ∀ p q : Nat, p * p = 2 * (q * q) → q = 0 :=
+  prime_sq_irrational isPrime_two
 
 /-! ## The bisection -/
 
@@ -95,6 +69,8 @@ theorem succ_le_pow2 : ∀ n : Nat, n + 1 ≤ pow2 n
     omega
 
 #print axioms sq_two_irrational
+#print axioms four_sq
+#print axioms succ_le_pow2
 end NumberTheory
 
 namespace ZFSet

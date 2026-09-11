@@ -115,6 +115,7 @@ def realMulNonneg (x y : ZFSet.{u}) : ZFSet.{u} :=
 
 #print axioms Real
 #print axioms IsCut
+#print axioms mem_ratCut_iff
 end Analysis
 
 namespace ZFSet

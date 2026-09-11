@@ -223,6 +223,14 @@ theorem ofNat_subset_iff (m n : Nat) : ofNat.{u} m ⊆ ofNat.{u} n ↔ m ≤ n :
 #print axioms omega_transitive
 #print axioms ofNat_transitive
 #print axioms empty_mem_ofNat_succ
+#print axioms ofNat_zero
+#print axioms ofNat_succ
+#print axioms ofNat_mem_omega
+#print axioms mem_succ_self
+#print axioms mem_succ_iff
+#print axioms mem_of_mem_ofNat
+#print axioms mem_ofNat_iff
+#print axioms ofNat_subset_iff
 end NumberTheory
 
 namespace ZFSet

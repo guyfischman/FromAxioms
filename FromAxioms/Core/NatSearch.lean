@@ -7,19 +7,31 @@ Authors: Guy Fischman
 /-
 # Decidable search over `Nat`, bounded and unbounded.
 
-Pure arithmetic: no `ZFSet` and nothing imported. A predicate on `Nat` whose
-truth is decided by a HYPOTHESIS rather than by a principle can be searched,
-and the two halves terminate for different reasons -- the bounded search
-because the bound counts down, the unbounded one because accessibility of the
-step relation is supplied as an argument.
+Pure arithmetic: no `ZFSet` and nothing imported. A predicate on
+`Nat` whose truth is decided by a HYPOTHESIS rather than by a principle can be
+searched, and the two halves terminate for different reasons -- the bounded
+search because the bound counts down, the unbounded one because accessibility
+of the step relation is supplied as an argument.
 
-The bounded half is the pigeonhole and the search it is built from. The
-Prop-to-Bool crossing is `BoolReadout1` and `BoolReadoutOn`, stripped of every
-subject; it is the one thing here carrying a universe, since the crossing at
-an arbitrary type is what makes the `Nat` carry no content either.
+The bounded half is the pigeonhole and the search it is built from. Nothing
+about either is group-theoretic, though finite order is what wants them, so
+they sit here where a file that does not import group theory can reach them.
 
-The unbounded half is `seekFrom` and `natFind`. What it costs is an
-accessibility argument supplied by the caller.
+The Prop-to-Bool crossing is here for the same reason and arrived last: it is
+`BoolReadout1` and `BoolReadoutOn`, stripped of every subject -- not relations,
+not pairs, not sets, not Ramsey, and not ideals. Three towers instantiate it
+(Ramsey, ideals of `Z`, formal power series) and two of them cannot see
+`RamseySet.lean`, which is the subject-bound home for it. It is the one thing here carrying a
+UNIVERSE, since the crossing at an arbitrary type is what makes the `Nat` carry
+no content either; nothing else in the file needs one.
+
+The unbounded half is `seekFrom` and `natFind`, and it is here for the same
+reason one level up: a search that decides a `Bool` needs neither the reals nor
+`ZFSet`, so requiring them would put a modulus out of reach of any file below
+the analysis tower -- which is exactly what `RamseyNatRel.lean` needs. What it
+costs is an accessibility argument supplied by the caller, and `Search.lean`
+re-exports this file so consumers reaching `seekFrom` through the rationals are
+unaffected.
 -/
 
 namespace Core
@@ -217,6 +229,7 @@ theorem mod_ne_zero_of_between {p m : Nat}
 
 #print axioms mod_ne_zero_of_between
 
+#print axioms forall_lt_succ
 end Core
 
 #print axioms Core.exists_lt_or_not

@@ -92,6 +92,7 @@ theorem hmono (hA : ∀ φ, HAxiom φ → A φ) {T : List Formula} {φ ψ χ : F
 #print axioms hmono
 
 #print axioms HAxiom
+#print axioms HDerives.scheme
 end Geometry
 
 namespace ZFSet

@@ -73,6 +73,8 @@ theorem image_congr {F : PSet.{u} → PSet.{u}}
   · rintro ⟨z, hzy, hw⟩
     exact ⟨z, (mem_congr_right h z).mpr hzy, hw⟩
 
+
+#print axioms image_congr
 end PSet
 
 namespace SetTheory
@@ -137,6 +139,8 @@ theorem replacement {F : ZFSet.{u} → ZFSet.{u}} (d : Definable F) (x : ZFSet.{
 #print axioms mem_imageOf_iff      -- expect: propext, Quot.sound
 #print axioms replacement          -- expect: propext, Quot.sound
 
+
+#print axioms Definable.congr
 end SetTheory
 
 namespace ZFSet

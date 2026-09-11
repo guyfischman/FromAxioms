@@ -144,6 +144,10 @@ def QCtx : List Formula :=
 
 #print axioms arithInterp
 #print axioms evalT_numeral
+#print axioms evalT_tZero
+#print axioms evalT_tSucc
+#print axioms evalT_tAdd
+#print axioms evalT_tMul
 end Metamath
 
 namespace ZFSet

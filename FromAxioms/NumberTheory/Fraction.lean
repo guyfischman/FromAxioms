@@ -1239,6 +1239,14 @@ choice is the type-theorist's instinct and the expensive one. -/
 noncomputable def fracPre (R mul zero one x : ZFSet.{u}) : ZFSet.{u} :=
   theOnly (fun a => x = fracOf R mul zero a one) R
 
+#print axioms fracAdd_maps
+#print axioms fracMul_maps
+
+#print axioms isCancellative_of_disjunctive
+#print axioms mem_nonzeroIn_iff
+#print axioms nonzeroIn_subset
+#print axioms mem_fracPairs_iff
+#print axioms fracOf_subset
 end NumberTheory
 
 

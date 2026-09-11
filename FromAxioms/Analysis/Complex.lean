@@ -126,6 +126,13 @@ theorem ringNeg_realL {a : ZFSet.{u}} (ha : a ∈ RealL.{u}) :
 
 #print axioms Complex
 #print axioms isRing_realL
+#print axioms realLAdd_maps
+#print axioms realLMul_maps
+#print axioms range_graphOn_realL
+
+#print axioms opAt_realLAddOp
+#print axioms opAt_realLMulOp
+#print axioms ringNeg_realL
 end Analysis
 
 namespace ZFSet

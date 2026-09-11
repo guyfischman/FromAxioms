@@ -333,4 +333,21 @@ theorem sep_congr {p : PSet.{u} → Prop}
 #print axioms mem_sep_iff        -- SEPARATION
 #print axioms succ_mem_omega     -- INFINITY
 
+
+#print axioms idx_mk
+#print axioms fam_mk
+#print axioms equiv_iff
+#print axioms Equiv.refl
+#print axioms Equiv.euc
+#print axioms Equiv.symm
+#print axioms Equiv.trans
+#print axioms mem_congr_right
+#print axioms mem_congr_left
+#print axioms not_mem_empty
+#print axioms mem_insert_iff
+#print axioms insert_congr
+#print axioms empty_mem_omega
+#print axioms sUnion_congr
+#print axioms powerset_congr
+#print axioms sep_congr
 end PSet

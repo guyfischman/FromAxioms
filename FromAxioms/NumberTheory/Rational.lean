@@ -2868,6 +2868,14 @@ theorem invWidth_ofNat (n : Nat) : invWidth (ofNat.{u} n) = ratNat.{u} 1 (n + 1)
 theorem ratOne_add_ratOne : ratAdd ratOne.{u} ratOne.{u} = ratNat.{u} 2 1 := by
   rw [← ratNat_one_one, ratNat_add_same_denom (by omega)]
 
+/-! ### The room between consecutive widths
+
+A construction that must fit a slack INSIDE a modulus radius cannot use a cell
+whose width equals that radius --- `W + slack > W` for every positive slack. The
+repair is to bound the cell by the NEXT finer width and spend the slack in the
+gap, which is positive because `invWidth` is strictly decreasing.
+-/
+
 /-- `a ≤ a + b` when `b` is non-negative: `ratAdd_le_add` at `a ≤ a` and
 `0 ≤ b`, with the `a + 0` normalised away. -/
 theorem ratLe_self_add {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
@@ -2939,6 +2947,93 @@ theorem ratMul_le_mul_of_le {a b c d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b �
   exact ratLe_trans (ratMul_mem_Rat ha hc) (ratMul_mem_Rat hb hc)
     (ratMul_mem_Rat hb hd) h1 h2
 
+#print axioms ratLe_wd
+
+#print axioms mem_ratPairs_iff
+#print axioms mem_ratRel_iff
+#print axioms ratOf_mem_Rat
+#print axioms ratOf_subset
+#print axioms mem_ratOf_iff
+#print axioms ratOf_add_congr
+#print axioms ratOf_neg_congr
+#print axioms ratNeg_ratOf
+#print axioms ratAdd_mem_Rat
+#print axioms ratNeg_mem_Rat
+#print axioms ratAdd_comm
+#print axioms ratOf_mul_congr
+#print axioms ratMul_mem_Rat
+#print axioms ratMul_comm
+#print axioms ratOf_cancel
+#print axioms ratZero_mem_Rat
+#print axioms ratAdd_zero
+#print axioms ratOne_mem_Rat
+#print axioms ratMul_one
+#print axioms ratAdd_mul
+#print axioms ratInv_ratOf
+#print axioms num_ne_zero
+#print axioms ratInv_mem_Rat
+#print axioms ratLe_refl
+#print axioms ratLt_ratOf
+#print axioms ratLt_irrefl
+#print axioms ratNe_zero_of_pos
+#print axioms ratNe_zero_of_neg
+#print axioms ratLt_trans
+#print axioms ratMul_zero
+#print axioms ratZero_mul
+#print axioms ratOne_mul
+#print axioms ratMul_left_cancel
+#print axioms ratMul_lt_mul_right
+#print axioms ratZero_le_mul
+#print axioms ratZero_add
+#print axioms ratAdd_left_cancel
+#print axioms ratAdd_sub_cancel
+#print axioms ratAdd_lt_add_left_iff
+#print axioms ratAdd_lt_add
+#print axioms ratNeg_zero
+#print axioms ratNeg_injective
+#print axioms ratNeg_le_neg_iff
+#print axioms ratNeg_lt_neg_iff
+#print axioms ratAdd_le_add_right_iff
+#print axioms ratLt_of_lt_of_le
+#print axioms ratAdd_lt_add_right_iff
+#print axioms ratLt_of_le_of_lt
+#print axioms ratMul_pos
+#print axioms ratNeg_add
+#print axioms ratMul_neg
+#print axioms ratNeg_ratNeg
+#print axioms ratMul_le_mul_right_of_nonpos
+#print axioms exists_lt_two
+#print axioms exists_gt_two
+#print axioms exists_between_two
+#print axioms exists_between_two'
+#print axioms ratOf_intZero
+#print axioms ratOf_add_same_denom
+#print axioms ratOf_one_le
+#print axioms rat_archimedean
+#print axioms ratOf_intOfNat_succ
+#print axioms ratOf_one_pos
+#print axioms ratZero_lt_one
+#print axioms intPositive_num
+#print axioms rat_eq_or_ne
+#print axioms sub_add_cancel
+#print axioms sub_le_iff_le_add
+#print axioms neg_le_sub_iff_le_add
+#print axioms sub_lt_iff_lt_add
+#print axioms diff_bounds
+#print axioms diff_self_bounds
+#print axioms exists_mul_lt
+#print axioms exists_min_pair
+#print axioms exists_max_pair
+#print axioms ratInv_ratInv
+#print axioms ratNat_mem_Rat
+#print axioms ratNat_lt_iff
+#print axioms ratNat_width
+#print axioms ratZero_eq_ratNat
+#print axioms intOf_ofNat_eq_intOfNat
+#print axioms ratPow_succ
+#print axioms ratNatMul_mem
+#print axioms ratLe_self_add
+#print axioms ratMul_le_mul_of_le
 end NumberTheory
 
 #print axioms NumberTheory.ratLe_of_lt

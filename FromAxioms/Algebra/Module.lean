@@ -20,7 +20,10 @@ span of `d` independent vectors a copy of `R^d`.
 
 import FromAxioms.Algebra.PolyRing
 
-universe u
+universe u v
+-- `v` IS FOR INDEX TYPES, WHICH ARE NOT IN THE ZFSet UNIVERSE.
+-- `ZFSet.{u} : Type (u+1)`, so a list lemma stated at `Type u` compiles and
+-- no caller here can ever instantiate it.
 
 open Core NumberTheory SetTheory
 namespace Algebra
@@ -1431,9 +1434,25 @@ theorem isModule_of_subring {S R add mul zero one : ZFSet.{u}} (hR : IsRing R ad
     rw [hL hS.mem_one hx]
     exact ringOne_mul hR hx
 
-/-! ## Audit -/
-
 #print axioms zero_smul
+
+/-! ### The same three laws over a LEAN TYPE
+
+`zero_smul` and `smul_vzero` above are the `ZFSet` forms and each carries an
+`IsModule` --- a structure with a carrier, membership obligations and a scalar
+ring. WHAT THE PROOFS USE IS ONE DISTRIBUTIVITY AND THE ADDITIVE GROUP'S
+LAWS, so stated over a Lean type with those as function arguments the
+structure has nothing left to do.
+
+WHY THEY ARE OWED. `Comparator.ModuleQuotient.solution` and
+`Comparator.VectorSpace.solution` reach an arbitrary Lean type through
+`TypeTransferU.encodeU`, whose `embU` is Mostowski's collapse indexed by
+`WellOrderingRel` --- well-ordering an arbitrary type, which IS the axiom of
+choice. Both are on the eleven-pair list the corrected `surcharge` check reports
+as paying choice that neither the tower nor mathlib's own proof needs. These
+three statements are what let those pairs drop it. Roadmap rung 19.
+-/
+
 #print axioms lincomb_add
 #print axioms exists_cons_of_length
 #print axioms lincomb_zipWith_add
@@ -1960,7 +1979,6 @@ theorem getD_mem_of_mem {l : List ZFSet.{u}} {X d : ZFSet.{u}}
     exact hl _ (List.getElem_mem _)
 
 #print axioms getD_mem_of_mem
-
 
 /-- `getD` on a list mapped over `below`.
 
@@ -2613,6 +2631,49 @@ theorem dim_unique_of_detN {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 -- `N`: the coefficient ideal has stopped growing, so the coefficients still
 -- span, and the polynomials witnessing them need only be shifted to have the
 -- right bound.
+#print axioms card_succ_le_of_outside
+
+#print axioms smulAt_mem
+#print axioms vaddAt_mem
+#print axioms vadd_shuffle_pair
+#print axioms vadd_right_cancel
+#print axioms lincomb_nil_left
+#print axioms lincomb_nil_right
+#print axioms lincomb_cons
+#print axioms lincomb_mem
+#print axioms mem_spanSet_iff
+#print axioms spanSet_subset
+#print axioms zipWith_sub_mem
+#print axioms lincomb_zipWith_sub
+#print axioms tupleToList_length
+#print axioms tupleToList_getElem
+#print axioms tupleToList_mem
+#print axioms tupleToList_inj
+#print axioms exists_tuple_of_list
+#print axioms lincomb_zeros
+#print axioms lincomb_append_zeros
+#print axioms lincomb_take
+#print axioms padTo_length
+#print axioms padTo_mem
+#print axioms lincomb_padTo
+#print axioms smul_vzero
+#print axioms ginv_vzero
+#print axioms lincomb_smul
+#print axioms lincomb_ginv
+#print axioms isIndep_nil
+#print axioms two_le_card_of_isField
+#print axioms spanSet_eq_or_exists_outside
+#print axioms neg_one_smul
+#print axioms lincombP_mem
+#print axioms lincomb_eq_lincombP
+#print axioms perm_zip_exists
+#print axioms lincomb_mem_submodule
+#print axioms lincomb_append
+#print axioms subset_spanSet
+#print axioms exists_span_pairs
+#print axioms all_zero_or_exists_ne
+#print axioms lincomb_map_split
+#print axioms isModule_of_subring
 end Algebra
 
 

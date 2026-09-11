@@ -398,6 +398,12 @@ theorem cyclotomicShift_dvd_int {p : Nat} (hp : IsPrime p) {j : Nat}
 
 #print axioms cyclotomicShift_dvd_int
 
+#print axioms ratAdd_maps
+#print axioms ratMul_maps
+#print axioms intMul_maps
+#print axioms opAt_ratAddOp
+#print axioms opAt_ratMulOp
+#print axioms opAt_intMulOp
 end Algebra
 
 namespace ZFSet

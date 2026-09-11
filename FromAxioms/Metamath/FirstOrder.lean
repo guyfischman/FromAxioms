@@ -325,6 +325,11 @@ def FreeBelow : Nat → Formula → Prop
   | d, .all φ => FreeBelow (d + 1) φ
   | d, .ex φ => FreeBelow (d + 1) φ
 
+#print axioms cons_sub
+#print axioms mem_map_shift
+#print axioms mem_map_shift_of_mem
+#print axioms map_shift_sub
+#print axioms weaken
 end Metamath
 
 #print axioms Metamath.evalF

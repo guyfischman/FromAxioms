@@ -752,6 +752,30 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 #print axioms app_graphOn
 #print axioms app_mem_of_isSurjection
 
+#print axioms mem_sUnion_sUnion_of_opair_mem
+#print axioms mem_range_iff
+#print axioms domain_empty
+#print axioms range_empty
+#print axioms isFunction_empty
+#print axioms isFunction_graphOn
+#print axioms sep_range_eq_singleton
+#print axioms opair_app_mem
+#print axioms app_mem_range
+#print axioms mem_extendAt_iff
+#print axioms opair_mem_extendAt
+#print axioms subset_extendAt
+#print axioms mem_recSet_iff
+#print axioms mem_recFun_iff
+#print axioms mem_graphOn_iff
+#print axioms graphOn_subset
+#print axioms app_idOn
+#print axioms mem_imageIn_iff
+#print axioms imageIn_subset
+#print axioms natFun_ofNat
+#print axioms natFun_mem
+#print axioms app_natSeq
+#print axioms isInjection_inj
+#print axioms isSurjection_onto
 end SetTheory
 
 namespace ZFSet

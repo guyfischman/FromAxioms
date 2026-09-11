@@ -149,12 +149,49 @@ theorem withinOf_diam {p q z y : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (h
     rw [realLOf_add hq hnp, ← realLOf_neg hp]
     exact h
 
+/-! ## Tagged partitions
+
+`tag_ge` and `tag_le` are the load-bearing fields. The per-cell error from
+subtracting two estimates at the tag is `eps * (|u - t| + |v - t|)`, which is
+`eps * (v - u)` EXACTLY when the tag lies in its cell, and is bounded below by
+a constant when it does not. An integral quantifies over shrinking widths, so a
+tag that is merely NEAR its cell gives a sum that diverges. -/
+
+/-- A tagged partition of `[c, d]` by rational cut points, each cell carrying a
+tag INSIDE it. `pt` and `tag` are total functions; only the first `len` cells
+are used, and the fields are stated for every index so that constructing one
+needs no bounds bookkeeping. -/
+structure TaggedPartition (c d : ZFSet.{u}) : Type (u + 1) where
+  len : Nat
+  pt : Nat → ZFSet.{u}
+  tag : Nat → ZFSet.{u}
+  pt_mem : ∀ i, pt i ∈ NumberTheory.Rat.{u}
+  tag_mem : ∀ i, tag i ∈ NumberTheory.Rat.{u}
+  pt_zero : pt 0 = c
+  pt_len : pt len = d
+  mono : ∀ i, ratLe (pt i) (pt (i + 1))
+  tag_ge : ∀ i, ratLe (pt i) (tag i)
+  tag_le : ∀ i, ratLe (tag i) (pt (i + 1))
+
 #print axioms withinOf_mono
 #print axioms exists_rat_bound
 #print axioms realLOf_mem_realLIcc
 #print axioms withinOf_diam
+/-! ### Can the walk's endpoints be made to STRADDLE -/
+
+/-- From `Close A B e`: `A ≤ B + e`. `[propext, Quot.sound]`. -/
+theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
+    (hB : B ∈ RealL.{u}) (he : e ∈ RealL.{u}) (h : Close A B e) :
+    realLLe A (realLAdd B e) := by
+  have hstep := realLLe_add_right (realLAdd_mem hA (realLNeg_mem hB)) he hB
+    h.right
+  rw [realLSub_add_cancel hA hB] at hstep
+  rwa [realLAdd_comm he hB] at hstep
+
+#print axioms le_add_radius_of_close
+
 end Analysis
 
 namespace ZFSet
-export Analysis (UniformlyContinuousOn VanishReadout exists_rat_bound realLOf_mem_realLIcc withinOf_diam withinOf_mono)
+export Analysis (TaggedPartition UniformlyContinuousOn VanishReadout exists_rat_bound realLOf_mem_realLIcc withinOf_diam withinOf_mono)
 end ZFSet

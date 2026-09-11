@@ -138,6 +138,11 @@ theorem rank_congr : ∀ {x y : PSet.{u}}, Equiv x y → Equiv (rank x) (rank y)
       obtain ⟨a, ha⟩ := ((equiv_iff _ _).mp h).right b
       exact ⟨a, hw.trans (insert_congr (rank_congr ha) (rank_congr ha)).symm⟩
 
+#print axioms ordMul_congr
+#print axioms PSet.mem_ordMul_iff
+#print axioms ordPow_congr
+#print axioms PSet.mem_ordPow_iff
+#print axioms rank_congr
 end PSet
 
 open NumberTheory
@@ -242,6 +247,10 @@ def tower : Nat → ZFSet.{u}
 #print axioms PSet.ordAdd_congr
 #print axioms mem_ordAdd_iff
 #print axioms ordPow_empty
+#print axioms SetTheory.mem_ordMul_iff
+#print axioms ordAdd_empty
+#print axioms ordMul_empty
+#print axioms SetTheory.mem_ordPow_iff
 end SetTheory
 
 namespace ZFSet

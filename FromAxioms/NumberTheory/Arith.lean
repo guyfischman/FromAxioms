@@ -96,6 +96,10 @@ theorem mul_congr : ∀ (y y' : PSet.{u}) {x x' : PSet.{u}},
       exact ⟨b, (mem_congr_right
         (add_congr _ _ (mul_congr (B b) (B' b') hx hb) hx) w).mpr hw⟩
 
+
+#print axioms add_congr
+#print axioms PSet.mem_mul_iff
+#print axioms mul_congr
 end PSet
 
 open Algebra SetTheory
@@ -280,6 +284,14 @@ the ring forms do not --- it has no negation at all. -/
 #print axioms empty_mul
 #print axioms mul_one
 #print axioms one_mul
+#print axioms NumberTheory.mem_mul_iff
+#print axioms mul_empty
+#print axioms add_mem_omega
+#print axioms empty_add
+#print axioms add_comm
+#print axioms mul_mem_omega
+#print axioms mul_succ
+#print axioms mul_comm
 end NumberTheory
 
 namespace ZFSet

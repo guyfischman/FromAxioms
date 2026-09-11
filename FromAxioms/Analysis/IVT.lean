@@ -22,7 +22,6 @@ two order facts. (`realLAbs` now exists case-free in `Deriv.lean`, as
 -/
 
 import FromAxioms.Analysis.Ternary
-import FromAxioms.NumberTheory.Prime
 import FromAxioms.NumberTheory.SqrtTwo
 import FromAxioms.Topology.Metric
 import FromAxioms.Topology.Topology
@@ -55,7 +54,6 @@ theorem right_mem_realLIcc {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (
       (fun hle => ((realLOf_lt_realLOf hq hp).mp hlt).right
         (ratLe_antisymm hq hp hle h)),
     realLLe_refl (realLOf_mem hq)⟩
-
 
 /-- A function on `[p,q]` together with a modulus of uniform continuity: at
 scale `n`, inputs within `1/(modulus n + 1)` have values within `1/(n+1)`. -/
@@ -170,6 +168,10 @@ theorem ratNat_succ_le_pow2 (N : Nat) :
     have := succ_le_pow2 N
     omega)
 
+#print axioms mem_realLIcc_iff
+#print axioms ratNat_two_one
+#print axioms ratNat_self
+#print axioms ratNat_succ_le_pow2
 end Analysis
 
 #print axioms Analysis.left_mem_realLIcc

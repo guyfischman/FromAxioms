@@ -277,6 +277,21 @@ theorem mem_pairRel_iff {X a b c d : ZFSet.{u}}
 #print axioms mem_pairRel_iff
 
 
+
+#print axioms pair_self
+#print axioms pair_comm
+#print axioms pair_eq_singleton_iff
+#print axioms pair_eq_pair_iff
+#print axioms mem_opair_iff
+#print axioms opair_mem_powerset
+#print axioms mem_map_of_maps
+#print axioms mem_map_of_forall_mem
+#print axioms mem_prod_left
+#print axioms mem_prod_right
+#print axioms prod_empty
+#print axioms empty_prod
+#print axioms fst_mem_sUnion
+#print axioms snd_mem_sUnion
 end SetTheory
 
 namespace ZFSet

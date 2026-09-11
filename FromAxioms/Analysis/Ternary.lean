@@ -191,6 +191,20 @@ theorem isNested_ternary {c : Nat → Nat} (hc : ∀ n, c n ≤ 1) :
 
 #print axioms isNested_ternary
 #print axioms tnum_lt_pow3
+#print axioms mul3
+
+#print axioms pow3_pos
+#print axioms succ_le_pow3
+#print axioms tlow_mem_Rat
+#print axioms thigh_mem_Rat
+#print axioms tlow_step
+#print axioms thigh_step
+#print axioms tlow_mono
+#print axioms thigh_anti
+#print axioms tlow_lt_thigh
+#print axioms ternary_width
+#print axioms app_tlowSeq
+#print axioms app_thighSeq
 end Analysis
 
 namespace ZFSet

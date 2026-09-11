@@ -20,11 +20,27 @@ The forward direction is `n/a`, not `open`: a readout is `Type`-level data,
 and no `Prop`-level principle constructs data. A readout
 hypothesis is therefore strictly sharper than its principle, so
 the consumers keep the readout form.
+
+THAT LAST CLAIM IS FALSE FOR A READOUT WHOSE BIT IS A `ZFSet`, and
+`Analysis.SignReadout` is one. `condP P A B` is a total `ZFSet` term for ANY
+`Prop` `P` -- separation does not ask whether `P` is decided -- so a readout
+carrying a set-valued bit is not on the far side of the wall at all. What its
+fields cost is three `Prop` obligations, and a `Prop`-level decision discharges
+them: `Constructive.signReadout_of_decidableRealLLe` builds the whole structure
+from `WEM`.
+
+SO THE `n/a` IS A FACT ABOUT THE BIT'S SORT AND NOT ABOUT READOUTS. Where the
+bit is a `Bool` or a `Nat`-valued modulus the wall is real and countable choice
+is the price -- `Analysis.nonempty_uniformOn_of_countableNatChoice` pays
+exactly that, and its conclusion is `Nonempty` for exactly this reason. Both
+halves appear in `exactIVT01_of_wem_of_countableNatChoice` below, so it takes
+two principles rather than one.
 -/
 
-import FromAxioms.Analysis.Complete
+import FromAxioms.Analysis.Complex
 import FromAxioms.Analysis.Deriv
 import FromAxioms.Analysis.Weier
+import FromAxioms.Constructive.ContentLocated
 import FromAxioms.NumberTheory.Halving
 
 set_option autoImplicit false
@@ -32,6 +48,11 @@ set_option autoImplicit false
 universe u
 
 open Analysis Constructive NumberTheory SetTheory
+
+namespace Analysis
+
+end Analysis
+
 namespace Metamath
 
 /-- Exact IVT on the unit interval: every uniformly continuous function
@@ -211,7 +232,7 @@ theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
     have hGclose := hm (invWidth (ofNat.{u} m)) c (realLOf a) hiQ
       (invWidth_pos (ofNat_mem_omega.{u} m)) (ratLe_refl hiQ)
       hcIcc haIcc hclose
-    have hshift := realLLe_add_of_close (hGm _ hcIcc) (hGm _ haIcc)
+    have hshift := le_add_radius_of_close (hGm _ hcIcc) (hGm _ haIcc)
       (realLOf_mem hnQ) hGclose
     refine realLLe_trans (hGm _ hcIcc)
       (realLAdd_mem (hGm _ haIcc) (realLOf_mem hnQ))
@@ -240,12 +261,41 @@ theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
     have hGclose := hm (invWidth (ofNat.{u} m)) (realLOf b) c hiQ
       (invWidth_pos (ofNat_mem_omega.{u} m)) (ratLe_refl hiQ)
       hbIcc hcIcc hclose
-    have hGble := realLLe_add_of_close (hGm _ hbIcc) (hGm _ hcIcc)
+    have hGble := le_add_radius_of_close (hGm _ hbIcc) (hGm _ hcIcc)
       (realLOf_mem hnQ) hGclose
     rw [← realLOf_neg hnQ]
     exact realLLe_neg_of_le_add (hGm _ hcIcc) (realLOf_mem hnQ)
       (realLLe_trans realLZero_mem (hGm _ hbIcc)
         (realLAdd_mem (hGm _ hcIcc) (realLOf_mem hnQ)) hpay.right hGble)
+
+/-! ### AND THE CEILING COMES DOWN AGAIN, TO ONE NODE IN THE ROW'S OWN VOCABULARY
+
+IT IS BOUNDED ON BOTH SIDES BY NODES THIS ROW ALREADY NAMES, which is what
+makes it worth a name rather than an inline binder:
+
+    Constructive.SignDisjunction  ≤  NonnegDecision  ≤  Constructive.WEM
+                                     NonnegDecision  ≤  DecidableRealLLt
+                                     NonnegDecision  ≤  Constructive.ZeroOrApart
+                                     NonnegDecision  ≤  Constructive.EqOrApart
+
+AND THE GAP TO THE FLOOR IS NOW ONE DOUBLE NEGATION, WRITTEN OUT. Unfolding
+`realLLe`, whose definition is a NEGATION, the two ends of the bracket read
+
+    SignDisjunction    ¬ (0 < z)  ∨  ¬ (z < 0)
+    NonnegDecision     ¬ (z < 0)  ∨  ¬ ¬ (z < 0)
+
+so what the row still owes is exactly whether the landmark can STABILISE its own
+sign disjunction. That is a sharper question than *is some chain principle
+reversible*, and it is asked in one vocabulary rather than in two.
+
+WHY THE MIDPOINT IS CLAMPED, AND IT IS NOT DECORATION. `HalveDecider.decided`
+is quantified over ALL rational pairs, with only `a, b ∈ Rat` in hand --- no
+`0 ≤ a` and no `b ≤ 1`. `WEM` did not care, taking any `Prop`; a principle
+restricted to `z ∈ RealL` does, because `G` is only known to take real values on
+`[0,1]`. So `goLeft` tests `G` at `max 0 (min m 1)`, which lies in `[0,1]` for
+every rational `m` and EQUALS `m` at every stage the recursion actually reaches
+(`ratMid_facts` supplies the two bounds there). `ratMin` and `ratMax` decide a
+comparison of RATIONALS, which is free. -/
 
 /-- The chain principle AT ONE CARRIER, plus the sign disjunction for the
 step. The halving machine's payload is the pair of endpoint signs; the sign
@@ -306,6 +356,8 @@ theorem attainment_of_signDisjunction_binaryDCOn_le (hsd : SignDisjunction.{u})
       (fun _ hp => ((mem_sep_iff _ _ _).mp hp).left))
     hGm hGuc hG0 hG1
 
+/-! ### The same bound with the CHAIN removed -/
+
 /-- The sign disjunction with dependent choice recovers the exact IVT --
 the strict hypotheses weaken into the non-strict core. -/
 theorem attainment_of_signDisjunction_binaryDCOn (hsd : SignDisjunction.{u})
@@ -333,6 +385,7 @@ theorem exactIVT_of_llpo_binaryDC_binaryDCOn (hllpo : LLPO) (hbdc : BinaryDC)
 #print axioms Metamath.attainment_of_signDisjunction_binaryDCOnAt_le
 #print axioms Metamath.straddleSignP
 end Metamath
+#print axioms Metamath.ExactIVT01
 namespace ZFSet
 export Metamath (ExactIVT01 attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le exactIVT_of_llpo_binaryDC_binaryDCOn signDisjunction_of_llpo_binaryDC straddleSignP)
 end ZFSet

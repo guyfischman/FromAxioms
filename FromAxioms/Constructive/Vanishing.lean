@@ -360,6 +360,23 @@ def DCOmega : Prop :=
     ∃ g, IsFunction g ∧ domain g = omega.{u} ∧ app g empty.{u} = a₀ ∧
       ∀ n, n ∈ omega.{u} → opair (app g n) (app g (succ n)) ∈ R
 
+/-! ### BIKN's level recursion, on positions
+
+Berger-Ishihara-Kihara-Nemoto, Theorem 12, `WKL_c => IVT` (page 14): from
+`a_n, b_n` at depth `n` the next level's bounds are
+
+    a_{n+1} := the greatest child in S-, else a_n * 0
+    b_{n+1} := one before the least child of S+ past a_{n+1}, else b_n * 1
+
+where `S-`, `S0`, `S+` classify each child by the sign of `f` at its left
+endpoint with a margin. Nothing in the recursion touches a real: it consumes a
+CLASS FUNCTION `cls : Nat → Nat` on positions (`0`, `1`, `2` for `S-`, `S0`,
+`S+`; `signClass` below produces it from a locator) and two bounded searches.
+So it is stated over an arbitrary `cls`, proved once, and instantiated
+afterwards; the four facts `Analysis.IntervalTree` wants of the bounds and the
+two facts the sign invariant wants of the classes are the lemmas here.
+-/
+
 /-- The ONE-cell readout at DEPTH ONE decides which side of `1` a real lies on.
 
 Why the two-cell form is a necessity and not a convenience. At depth one the
@@ -554,6 +571,10 @@ theorem ternary_dichotomy
 
 #print axioms Constructive.boundedDichotomy
 #print axioms Constructive.ternary_dichotomy
+#print axioms mem_acState_iff
+#print axioms le_of_sub_le_zero
+
+
 end Constructive
 
 #print axioms Constructive.ternaryReal_mem

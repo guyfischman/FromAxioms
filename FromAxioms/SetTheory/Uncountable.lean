@@ -51,6 +51,9 @@ the right third and certifies that the real is below it. -/
 def Locates (L U : Nat → ZFSet.{u}) (c : Nat → Nat) : Prop :=
   ∀ n, (c n = 0 ∧ leftEnd c n ∈ L n) ∨ (c n = 1 ∧ rightEnd c n ∈ U n)
 
+#print axioms SetTheory.leftEnd
+#print axioms SetTheory.rightEnd
+#print axioms SetTheory.Locates
 /-! ## What the decisions are worth
 
 The locator is a dependent binary choice: the disjunction at stage `n` is
@@ -252,6 +255,7 @@ def LocatorDC : Prop :=
 The diagonal is constructive. Every declaration here takes the digits resolving
 each stage as a hypothesis and stays at `[propext, Quot.sound]`. -/
 
+#print axioms BinaryDC
 #print axioms dyadicOf
 #print axioms dyadicOf_mem_Rat
 #print axioms dyadicOf_nonneg
@@ -505,10 +509,10 @@ point sits within `(b/(b-1)) * b^-k` of its own node, so the slack is
 which is zero at `b = 2` and positive for `b > 2`. Base three is the smallest
 with any slack, so Julian and Richman chose it.
 
-WHAT THE SLACK IS AND IS NOT FOR. It does NOT mean base two fails to separate:
-`dyadicOf_distinct_separated`, thirty lines above, separates finite strings in
-base two with the positive gap `(1/2)^k * (1/2)^m`. Both bases separate finite
-strings, and an earlier version of this note wrongly said otherwise.
+WHAT THE SLACK IS AND IS NOT FOR. IT DOES NOT MEAN BASE TWO FAILS TO
+SEPARATE, which is the natural misreading: `dyadicOf_distinct_separated`,
+thirty lines above, separates finite strings in base two with the positive gap
+`(1/2)^k * (1/2)^m`. BOTH BASES SEPARATE FINITE STRINGS.
 
 The slack governs the LIMITS. Extending a prefix by a set bit contributes
 `(1/2)^k` in base two against a depth-`k+1` window of `(1/2)^k` --- equal, so the
@@ -1014,10 +1018,10 @@ The expensive direction of `set, uncountability`, stated over the base where it
 can be true. At every depth a real in range is bracketed by some bit string's
 value and that value plus the window.
 
-WHY BASE TWO AND NOT BASE THREE. A first attempt named this over `triadicOf` as
-an exact naming --- every real in range IS `triadicReal` of some sequence --- and
-`triadicOf_gap` refutes it: the base-three image is a Cantor set with a hole,
-so most reals are named by nothing. Base two has no hole: `dyadicOf`'s two
+WHY BASE TWO AND NOT BASE THREE. AN EXACT NAMING OVER `triadicOf` IS
+REFUTED --- every real in range IS `triadicReal` of some sequence is false by
+`triadicOf_gap`, since the base-three image is a Cantor set with a hole and most
+reals are named by nothing. Base two has no hole: `dyadicOf`'s two
 branches meet, which is exactly the property that makes its SEPARATION fail and
 its SURJECTION work. The two bases are for different halves of this row.
 

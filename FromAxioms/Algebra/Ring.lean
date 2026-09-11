@@ -689,7 +689,6 @@ theorem ringSub_self {R add mul zero one a : ZFSet.{u}} (h : IsRing R add mul ze
     (ha : a ∈ R) : ringSub R add zero a a = zero :=
   ringSub_self_nc h.toNC ha
 
-
 theorem ringSub_swap {R add mul zero one a b : ZFSet.{u}} (h : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) :
     ringNeg R add zero (ringSub R add zero a b) = ringSub R add zero b a :=
@@ -1185,6 +1184,23 @@ theorem isField_of_finite_domain {R add mul zero one : ZFSet.{u}}
 
 /-! ## The quotient by an ideal -/
 
+/-- The multiples of `a`. The generator is the FIRST factor: a member is
+`opAt mul a y`, never `opAt mul y a`.
+
+THAT ORDER DISAGREES WITH `IsIdeal.absorb`, AND THE DISAGREEMENT REPORTS AS A
+TIMEOUT RATHER THAN A MISMATCH. `absorb` concludes `opAt mul r a ∈ I` with the
+RING element first and the IDEAL element second, so showing a `ringMultiples`
+element lies in an ideal asks the elaborator to unify `opAt mul a y` against
+`opAt mul r ?x`. That does not match --- and it does not FAIL either, because the
+metavariable lets it SEARCH. Measured 2026-09-04: a five-line ideal-extensionality
+proof burned 1600000 heartbeats this way, and the missing step was one
+commutation.
+
+So supply the commutation rather than raising `maxHeartbeats`: the limit is not
+the problem, and raising it turns a fast failure into a slow one behind a green
+build. The same order gap surfaced honestly as `Application type mismatch` in
+`idealProd_idealColon_eq_of_mem` on the same day --- whether it reports as a type
+error or as a timeout turns on whether a metavariable is in the way. -/
 def ringMultiples (R mul a : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun w => ∃ y, y ∈ R ∧ w = opAt mul a y) R
 
@@ -1736,6 +1752,74 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 
 #print axioms powerList_subset_ring
 
+#print axioms mulAt_mem
+#print axioms ideal_subset
+#print axioms ideal_mem_zero
+#print axioms ideal_add
+#print axioms ideal_inverse
+#print axioms ideal_absorbs
+#print axioms mul_zero_of_isRing
+#print axioms addAt_mem
+#print axioms ringAdd_assoc
+#print axioms ringAdd_comm
+#print axioms ringAdd_zero
+#print axioms ringZero_add
+#print axioms ringAdd_left_comm
+#print axioms ringZero_mul
+#print axioms ringOne_mul
+#print axioms ringRight_distrib
+#print axioms ringNeg_mem
+#print axioms ringNeg_add
+#print axioms ringAdd_neg
+#print axioms ringSub_eq_zero_iff
+#print axioms field_mul_eq_zero
+#print axioms ringAdd_shuffle_pair
+#print axioms ringNeg_neg
+#print axioms ringNeg_addAt
+#print axioms ringMul_neg
+#print axioms ringNeg_mul
+#print axioms ringSub_def
+#print axioms ringSub_mem
+#print axioms ringSub_self
+#print axioms ringSub_swap
+#print axioms ringSub_trans
+#print axioms ringSub_mulAt
+#print axioms ringNsmul_def
+#print axioms ringPow_def
+#print axioms ringNsmul_mem
+#print axioms ringNsmul_succ
+#print axioms ringNsmul_sum
+#print axioms ringPow_mem
+#print axioms ringPow_succ
+#print axioms ringPow_add
+#print axioms ringOne_pow
+#print axioms ringNeg_eq_of_add_zero
+#print axioms ringAdd_sub_cancel
+#print axioms ringMul_shuffle_pair
+#print axioms ringPow_mul
+#print axioms ringMul_sub
+#print axioms hom_add
+#print axioms hom_mul
+#print axioms hom_add'
+#print axioms hom_mul'
+#print axioms hom_one
+#print axioms hom_app_mem
+#print axioms hom_zero
+#print axioms hom_pow
+#print axioms mem_ringMultiples_iff
+#print axioms ideal_neg_mem
+#print axioms opair_mem_idealRel_iff
+#print axioms isCongruence_idealRel_add
+#print axioms isCongruence_idealRel_mul
+#print axioms hom_neg
+#print axioms opAt_subring_add
+#print axioms opAt_subring_mul
+#print axioms isRing_subring
+#print axioms ringNeg_zero
+#print axioms ringSub_zero
+#print axioms cls_eq_zero_iff
+#print axioms mem_ringMultiples_self
+#print axioms opAt_restrictLeft_bridge
 end Algebra
 #print axioms Algebra.StableVanishing
 namespace ZFSet

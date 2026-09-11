@@ -12,8 +12,8 @@ propositional connectives, equality, and the quantifiers from inductive types
 and the dependent arrow, then declares the classical axioms explicitly.
 
 This module is a separate root from the rest of the library, and nothing
-imports both. They cannot coexist: it declares `And`, `Or`, `Eq` and friends at
-top level, and so does Lean's `Init`, so importing it from a non-`prelude`
+imports both. They cannot coexist: it declares `And`, `Or`, `Eq` and friends
+at top level, and so does Lean's `Init`, so importing it from a non-`prelude`
 module fails outright with
 
   environment already contains 'And.rec' from Init.Prelude

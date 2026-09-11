@@ -575,6 +575,30 @@ theorem length_powerList (op e a : ZFSet.{u}) (n : Nat) :
 #print axioms opAt_mem_bare
 #print axioms gpow_mem_bare
 #print axioms gpow_add_bare
+#print axioms intAdd_maps
+
+#print axioms IsGroup.toMonoid
+#print axioms opAt_intAddOp
+#print axioms isHom_op
+#print axioms app_mem_of_isHom
+#print axioms congOp_isFunction
+#print axioms opAt_congOp
+#print axioms congOp_domain
+#print axioms congOp_range
+#print axioms op_left_cancel
+#print axioms app_invMap
+#print axioms gpow_mem
+#print axioms gpow_add
+#print axioms gpow_id
+#print axioms exists_repeat_of_finite
+#print axioms isFunction_sep_prod
+#print axioms isFunction_restrictOp
+#print axioms restrictOp_domain
+#print axioms restrictOp_range
+#print axioms isFunction_restrictLeft
+#print axioms opAt_restrictLeft
+#print axioms restrictLeft_domain
+#print axioms restrictLeft_range
 end Algebra
 
 namespace ZFSet

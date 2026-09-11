@@ -586,6 +586,7 @@ theorem hom_foldF_monoid {M₁ op₁ e₁ M₂ op₂ e₂ h : ZFSet.{u}}
       = foldF op₂ e₂ (fun i => app h (F i)) n :=
   foldF_map (g := fun x => app h x) h₁ hunit hmul hF
 
+
 /-! ## Pairing off inverses
 
 In an abelian group, a subset closed under inversion and containing no element
@@ -854,6 +855,18 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 
 #print axioms IsCommMonoid.toMonoid
 #print axioms gpow_add_of_commMonoid
+#print axioms opAt_mem_monoid
+#print axioms right_id_monoid
+#print axioms isCommMonoid_of_isGroup
+#print axioms skipAt_lt
+#print axioms skipAt_ge
+#print axioms foldF_congr
+#print axioms foldF_mem
+#print axioms opAt_shuffle4
+#print axioms foldF_cons
+#print axioms ginv_mem
+#print axioms opAt_ginv
+#print axioms ginv_ginv
 end Algebra
 
 namespace ZFSet

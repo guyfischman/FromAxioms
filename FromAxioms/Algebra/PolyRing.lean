@@ -1933,10 +1933,15 @@ THE FINITE SUM OVER AN ARBITRARY CARRIER IS NEW HERE. Before it there was only
 `Core.prodUpto`, a product over `Nat`, so the theorem could not even be STATED
 over a Lean type.
 
-`NumberTheory.choose` (`Prime.lean`) IS CITED RATHER THAN COPIED:
-`Algebra.Field` imports it and this file imports `Field`, and neither `Prime`
-nor `Arith` imports anything under `Algebra/`, so there is no cycle. Lean core
-has no `choose` of its own, so the tree defines one. -/
+`NumberTheory.choose` IS CITED RATHER THAN COPIED, AND A PRIVATE `chooseT` HERE
+WOULD BE PURE DUPLICATION. The tempting reason to write one is a belief that
+`Prime.lean` is outside this file's cone. It is not: `Algebra.Field` imports it
+and this file imports `Field`, so the name is reachable. Checked in the other
+direction too --- neither `Prime` nor `Arith` imports anything under `Algebra/`,
+so there is no cycle.
+
+`Nat.choose` is a MATHLIB name and Lean core has none, so the tree defines its
+own. -/
 
 /-- The binomial theorem over a commutative ring, now a corollary of the
 semiring form. The 108 call sites across 14 files are untouched: the statement
@@ -2387,6 +2392,8 @@ theorem app_polySub {R add mul zero one f g : ZFSet.{u}} (hR : IsRing R add mul 
   rw [polySub, app_polyAdd hR hf (isPolyOver_polyNeg hR hg) hw, app_polyNeg hR hg hw]
   rfl
 
+
+
 theorem polySub_add_cancel {R add mul zero one f g : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) :
     polyAdd R add (polySub R add mul zero f g) g = f := by
@@ -2491,6 +2498,7 @@ theorem exists_polyDiv {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul
 Over a ring where vanishing is decidable, a polynomial is either zero or has a
 top non-zero coefficient, which is what division needs to be applicable and the
 only place `DecidableVanishing` is used. -/
+
 
 theorem eq_polyZero_of_coeffs {R add mul zero one p : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hp : IsPolyOver R zero p)
@@ -3644,8 +3652,8 @@ theorem polyAdd_neg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul ze
   exact ringAdd_neg hR (coeff_mem hf (ofNat_mem_omega k))
 
 /-- `monomial_add` at `k = 0`, reversed. Kept as a name because two call sites
-want this orientation, but NOT as a second proof: the fifteen-line induction
-that used to stand here proved the general lemma over again at one exponent.
+want this orientation, but NOT as a second proof: a fifteen-line induction here
+would prove the general lemma over again at one exponent.
 
 The duplicate arose because the lemma was asked for with `k := 0` already
 substituted, and an instantiated query is a DIFFERENT type from the general
@@ -3833,8 +3841,11 @@ theorem polyDvd_mul_of_irreducible {R add mul zero one f g h : ZFSet.{u}}
 
 Two facts. An associate of an irreducible is irreducible, so a unit can be
 absorbed into a factor. And an irreducible dividing a product divides one of the
-entries -- stated as a splitting of the list, because `List.erase` needs a
-decidable equality that `ZFSet` does not have. -/
+entries -- stated as a splitting of the list. THE REASON IS THE FLOOR AND NOT
+THE DECIDABILITY: the erase route does want a decidable equality, and that is
+surmountable, but its permutation and length lemmas both audit
+`[propext, Classical.choice, Quot.sound]` in core v4.24.0. A splitting needs
+neither, and carries strictly more. -/
 
 /-- A divisor of a unit is a unit. Membership of the unit is not needed: it is
 the witness inside `IsPolyUnit` that the argument uses, not the unit itself. -/
@@ -4543,6 +4554,7 @@ theorem cycShiftPoly_tupleCoeff {p k : Nat} (hk : k < p) :
 #print axioms convCoeff_comm
 #print axioms convCoeff_distrib
 #print axioms isRing_polyRing
+
 #print axioms evalAt_eq
 #print axioms evalAt_polyAdd
 #print axioms evalAt_polyMul
@@ -4623,14 +4635,17 @@ theorem gpow_polyX {R add mul zero one : ZFSet.{u}}
 #print axioms det2_cramer
 #print axioms matMinor
 #print axioms detN
-/-! ### The weight vector
+/-! ### The column direction of the vanishing theorem
 
-Both column identities take a REVERSAL hypothesis and neither exhibits a vector
-satisfying both. The two reversals live on DISJOINT ranges --- `n - 1 - p` for
-`p < n` covers `[0, n)`, and `n + m - 1 - q` for `q < m` covers `[n, n+m)` ---
-so one vector serves both, and that is checked rather than assumed: had they
-overlapped, the two lemmas could never be used together and neither statement
-would say so.
+Everything above is a piece; these four assemble them. A common factor of
+positive degree makes every column of the Sylvester matrix sum to zero against
+`sylvWeight`, and `CharPoly`'s `detN_mul_kernel_coord` carries that to the
+determinant.
+
+ALL FOUR ARE OVER AN ARBITRARY `IsRing`. The field hypothesis enters exactly
+once, at the very end, in `detN_zero_of_column_kernel_field` (CharPoly.lean),
+where a nonzero coordinate cancels. That placement is the point: the
+construction is ring-level and only the last cancellation needs inverses.
 -/
 
 /-- Deleting column `j`, then column `k` of what remains. -/
@@ -6866,6 +6881,20 @@ theorem invBelow_eq : ∀ (n : Nat) (g : Nat → Nat),
     · rw [if_pos h]
       exact hinj n i (by omega) hi h
 
+/-! ### The two inputs the capstones still lacked: the identity and the expansion
+
+`leibSum_eq_detN` is the case `B = I` of the expansion and `detN_mul` is the
+general case, so both rest on the same four rungs. Three are here ---
+`sumUptoT_single`, `matMinorT_idMatT_zero` and `detT_idMatT` for the identity,
+`matMulOnT_idMatT` for multiplying by it --- and the fourth is `expandSumT`
+below with its own two.
+
+THE SPLIT HOLDS ONCE MORE. `natDigit`, `natDigit_at_high`, `natDigit_lt`,
+`mixAssign`, `injUptoB` and `Nat.div_add_mod` are cited UNCHANGED; only the
+declarations mentioning an ENTRY needed twins, which is every one of the eight
+here and none of the six they call.
+-/
+
 /-- A sign passes through the left factor of a product. -/
 theorem ringSign_mul_left {R add mul zero one a b : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (c : Nat) :
@@ -6918,6 +6947,9 @@ theorem anyRepeat_of_injUptoB_false {f : Nat → Nat} {n : Nat}
   cases hb : anyRepeat f n with
   | false => rw [hb] at h; exact Bool.noConfusion h
   | true => rfl
+
+/-! ### The two capstones, over a Lean type
+-/
 
 /-- The Leibniz identity in the `n ^ n` encoding, as the case `B = I` of the
 expansion: the sum over ALL assignments is the determinant. -/
@@ -7546,6 +7578,15 @@ theorem detN_of_unitriangular_below {R add mul zero one : ZFSet.{u}}
 #print axioms detN_of_unitriangular
 #print axioms detN_congr
 #print axioms detN_of_unitriangular_below
+/-! ### Associates, and what survives between them
+
+Three facts the splitting-field row's reversal needs and which are not about
+splitting fields at all. Sited HERE rather than beside `polyDvd_trans` because
+`monic_associates_eq` spends `deg_le_of_polyDvd` directly above --- the file
+check would have allowed anywhere after `eq_of_monic_dvd_monic` at 10128, and
+that is 10000 lines too early.
+-/
+
 /-- Multiplying by a constant multiplies each coefficient. -/
 theorem app_polyMul_const {R add mul zero one a g : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) (hg : IsPolyOver R zero g) (i : Nat) :
@@ -8302,6 +8343,115 @@ theorem exists_dirichlet_collision {A : Nat → Nat} {b Q r : Nat}
 
 #print axioms exists_dirichlet_collision
 
+#print axioms coeff_mem
+#print axioms app_polyAdd
+#print axioms app_polyZero
+#print axioms app_polyNeg
+#print axioms isPolyOver_polyAdd
+#print axioms isPolyOver_polyZero
+#print axioms isPolyOver_polyNeg
+#print axioms poly_ext
+#print axioms opAt_polyAddOp
+#print axioms mem_polyOfSeq_iff
+#print axioms isFunction_polyOfSeq
+#print axioms app_polyOfSeq
+#print axioms isPolyOver_polyOfSeq
+#print axioms isCommMonoid_ringAdd
+#print axioms convCoeff_mem
+#print axioms app_polyMul
+#print axioms convCoeff_eq_zero
+#print axioms foldF_mul_left
+
+#print axioms foldF_mul_left_lt
+#print axioms foldF_mul_right_lt
+#print axioms foldF_mul_right
+#print axioms isCommMonoid_ringMul
+#print axioms unitCoeff_mem
+#print axioms app_polyOne
+#print axioms isPolyOver_polyOne
+#print axioms foldF_zeros
+#print axioms foldF_last
+#print axioms convCoeff_one
+#print axioms polyMul_mem
+#print axioms opAt_polyMulOp
+#print axioms poly_ext_coeff
+#print axioms foldF_single_below
+#print axioms foldF_single
+#print axioms monomialCoeff_mem
+#print axioms app_monomial
+#print axioms isPolyOver_monomial
+#print axioms convCoeff_monomial
+#print axioms monomial_add
+#print axioms monomial_mul_monomial
+#print axioms binomTerm_mem
+#print axioms binomSum_mem
+#print axioms binomSum_mul
+#print axioms binomTerm_mul_left
+#print axioms binomTerm_mul_right
+#print axioms binomShift_mem
+#print axioms binomTerm_succ
+#print axioms binomUp_mem
+#print axioms binomTerm_split
+#print axioms binomSum_succ
+#print axioms binomUp_succ
+#print axioms binomSum_recombine
+#print axioms ringNsmul_foldF
+#print axioms evalUpTo_mem
+#print axioms evalUpTo_stable
+#print axioms evalAt_mem
+#print axioms evalAt_polyOne
+#print axioms listCoeff_mem_of_zero_mem
+#print axioms listCoeff_mem
+#print axioms listCoeff_eq_zero
+#print axioms isPolyOver_polyOfList
+#print axioms decidableVanishing_of_finite
+#print axioms isPolyOver_polySub
+#print axioms app_polySub
+#print axioms polySub_add_cancel
+#print axioms eq_polyZero_of_coeffs
+#print axioms exists_lead
+#print axioms convCoeff_one_left
+#print axioms polyMul_one_left
+#print axioms polyDvd_refl
+#print axioms polyDvd_zero
+#print axioms polyDvd_add
+#print axioms polyDvd_mul
+#print axioms tupleOf_mem
+#print axioms tupleCoeff_tupleOf
+#print axioms tupleCoeff_mem
+#print axioms equinumerous_powSet
+#print axioms isIdeal_polyIdeal
+#print axioms isPolyOver_polyOfTuple
+#print axioms app_polyOfTuple
+#print axioms exists_tuple
+#print axioms convCoeff_above
+#print axioms convCoeff_top
+#print axioms polyMul_top
+#print axioms coeffs_linearPoly
+#print axioms isPolyOver_linearPoly
+#print axioms app_linearPoly
+#print axioms evalAt_linearPoly
+#print axioms polyDvd_trans
+#print axioms mem_polyIdeal_iff
+#print axioms polyUnit_of_const
+#print axioms polySub_zero_iff
+#print axioms ringNeg_polyRing
+#print axioms powSet_ext
+#print axioms polyOfTuple_injective
+#print axioms exists_tuple_cls
+#print axioms polyAdd_neg
+#print axioms monomial_zero_add
+#print axioms polyNeg_eq_ringNeg
+#print axioms monomial_zero
+#print axioms monomial_one_zero
+#print axioms evalAt_monomial
+#print axioms evalAt_polyZero
+#print axioms polyUnit_of_dvd_unit
+#print axioms polyMul_comm
+#print axioms polyMul_assoc
+#print axioms exists_top
+#print axioms natSumUpto_choose
+#print axioms intOfNat_natSumUpto
 end Algebra
 
 #print axioms Algebra.detPair

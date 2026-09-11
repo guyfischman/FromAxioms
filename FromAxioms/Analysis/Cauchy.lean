@@ -103,6 +103,7 @@ def brackets (L U d : ZFSet.{u}) : ZFSet.{u} :=
 #print axioms mem_ratSeqs_iff
 #print axioms app_mem_Rat
 #print axioms exists_upper_omega
+#print axioms natSeq_mem_ratSeqs
 end Analysis
 
 namespace ZFSet

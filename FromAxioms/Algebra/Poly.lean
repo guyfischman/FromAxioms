@@ -47,6 +47,7 @@ theorem polyEval_mem {R add mul zero one : ZFSet.{u}} (h : IsRing R add mul zero
       (mulAt_mem h hx (polyEval_mem h hx cs
         (fun d hd => hcs d (List.mem_cons_of_mem _ hd))))
 
+#print axioms polyEval_mem
 end Algebra
 
 namespace ZFSet

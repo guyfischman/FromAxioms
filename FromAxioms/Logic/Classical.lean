@@ -196,3 +196,9 @@ theorem Exists.witness_spec {α : Sort u} {p : α → Prop} (h : Exists p) :
 #print axioms Exists.witness_spec     -- expect: choice
 
 -- Still constructive, despite everything above being in scope:
+#print axioms byContradiction
+#print axioms byCases
+#print axioms contrapose'
+#print axioms not_and_or
+#print axioms imp_iff_not_or
+#print axioms eq_false

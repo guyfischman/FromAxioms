@@ -180,6 +180,10 @@ theorem shrink_of_invWidth {a b : ZFSet.{u}} (ha : a ∈ ratSeqs.{u}) (hb : b �
     (invWidth_mem_Rat hN) hεQ (hw N hN) hlt⟩
 
 #print axioms isLocated_nest
+#print axioms mem_nestLower_iff
+#print axioms mem_nestUpper_iff
+#print axioms IsNested.cross
+#print axioms shrink_of_invWidth
 end Analysis
 #print axioms Analysis.nest_ge
 #print axioms Analysis.nest_le

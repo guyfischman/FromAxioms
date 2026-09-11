@@ -190,3 +190,11 @@ theorem exists_and_of_and_exists {α : Sort u} {p q : α → Prop}
 #print axioms Subtype.exists
 #print axioms not_forall_of_exists_not
 #print axioms exists_or
+
+#print axioms forall_intro
+#print axioms forall_elim
+#print axioms Exists.imp
+#print axioms not_exists_of_forall_not
+#print axioms forall_not_of_not_exists
+#print axioms forall_and
+#print axioms exists_and_of_and_exists
