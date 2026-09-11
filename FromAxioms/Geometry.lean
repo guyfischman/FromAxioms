@@ -10,3 +10,5 @@ The Geometry area. This file is generated; it imports every module in
 -/
 import FromAxioms.Geometry.GeomSqrt
 import FromAxioms.Geometry.Hilbert
+import FromAxioms.Geometry.GeomPlane
+import FromAxioms.Geometry.GeomCongruence

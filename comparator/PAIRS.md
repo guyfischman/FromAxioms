@@ -55,6 +55,18 @@ a pair is narrower than what it matches.
 - surcharge beyond both: `[]`
 - generality: not computed here; see `formalization.yaml`
 
+## `Comparator.NormAddSq.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Classical.choice, Quot.sound]`
+- rests on 2 tower proposition(s), costing `[]`
+    - `Analysis.IsInnerFormT.mk`
+    - `Analysis.isInnerFormT_add_self`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `norm_add_sq_real`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
 ## `Comparator.PairEncoding.solution`
 
 - statement certified as Mathlib's: yes

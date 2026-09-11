@@ -133,3 +133,21 @@ pairs:
       two spellings of primality over the same `Nat`. Mathlib supplies the
       plumbing from `Real.sqrt` down to that statement and none of the
       arithmetic.
+
+  - id: norm-add-sq
+    date: -500
+    rows:
+      - "the Pythagorean theorem"
+    mathlib: norm_add_sq_real
+    mathlib_source: Mathlib/Analysis/InnerProductSpace/Basic.lean:390
+    ours: Analysis.isInnerFormT_add_self
+    status: complete
+    note: >
+      THIS ROW IS WHY THE PAIRS EXIST. It read `audited` for weeks on
+      `innerProduct_add_self`, over `IsInnerProduct`, whose every argument is a
+      `ZFSet` --- so it could not be applied to `F : Type*` at all. Writing the
+      pair is what moved it to `narrower`. The repair was a re-siting, not a
+      retreat: the proof consumes only symmetry and left-additivity, so
+      `isInnerFormT_add_self` states the expansion over arbitrary Lean types
+      with those as two plain equations, and prints NO axioms --- a lower floor
+      than the `ZFSet` form it generalises.

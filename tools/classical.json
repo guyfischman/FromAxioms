@@ -85,6 +85,17 @@
    "extra": [
     "BinaryDCOn"
    ]
+  },
+  {
+   "statement": "Algebra.NeApartZero",
+   "principle": "mp",
+   "landmark": "the principles of omniscience",
+   "reversal": "Algebra.mp_of_neApartZero",
+   "note": "a located real distinct from zero is apart from it -- the positive cone's `total` clause for RealL, and the same principle the geometry track reached independently. BRACKETED, NOT PINNED: mp_of_neApartZero gives MP and is choice-free; neApartZero_of_mp_of_locators returns it from MP PLUS HasZeroLocators. The gap is therefore INSIDE THE LOCATORS, not in countable choice -- the earlier ceiling took CountableBoolChoice and spent it only on manufacturing a locator, which is the inherited-premise shape and was caught by geometry. Whether locators give countable choice back is an independence this development declines to settle, so read `mp` as the FLOOR. Reading a firing digit back off an apartness costs nothing, and LPO's extra strength over MP buys the DECISION rather than the witness. The cut encoding's same clause needs realNonneg_or, which reverses to em, so the two encodings' orders sit at different lattice points",
+   "forward": "Algebra.neApartZero_of_mp_of_locators",
+   "extra": [
+    "HasZeroLocators"
+   ]
   }
  ],
  "_open_budget": 0,

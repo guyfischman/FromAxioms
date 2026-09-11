@@ -18,3 +18,5 @@ import FromAxioms.Analysis.Deriv
 import FromAxioms.Analysis.Complete
 import FromAxioms.Analysis.Weier
 import FromAxioms.Analysis.Complex
+import FromAxioms.Analysis.InnerProduct
+import FromAxioms.Analysis.InnerSpace

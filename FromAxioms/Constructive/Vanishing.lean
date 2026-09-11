@@ -126,9 +126,154 @@ theorem ternaryReal_lt_one_of_head_false {a : Nat → Bool} (h : a 0 = false) :
 
 #print axioms Constructive.ternaryReal_lt_one_of_head_false
 
-/-! ## From vanishing to equality
+theorem toCut_realLZero : toCut realLZero.{u} = ratCut ratZero.{u} := by
+  rw [realLZero, realLOf, toCut, fst_opair]
+
+/-! ## Vanishing from a locator
+
+`WLPO` consumes a `Nat → Bool`, and `located` supplies a disjunction, so the
+reduction that would decide an arbitrary located real cannot build its own bit.
+Supplied one, it goes through, and choice-free -- the same arrangement that makes
+the diagonal of `Uncountable.lean` constructive.
 -/
 
+private theorem neg_pos_lt_zero {w : ZFSet.{u}} (hw : w ∈ NumberTheory.Rat.{u})
+    (h : ratLt ratZero.{u} w) : ratLt (ratNeg w) ratZero.{u} := by
+  have := (ratNeg_lt_neg_iff hw ratZero_mem_Rat).mpr h
+  rwa [ratNeg_zero] at this
+
+/-- A bit at every scale: `true` witnesses that the number is outside
+`±1/(n+2)`, `false` that it is inside `±1/(n+1)`.
+
+Both directions are needed -- with only the first clause the sequence may be
+constantly `false` about a number far from zero, with only the second constantly
+`true` about zero itself. The two scales must also overlap: asking `true` and
+`false` about the same `1/(n+1)` is unsatisfiable at a number sitting exactly
+there, since neither `1/(n+1) ∈ L` nor `1/(n+1) ∈ U` holds. -/
+def IsZeroLocator (L U : ZFSet.{u}) (β : Nat → Bool) : Prop :=
+  ∀ n : Nat,
+    (β n = true →
+      invWidth (ofNat.{u} (n + 1)) ∈ L ∨ ratNeg (invWidth (ofNat.{u} (n + 1))) ∈ U) ∧
+    (β n = false → ratNeg (invWidth (ofNat.{u} n)) ∈ L ∧ invWidth (ofNat.{u} n) ∈ U)
+
+/-- A number bracketed inside every `±1/(n+1)` has the cut of zero. Forward is
+`no_greatest` -- a `q = 0` in `L` is beaten by a positive one, which no bracket
+admits -- and back is the Archimedean `exists_invWidth_lt`. -/
+theorem lower_eq_ratCut_zero_of_locator {L U : ZFSet.{u}} (h : IsLocated L U)
+    {β : Nat → Bool} (hβ : IsZeroLocator L U β) (hall : ∀ n, β n = false) :
+    L = ratCut ratZero.{u} := by
+  refine ext _ _ fun q => ⟨fun hq => ?_, fun hq => ?_⟩
+  · obtain ⟨q', hq', hqq'⟩ := h.lower_open q hq
+    have hq'Q := h.lower_subset q' hq'
+    have hbracket : ∀ n : Nat, ratLt q' (invWidth (ofNat.{u} n)) :=
+      fun n => h.ordered q' hq' _ ((hβ n).right (hall n)).right
+    have hpos : ¬ ratLt ratZero.{u} q' := by
+      intro hp
+      obtain ⟨N, hN, hlt⟩ := exists_invWidth_lt hq'Q hp
+      obtain ⟨n, rfl⟩ := (mem_omega_iff N).mp hN
+      exact ratLt_irrefl (ratLt_trans hq'Q (invWidth_mem_Rat hN) hq'Q (hbracket n) hlt)
+    refine (mem_ratCut_iff _ _).mpr ⟨h.lower_subset q hq, ?_⟩
+    rcases ratLt_trichotomy (h.lower_subset q hq) ratZero_mem_Rat with hlt | rfl | hgt
+    · exact hlt
+    · exact absurd hqq' hpos
+    · exact absurd (ratLt_trans ratZero_mem_Rat (h.lower_subset q hq) hq'Q hgt hqq') hpos
+  · obtain ⟨hqQ, hlt⟩ := (mem_ratCut_iff _ _).mp hq
+    have hnp : ratLt ratZero.{u} (ratNeg q) := by
+      have := (ratNeg_lt_neg_iff ratZero_mem_Rat hqQ).mpr hlt
+      rwa [ratNeg_zero] at this
+    obtain ⟨N, hN, hNlt⟩ := exists_invWidth_lt (ratNeg_mem_Rat hqQ) hnp
+    obtain ⟨n, rfl⟩ := (mem_omega_iff N).mp hN
+    refine h.lower_down _ ((hβ n).right (hall n)).left q hqQ ?_
+    have := (ratNeg_lt_neg_iff (ratNeg_mem_Rat hqQ) (invWidth_mem_Rat hN)).mpr hNlt
+    rwa [ratNeg_ratNeg hqQ] at this
+
+/-- A locator decides vanishing, and the bit is all it takes. -/
+theorem eq_zero_iff_of_zeroLocator {L U : ZFSet.{u}} (h : IsLocated L U)
+    {β : Nat → Bool} (hβ : IsZeroLocator L U β) :
+    (∀ n, β n = false) ↔ opair L U = realLZero.{u} := by
+  constructor
+  · intro hall
+    refine toCut_injective ((mem_RealL_iff _).mpr ⟨L, U, rfl, h⟩)
+      (realLOf_mem ratZero_mem_Rat) ?_
+    rw [toCut, fst_opair, toCut_realLZero]
+    exact lower_eq_ratCut_zero_of_locator h hβ hall
+  · intro heq n
+    have hL : L = ratCut ratZero.{u} := by
+      rw [← fst_opair L U, heq, realLZero, realLOf, fst_opair]
+    have hU : U = sep (fun p => ratLt ratZero.{u} p) NumberTheory.Rat.{u} := by
+      rw [← snd_opair L U, heq, realLZero, realLOf, snd_opair]
+    cases hn : β n with
+    | false => rfl
+    | true =>
+      have hwQ := invWidth_mem_Rat (ofNat_mem_omega.{u} (n + 1))
+      have hwp := invWidth_pos (ofNat_mem_omega.{u} (n + 1))
+      rcases (hβ n).left hn with hin | hin
+      · rw [hL] at hin
+        exact absurd (ratLt_trans ratZero_mem_Rat hwQ ratZero_mem_Rat hwp
+          ((mem_ratCut_iff _ _).mp hin).right) ratLt_irrefl
+      · rw [hU] at hin
+        exact absurd (ratLt_trans ratZero_mem_Rat (ratNeg_mem_Rat hwQ) ratZero_mem_Rat
+          ((mem_sep_iff _ _ _).mp hin).right (neg_pos_lt_zero hwQ hwp)) ratLt_irrefl
+
+/-! ## From vanishing to equality
+
+`IsZeroLocator` asks only about zero, but `RealL` is a group, so that is not the
+restriction it looks like: `x = y` exactly when `x - y` vanishes. Deciding
+vanishing therefore decides equality, and nothing further is spent.
+-/
+
+
+/-- A firing bit is already an apartness. No principle is spent here --
+the locator's `true` case hands over a scale on one side or the other, and
+that is exactly what `realLApart` asks for. Extracted so that the two ways of
+reaching a firing bit, `LPO` and `MP`, can share it. -/
+theorem apart_of_zeroLocator_fires {L U : ZFSet.{u}}
+    {β : Nat → Bool} (hβ : IsZeroLocator L U β) {n : Nat} (hn : β n = true) :
+    realLApart (opair L U) realLZero.{u} := by
+  have hwQ := invWidth_mem_Rat (ofNat_mem_omega.{u} (n + 1))
+  have hwp := invWidth_pos (ofNat_mem_omega.{u} (n + 1))
+  rcases (hβ n).left hn with hin | hin
+  · refine Or.inr ⟨invWidth (ofNat.{u} (n + 1)), ?_, ?_⟩
+    · rw [realLZero, realLOf, snd_opair]
+      exact (mem_sep_iff _ _ _).mpr ⟨hwQ, hwp⟩
+    · rw [fst_opair]
+      exact hin
+  · refine Or.inl ⟨ratNeg (invWidth (ofNat.{u} (n + 1))), ?_, ?_⟩
+    · rw [snd_opair]
+      exact hin
+    · rw [realLZero, realLOf, fst_opair]
+      exact (mem_ratCut_iff _ _).mpr ⟨ratNeg_mem_Rat hwQ, neg_pos_lt_zero hwQ hwp⟩
+
+/-- The constructive companion, and it costs `LPO` rather than `WLPO`.
+`WLPO` decides whether the locator is identically false, which yields `≠` -- a
+negation that decides nothing. Apartness is positive, so the disjunction has
+to be settled unprompted, and that is what `LPO` buys.
+
+It does not buy the witness. `apart_of_zeroLocator_fires` produces the
+scale from a firing bit at no cost, and `apart_of_mp_of_ne_zero` reaches a
+firing bit from `MP` alone once nonvanishing is given. So the gap between the
+two principles here is the decision, not the construction. -/
+theorem eq_zero_or_apart_of_lpo (hlpo : LPO) {L U : ZFSet.{u}} (h : IsLocated L U)
+    {β : Nat → Bool} (hβ : IsZeroLocator L U β) :
+    opair L U = realLZero.{u} ∨ realLApart (opair L U) realLZero.{u} := by
+  rcases hlpo β with ⟨n, hn⟩ | hall
+  · exact Or.inr (apart_of_zeroLocator_fires hβ hn)
+  · exact Or.inl ((eq_zero_iff_of_zeroLocator h hβ).mp hall)
+
+/-- Given a locator, `MP` places a real known to be nonzero -- and `LPO`
+is not needed. The gap between the two principles is not in producing the
+witness, it is in deciding whether there is one: `eq_zero_or_apart_of_lpo`
+must answer that question unprompted, and here `x ≠ 0` has already answered
+it, leaving a negation for `MP` to turn into a firing index.
+
+So the extra strength in `LPO` buys the disjunction, not the apartness.
+-/
+theorem apart_of_mp_of_ne_zero (hmp : MP) {L U : ZFSet.{u}} (h : IsLocated L U)
+    {β : Nat → Bool} (hβ : IsZeroLocator L U β)
+    (hne : opair L U ≠ realLZero.{u}) :
+    realLApart (opair L U) realLZero.{u} := by
+  obtain ⟨n, hn⟩ := hmp β (fun hall => hne ((eq_zero_iff_of_zeroLocator h hβ).mp hall))
+  exact apart_of_zeroLocator_fires hβ hn
 
 /-- Dependent choice. The value at each step is constrained by the value
 already taken, which is exactly what `BinaryDC` turned out not to require:
@@ -571,16 +716,23 @@ theorem ternary_dichotomy
 
 #print axioms Constructive.boundedDichotomy
 #print axioms Constructive.ternary_dichotomy
+#print axioms neg_pos_lt_zero
 #print axioms mem_acState_iff
 #print axioms le_of_sub_le_zero
 
 
+#print axioms toCut_realLZero
 end Constructive
 
 #print axioms Constructive.ternaryReal_mem
 #print axioms Constructive.DC
 #print axioms Constructive.ternaryReal_nonneg
 #print axioms Constructive.ternaryReal_le_one
+#print axioms Constructive.apart_of_zeroLocator_fires
+#print axioms Constructive.apart_of_mp_of_ne_zero
+#print axioms Constructive.lower_eq_ratCut_zero_of_locator
+#print axioms Constructive.eq_zero_iff_of_zeroLocator
+#print axioms Constructive.eq_zero_or_apart_of_lpo
 #print axioms Constructive.DCOn
 #print axioms Constructive.dcOn_of_dc
 #print axioms Constructive.acOmega_of_dcOn      -- the premise the proof spends
@@ -590,5 +742,5 @@ end Constructive
 #print axioms Constructive.DCOmega
 
 namespace ZFSet
-export Constructive (DC DCOmega DCOn SignDisjunction acOmega_of_dc acOmega_of_dcOn dcOn_of_dc llpo_of_signDisjunction realLZero_lt_iff_mem_lower ternaryReal ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg)
+export Constructive (DC DCOmega DCOn IsZeroLocator SignDisjunction acOmega_of_dc acOmega_of_dcOn apart_of_mp_of_ne_zero apart_of_zeroLocator_fires dcOn_of_dc eq_zero_iff_of_zeroLocator eq_zero_or_apart_of_lpo llpo_of_signDisjunction lower_eq_ratCut_zero_of_locator realLZero_lt_iff_mem_lower ternaryReal ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg toCut_realLZero)
 end ZFSet

@@ -19,3 +19,6 @@ import FromAxioms.Algebra.Conjugation
 import FromAxioms.Algebra.Module
 import FromAxioms.Algebra.PolyDomain
 import FromAxioms.Algebra.Sylow
+import FromAxioms.Algebra.LinAlg
+import FromAxioms.Algebra.Ordered
+import FromAxioms.Algebra.TowerLaw

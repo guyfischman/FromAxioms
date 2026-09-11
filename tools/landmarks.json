@@ -3,6 +3,10 @@
   "irrationality of √2",
   -540
  ],
+ "Geometry.pythagoras": [
+  "the Pythagorean theorem",
+  -500
+ ],
  "PSet.mem_sep_iff": [
   "separation, axiomatic set theory",
   1908
@@ -134,5 +138,9 @@
  "Constructive.acOmega_of_dc": [
   "dependent choice",
   1942
+ ],
+ "Analysis.innerProduct_add_right": [
+  "inner product and Hilbert space",
+  1906
  ]
 }

@@ -38,6 +38,7 @@ import Comparator.NatAddSucc.Solution
 import Comparator.DetMul.Solution
 import Comparator.PairEncoding.Solution
 import Comparator.IrrationalSqrtPrime.Solution
+import Comparator.NormAddSq.Solution
 
 open Lean
 
@@ -151,7 +152,8 @@ so the audit checks the registry's claim rather than restating it. -/
 def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.DetMul, `Matrix.det_mul),
   (`Comparator.PairEncoding, `none),
-  (`Comparator.IrrationalSqrtPrime, `Nat.Prime.irrational_sqrt)]
+  (`Comparator.IrrationalSqrtPrime, `Nat.Prime.irrational_sqrt),
+  (`Comparator.NormAddSq, `norm_add_sq_real)]
 
 /-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
 

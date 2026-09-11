@@ -6,6 +6,12 @@
  "LLPO": [
   "FromAxioms/Metamath/Calibrate.lean::signDisjunction_of_llpo_binaryDC"
  ],
+ "LPO": [
+  "FromAxioms/Constructive/Vanishing.lean::eq_zero_or_apart_of_lpo"
+ ],
+ "MP": [
+  "FromAxioms/Constructive/Vanishing.lean::apart_of_mp_of_ne_zero"
+ ],
  "SignDisjunction": [
   "FromAxioms/Constructive/Vanishing.lean::llpo_of_signDisjunction",
   "FromAxioms/Metamath/Calibrate.lean::attainment_of_signDisjunction_binaryDCOnAt_le"
