@@ -132,6 +132,15 @@ def graph():
             by[n]["module"].split(".")[-1] != "Omniscience",
             n.count("."), n))[0]
         princ[best.split(".")[-1]] = best
+    # A PRINCIPLE NOTHING DEPENDS ON IS NOT DRAWN. The lattice names more
+    # principles than any one cut uses, and each was given a root on the rail
+    # whether or not a single declaration took it as a hypothesis -- so the
+    # picture showed a cost that nothing here pays. A root is where an edge
+    # starts; without one it says nothing about this library, and a reader
+    # reasonably takes a drawn principle as one something needs.
+    users = {s: [n for n in names if full in by[n].get("refs", ()) and n != full]
+             for s, full in princ.items()}
+    princ = {s: full for s, full in princ.items() if users[s]}
     # STRENGTH ORDER, derived from the lattice's own closure rather than
     # listed by hand. A principle that derives more is stronger; ties keep the
     # alphabetical order so the layout is stable across runs. The kernel
