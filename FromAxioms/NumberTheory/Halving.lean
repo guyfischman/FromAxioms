@@ -954,6 +954,23 @@ structure HalveDecider (P : ZFSet.{u} → ZFSet.{u} → Prop) where
     ratLt a b → ratLe b ratOne.{u} → P a b → ¬ goLeft (opair a b) →
     P (ratMid a b) b
 
+/-! ### An instantiation that supplies its own decider
+
+The trade becomes a removal here. `sqrtTwoP` reads the payload on the
+doubled endpoints, so a walk confined to `[0,1]` converges on `√2/2`
+while every comparison it makes is between rationals; and a comparison
+between rationals is decided outright by `ratLt_or_not`. Nothing is
+hypothesised: `halve_limit_of_decider sqrtTwoDecider` takes no principle
+and no data, only the two facts that `[0,1]` starts the walk. -/
+
+/-- Twice a rational. -/
+def ratTwice (x : ZFSet.{u}) : ZFSet.{u} := ratMul (ratNat.{u} 2 1) x
+
+/-- The payload: the doubled interval straddles `√2`. -/
+def sqrtTwoP (a b : ZFSet.{u}) : Prop :=
+  And (ratLt (ratMul (ratTwice a) (ratTwice a)) (ratNat.{u} 2 1))
+      (ratLt (ratNat.{u} 2 1) (ratMul (ratTwice b) (ratTwice b)))
+
 #print axioms halveB_mem_ratSeqs
 #print axioms halveS_lt
 #print axioms halveS_snd_le_one
@@ -992,5 +1009,5 @@ end NumberTheory
 #print axioms NumberTheory.halveStep_rel
 #print axioms NumberTheory.halve_limit_of_selector
 namespace ZFSet
-export NumberTheory (BinaryDCOn BinaryDCOnAt HalveDecider HalveSelector HasHalveLimit app_halveA app_halveB app_halveMove binaryDCOn_of_dc binaryDCOnAt_of_binaryDCOn domain_halveMove halveA halveA_mem_ratSeqs halveB halveB_mem_ratSeqs halveChain_isNested halveChain_mono halveChain_width_le halveInv halveIter halveIter_mem halveLeft halveLeft_mem_prod halveMove halveR halveR_step halveRight halveRight_mem_prod halveS halveS_lt halveS_payload halveS_snd_le_one halveS_spec halveStep halveStep_mem halveStep_rel halve_binary halve_chain_mem halve_limit halve_limit_of_selector halve_total isFunction_halveMove mem_halveMove nest_mem_Icc_of_ends ratMid_facts)
+export NumberTheory (BinaryDCOn BinaryDCOnAt HalveDecider HalveSelector HasHalveLimit app_halveA app_halveB app_halveMove binaryDCOn_of_dc binaryDCOnAt_of_binaryDCOn domain_halveMove halveA halveA_mem_ratSeqs halveB halveB_mem_ratSeqs halveChain_isNested halveChain_mono halveChain_width_le halveInv halveIter halveIter_mem halveLeft halveLeft_mem_prod halveMove halveR halveR_step halveRight halveRight_mem_prod halveS halveS_lt halveS_payload halveS_snd_le_one halveS_spec halveStep halveStep_mem halveStep_rel halve_binary halve_chain_mem halve_limit halve_limit_of_selector halve_total isFunction_halveMove mem_halveMove nest_mem_Icc_of_ends ratMid_facts ratTwice sqrtTwoP)
 end ZFSet

@@ -142,5 +142,9 @@
  "Analysis.innerProduct_add_right": [
   "inner product and Hilbert space",
   1906
+ ],
+ "NumberTheory.sqrtTwoP": [
+  "irrationality of √2",
+  -540
  ]
 }
