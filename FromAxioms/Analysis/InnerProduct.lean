@@ -49,9 +49,8 @@ theorem dot_vec_add_left {R add mul zero one : ZFSet.{u}}
     (tupleToList_mem hx) (tupleToList_mem hx') (tupleToList_mem hy)
 
 /-- Additivity in the SECOND argument, by symmetry rather than by a second
-induction. Bilinearity is one law and a commutation, not two laws -- which is
-what `dot_comm` is for and why it was worth stating without a length
-hypothesis. -/
+induction. Bilinearity is one law and a commutation, so `dot_comm` carries the
+second half, and it is stated without a length hypothesis. -/
 theorem dot_vec_add_right {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {n : Nat} {x y y' : ZFSet.{u}}
     (hx : x ∈ powSet R n) (hy : y ∈ powSet R n) (hy' : y' ∈ powSet R n) :
@@ -74,10 +73,9 @@ against. It was not that the mathematics was missing --- `dot_vec_add_left`,
 `dot_vec_add_right` and `dot_comm` are all here and all over an arbitrary
 `IsRing`. Only the statement was.
 
-The ADDITION form deliberately, which is also the form mathlib states: it needs
-no vector subtraction, so no additive inverse is used and the ring hypothesis is
-not strengthened to reach it. Orthogonality is the dot product landing on the
-ring's zero. -/
+THE ADDITION FORM: it needs no vector subtraction, so no additive inverse is
+used and the ring hypothesis is not strengthened to reach it. Orthogonality is
+the dot product landing on the ring's zero. -/
 theorem dot_vec_add_self_of_orth {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {n : Nat} {x y : ZFSet.{u}}
     (hx : x ∈ powSet R n) (hy : y ∈ powSet R n)
