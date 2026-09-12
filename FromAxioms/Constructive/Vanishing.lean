@@ -225,7 +225,7 @@ vanishing therefore decides equality, and nothing further is spent.
 
 /-- A firing bit is already an apartness. No principle is spent here --
 the locator's `true` case hands over a scale on one side or the other, and
-that is exactly what `realLApart` asks for. Extracted so that the two ways of
+`realLApart` asks for exactly that. Extracted so that the two ways of
 reaching a firing bit, `LPO` and `MP`, can share it. -/
 theorem apart_of_zeroLocator_fires {L U : ZFSet.{u}}
     {β : Nat → Bool} (hβ : IsZeroLocator L U β) {n : Nat} (hn : β n = true) :
@@ -247,7 +247,7 @@ theorem apart_of_zeroLocator_fires {L U : ZFSet.{u}}
 /-- The constructive companion, and it costs `LPO` rather than `WLPO`.
 `WLPO` decides whether the locator is identically false, which yields `≠` -- a
 negation that decides nothing. Apartness is positive, so the disjunction has
-to be settled unprompted, and that is what `LPO` buys.
+to be settled unprompted, which `LPO` does.
 
 It does not buy the witness. `apart_of_zeroLocator_fires` produces the
 scale from a firing bit at no cost, and `apart_of_mp_of_ne_zero` reaches a
@@ -261,10 +261,10 @@ theorem eq_zero_or_apart_of_lpo (hlpo : LPO) {L U : ZFSet.{u}} (h : IsLocated L 
   · exact Or.inl ((eq_zero_iff_of_zeroLocator h hβ).mp hall)
 
 /-- Given a locator, `MP` places a real known to be nonzero -- and `LPO`
-is not needed. The gap between the two principles is not in producing the
-witness, it is in deciding whether there is one: `eq_zero_or_apart_of_lpo`
-must answer that question unprompted, and here `x ≠ 0` has already answered
-it, leaving a negation for `MP` to turn into a firing index.
+is not needed. The gap between the two principles lies in deciding whether
+there is a witness: `eq_zero_or_apart_of_lpo` must answer that question
+unprompted, and here `x ≠ 0` has already answered it, leaving a negation for
+`MP` to turn into a firing index.
 
 So the extra strength in `LPO` buys the disjunction, not the apartness.
 -/

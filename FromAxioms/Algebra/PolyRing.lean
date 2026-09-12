@@ -4679,8 +4679,8 @@ determinant.
 
 ALL FOUR ARE OVER AN ARBITRARY `IsRing`. The field hypothesis enters exactly
 once, at the very end, in `detN_zero_of_column_kernel_field` (CharPoly.lean),
-where a nonzero coordinate cancels. That placement is the point: the
-construction is ring-level and only the last cancellation needs inverses.
+where a nonzero coordinate cancels, so the construction is ring-level and only
+the last cancellation needs inverses.
 -/
 
 /-- Deleting column `j`, then column `k` of what remains. -/
@@ -6708,8 +6708,8 @@ theorem skipAtT_lt {α : Type u} {j : Nat} {F : Nat → α} {i : Nat} (h : i < j
 theorem skipAtT_ge {α : Type u} {j : Nat} {F : Nat → α} {i : Nat} (h : j ≤ i) :
     skipAtT j F i = F (i + 1) := if_neg (by omega)
 
-/-- THE PEEL IS `origAt` ON THE INDEX, which is what lets every `Nat` lemma
-below be reused verbatim. -/
+/-- THE PEEL IS `origAt` ON THE INDEX, so every `Nat` lemma below is reused
+verbatim. -/
 theorem skipAtT_origAt {α : Type u} (j : Nat) (F : Nat → α) (i : Nat) :
     skipAtT j F i = F (origAt j i) := by
   rcases Nat.lt_or_ge i j with h | h
@@ -7830,11 +7830,11 @@ theorem detT_rows_eq {α : Type u} (add mul : α → α → α) (neg : α → α
 /-- AN ASSIGNMENT THAT REPEATS A VALUE REPEATS A ROW, so its determinant
 vanishes --- over a Lean type.
 
-This is what lets the Leibniz expansion sum over ALL `n ^ n` assignments rather
-than only the injective ones: the non-injective terms cost nothing and need not
-be carved out of the index set. It is one of the two hypotheses
-`leibSumT_eq_detT` will need, and the shorter one --- `detT_permOn` is a strong
-recursion on the inversion count and is the next real rung. -/
+So the Leibniz expansion can sum over ALL `n ^ n` assignments rather than only
+the injective ones: the non-injective terms cost nothing and need not be carved
+out of the index set. It is one of the two hypotheses `leibSumT_eq_detT` will
+need, and the shorter one --- `detT_permOn` is a strong recursion on the
+inversion count and is the next real rung. -/
 theorem detT_repeatOn {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -8371,14 +8371,6 @@ theorem invBelow_eq : ∀ (n : Nat) (g : Nat → Nat),
         (fun a b ha hb => hinj a b (by omega) (by omega)) i (by omega)
     · rw [if_pos h]
       exact hinj n i (by omega) hi h
-
-/-! ### `detT_permOn` is sited HERE, not with the rest of alternation
-
-Its two suppliers, `invBelow` and `invBelow_eq`, are declared just above, and
-they are `Nat`-valued --- part of the indexing half this whole stack cites
-unchanged. So the one declaration of alternation whose position is decided by
-the COMBINATORICS rather than by the entries sits beside the combinatorics.
--/
 
 /-- AND FROM INJECTIVITY DIRECTLY, which is the form the Leibniz expansion
 hands over: `invBelow` supplies the inverse. -/
@@ -9485,11 +9477,8 @@ theorem detN_of_unitriangular_below {R add mul zero one : ZFSet.{u}}
 #print axioms detN_of_unitriangular_below
 /-! ### Associates, and what survives between them
 
-Three facts the splitting-field row's reversal needs and which are not about
-splitting fields at all. Sited HERE rather than beside `polyDvd_trans` because
-`monic_associates_eq` spends `deg_le_of_polyDvd` directly above --- the file
-check would have allowed anywhere after `eq_of_monic_dvd_monic` at 10128, and
-that is 10000 lines too early.
+Three facts the splitting field's reversal needs and which are not about
+splitting fields at all.
 -/
 
 /-- Multiplying by a constant multiplies each coefficient. -/

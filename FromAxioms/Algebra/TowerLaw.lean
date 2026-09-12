@@ -33,8 +33,7 @@ namespace Algebra
 A basis of length `d` writes every vector as a tuple in `R^d`. The list of
 coefficients comes from `spanSet = V`, which is an EXISTENCE statement, so
 nothing here can be a definition -- the same constraint `exists_round` records,
-and the reason the transport ahead is a theorem about a disjunction rather than
-a map. -/
+so the transport ahead is a theorem about a disjunction rather than a map. -/
 
 theorem tupleToList_vecAdd (add : ZFSet.{u}) {d : Nat} (x y : ZFSet.{u}) :
     tupleToList (vecAdd add d x y) d

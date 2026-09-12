@@ -270,8 +270,8 @@ theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
 
 /-! ### AND THE CEILING COMES DOWN AGAIN, TO ONE NODE IN THE ROW'S OWN VOCABULARY
 
-IT IS BOUNDED ON BOTH SIDES BY NODES THIS ROW ALREADY NAMES, which is what
-makes it worth a name rather than an inline binder:
+IT IS BOUNDED ON BOTH SIDES BY NODES ALREADY NAMED HERE, so it is worth a
+name rather than an inline binder:
 
     Constructive.SignDisjunction  ≤  NonnegDecision  ≤  Constructive.WEM
                                      NonnegDecision  ≤  DecidableRealLLt

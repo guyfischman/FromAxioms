@@ -11,13 +11,13 @@ A point is an ordered pair of located reals and the squared distance between
 two points is the sum of the squared coordinate differences. Squared, because
 the distance itself is a square root and every statement Euclid makes about
 distances -- equal, congruent, on a circle -- is an equation between squares.
-Keeping it squared is not an economy: it is what makes the equilateral triangle
-below need no root of the distance at all.
+Keeping it squared means the equilateral triangle below needs no root of the
+distance at all.
 
 The one identity everything here rests on is `two_square`, the
 Brahmagupta--Fibonacci identity `(px - qy)² + (py + qx)² = (p² + q²)(x² + y²)`.
 It is multiplicativity of the complex modulus written without complex numbers,
-and it is what turns a rotation into an algebraic manipulation.
+and it turns a rotation into an algebraic manipulation.
 
 `sqDist_apex_left` and `sqDist_apex_right` are Euclid I.1. Euclid builds the
 apex by intersecting two circles, which is a continuity principle and does not
@@ -29,8 +29,8 @@ a point and the three squared distances are still equal.
 `sqDist_meet_left` and `sqDist_meet_right` are the general circle-circle
 intersection, which is free for the same reason and needs two hypotheses that
 Euclid I.1 does not: the centres apart, because the construction divides by
-twice their squared distance, and the overlap condition, which is what makes the
-one root real.
+twice their squared distance, and the overlap condition, which makes the one
+root real.
 -/
 
 import FromAxioms.Analysis.IVT
