@@ -39,6 +39,7 @@ import Comparator.DetMul.Solution
 import Comparator.PairEncoding.Solution
 import Comparator.IrrationalSqrtPrime.Solution
 import Comparator.NormAddSq.Solution
+import Comparator.Bezout.Solution
 
 open Lean
 
@@ -153,7 +154,8 @@ def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.DetMul, `Matrix.det_mul),
   (`Comparator.PairEncoding, `none),
   (`Comparator.IrrationalSqrtPrime, `Nat.Prime.irrational_sqrt),
-  (`Comparator.NormAddSq, `norm_add_sq_real)]
+  (`Comparator.NormAddSq, `norm_add_sq_real),
+  (`Comparator.Bezout, `Nat.gcd_eq_gcd_ab)]
 
 /-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
 

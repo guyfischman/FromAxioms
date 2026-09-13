@@ -212,6 +212,37 @@ theorem bezout : ∀ x y : Nat, ∃ a b : Nat,
         rw [Nat.add_mul, ← mul_shuffle]
         omega
 
+/-- Mathlib's form. `Nat.gcd_eq_gcd_ab` writes the gcd as an INTEGER
+combination, `(gcd x y : ℤ) = x·u + y·v`. `bezout` cannot say that: `Nat` has
+no subtraction, so it carries a DISJUNCTION instead, naming which of the two
+sides the remainder falls on.
+
+Over `Int` the disjunction collapses, and that is the whole content here. Both
+branches are one equation with the sign of `v` flipped -- `(a, -b)` on the
+left, `(-b, a)` on the right. Each product is left as an atom for `omega`,
+so the two commutations are spelled out rather than rewritten. -/
+theorem bezout_int (x y : Nat) :
+    ∃ u v : Int, (Nat.gcd x y : Int) = (x : Int) * u + (y : Int) * v := by
+  obtain ⟨a, b, h | h⟩ := bezout x y
+  · refine ⟨(a : Int), -(b : Int), ?_⟩
+    have h' : (a : Int) * (x : Int)
+        = (b : Int) * (y : Int) + (Nat.gcd x y : Int) := by
+      simpa [Int.natCast_mul, Int.natCast_add] using
+        congrArg (fun n : Nat => (n : Int)) h
+    have c1 : (x : Int) * (a : Int) = (a : Int) * (x : Int) := Int.mul_comm _ _
+    have c2 : (y : Int) * (b : Int) = (b : Int) * (y : Int) := Int.mul_comm _ _
+    rw [Int.mul_neg]
+    omega
+  · refine ⟨-(b : Int), (a : Int), ?_⟩
+    have h' : (a : Int) * (y : Int)
+        = (b : Int) * (x : Int) + (Nat.gcd x y : Int) := by
+      simpa [Int.natCast_mul, Int.natCast_add] using
+        congrArg (fun n : Nat => (n : Int)) h
+    have c1 : (x : Int) * (b : Int) = (b : Int) * (x : Int) := Int.mul_comm _ _
+    have c2 : (y : Int) * (a : Int) = (a : Int) * (y : Int) := Int.mul_comm _ _
+    rw [Int.mul_neg]
+    omega
+
 /-- Euclid's lemma for coprime numbers. Bézout again: if `u` and `v` share
 no factor and `u` divides `v·t`, the `v` can be dropped. -/
 theorem coprime_divides {u v t : Nat} (h : Nat.gcd u v = 1) (hd : Divides u (v * t)) :
@@ -590,6 +621,7 @@ theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
 
 #print axioms isPrime_minFac
 #print axioms bezout
+#print axioms bezout_int
 #print axioms prime_divides_mul
 #print axioms coprime_divides
 #print axioms prime_dvd_choose
@@ -640,6 +672,7 @@ def zero : Eis := ⟨0, 0⟩
 def one : Eis := ⟨1, 0⟩
 def omega : Eis := ⟨0, 1⟩
 
+def add (x y : Eis) : Eis := ⟨x.re + y.re, x.im + y.im⟩
 def mul (x y : Eis) : Eis :=
   ⟨x.re * y.re - x.im * y.im,
    x.re * y.im + x.im * y.re - x.im * y.im⟩
@@ -712,6 +745,9 @@ finiteness is what makes the case analysis terminate. -/
 theorem mul_comm (x y : Eis) : mul x y = mul y x := by
   simp [mul, Int.mul_comm]; omega
 
+theorem mul_one (x : Eis) : mul x one = x := by
+  simp [mul, one]
+
 theorem mul_assoc (x y z : Eis) : mul (mul x y) z = mul x (mul y z) := by
   simp [mul, Int.sub_mul, Int.mul_sub, Int.mul_add, Int.add_mul,
     Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
@@ -747,6 +783,98 @@ theorem eq_zero_of_mul_eq_zero {x y : Eis} (h : mul x y = zero)
   · exact absurd (norm_eq_zero h') hx
   · exact norm_eq_zero h'
 
+/-! ### Division with remainder
+
+`ℤ[ω]` is Euclidean for the norm. To divide `x` by `y` one takes `x * conj y`,
+divides both coordinates by `N(y)` with ROUNDING, and the error is a lattice
+point at distance under `1` from an arbitrary point of the plane -- the
+hexagonal covering radius. In coordinates that is the bound below, proved as an
+inequality on integers rather than as geometry.
+
+`roundDiv n d` is `n / d` rounded to the nearest integer, written as a floor of
+`n + d/2` so that no case split on signs is needed. -/
+
+def roundDiv (n d : Int) : Int := (2 * n + d) / (2 * d)
+
+/-- The rounding error is at most half the divisor, in the form the norm bound
+needs: `2 * |n - d * roundDiv n d| <= d`. -/
+theorem roundDiv_error {n d : Int} (hd : 0 < d) :
+    2 * (n - d * roundDiv n d) <= d ∧ -(d) <= 2 * (n - d * roundDiv n d) := by
+  have h2d : 0 < 2 * d := by omega
+  have hq := Int.mul_ediv_add_emod (2 * n + d) (2 * d)
+  have hr0 : 0 <= (2 * n + d) % (2 * d) := Int.emod_nonneg _ (by omega)
+  have hr1 : (2 * n + d) % (2 * d) < 2 * d := Int.emod_lt_of_pos _ h2d
+  have hunfold : roundDiv n d = (2 * n + d) / (2 * d) := rfl
+  have hassoc : 2 * (d * ((2 * n + d) / (2 * d)))
+      = 2 * d * ((2 * n + d) / (2 * d)) := (Int.mul_assoc 2 d _).symm
+  rw [hunfold]
+  exact ⟨by omega, by omega⟩
+
+/-- `|A| <= N` gives `A² <= N²`, by cases on the sign. -/
+private theorem sq_le_sq {A N : Int} (h1 : -N <= A) (h2 : A <= N) :
+    A * A <= N * N := by
+  rcases Int.lt_or_le A 0 with h | h
+  · have hm := Int.mul_le_mul (a := -A) (b := -A) (c := N) (d := N)
+      (by omega) (by omega) (by omega) (by omega)
+    rw [Int.neg_mul_neg] at hm
+    exact hm
+  · exact Int.mul_le_mul h2 h2 h (by omega)
+
+/-- `|A| <= N` and `|B| <= N` give `-(AB) <= N²`, by cases on the two signs. -/
+private theorem neg_mul_le {A B N : Int} (hA : -N <= A) (hA' : A <= N)
+    (hB : -N <= B) (hB' : B <= N) : -(A * B) <= N * N := by
+  rcases Int.lt_or_le A 0 with ha | ha
+  · rcases Int.lt_or_le B 0 with hb | hb
+    · have hp : 0 <= A * B := by
+        rw [← Int.neg_mul_neg]
+        exact Int.mul_nonneg (by omega) (by omega)
+      have hn : 0 <= N * N := Int.mul_nonneg (by omega) (by omega)
+      omega
+    · have hm := Int.mul_le_mul (a := -A) (b := B) (c := N) (d := N)
+        (by omega) hB' hb (by omega)
+      rw [Int.neg_mul] at hm
+      omega
+  · rcases Int.lt_or_le B 0 with hb | hb
+    · have hm := Int.mul_le_mul (a := A) (b := -B) (c := N) (d := N)
+        hA' (by omega) (by omega) (by omega)
+      rw [Int.mul_neg] at hm
+      omega
+    · have hm : 0 <= A * B := Int.mul_nonneg ha hb
+      have hn : 0 <= N * N := Int.mul_nonneg (by omega) (by omega)
+      omega
+
+/-- The covering bound. With both coordinates of the error inside half the
+divisor, the error's norm is at most three quarters of the divisor's square --
+strictly less, which is what a Euclidean algorithm needs. `3/4` rather than
+`1/2` is the hexagonal lattice showing through: the `-ab` term is what costs the
+extra quarter, and it is still under `1`. -/
+theorem norm_error_bound {e : Eis} {N : Int}
+    (h1 : -N <= 2 * e.re) (h2 : 2 * e.re <= N)
+    (h3 : -N <= 2 * e.im) (h4 : 2 * e.im <= N) :
+    4 * norm e <= 3 * (N * N) := by
+  -- `a` and `b` are BOUND here rather than instantiated, so `omega` sees three
+  -- clean atoms rather than three spellings of each numeral-scaled product.
+  have key : ∀ a b : Int, -N <= 2 * a -> 2 * a <= N -> -N <= 2 * b -> 2 * b <= N ->
+      4 * (a * a - a * b + b * b) <= 3 * (N * N) := by
+    intro a b p1 p2 p3 p4
+    have ha := sq_le_sq p1 p2
+    have hb := sq_le_sq p3 p4
+    have hc := neg_mul_le p1 p2 p3 p4
+    have hcm : a * b = b * a := Int.mul_comm a b
+    have e1 : (2 * a) * (2 * a) = 4 * (a * a) := by
+      rw [Int.mul_assoc, Int.mul_comm a (2 * a), Int.mul_assoc, Int.mul_comm a a]
+      omega
+    have e2 : (2 * a) * (2 * b) = 4 * (a * b) := by
+      rw [Int.mul_assoc, Int.mul_comm a (2 * b), Int.mul_assoc]
+      omega
+    have e3 : (2 * b) * (2 * b) = 4 * (b * b) := by
+      rw [Int.mul_assoc, Int.mul_comm b (2 * b), Int.mul_assoc, Int.mul_comm b b]
+      omega
+    omega
+  have hk := key e.re e.im h1 h2 h3 h4
+  have hn : norm e = e.re * e.re - e.re * e.im + e.im * e.im := rfl
+  omega
+
 /-! ### The Euclidean property
 
 `x = q·y + r` with `N(r) < N(y)`. The quotient rounds `x·conj y` coordinatewise
@@ -755,8 +883,74 @@ which the covering bound puts under `N(y)²`. -/
 
 def sub (x y : Eis) : Eis := ⟨x.re - y.re, x.im - y.im⟩
 
+def div (x y : Eis) : Eis :=
+  ⟨roundDiv (mul x (conj y)).re (norm y), roundDiv (mul x (conj y)).im (norm y)⟩
+
+def mod (x y : Eis) : Eis := sub x (mul (div x y) y)
+
+theorem sub_mul (a b c : Eis) : mul (sub a b) c = sub (mul a c) (mul b c) := by
+  simp [sub, mul, Int.sub_mul]
+  exact ⟨by omega, by omega⟩
+
 theorem mul_ofInt (a : Eis) (n : Int) : mul a (ofInt n) = ⟨a.re * n, a.im * n⟩ := by
   simp [mul, ofInt]
+
+theorem mod_add_div (x y : Eis) : sub x (mod x y) = mul (div x y) y := by
+  simp [mod, sub, Int.sub_sub_self]
+
+/-- The remainder times the conjugate of the divisor is exactly the pair of
+rounding errors -- which is the identity the whole Euclidean argument turns on:
+it converts a statement about `ℤ[ω]` into two statements about `Int` division. -/
+theorem mod_mul_conj (x y : Eis) :
+    mul (mod x y) (conj y)
+      = ⟨(mul x (conj y)).re - (div x y).re * norm y,
+         (mul x (conj y)).im - (div x y).im * norm y⟩ := by
+  rw [mod, sub_mul, mul_assoc, mul_conj, mul_ofInt]
+  simp [sub]
+
+/-- `ℤ[ω]` is Euclidean for the norm. The remainder of `x` by a non-zero `y`
+has strictly smaller norm.
+
+The chain: `r · conj y` has the two rounding errors as its coordinates, so the
+covering bound gives `4 N(r · conj y) <= 3 N(y)²`; and `N` is multiplicative
+with `N(conj y) = N(y)`, so `4 N(r) N(y) <= 3 N(y)²`. With `N(y) > 0` that
+forces `N(r) < N(y)`. -/
+theorem norm_mod_lt {x y : Eis} (hy : 0 < norm y) : norm (mod x y) < norm y := by
+  have hcoord := mod_mul_conj x y
+  have hre := roundDiv_error (n := (mul x (conj y)).re) (d := norm y) hy
+  have him := roundDiv_error (n := (mul x (conj y)).im) (d := norm y) hy
+  have hre_eq : (mul (mod x y) (conj y)).re
+      = (mul x (conj y)).re - norm y * roundDiv (mul x (conj y)).re (norm y) := by
+    rw [hcoord]
+    show (mul x (conj y)).re - (div x y).re * norm y
+       = (mul x (conj y)).re - norm y * roundDiv (mul x (conj y)).re (norm y)
+    rw [Int.mul_comm (norm y)]
+    rfl
+  have him_eq : (mul (mod x y) (conj y)).im
+      = (mul x (conj y)).im - norm y * roundDiv (mul x (conj y)).im (norm y) := by
+    rw [hcoord]
+    show (mul x (conj y)).im - (div x y).im * norm y
+       = (mul x (conj y)).im - norm y * roundDiv (mul x (conj y)).im (norm y)
+    rw [Int.mul_comm (norm y)]
+    rfl
+  have hb1l : -(norm y) <= 2 * (mul (mod x y) (conj y)).re := by
+    rw [hre_eq]; omega
+  have hb1r : 2 * (mul (mod x y) (conj y)).re <= norm y := by
+    rw [hre_eq]; omega
+  have hb2l : -(norm y) <= 2 * (mul (mod x y) (conj y)).im := by
+    rw [him_eq]; omega
+  have hb2r : 2 * (mul (mod x y) (conj y)).im <= norm y := by
+    rw [him_eq]; omega
+  have hbound := norm_error_bound hb1l hb1r hb2l hb2r
+  rw [norm_mul, norm_conj] at hbound
+  have hnr := norm_nonneg (mod x y)
+  rcases Int.lt_or_le (norm (mod x y)) (norm y) with h | h
+  · exact h
+  · exfalso
+    have hstep : norm y * norm y <= norm (mod x y) * norm y :=
+      Int.mul_le_mul h (by omega) (by omega) (by omega)
+    have hpos : 0 < norm y * norm y := Int.mul_pos hy hy
+    omega
 
 /-! ### `λ = 1 - ω`, the ramified prime above 3
 
@@ -766,9 +960,88 @@ terms, so this element and not `3` is the right object. -/
 
 def lam : Eis := ⟨1, -1⟩
 
-/-! ### Divisibility, and the descent the Euclidean property licenses -/
+/-! ### Divisibility, and the descent the Euclidean property licenses
+
+`norm_mod_lt` makes the norm a strictly decreasing measure, so any argument that
+replaces a pair by `(y, x mod y)` terminates. That is stated here as a strong
+induction on the norm rather than as a greatest-common-divisor function,
+because what the
+factorisation argument needs is the INDUCTION and not the algorithm. -/
 
 def Dvd (d x : Eis) : Prop := ∃ k : Eis, x = mul d k
+
+theorem dvd_refl (x : Eis) : Dvd x x := ⟨one, (mul_one x).symm⟩
+
+theorem dvd_zero (x : Eis) : Dvd x zero := ⟨zero, by simp [mul, zero]⟩
+
+theorem dvd_trans {a b c : Eis} (h1 : Dvd a b) (h2 : Dvd b c) : Dvd a c := by
+  obtain ⟨k, rfl⟩ := h1
+  obtain ⟨l, rfl⟩ := h2
+  exact ⟨mul k l, mul_assoc a k l⟩
+
+/-- Descent on the norm. Anything true of `y` and `x mod y` whenever it is
+true one step down is true everywhere -- which is the Euclidean algorithm's
+termination, with no algorithm written. -/
+theorem norm_induction {P : Eis -> Prop}
+    (step : ∀ y : Eis, (∀ z : Eis, norm z < norm y -> P z) -> P y) :
+    ∀ y : Eis, P y := by
+  have key : ∀ n : Nat, ∀ y : Eis, norm y < (n : Int) -> P y := by
+    intro n
+    induction n with
+    | zero => intro y hy; exact absurd hy (by have := norm_nonneg y; omega)
+    | succ m ih =>
+      intro y hy
+      refine step y (fun z hz => ih z ?_)
+      have := norm_nonneg z
+      omega
+  intro y
+  obtain ⟨n, hn⟩ : ∃ n : Nat, norm y < (n : Int) := by
+    refine ⟨(norm y).toNat + 1, ?_⟩
+    have h := norm_nonneg y
+    omega
+  exact key n y hn
+
+theorem dvd_add {d a b : Eis} (h1 : Dvd d a) (h2 : Dvd d b) : Dvd d (add a b) := by
+  obtain ⟨k, rfl⟩ := h1
+  obtain ⟨l, rfl⟩ := h2
+  refine ⟨add k l, ?_⟩
+  simp [add, mul, Int.mul_add, Int.add_mul]
+  exact ⟨by omega, by omega⟩
+
+theorem add_sub_cancel (x r : Eis) : add (sub x r) r = x := by
+  simp [add, sub]
+
+/-- Bezout for `ℤ[ω]`. A common divisor of `x` and `y` that is itself a
+combination of them -- proved by the norm descent, so the algorithm is never
+written down and no choice is made.
+
+The recursion is the Euclidean one: `gcd(x, y)` becomes `gcd(y, x mod y)`, and
+`norm_mod_lt` is what makes that terminate. -/
+theorem bezout : ∀ y x : Eis, ∃ g : Eis,
+    Dvd g x ∧ Dvd g y ∧ ∃ s t : Eis, g = add (mul x s) (mul y t) := by
+  refine norm_induction (P := fun y => ∀ x : Eis, ∃ g : Eis,
+    Dvd g x ∧ Dvd g y ∧ ∃ s t : Eis, g = add (mul x s) (mul y t)) ?_
+  intro y ih x
+  rcases Int.lt_or_le 0 (norm y) with hy | hy
+  · obtain ⟨g, hgy, hgm, s, t, hst⟩ := ih (mod x y) (norm_mod_lt (x := x) hy) y
+    refine ⟨g, ?_, hgy, ?_⟩
+    · have hx : x = add (mul (div x y) y) (mod x y) := by
+        rw [← mod_add_div x y, add_sub_cancel]
+      rw [hx]
+      exact dvd_add (dvd_trans hgy ⟨div x y, mul_comm (div x y) y⟩) hgm
+    · refine ⟨t, sub s (mul (div x y) t), ?_⟩
+      rw [hst, mod]
+      simp [add, sub, mul, Int.mul_sub, Int.sub_mul, Int.mul_add, Int.add_mul,
+        Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
+      exact ⟨by omega, by omega⟩
+  · have hz : y = zero := by
+      have h0 : norm y = 0 := by have := norm_nonneg y; omega
+      obtain ⟨h1, h2⟩ := norm_eq_zero h0
+      obtain ⟨a, b⟩ := y
+      simp at h1 h2
+      simp [zero, h1, h2]
+    exact ⟨x, dvd_refl x, by rw [hz]; exact dvd_zero x,
+      one, zero, by rw [mul_one]; simp [add, mul, zero]⟩
 
 /-! ### Cubes modulo `λ⁴`
 
@@ -813,7 +1086,17 @@ theorem lam_dvd_iff {x : Eis} :
 #print axioms mul_conj
 #print axioms norm_conj
 #print axioms eq_zero_of_mul_eq_zero
+#print axioms roundDiv_error
+#print axioms norm_error_bound
+#print axioms sub_mul
+#print axioms mod_mul_conj
+#print axioms norm_mod_lt
+#print axioms dvd_trans
+#print axioms norm_induction
+#print axioms dvd_add
 #print axioms lam_dvd_iff
+#print axioms mod_add_div
+
 /-! ### The cube congruence
 
 `x³ ≡ ±1 (mod λ⁴)` for `x` prime to `λ`. The coordinates make it finite:
@@ -942,9 +1225,14 @@ theorem dvd_or_not (a x : Eis) (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
 #print axioms int_sq_eq_zero
 #print axioms sq_sub_expand
 #print axioms norm_split
+#print axioms sq_le_sq
+#print axioms neg_mul_le
 #print axioms mul_one
 #print axioms one_mul
 #print axioms mul_ofInt
+#print axioms dvd_refl
+#print axioms dvd_zero
+#print axioms add_sub_cancel
 #print axioms ext_of_coords
 end Eis
 
@@ -976,5 +1264,5 @@ end Eis
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_divides_sq prime_dvd_choose prime_sq_irrational prodList succ_mul_choose)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_divides_sq prime_dvd_choose prime_sq_irrational prodList succ_mul_choose)
 end ZFSet

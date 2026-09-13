@@ -154,5 +154,9 @@
  "Geometry.sqDist_comm": [
   "analytic geometry / the coordinate plane",
   1637
+ ],
+ "NumberTheory.Eis.bezout": [
+  "Bezout's identity",
+  -300
  ]
 }

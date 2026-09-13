@@ -18,6 +18,17 @@ Generality is NOT here. Comparing two binder lists is a reading rather than a
 computation, so `formalization.yaml` carries it per pair, where it can say that
 a pair is narrower than what it matches.
 
+## `Comparator.Bezout.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Quot.sound]`
+- rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.bezout_int`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `Nat.gcd_eq_gcd_ab`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
 ## `Comparator.DetMul.solution`
 
 - statement certified as Mathlib's: yes

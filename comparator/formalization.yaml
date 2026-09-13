@@ -151,3 +151,20 @@ pairs:
       `isInnerFormT_add_self` states the expansion over arbitrary Lean types
       with those as two plain equations, and prints NO axioms --- a lower floor
       than the `ZFSet` form it generalises.
+
+  - id: bezout
+    date: -300
+    rows:
+      - "Bezout's identity"
+      - "solving equations in integers"
+    mathlib: Nat.gcd_eq_gcd_ab
+    mathlib_source: Mathlib/Data/Int/GCD.lean:126
+    ours: NumberTheory.bezout_int
+    status: complete
+    gap: >
+      Mathlib names `Nat.gcdA` and `Nat.gcdB` as computable witnesses from the
+      extended Euclidean algorithm; ours is an existential. The challenge is
+      stated existentially and Mathlib's witnesses inhabit it, so it is a
+      consequence of Mathlib's theorem rather than a weakening --- but a pair at
+      Mathlib's literal statement would need us to name witnesses and prove
+      those specific ones work.
