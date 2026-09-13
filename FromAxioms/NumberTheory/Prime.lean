@@ -79,6 +79,12 @@ theorem divides_le {d n : Nat} (hn : 0 < n) (h : Divides d n) : d ≤ n := by
   · omega
   · exact Nat.le_mul_of_pos_right d hk
 
+theorem divides_sub {d a b : Nat} (h₁ : Divides d a) (h₂ : Divides d b) (hab : a ≤ b) :
+    Divides d (b - a) := by
+  obtain ⟨k, rfl⟩ := h₁
+  obtain ⟨m, rfl⟩ := h₂
+  exact ⟨m - k, by rw [Nat.mul_sub]⟩
+
 theorem eq_one_of_divides_one {d : Nat} (h : Divides d 1) : d = 1 := by
   obtain ⟨k, hk⟩ := h
   rcases Nat.eq_zero_or_pos d with rfl | hd
@@ -173,6 +179,73 @@ theorem isPrime_minFac {n : Nat} (hn : 2 ≤ n) : IsPrime (minFac n) := by
 def fact : Nat → Nat
   | 0 => 1
   | n + 1 => (n + 1) * fact n
+
+theorem fact_pos : ∀ n : Nat, 0 < fact n
+  | 0 => by simp only [fact]; omega
+  | n + 1 => by
+    have := fact_pos n
+    simp only [fact]
+    exact Nat.mul_pos (by omega) this
+
+/-- Everything from `1` to `n` divides `n!`. -/
+theorem divides_fact : ∀ n d : Nat, 1 ≤ d → d ≤ n → Divides d (fact n)
+  -- `omega` on a non-arithmetic goal proves `False` classically; `absurd` does not
+  | 0, d, hd, hdn => absurd hdn (by omega)
+  | n + 1, d, hd, hdn => by
+    simp only [fact]
+    rcases Nat.lt_or_ge d (n + 1) with hlt | hge
+    · exact divides_trans (divides_fact n d hd (by omega)) ⟨n + 1, Nat.mul_comm _ _⟩
+    · have : d = n + 1 := by omega
+      rw [this]
+      exact ⟨fact n, rfl⟩
+
+/-- Euclid's step, as a bound rather than an existence claim.
+
+    n < minFac (n! + 1)
+
+A prime at most `n` divides `n!`, and `minFac (n! + 1)` divides `n! + 1`, so if
+it were at most `n` it would divide their difference, which is one.
+
+Stated separately from `exists_prime_gt` because a prime ENUMERATION needs the
+witness as a TERM: `exists_prime_gt` hands back an existential, and extracting a
+function from it would be a choice. Here the successor is named outright. -/
+theorem lt_minFac_fact_succ (n : Nat) : n < minFac (fact n + 1) := by
+  have hf := fact_pos n
+  have hn2 : 2 ≤ fact n + 1 := by omega
+  rcases Nat.lt_or_ge n (minFac (fact n + 1)) with hgt | hle
+  · exact hgt
+  exfalso
+  -- a prime `≤ n` divides `n!`, and it divides `n! + 1`, so it divides `1`
+  have hp2 := minFac_ge hn2
+  have hdvd_fact : Divides (minFac (fact n + 1)) (fact n) :=
+    divides_fact n _ (by omega) (by omega)
+  have hdvd_succ : Divides (minFac (fact n + 1)) (fact n + 1) := minFac_divides hn2
+  have hone : Divides (minFac (fact n + 1)) 1 := by
+    have hsub := divides_sub hdvd_fact hdvd_succ (by omega)
+    have he : fact n + 1 - fact n = 1 := by omega
+    rw [he] at hsub
+    exact hsub
+  exact absurd (eq_one_of_divides_one hone) (by omega)
+
+#print axioms lt_minFac_fact_succ
+
+/-- Euclid's theorem, the infinitude of the primes: there is a prime
+above every bound. -/
+theorem exists_prime_gt (n : Nat) : ∃ p, IsPrime p ∧ n < p := by
+  have hf := fact_pos n
+  have hn2 : 2 ≤ fact n + 1 := by omega
+  exact ⟨minFac (fact n + 1), isPrime_minFac hn2, lt_minFac_fact_succ n⟩
+/-- `mathlib_form` for the `infinitude of primes` landmark: a prime at or
+above every bound.
+
+Weaker than `exists_prime_gt`, which gives a prime STRICTLY above `n`; that
+implies this and is not implied by it. Stated separately because the non-strict
+form is the one `Nat.exists_infinite_primes` takes. -/
+theorem exists_prime_ge (n : Nat) : ∃ p, IsPrime p ∧ n ≤ p := by
+  obtain ⟨p, hp, hlt⟩ := exists_prime_gt n
+  exact ⟨p, hp, Nat.le_of_lt hlt⟩
+
+#print axioms NumberTheory.exists_prime_ge
 
 /-! ## Bézout, and Euclid's lemma
 
@@ -581,6 +654,11 @@ The arithmetic half of counting irreducible polynomials: a sum over the proper
 divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, so the count of degree-`d`
 irreducibles is positive. -/
 
+/-- `[m, m-1, …, 1]`. -/
+def upto : Nat → List Nat
+  | 0 => []
+  | m + 1 => (m + 1) :: upto m
+
 /-- The shifted cyclotomic polynomial satisfies Eisenstein's conditions at
 `p`.
 
@@ -619,6 +697,9 @@ theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
       have h2 : 2 * p <= p * p := Nat.mul_le_mul_right p hp2
       omega
 
+/-- The proper divisors of `d`, which are exactly the divisors at most `d/2`. -/
+def divisorsBelow (d : Nat) : List Nat := (upto (d / 2)).filter (fun e => d % e == 0)
+
 #print axioms isPrime_minFac
 #print axioms bezout
 #print axioms bezout_int
@@ -627,6 +708,7 @@ theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
 #print axioms prime_dvd_choose
 #print axioms cyclotomicShift_eisenstein
 #print axioms exists_factorization
+#print axioms exists_prime_gt
 /-! ### Summing over the indices, continued -/
 
 /-- `2` is prime: a divisor at least `2` cannot exceed it. -/
@@ -1247,6 +1329,7 @@ end Eis
 #print axioms divides_of_mod_eq_zero
 #print axioms mod_eq_zero_of_divides
 #print axioms divides_le
+#print axioms divides_sub
 #print axioms eq_one_of_divides_one
 #print axioms minFacAux_divides
 #print axioms minFac_divides
@@ -1254,6 +1337,8 @@ end Eis
 #print axioms minFac_ge
 #print axioms minFacAux_least
 #print axioms minFac_least
+#print axioms fact_pos
+#print axioms divides_fact
 #print axioms gcd_eq_one_of_prime_not_divides
 #print axioms choose_zero
 #print axioms choose_succ_succ
@@ -1264,5 +1349,5 @@ end Eis
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_trans eq_one_of_divides_one exists_factorization fact gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_divides_sq prime_dvd_choose prime_sq_irrational prodList succ_mul_choose)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_one choose_self choose_succ_succ choose_zero coprime_divides cyclotomicShift_eisenstein divides_fact divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_sub divides_trans divisorsBelow eq_one_of_divides_one exists_factorization exists_prime_ge exists_prime_gt fact fact_pos gcd_eq_one_of_prime_not_divides isPrime_minFac isPrime_three isPrime_two lt_minFac_fact_succ minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides prime_divides_mul prime_divides_sq prime_dvd_choose prime_sq_irrational prodList succ_mul_choose upto)
 end ZFSet

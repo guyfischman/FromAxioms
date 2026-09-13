@@ -1060,7 +1060,7 @@ theorem dyadicOf_false : dyadicOf.{u} [false] = ratZero.{u} := by
 --
 --
 
-/-! ## The hole in the image, from `probe-nodegap.lean` -/
+/-! ## The hole in the image -/
 
 /-- Every node's doubled point misses the open interval `(1,2)`. -/
 theorem triadicOf_gap (s : List Bool) :

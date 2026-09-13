@@ -162,5 +162,9 @@
  "NumberTheory.crt": [
   "the Chinese remainder theorem",
   -300
+ ],
+ "NumberTheory.exists_prime_gt": [
+  "infinitude of primes",
+  -300
  ]
 }

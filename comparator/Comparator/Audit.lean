@@ -41,6 +41,7 @@ import Comparator.IrrationalSqrtPrime.Solution
 import Comparator.NormAddSq.Solution
 import Comparator.Bezout.Solution
 import Comparator.ChineseRemainder.Solution
+import Comparator.InfinitudePrimes.Solution
 
 open Lean
 
@@ -157,7 +158,8 @@ def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.IrrationalSqrtPrime, `Nat.Prime.irrational_sqrt),
   (`Comparator.NormAddSq, `norm_add_sq_real),
   (`Comparator.Bezout, `Nat.gcd_eq_gcd_ab),
-  (`Comparator.ChineseRemainder, `Nat.chineseRemainder)]
+  (`Comparator.ChineseRemainder, `Nat.chineseRemainder),
+  (`Comparator.InfinitudePrimes, `Nat.exists_infinite_primes)]
 
 /-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
 

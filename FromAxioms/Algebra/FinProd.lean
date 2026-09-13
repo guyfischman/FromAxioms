@@ -7,9 +7,9 @@ Authors: Guy Fischman
 /-
 # Folding a commutative operation over a finite set.
 
-`gpow` iterates one element; nothing so far can combine all the elements of a
-set. The obstruction is that a set has no order, so a fold has to be taken along
-an enumeration and then shown not to depend on which enumeration was used.
+`gpow` iterates one element; combining all the elements of a set needs more.
+The obstruction is that a set has no order, so a fold has to be taken along an
+enumeration and then shown not to depend on which enumeration was used.
 
 The enumerations here are Lean-level functions `Nat → ZFSet` together with a
 bound, not set functions. That is deliberate: the reindexing that the proof

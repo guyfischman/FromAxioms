@@ -189,3 +189,16 @@ pairs:
       by that hypothesis. Separately, Mathlib's `ZMod.chineseRemainder` is a ring
       ISOMORPHISM over a Lean type while `isRingIso_crtMap_int` is over `ZFSet`
       quotient rings; that axis needs a re-siting this pair does not do.
+
+  - id: infinitude-primes
+    date: -300
+    rows:
+      - "infinitude of primes"
+    mathlib: Nat.exists_infinite_primes
+    mathlib_source: Mathlib/Data/Nat/Prime/Infinite.lean:29
+    ours: NumberTheory.exists_prime_ge
+    status: complete
+    note: >
+      Both sides quantify over Lean's `Nat`, so nothing is transferred; the only
+      step is `Comparator/Bridge/NatPrime.lean`, which relates the two spellings
+      of primality as an iff and is shared with `irrational-sqrt-prime`.

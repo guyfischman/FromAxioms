@@ -13,10 +13,9 @@ negation. That presentation is chosen because it is the one that transports
 -- the cone of a fraction field is determined by the cone below it, and the
 whole of this file is that transport plus its consequences.
 
-The point of arriving here is that `NumberTheory.Rat` and `Real` are the library's only
-ordered fields so far and both are archimedean, so nothing yet distinguishes
-"ordered" from "archimedean". `RatFunc.lean` supplies a field that is
-orderable and is not, and this file is what lets that be said.
+`NumberTheory.Rat` and `Real` are both archimedean, so neither distinguishes
+"ordered" from "archimedean". `RatFunc.lean` supplies a field that is orderable
+and is not, and this file is what lets that be said.
 -/
 
 import FromAxioms.Constructive.Vanishing

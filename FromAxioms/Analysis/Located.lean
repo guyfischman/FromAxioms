@@ -2801,16 +2801,6 @@ theorem realLApart_tight {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
 `realLApart` is a disjunction of strict inequalities, so this is two symmetric
 branches and each is one `realLLt_add_right` plus transitivity.
 
-IT WAS NOT ABSENT, AND THE NULL THAT SAID SO IS WORTH KEEPING. This
-docstring read *absent until now: a `proves.py --record` on the statement
-returned Nothing in 34580 declarations has this type or its shape* --- and
-`apart_add_self_of_apart` had been sitting two thousand lines further down THIS
-FILE since 2026-08-26, nine days. The gate's `typedupe` found the pair by
-elaborated type on the day this landed, which is the only instrument that could:
-the two names share no substring, so no grep on either reaches the other. The
-duplicate is now deleted and this is the survivor, kept because the
-`realLApart_` prefix is what its siblings here are named after.
-
 Written for the cubic group law's VERTICAL clause, whose comaximality condition
 is `-y - y # 0` --- this, with `realLApart_neg` on top. -/
 theorem realLApart_add_self {y : ZFSet.{u}} (hy : y ∈ RealL.{u})

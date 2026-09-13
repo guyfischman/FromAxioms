@@ -20,3 +20,4 @@ import FromAxioms.Analysis.Weier
 import FromAxioms.Analysis.Complex
 import FromAxioms.Analysis.InnerProduct
 import FromAxioms.Analysis.InnerSpace
+import FromAxioms.Analysis.DirichletChar

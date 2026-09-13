@@ -52,6 +52,17 @@ a pair is narrower than what it matches.
 - surcharge beyond both: `[]`
 - generality: not computed here; see `formalization.yaml`
 
+## `Comparator.InfinitudePrimes.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Quot.sound]`
+- rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.exists_prime_ge`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `Nat.exists_infinite_primes`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
 ## `Comparator.IrrationalSqrtPrime.solution`
 
 - statement certified as Mathlib's: yes

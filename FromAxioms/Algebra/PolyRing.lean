@@ -3688,15 +3688,7 @@ theorem polyAdd_neg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul ze
 
 /-- `monomial_add` at `k = 0`, reversed. Kept as a name because two call sites
 want this orientation, but NOT as a second proof: a fifteen-line induction here
-would prove the general lemma over again at one exponent.
-
-The duplicate arose because the lemma was asked for with `k := 0` already
-substituted, and an instantiated query is a DIFFERENT type from the general
-theorem that answers it, and the null across 31,990 declarations was true of
-the question asked and false of the question meant. That is a third
-null-mechanism beside orientation and a folded definition --- and it is the one
-a rewriting session hits most, because a collapse IS a specialisation.
-`find.py --concl` on the head symbol found both in one command. -/
+would prove the general lemma over again at one exponent. -/
 theorem monomial_zero_add {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) :
     monomial R zero (opAt add a b) 0
@@ -3718,12 +3710,10 @@ semi-reducible ones. So `rw [gpow_polyX hR i]` could not see `polyX R zero one`
 in a goal that spelled `monomial R zero one 1`, and reported the pattern simply
 absent.
 
-A TERM-LEVEL PROBE CANNOT ANSWER THIS AND MINE DID NOT.
-`.agent/chains/probe-polyx-fold.lean` proves `polyX_pow`'s statement by
-`gpow_polyX hR` alone and is honest --- elaborating a term against an expected
-type unifies at DEFAULT transparency, where a `def` unfolds fine. `rw` is
-strictly weaker, so a green probe of the term form says nothing about the
-tactic form, and reducibility is the only thing standing between them. -/
+A TERM PROOF OF THE SAME STATEMENT SETTLES NOTHING HERE. Elaborating a term
+against an expected type unifies at DEFAULT transparency, where a `def` unfolds
+fine; `rw` is strictly weaker, so the term form goes through where the tactic
+form does not, and reducibility is the only thing standing between them. -/
 abbrev polyX (R zero one : ZFSet.{u}) : ZFSet.{u} := monomial R zero one 1
 
 /-- `polyNeg` is the additive inverse of the polynomial ring. -/

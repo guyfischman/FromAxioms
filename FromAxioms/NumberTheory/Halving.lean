@@ -164,11 +164,9 @@ of the first. That matters because a reversal argues about the PRINCIPLE: a
 `Prop` cannot quantify over Lean-level data here, so the halving machine's
 selector and decider cannot appear inside one, and the ZFSet forms can.
 
-AND THE SET FORM COSTS NOTHING, checked rather than assumed
-(`.agent/chains/probe-set-branch-equals-predicate-branch.lean`,
-`[propext, Quot.sound]`): `sep` takes an arbitrary formula, so
-`sep goLeft S` turns any predicate branch into a set one and detachability
-transfers both ways. `HalveDecider.decided`'s obligation and
+AND THE SET FORM COSTS NOTHING, at `[propext, Quot.sound]`: `sep` takes an
+arbitrary formula, so `sep goLeft S` turns any predicate branch into a set one
+and detachability transfers both ways. `HalveDecider.decided`'s obligation and
 `isChainSelector_of_detachable`'s `hdet` are interchangeable on `S`.
 
 NOR IS `hdet` EXCLUDED MIDDLE IN DISGUISE. It is at a FIXED `S` and `T`. The

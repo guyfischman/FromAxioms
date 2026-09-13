@@ -122,9 +122,9 @@ goes classical with no classical name written anywhere in it. Finding them took
 `set_option pp.explicit true in #print` after three guesses at the instance name
 failed -- the guesses were all wrong, and the printed term is what settled it.
 
-WHICH IS THE SAME LESSON AS `by_cases` ONE LAYER DOWN (`.agent/chains/
-bycases-door.leantxt`): the door does not have to appear in the source. There
-the tactic supplied `Classical.propDecidable` for an undecidable argument; here
+WHICH IS THE SAME LESSON AS `by_cases` ONE LAYER DOWN: the door does not have
+to appear in the source. There the tactic supplied `Classical.propDecidable`
+for an undecidable argument; here
 instance resolution supplies a classical instance for a decidable-looking one.
 `#print axioms` names the declaration that PAYS, never the step that charged it,
 so between the two the only reliable instrument is the axiom line plus an
