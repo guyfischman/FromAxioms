@@ -166,5 +166,9 @@
  "NumberTheory.exists_prime_gt": [
   "infinitude of primes",
   -300
+ ],
+ "Geometry.HilbertIncidence": [
+  "axiomatic geometry",
+  -300
  ]
 }

@@ -1444,13 +1444,9 @@ ring. WHAT THE PROOFS USE IS ONE DISTRIBUTIVITY AND THE ADDITIVE GROUP'S
 LAWS, so stated over a Lean type with those as function arguments the
 structure has nothing left to do.
 
-WHY THEY ARE OWED. `Comparator.ModuleQuotient.solution` and
-`Comparator.VectorSpace.solution` reach an arbitrary Lean type through
-`TypeTransferU.encodeU`, whose `embU` is Mostowski's collapse indexed by
-`WellOrderingRel` --- well-ordering an arbitrary type, which IS the axiom of
-choice. Both are on the eleven-pair list the corrected `surcharge` check reports
-as paying choice that neither the tower nor mathlib's own proof needs. These
-three statements are what let those pairs drop it. Roadmap rung 19.
+Over a Lean type these carry no `Classical.choice`. Reaching an arbitrary type
+through an encoding into `ZFSet` well-orders it, and well-ordering an arbitrary
+type is the axiom of choice.
 
 AND THE THIRD IS NOT NEW MATHEMATICS AT ALL: `(-c) • x = -(c • x)` is uniqueness
 of the additive inverse, which is `Algebra.negT_eq_of_add_eq_zero` --- written
@@ -2395,11 +2391,6 @@ theorem exists_coordMat_wide {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 
 
 /-- A fold extends past its range when the added terms are the identity.
-
-DUPLICATED DELIBERATELY. The same lemma is proved in the TREE's
-`ProbeDimUnique.lean`; a mirror probe cannot see a tree probe, and the two
-worktrees elaborate independently. Only ONE of them lands --- when this goes into
-the library it goes in once, and the other probe cites it.
 
 `foldF_extend` (PolyRing.lean) is the RING version; the module carrier is a
 commutative monoid without being a ring's additive group by that route. -/

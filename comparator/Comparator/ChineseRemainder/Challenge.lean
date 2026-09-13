@@ -12,10 +12,10 @@ Mathlib's vocabulary only. `Mathlib/Data/Nat/ModEq.lean:353`:
     def Nat.chineseRemainder (co : n.Coprime m) (a b : ℕ) :
       { k // k ≡ a [MOD n] ∧ k ≡ b [MOD m] }
 
-That is a subtype rather than a theorem, so the challenge states the proposition
-it carries. NO POSITIVITY ON EITHER MODULUS: mathlib asks coprimality and nothing
-else, and the degenerate cases (`n = 0` forces `m = 1`, and conversely) are
-inside what it claims.
+That is a subtype rather than a theorem, so the challenge states the
+proposition it carries. NO POSITIVITY ON EITHER MODULUS: mathlib asks only
+coprimality, and the degenerate cases (`n = 0` forces `m = 1`, and conversely)
+are inside what it claims.
 
 The row's other mathlib counterpart, `ZMod.chineseRemainder`, is the ring
 ISOMORPHISM. It is a `def` and not comparator-shaped; this pair matches the

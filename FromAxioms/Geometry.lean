@@ -12,3 +12,4 @@ import FromAxioms.Geometry.GeomSqrt
 import FromAxioms.Geometry.Hilbert
 import FromAxioms.Geometry.GeomPlane
 import FromAxioms.Geometry.GeomCongruence
+import FromAxioms.Geometry.GeomHilbert

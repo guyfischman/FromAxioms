@@ -27,14 +27,13 @@ the encode/decode removed --- lemma for lemma:
     SumFold.foldF_eq_encode_sum     sumUptoT_eq_sum_range
     detN_congr_lt                   detT_congr_lt   (cited unchanged)
 
-WHAT THIS DOES NOT DO, AND THE MEASUREMENT IS IN
-`.agent/track/what-a-pair-can-drive-to-zero.md`. It does not make a Solution
-choice-free. `Matrix.det_fin_zero` --- the statement that the empty determinant
-is `1` --- itself prints `Classical.choice`, as do `Matrix.det_succ_row_zero`,
+WHAT THIS DOES NOT DO. It does not make a Solution choice-free.
+`Matrix.det_fin_zero` --- the statement that the empty determinant is `1` ---
+itself prints `Classical.choice`, as do `Matrix.det_succ_row_zero`,
 `Fin.sum_univ_eq_sum_range` and `Finset.sum_range_succ`. Any theorem stated
-ABOUT `Matrix.det` carries it, whatever the tower under it costs. What this file
-removes is the SURCHARGE: the choice a pair pays over and above what mathlib's
-own statement of the same theorem already costs.
+ABOUT `Matrix.det` carries it, whatever the tower under it costs. What this
+file removes is the SURCHARGE: the choice a pair pays over and above what
+mathlib's own statement of the same theorem already costs.
 -/
 import Comparator.Bridge.MatrixTransfer
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic

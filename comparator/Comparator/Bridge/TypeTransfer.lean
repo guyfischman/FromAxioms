@@ -34,8 +34,6 @@ an operation still has to be carried across, the way `natOpSet` carries one for
 a finite carrier and `graphOn` carries a unary map. So a row blocked on "the
 carrier cannot be encoded" is unblocked by this; a row whose remaining work is
 transporting a large structure still has that work.
-
-Verified as `.agent/chains/probe-type-into-zfset.lean`.
 -/
 import Mathlib.SetTheory.Cardinal.Order
 import FromAxioms

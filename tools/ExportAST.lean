@@ -1,10 +1,9 @@
 /-
 Every Phase 2 declaration, as JSON, from the compiler rather than from a regex.
 
-`tools/lean.py` parses Lean with regexes, and the failures are not hypothetical:
-a signature splitter needed a hand-written depth scanner, a probe was aborted by
-a keyword, and a declaration's kind was read wrong. This is the ground truth
-those tools should be consuming.
+`tools/lean.py` parses Lean with regexes, which has misread signatures,
+keywords and declaration kinds. The compiler's environment has none of those
+failures.
 
     lake env lean tools/ExportAST.lean
 
@@ -39,8 +38,7 @@ private def kindOf : ConstantInfo → String
 declaration arrives as `_private.<module>.<hash>.<name>` while the row it points
 at is keyed on the user-facing name, so leaving these mangled made 461
 references dangle the moment private rows started being emitted -- reported by
-`dag.py` as an undercounted graph, and invisible to `figclaims.py`, which
-recomputes its totals from this same export so both numbers move together. -/
+`dag.py` as an undercounted graph. -/
 private def userNames (ns : Array Name) : Array Name :=
   ns.map fun r => (privateToUserName? r).getD r
 
@@ -105,21 +103,19 @@ private partial def countForall : Expr → Nat
 question cannot be asked.
 
 Lean's `unusedVariables` linter **does not fire on definition parameters** -- a
-`def` with four whose body mentions three compiles silently -- so `binders.py`,
-which reads the linter, catches an unused binder in a *proof* and is
-structurally blind to one in a *definition*.
+`def` with four whose body mentions three compiles silently -- so a check reading
+the linter catches an unused binder in a *proof* and cannot see one in a
+*definition*.
 
-**Three outcomes, not two, and the third is why this was probed before it was
-written.** Analysis warned that a structurally recursive `def` may have a value
-that is not lambda-headed, in which case walking the value's binders examines
+**Three outcomes.** A structurally recursive `def` may have a value that is
+not lambda-headed, in which case walking the value's binders examines
 fewer than the declaration has. Measured: of 1,222 Phase 2 defs with parameters,
 1,179 have exactly as many leading lambdas as their type has binders and **43 do
 not** -- `ZFSet.Mem` short by two, `sUnion`, `freeC`, `lenCode`, `D0.val` by
 one. For those the honest answer is `none`. Reporting them as "no unused
-parameters" would be a default dressed as a finding, and it is exactly the case
-where the field would be wrong in a way that looks right.
+parameters" would be wrong in a way that looks right.
 
-`hasLooseBVar` is what makes the rest exact: it accounts for nested binders, so
+`hasLooseBVar` makes the rest exact: it accounts for nested binders, so
 a parameter mentioned only under a lambda inside the body counts as used. -/
 private def unusedParams (ci : ConstantInfo) : Option (Array Nat) :=
   match ci with
@@ -136,8 +132,7 @@ private def unusedParams (ci : ConstantInfo) : Option (Array Nat) :=
 
 /-- The library constants a declaration mentions, type and value together.
 The type counts: a definition appearing only in a theorem's *statement* is
-still the library saying something about it, which is the question
-`tools/inert.py` asks. Uses the elaborator's resolved names, so a use written
+still the library saying something about it. Uses the elaborator's resolved names, so a use written
 as dot notation on a variable -- `a.ArithB d`, which no tokeniser can
 attribute to a namespace -- is seen like any other. -/
 private def usedBy (env : Environment) (self : Name) (ci : ConstantInfo) :
@@ -154,8 +149,8 @@ private def usedBy (env : Environment) (self : Name) (ci : ConstantInfo) :
 /-- The constants a declaration invokes from OUTSIDE `FromAxioms`.
 
 `usedBy` keeps only names whose module is prefixed `FromAxioms`, which is right
-for `astcheck.py` -- the regex parser is checked against what the library
-WRITES. It makes the export unable to answer a different question: *which core
+for checking a parser against what the library WRITES. It makes the export
+unable to answer a different question: *which core
 lemmas does the tower actually invoke, and what do they cost*.
 
 That question has an answer worth having. Measured on a sample: `Nat.sub_lt`,
@@ -202,8 +197,8 @@ needs the term side.
 
 What it buys is the question `refs` cannot ask -- a principle a theorem STATES
 and its proof never invokes. A hypothesis carried in the signature and unused by
-the argument is exactly that shape, and `binders.py` can only see it through the
-compiler's warnings, which a REPLAYED build does not emit. -/
+the argument has that shape, and compiler warnings cannot report it, since a
+REPLAYED build does not emit them. -/
 private def usedByValue (env : Environment) (self : Name) (ci : ConstantInfo) :
     Array Name :=
   userNames <| (match ci.value? with
@@ -216,11 +211,11 @@ private def usedByValue (env : Environment) (self : Name) (ci : ConstantInfo) :
 
 /-- A nullary `Prop`-valued definition: `def WKL : Prop := ...`.
 
-This is what a principle *is*, stated as a property of the declaration
-rather than as a lookup. Both edge detectors ask "is this constant a
+A principle, stated as a property of the declaration rather than as a
+lookup. Both edge detectors ask "is this constant a
 **registered** principle?", so neither can see an implication between
 principles the registry does not name -- `dc -> acomega` was proved in the
-library and invisible to both for exactly that reason. A
+library and invisible to both for that reason. A
 detector keyed on this instead consults no registry at all.
 
 Nullary matters and is not a separate test: a definition taking arguments
@@ -235,9 +230,8 @@ private def isPropDef (ci : ConstantInfo) : Bool :=
 
 /-- A `Prop`-VALUED definition of any arity: `def Close (x y d : ...) : Prop`.
 
-Deliberately NOT `isPropDef`, and the difference is a whole population rather
-than an edge case. `isPropDef` is the *principle* detector and excludes an
-argument-taking definition on purpose; a tool asking which definitions restate
+Wider than `isPropDef` by a whole population. `isPropDef` is the *principle*
+detector and excludes an argument-taking definition; a tool asking which definitions restate
 another wants exactly the ones it excludes. Keying such a tool on `isPropDef`
 gives it a population of 67 in which no hit is possible, and a clean sweep over
 a set that cannot contain the answer looks identical to a clean tree. -/
@@ -260,15 +254,14 @@ spine columns:
   which is the same restriction as applying a constructor to it. The spine does
   NOT show it: the hypothesis binder's spine comes back empty, so a rule reading
   spines cannot tell it from a free index. The whole content of such a theorem
-  is that `K` is where the readout becomes free, so counting it as a family
-  witness would be exactly backwards (geometry, who found it).
+  is that the readout becomes free at `K`, so counting it as a family
+  witness would be backwards.
 
-Computed here rather than approximated in Python, for the reason this tree keeps
-relearning: a stand-in agrees with the property on every case anyone checked.
+Computed here rather than approximated in Python, because a stand-in agrees with the property on every case anyone checked.
 
 De Bruijn bookkeeping: binder `j` counted from the outside is `bvar (n-1-j)` in
 the conclusion and `bvar (k-1-j)` inside binder `k`'s type, so a later binder
-mentioning it is exactly a loose bvar at that index. -/
+mentioning it is a loose bvar at that index. -/
 private partial def collectBinders : Expr → Array Expr → (Array Expr × Expr)
   | .forallE _ d b _, acc => collectBinders b (acc.push d)
   | e, acc => (acc, e)
@@ -292,7 +285,7 @@ private def isPropValued (ci : ConstantInfo) : Bool :=
   | _ => false
 
 /-- The head constant of the statement's conclusion, after the hypotheses and
-binders are stripped. With `typeRefs` this is what gives an implication its
+binders are stripped. With `typeRefs` this gives an implication its
 direction: the set says which principles appear, the head says which one is
 concluded. Empty when the conclusion is not headed by a constant. -/
 private partial def conclusionHead : Expr → Name
@@ -305,12 +298,11 @@ private partial def conclusionHead : Expr → Name
 
 `head` reads the ROOT of the conclusion, so a producer whose statement is an
 `↔` has head `Iff` and its subject is invisible -- `exists_deg_iff` produces
-`IsDegOf` and `lattice.py --sources` ranked `IsDegOf` second-worst UNPRODUCED
-(analysis, 4 false positives of 17). Unwrapping `Iff` alone is not the repair:
-`exists_critical_or_not` concludes a DISJUNCTION, and the family is -- a proxy that reads the root of a term cannot see the term.
+`IsDegOf` and a reader of heads sees only `Iff`. Unwrapping `Iff` alone is not
+enough: `exists_critical_or_not` concludes a DISJUNCTION.
 
 So this descends through `Iff`, `And`, `Or`, `Not` and `Exists`, and stops at
-anything else. It is deliberately NOT a full traversal of the conclusion: an
+anything else. It stops short of a full traversal of the conclusion: an
 argument of a produced predicate is mentioned, not concluded, and collapsing
 those two would make the report say nothing. `head` is kept beside this,
 unchanged, because the direction of an implication is a different question from
@@ -333,10 +325,9 @@ private partial def conclusionHeads : Expr → List Name
 /-- The ENVIRONMENT'S OWN KIND for each conclusion head.
 
 **Distinguishes a structure being CONSTRUCTED from a constant being
-REFERENCED**, which is the question two detectors independently needed and
-neither could ask (, 1223; scheduling recorded in 2754).
+REFERENCED**.
 
-Their obstruction was the same: a rule of the form *the conclusion mentions a
+A rule of the form *the conclusion mentions a
 constant the proof never touches, AND the conclusion is not a structure being
 constructed* is unsatisfiable from names alone, because excluding conclusion
 heads that are defs, Prop-defs or structures returns ZERO -- conclusion heads
@@ -351,12 +342,11 @@ Parallel to `heads` and deduped the same way, so index i of one names index i
 of the other. A head the environment does not know -- which `conclusionHeads`
 can yield for a bound variable applied to arguments -- reports `unknown`
 rather than being dropped, because dropping it would silently misalign the two
-arrays and that is exactly the failure a paired encoding invites.
+arrays.
 -/
 /-- A hash of the CONCLUSION alone, binders stripped.
 
-**The key a meaning-keyed duplicate sweep needs, and the one the export did not
-have.** Measured before adding it: clustering the 10953 public theorems by
+**The key a meaning-keyed duplicate sweep needs.** Measured before adding it: clustering the 10953 public theorems by
 `conclSpine` puts 6958 of them in 1336 clusters, largest 155, because a spine is
 the head plus each argument's HEAD and drops the arguments themselves. The pair
 that motivated the sweep -- `remainder_unique` and `remainder_unique_domain`,
@@ -364,15 +354,14 @@ character-identical but for one argument -- lands in a cluster of TWELVE. So the
 spine catches the case and buries it.
 
 `typeHash` is the opposite error: it covers the whole type, so two statements
-of one theorem under different hypotheses never match, which is exactly the pair
+of one theorem under different hypotheses never match, which is the pair
 a hypothesis-stripping search exists to find.
 
 This hashes the conclusion after `forallE` binders are stripped, so it is the
-same object `concludes.py` renders per query -- but computed once for every
-declaration instead of once per Lean invocation, which is what makes a SWEEP
-possible at all. 10953 invocations is not a sweep.
+same object a per-query renderer computes, but once for every declaration
+instead of once per Lean invocation, so a sweep over 10953 theorems is one run.
 
-Deliberately NOT descending through `Exists`, unlike `conclusionSpine`: that
+It does not descend through `Exists`, unlike `conclusionSpine`: that
 descent exists so a witness search can see inside an existential, and folding
 `∃ g, P g` together with `P g` would merge two genuinely different statements.
 -/
@@ -426,7 +415,7 @@ variables into first-occurrence order removes the dependence.
 `mdata` is dropped rather than descended through, so an annotation the
 elaborator happened to leave on one side does not split a pair.
 
-**What this deliberately DOES merge**: two conclusions of the same shape over
+**What this merges**: two conclusions of the same shape over
 unrelated variables. `a = polyZero b c` is one key however the variables were
 bound, which is the intended reading of *same conclusion* and is why the
 report is a report and not a check. -/
@@ -454,11 +443,10 @@ THE ARGUMENT SHAPE somebody assumes it at*. `close_invApart` took
 separating more cases -- subsumption (`P _ _` instantiates to `P _ (f _)`) is
 what the consumer must credit, and that is cheaper on short spines.
 
-**Elaborated rather than textual, and the gap is measured.** `producers.py`
-reads source signatures and cannot tell a BOUND VARIABLE from a constant: 4 of
-its 25 rows are headed `A`, `B`, `F`, `G`, which are binder names in the
-theorems' own signatures. Here a local is not a `const` and renders as `_` by
-construction. It is also blind to implicit arguments, which this is not. -/
+**Elaborated rather than textual.** A reader of source signatures cannot tell a
+BOUND VARIABLE from a constant, and heads rows with binder names like `A` or
+`F`. Here a local is not a `const` and renders as `_` by
+construction. Source text also hides implicit arguments, which this sees. -/
 private def spineOf (e : Expr) : List String :=
   let arg (a : Expr) : String :=
     match a.getAppFn with
@@ -528,8 +516,8 @@ first was retired -- have the same shape and different types.
 Erasing core constants too would collapse `∈` with `≤` and match everything,
 so the line is drawn at the library boundary: what this development names is
 what a copied abstraction would have renamed. A shape collision is a
-*candidate*, never a verdict; `tools/abstract.py` reports families of them,
-because one pair is a coincidence and nine at once is a copied machine. -/
+*candidate*, never a verdict; a family of
+them says more than one pair. -/
 private partial def shapeOf (env : Environment) : Expr → String
   | .const n _ =>
       match env.getModuleIdxFor? n with
@@ -557,8 +545,7 @@ the two statements are otherwise identical, but a binder type is part of the
 expression, so the shapes differed and the pair went unreported. What makes
 them the same statement is the *body* -- what is claimed about the payload,
 not what the payload is -- so this erases the binder's type and keeps the
-body. Coarser on purpose, and the suffix agreement in `tools/abstract.py` is
-what keeps it readable. -/
+body. Coarser than `shapeOf`. -/
 private partial def bodyOf (env : Environment) : Expr → String
   | .const n _ =>
       match env.getModuleIdxFor? n with

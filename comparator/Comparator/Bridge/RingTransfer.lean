@@ -31,8 +31,6 @@ CHOICE, ON THE RIGHT SIDE. `decode` uses `Exists.choose` and the encoding uses
 mathlib's `WellOrderingRel`. This is the mathlib half of a comparator pair,
 where choice is a theorem; nothing here is re-exported into `FromAxioms` and no
 tower declaration changes.
-
-Verified as `.agent/chains/probe-ring-onto-encoded.lean`.
 -/
 import Comparator.Bridge.TypeTransfer
 import Mathlib.Algebra.Ring.Defs

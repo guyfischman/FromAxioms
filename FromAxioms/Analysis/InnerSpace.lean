@@ -94,20 +94,13 @@ where `norm_add_sq_real` fixes the reals --- and it does not reach mathlib's
 objects at all, because `norm_add_sq_real` quantifies over
 `{F : Type*} [InnerProductSpace ℝ F]` and no `ZFSet` is such an `F`.
 
-THE PYTHAGOREAN PARITY ROW WAS `audited` ON EXACTLY THAT GAP until 2026-09-03.
-Its note compared the scalars and the space and concluded *at or above mathlib on
-both axes*; both comparisons are true and neither asks whether our statement
-applies to mathlib's carriers. Every registry field was internally consistent and
-the row was still wrong. It was caught by trying to write the comparator pair,
-which is what the pair is for.
-
 WHAT THE PROOF NEEDS IS TWO EQUATIONS. Reading `innerProduct_add_self`:
-`add_left`, `symm`, `innerProduct_add_right` (itself `symm` plus `add_left`), and
-three membership facts. Over a type the memberships vanish, so `IsInnerFormT`
-carries two clauses and no more --- `module`, `smul_left`, `nonneg_zero` and
-`self_nonneg` are unused by this theorem at EITHER siting, and demanding them
-would import the structure's shape rather than the proof's needs. `R` is a bare
-type with a binary `add`, not even associative.
+`add_left`, `symm`, `innerProduct_add_right` (itself `symm` plus `add_left`),
+and three membership facts. Over a type the memberships vanish, so
+`IsInnerFormT` carries two clauses and no more --- `module`, `smul_left`,
+`nonneg_zero` and `self_nonneg` are unused by this theorem at EITHER siting,
+and demanding them would import the structure's shape rather than the proof's
+needs. `R` is a bare type with a binary `add`, not even associative.
 
 These print `does not depend on any axioms`, a strictly lower floor than the
 `ZFSet` forms above, because nothing set-theoretic is used.

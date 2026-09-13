@@ -10,8 +10,8 @@ import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 # The challenge: multiplicativity of the determinant, in MATHLIB's vocabulary
 
 `Matrix`, `Matrix.det`, the `CommRing` class and the matrix `*` are all
-Mathlib's. Nothing below that is not a comment is ours, so a reader who trusts
-Mathlib and nothing else can read `challenge` and know what is claimed, with no
+Mathlib's. Every declaration below uses Mathlib's vocabulary alone, so a reader
+who trusts only Mathlib can read `challenge` and know what is claimed, with no
 translation of ours to check.
 
 ## The statement, transcribed from source and not from documentation
@@ -67,9 +67,9 @@ def challenge : Prop :=
 /-- The challenge is not vacuous, and Mathlib itself is the witness.
 
 A `Prop` nobody has shown inhabited says nothing, and an axiom print cannot see
-an empty statement. This is deliberately proved BY MATHLIB, so it certifies
-that the statement above is the theorem being matched; it is emphatically NOT
-the comparator. The comparator is `Solution.lean`. -/
+an empty statement. It is proved from Mathlib, which certifies that the
+statement above is the theorem being matched. The comparison itself is
+`Solution.lean`. -/
 theorem challenge_is_mathlibs : challenge :=
   fun _R _ _m M N => Matrix.det_mul M N
 

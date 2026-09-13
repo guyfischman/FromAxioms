@@ -26,11 +26,11 @@ indexed by `WellOrderingRel`. Well-ordering an arbitrary type IS the axiom of
 choice, so the pair's axiom line named `Classical.choice`.
 
 BUT THIS CHALLENGE IS NOT STATED AT AN ARBITRARY TYPE. It is stated at `Nat`,
-deliberately and for a reason the Challenge's own header gives --- so that the
-statement names no bridge vocabulary. `Nat` embeds into `ZFSet` by
-`NumberTheory.ofNat`, the von Neumann numerals, with `ofNat_injective` proved by
-induction. No well-ordering, no collapse, no choice. The general machinery was
-being applied to a concrete type that never needed it.
+so that the statement names no bridge vocabulary, as the Challenge's header
+explains. `Nat` embeds into `ZFSet` by `NumberTheory.ofNat`, the von Neumann
+numerals, with `ofNat_injective` proved by induction. No well-ordering, no
+collapse, no choice. The general machinery was being applied to a concrete type
+that never needed it.
 
 So this is the one pair of the seven where nothing had to be re-sited: the tower
 already had the right embedding, and the Solution reached for the general one.
@@ -41,19 +41,14 @@ costs is invisible until someone reads the print.
 WHAT THE EMBEDDING CONSUMED, AND WHY THIS IS STILL HONEST. `ofNat` and
 `ofNat_injective` are about von Neumann numerals and consume NOTHING about
 pairs --- not `Prod`, not `opair`, not injectivity of either. So there is no
-clause here the embedding could have assumed: the direction of
-`.agent/track/a-transfer-cannot-pair-its-own-axioms.md` is satisfied trivially
-rather than delicately, exactly as it was with `TypeTransferU`.
+clause here the embedding could have assumed. A transfer that consumed a fact
+about pairs could not then prove one, and this one consumes none.
 
 THE DIRECTION THAT CARRIES THE CONTENT IS THE FORWARD ONE. From the mathlib
-equation, `congrArg` builds the ZFSet equation between two Kuratowski pairs; the
-tower's theorem splits it; `ofNat_injective` brings both halves back. The reverse
-direction is `rfl` on both sides and is not where the mathematics is --- it is
-stated because the challenge is an `Iff`, not because it is content.
-
-PROBE-CLOBBER-OK: the import of `Bridge/TypeTransferU` is dropped and nothing
-else about this file's structure changes. The bridge stays landed and unchanged
-for the pairs that genuinely quantify over an arbitrary `Type`.
+equation, `congrArg` builds the ZFSet equation between two Kuratowski pairs;
+the tower's theorem splits it; `ofNat_injective` brings both halves back. The
+reverse direction is `rfl` on both sides and is not where the mathematics is
+--- it is stated because the challenge is an `Iff`, not because it is content.
 -/
 import Comparator.PairEncoding.Challenge
 import FromAxioms.NumberTheory.Natural
@@ -68,9 +63,8 @@ open SetTheory NumberTheory
 
 namespace Comparator.PairEncoding
 
-/-- The tower's theorem this rests on, named where a reader of THIS file can
-see it --- the `FirstIso` precedent, after `.agent/chains/solutionusestower.py`
-passed that pair on a Lean core name that collided with the tower's index. -/
+/-- The tower's theorem this rests on, named where a reader of this file can
+see it. -/
 theorem rests_on_opair_eq_opair_iff : True := by
   have _ := @ZFSet.opair_eq_opair_iff.{0}
   trivial

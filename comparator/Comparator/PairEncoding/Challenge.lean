@@ -33,10 +33,9 @@ assumes.
 `Bridge/TypeTransferU` encodes a `Type` into `ZFSet` and consumes nothing
 whatever about pairs --- no `Prod`, no `opair`, no injectivity. So the tower's
 `ZFSet.opair_eq_opair_iff` is not a fact the bridge assumed, and routing this
-statement through it is a real transfer rather than a restatement. See
-`.agent/track/a-transfer-cannot-pair-its-own-axioms.md`.
+statement through it is a real transfer rather than a restatement.
 
-## Stated at `Nat` and why that is not a weakening
+## Stated at `Nat`
 
 `encodeU` needs a `Type u`; the statement is universally quantified over the four
 coordinates, and nothing in the argument depends on the carrier beyond having an

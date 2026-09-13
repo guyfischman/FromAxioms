@@ -7,8 +7,8 @@ Authors: Guy Fischman
 /-
 CHALLENGE: the irrationality of the square root of a prime.
 
-Mathlib's vocabulary only. This file imports Mathlib and nothing else, so the
-statement below is not ours. `Mathlib/RingTheory/Real/Irrational.lean:131`:
+Mathlib's vocabulary only. This file imports only Mathlib, so the statement
+below is Mathlib's. `Mathlib/RingTheory/Real/Irrational.lean:131`:
 
     theorem Nat.Prime.irrational_sqrt {p : ℕ} (hp : Nat.Prime p) : Irrational (√p)
 
