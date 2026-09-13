@@ -34,11 +34,12 @@ root real.
 -/
 
 import FromAxioms.Analysis.IVT
+import FromAxioms.Geometry.GeomSqrt
 import FromAxioms.SetTheory.LeastSearch
 
 universe u
 
-open Analysis
+open Analysis SetTheory
 namespace Geometry
 
 /-! ## Ring rearrangements
@@ -56,9 +57,28 @@ theorem sq_diff {u v : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ RealL.{u}) 
   rw [sq_sum hu hnv, realLMul_neg_neg hv hv, realLMul_neg hu hv,
     ← realLNeg_realLAdd huv huv]
 
+/-! ## Points, and the squared distance -/
+
+/-- The squared distance. The distance itself is `realLSqrt` of this; every
+statement below is an equation between squares, so the root is never taken. -/
+def sqDist (P Q : ZFSet.{u}) : ZFSet.{u} :=
+  realLAdd
+    (realLMul (realLAdd (fst P) (realLNeg (fst Q)))
+      (realLAdd (fst P) (realLNeg (fst Q))))
+    (realLMul (realLAdd (snd P) (realLNeg (snd Q)))
+      (realLAdd (snd P) (realLNeg (snd Q))))
+
+theorem sqDist_opair (x y x' y' : ZFSet.{u}) :
+    sqDist (opair x y) (opair x' y')
+      = realLAdd (realLMul (realLAdd x (realLNeg x')) (realLAdd x (realLNeg x')))
+          (realLMul (realLAdd y (realLNeg y')) (realLAdd y (realLNeg y'))) := by
+  rw [sqDist, fst_opair, fst_opair, snd_opair, snd_opair]
+
 #print axioms sq_diff
 end Geometry
 
+#print axioms Geometry.sqDist_opair
+#print axioms Geometry.sqDist
 namespace ZFSet
-export Geometry (sq_diff)
+export Geometry (sqDist sqDist_opair sq_diff)
 end ZFSet

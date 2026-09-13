@@ -146,5 +146,13 @@
  "NumberTheory.sqrtTwoP": [
   "irrationality of √2",
   -540
+ ],
+ "Geometry.pythagoras_points": [
+  "the Pythagorean theorem",
+  -500
+ ],
+ "Geometry.sqDist_comm": [
+  "analytic geometry / the coordinate plane",
+  1637
  ]
 }

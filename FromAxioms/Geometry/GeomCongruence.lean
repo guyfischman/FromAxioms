@@ -25,10 +25,11 @@ for SAS, which is the axiom the group exists to support.
 
 import FromAxioms.Analysis.Complex
 import FromAxioms.Geometry.GeomPlane
+import FromAxioms.SetTheory.Uncountable
 
 universe u
 
-open Analysis
+open Analysis SetTheory
 namespace Geometry
 
 /-- The dot product of two displacement vectors, in coordinates. -/
@@ -66,6 +67,37 @@ theorem sqNorm_sub {ux uy vx vy : ZFSet.{u}} (hux : ux ∈ RealL.{u})
     realLAdd_interchange hxx hvxx hyy hvyy,
     realLAdd_interchange hxv hxv hyv hyv]
 
+/-! ## Transferring a segment onto a ray
+
+The first statement in this track that needs a square root of a quantity
+varying with the input and a reciprocal in the same breath. Both are now
+available and neither costs anything, so III.1 is free -- but it is worth
+noting that Euclid I.1 needed neither, so that one came out free
+before any of this machinery existed. -/
+
+/-- Squared distance is the squared norm of the displacement. Written once
+here because every point-level statement below needs it. -/
+theorem sqDist_eq_sqNorm {xA yA xB yB : ZFSet.{u}} (hxA : xA ∈ RealL.{u})
+    (hyA : yA ∈ RealL.{u}) (hxB : xB ∈ RealL.{u}) (hyB : yB ∈ RealL.{u}) :
+    sqDist (opair xA yA) (opair xB yB)
+      = sqNorm (realLAdd xB (realLNeg xA)) (realLAdd yB (realLNeg yA)) := by
+  rw [sqDist_opair, ← realLNeg_sub hxB hxA, ← realLNeg_sub hyB hyA,
+    realLMul_neg_neg (realLAdd_mem hxB (realLNeg_mem hxA))
+      (realLAdd_mem hxB (realLNeg_mem hxA)),
+    realLMul_neg_neg (realLAdd_mem hyB (realLNeg_mem hyA))
+      (realLAdd_mem hyB (realLNeg_mem hyA))]
+  rfl
+
+/-- Squared distance does not care which end you measure from. -/
+theorem sqDist_comm {x y x' y' : ZFSet.{u}} (hx : x ∈ RealL.{u})
+    (hy : y ∈ RealL.{u}) (hx' : x' ∈ RealL.{u}) (hy' : y' ∈ RealL.{u}) :
+    sqDist (opair x y) (opair x' y') = sqDist (opair x' y') (opair x y) := by
+  rw [sqDist_opair, sqDist_opair, ← realLNeg_sub hx' hx, ← realLNeg_sub hy' hy,
+    realLMul_neg_neg (realLAdd_mem hx' (realLNeg_mem hx))
+      (realLAdd_mem hx' (realLNeg_mem hx)),
+    realLMul_neg_neg (realLAdd_mem hy' (realLNeg_mem hy))
+      (realLAdd_mem hy' (realLNeg_mem hy))]
+
 /-! ## Pythagoras
 
 Stated for the cost rather than the theorem. The right angle arrives as
@@ -85,11 +117,35 @@ theorem pythagoras {ux uy vx vy : ZFSet.{u}} (hux : ux ∈ RealL.{u})
     realLNeg_zero, realLAdd_zero (realLAdd_mem (sqNorm_mem hux huy)
       (sqNorm_mem hvx hvy))]
 
+/-- Pythagoras, on points: with the right angle at `C`, the square on the
+hypotenuse is the sum of the squares on the legs. The perpendicularity is
+supplied, which is what Euclid does too -- I.47 assumes the right angle rather
+than deciding it. -/
+theorem pythagoras_points {xA yA xB yB xC yC : ZFSet.{u}} (hxA : xA ∈ RealL.{u})
+    (hyA : yA ∈ RealL.{u}) (hxB : xB ∈ RealL.{u}) (hyB : yB ∈ RealL.{u})
+    (hxC : xC ∈ RealL.{u}) (hyC : yC ∈ RealL.{u})
+    (hperp : dotP (realLAdd xA (realLNeg xC)) (realLAdd yA (realLNeg yC))
+      (realLAdd xB (realLNeg xC)) (realLAdd yB (realLNeg yC)) = realLZero.{u}) :
+    sqDist (opair xA yA) (opair xB yB)
+      = realLAdd (sqDist (opair xC yC) (opair xA yA))
+          (sqDist (opair xC yC) (opair xB yB)) := by
+  have hAC := realLAdd_mem hxA (realLNeg_mem hxC)
+  have hAC' := realLAdd_mem hyA (realLNeg_mem hyC)
+  have hBC := realLAdd_mem hxB (realLNeg_mem hxC)
+  have hBC' := realLAdd_mem hyB (realLNeg_mem hyC)
+  rw [sqDist_comm hxA hyA hxB hyB, sqDist_eq_sqNorm hxB hyB hxA hyA,
+    sqDist_eq_sqNorm hxC hyC hxA hyA, sqDist_eq_sqNorm hxC hyC hxB hyB,
+    ← pythagoras hAC hAC' hBC hBC' hperp, disp_sub hxC hxB hxA,
+    disp_sub hyC hyB hyA]
+
 #print axioms Geometry.sqNorm_sub
+#print axioms Geometry.sqDist_eq_sqNorm
 #print axioms Geometry.pythagoras
+#print axioms Geometry.pythagoras_points
 #print axioms sqNorm_mem
+#print axioms sqDist_comm
 end Geometry
 
 namespace ZFSet
-export Geometry (dotP pythagoras sqNorm sqNorm_mem sqNorm_sub)
+export Geometry (dotP pythagoras pythagoras_points sqDist_comm sqDist_eq_sqNorm sqNorm sqNorm_mem sqNorm_sub)
 end ZFSet

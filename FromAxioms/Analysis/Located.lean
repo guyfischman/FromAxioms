@@ -3175,6 +3175,16 @@ theorem realLNeg_sub {A B : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.
   rw [realLNeg_realLAdd hA (realLNeg_mem hB), realLNeg_realLNeg hB,
     realLAdd_comm (realLNeg_mem hA) hB]
 
+/-- `(B - A) + (A - C) = B - C`: the triangle, as an identity. -/
+theorem realLSub_add_sub {A B C : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.{u})
+    (hC : C ∈ RealL.{u}) :
+    realLAdd (realLAdd B (realLNeg A)) (realLAdd A (realLNeg C))
+      = realLAdd B (realLNeg C) := by
+  have hnA := realLNeg_mem hA
+  have hnC := realLNeg_mem hC
+  rw [realLAdd_assoc hB hnA (realLAdd_mem hA hnC), ← realLAdd_assoc hnA hA hnC,
+    realLAdd_comm hnA hA, realLAdd_neg hA, realLZero_add hnC]
+
 theorem realLLe_sub_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u}) :
     realLLe a b ↔ realLLe realLZero.{u} (realLAdd b (realLNeg a)) := by
   have hna := realLNeg_mem ha
@@ -3279,6 +3289,7 @@ theorem apart_mul_apart {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
 #print axioms Analysis.realLNeg_realLMul
 #print axioms Analysis.realLAdd_interchange
 #print axioms Analysis.realLNeg_sub
+#print axioms Analysis.realLSub_add_sub
 #print axioms Analysis.realLLt_of_lt_of_le
 #print axioms Analysis.realLLt_of_le_of_lt
 #print axioms Analysis.realLLt_add
@@ -3399,9 +3410,19 @@ theorem sub_pos_of_lt {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
   have := realLLt_add_right ha hb (realLNeg_mem ha) h
   rwa [realLAdd_neg ha] at this
 
+/-- `(C - A) - (B - A) = C - B`: two displacements from a common base differ by
+the displacement between their tips. Used by the betweenness parameter here and
+by SAS over points in `GeomCongruence.lean`. -/
+theorem disp_sub {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
+    (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u}) :
+    realLAdd (realLAdd c (realLNeg a)) (realLNeg (realLAdd b (realLNeg a)))
+      = realLAdd c (realLNeg b) := by
+  rw [realLNeg_sub hb ha, realLSub_add_sub ha hc hb]
+
 #print axioms sq_sum
 #print axioms shift_sub
 #print axioms sub_pos_of_lt
+#print axioms disp_sub
 /-- Inclusion of lower cuts gives the order.  `realLLe` is a negation, so a
 witness for the strict inequality would put one rational in both halves of a
 located pair, which `ordered` refutes.
@@ -3775,5 +3796,5 @@ end Analysis
 
 
 namespace ZFSet
-export Analysis (BoundedLocated Close FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart boundsOf boundsOf_subset corners_of_refinement corners_of_refinement' dyadicHi dyadicLo eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket glb_of_familyLocatedInf glb_of_familyLocatedInf_set infLower infUpper inf_realLLe_of_mem invLower invScale invScale_mem invUpper isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_sup le_sup_realLLe located_bracket located_eq_of_subset lowerBound_boundsOf lower_pair_bound lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_add_self realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_refl realLLe_sub_nonneg realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum sub_pos_of_lt supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
+export Analysis (BoundedLocated Close FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart boundsOf boundsOf_subset corners_of_refinement corners_of_refinement' disp_sub dyadicHi dyadicLo eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket glb_of_familyLocatedInf glb_of_familyLocatedInf_set infLower infUpper inf_realLLe_of_mem invLower invScale invScale_mem invUpper isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_sup le_sup_realLLe located_bracket located_eq_of_subset lowerBound_boundsOf lower_pair_bound lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_add_self realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_refl realLLe_sub_nonneg realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLSub_add_sub realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum sub_pos_of_lt supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
 end ZFSet
