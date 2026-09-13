@@ -174,5 +174,9 @@
  "Geometry.sqDist_apex_left": [
   "Euclid I.1 in coordinates",
   -300
+ ],
+ "Geometry.playfair_unique": [
+  "the parallel postulate, explicitly",
+  -300
  ]
 }
