@@ -71,9 +71,8 @@ theorem sqNorm_sub {ux uy vx vy : ZFSet.{u}} (hux : ux ∈ RealL.{u})
 
 The first statement in this track that needs a square root of a quantity
 varying with the input and a reciprocal in the same breath. Both are now
-available and neither costs anything, so III.1 is free -- but it is worth
-noting that Euclid I.1 needed neither, so that one came out free
-before any of this machinery existed. -/
+available and neither costs anything, so III.1 is free. Euclid I.1 needed
+neither, and came out free before any of this machinery existed. -/
 
 /-- Squared distance is the squared norm of the displacement. Written once
 here because every point-level statement below needs it. -/

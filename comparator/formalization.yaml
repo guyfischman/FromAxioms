@@ -168,3 +168,24 @@ pairs:
       consequence of Mathlib's theorem rather than a weakening --- but a pair at
       Mathlib's literal statement would need us to name witnesses and prove
       those specific ones work.
+
+  - id: chinese-remainder
+    date: -300
+    rows:
+      - "the Chinese remainder theorem"
+    mathlib: Nat.chineseRemainder
+    mathlib_source: Mathlib/Data/Nat/ModEq.lean:353
+    ours: NumberTheory.crt
+    status: complete
+    note: >
+      Our `Cong n a b := a % n = b % n` and Mathlib's `Nat.ModEq n a b :=
+      a % n = b % n` are the SAME definition, so `k ≡ a [MOD n]` and
+      `Cong n k a` are definitionally equal and no bridge lemma is needed.
+    gap: >
+      Writing the pair exposed a hypothesis nothing had recorded: our `crt`
+      demands `0 < n` where `Nat.chineseRemainder` demands only coprimality, and
+      the case is real --- `Coprime n 0` forces `n = 1`. The solution discharges
+      it by hand, so the pair is complete, but the tower's theorem is narrower
+      by that hypothesis. Separately, Mathlib's `ZMod.chineseRemainder` is a ring
+      ISOMORPHISM over a Lean type while `isRingIso_crtMap_int` is over `ZFSet`
+      quotient rings; that axis needs a re-siting this pair does not do.

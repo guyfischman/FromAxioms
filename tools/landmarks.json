@@ -158,5 +158,9 @@
  "NumberTheory.Eis.bezout": [
   "Bezout's identity",
   -300
+ ],
+ "NumberTheory.crt": [
+  "the Chinese remainder theorem",
+  -300
  ]
 }

@@ -26,8 +26,111 @@ exists, but the β-function is about `Nat`, and moving through `ℤ` would mean
 transporting every statement back.
 -/
 
+import FromAxioms.NumberTheory.Prime
 
 namespace NumberTheory
+
+/-- `a` and `b` leave the same remainder mod `n`. An equation between computed
+values, so every fact about it is a computation. -/
+def Cong (n a b : Nat) : Prop := a % n = b % n
+
+theorem cong_refl (n a : Nat) : Cong n a a := rfl
+
+theorem cong_trans {n a b c : Nat} (h₁ : Cong n a b) (h₂ : Cong n b c) :
+    Cong n a c := h₁.trans h₂
+
+theorem cong_add {n a b c d : Nat} (h₁ : Cong n a b) (h₂ : Cong n c d) :
+    Cong n (a + c) (b + d) := by
+  show (a + c) % n = (b + d) % n
+  rw [Nat.add_mod, Nat.add_mod b d, h₁, h₂]
+
+theorem cong_mul {n a b c d : Nat} (h₁ : Cong n a b) (h₂ : Cong n c d) :
+    Cong n (a * c) (b * d) := by
+  show (a * c) % n = (b * d) % n
+  rw [Nat.mul_mod, Nat.mul_mod b d, h₁, h₂]
+
+/-- Adding a multiple of the modulus changes nothing. -/
+theorem cong_add_mul (n a k : Nat) : Cong n (a + n * k) a := by
+  show (a + n * k) % n = a % n
+  rw [Nat.add_mul_mod_self_left]
+
+/-- The form the theorem is used in: `x = a + n·k` is exactly `x ≡ a`, once `a`
+is already reduced. -/
+theorem cong_of_eq_add_mul {n a k x : Nat} (h : x = a + n * k) : Cong n x a := by
+  rw [h]
+  exact cong_add_mul n a k
+
+/-! ## Inverses -/
+
+private theorem inverse_of_two_le {m N : Nat} (hN : 2 ≤ N)
+    (h : Nat.gcd m N = 1) : ∃ a, Cong N (a * m) 1 := by
+  obtain ⟨a, b, hcase⟩ := bezout m N
+  rw [h] at hcase
+  rcases hcase with hc | hc
+  · refine ⟨a, cong_of_eq_add_mul (k := b) ?_⟩
+    rw [Nat.mul_comm N b]
+    omega
+  · -- `b·m + 1 = a·N`, so `b·m` is `-1`; scaling by `N - 1` turns it into `1`.
+    have hbm : b * m + 1 = a * N := by omega
+    have ha : 1 ≤ a := by
+      rcases Nat.eq_zero_or_pos a with rfl | ha
+      · omega
+      · exact ha
+    have e1 : (N - 1) * (b * m) + (N - 1) = (N - 1) * (a * N) := by
+      have e := congrArg (fun t => (N - 1) * t) hbm
+      simp only [Nat.mul_add, Nat.mul_one] at e
+      exact e
+    have e2 : (N - 1) * (a * N) = N * ((N - 1) * a) := by
+      rw [← Nat.mul_assoc, Nat.mul_comm ((N - 1) * a) N]
+    have hpos : 1 ≤ (N - 1) * a :=
+      Nat.one_le_iff_ne_zero.mpr fun hz => by
+        rcases Nat.mul_eq_zero.mp hz with hz | hz <;> omega
+    -- Naming the quotient keeps `omega` away from a product it cannot expand:
+    -- `N * ((N-1)*a - 1)` is a multiplication over a subtraction, and omega
+    -- decomposes it rather than treating it as an atom.
+    obtain ⟨K, hK⟩ : ∃ K, (N - 1) * a = K + 1 := ⟨(N - 1) * a - 1, by omega⟩
+    have e3 : N * ((N - 1) * a) = N * K + N := by
+      rw [hK, Nat.mul_add, Nat.mul_one]
+    refine ⟨(N - 1) * b, cong_of_eq_add_mul (k := K) ?_⟩
+    rw [Nat.mul_assoc]
+    omega
+
+theorem exists_inverse : ∀ {m n : Nat}, Nat.gcd m n = 1 → ∃ a, Cong n (a * m) 1
+  | m, 0, h => by
+    rw [Nat.gcd_zero_right] at h
+    exact ⟨1, by show (1 * m) % 0 = 1 % 0; rw [Nat.one_mul, h]⟩
+  | _, 1, _ => ⟨1, by show _ % 1 = _ % 1; rw [Nat.mod_one, Nat.mod_one]⟩
+  | _, _ + 2, h => inverse_of_two_le (by omega) h
+
+/-! ## The Chinese remainder theorem
+
+Two moduli, which is all the β-function needs: the sequence-coding argument
+applies it repeatedly rather than to a family at once. -/
+
+/-- The Chinese remainder theorem. Two coprime congruences have a common
+solution, and the witness is built rather than chosen: `x = r + m·t` with `t`
+the inverse of `m` scaled by the gap, every step a computation on numerals. -/
+theorem crt {m n : Nat} (hco : Nat.gcd m n = 1) (hn : 0 < n)
+    (r s : Nat) : ∃ x, Cong m x r ∧ Cong n x s := by
+  obtain ⟨a, ha⟩ := exists_inverse hco
+  -- `s + r·n ≥ r`, so the gap can be taken in `Nat` without a subtraction.
+  refine ⟨r + m * (a * (s + r * n - r)), ?_, ?_⟩
+  · exact cong_add_mul m r _
+  · have hgap : s + r * n - r + r = s + r * n := by
+      have : r ≤ r * n := Nat.le_mul_of_pos_right r hn
+      omega
+    have hstep : Cong n (m * (a * (s + r * n - r))) (s + r * n - r) := by
+      have : Cong n (a * m * (s + r * n - r)) (1 * (s + r * n - r)) :=
+        cong_mul ha (cong_refl n _)
+      rw [Nat.one_mul] at this
+      rw [show m * (a * (s + r * n - r)) = a * m * (s + r * n - r) by
+        rw [← Nat.mul_assoc, Nat.mul_comm m a]]
+      exact this
+    have := cong_add (cong_refl n r) hstep
+    refine cong_trans this ?_
+    rw [Nat.add_comm r (s + r * n - r), hgap]
+    show (s + r * n) % n = s % n
+    rw [Nat.add_mul_mod_self_right]
 
 /-! ## The β-function's moduli
 
@@ -52,8 +155,19 @@ must be smaller than its modulus, so that reducing it changes nothing. Taking
 
 def beta (a b i : Nat) : Nat := a % betaMod b i
 
+#print axioms Cong
+#print axioms cong_mul
+#print axioms exists_inverse
+#print axioms crt
+#print axioms inverse_of_two_le
+
+#print axioms cong_refl
+#print axioms cong_trans
+#print axioms cong_add
+#print axioms cong_add_mul
+#print axioms cong_of_eq_add_mul
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (beta betaMod)
+export NumberTheory (Cong beta betaMod cong_add cong_add_mul cong_mul cong_of_eq_add_mul cong_refl cong_trans crt exists_inverse)
 end ZFSet

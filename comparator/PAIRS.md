@@ -29,6 +29,15 @@ a pair is narrower than what it matches.
 - surcharge beyond both: `[]`
 - generality: not computed here; see `formalization.yaml`
 
+## `Comparator.ChineseRemainder.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Quot.sound]`
+- rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.crt`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
 ## `Comparator.DetMul.solution`
 
 - statement certified as Mathlib's: yes
