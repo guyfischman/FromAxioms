@@ -2607,6 +2607,23 @@ theorem realLAdd_pos_of_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y 
     simp only [fst_opair, snd_opair]
     exact (mem_addLower_iff _ _ s).mpr ⟨hsQ, p, hpL, t, htL, hspt⟩
 
+/-- TWO IS A REAL. -/
+theorem realLTwo_mem : realLAdd realLOne.{u} realLOne.{u} ∈ RealL.{u} :=
+  realLAdd_mem realLOne_mem realLOne_mem
+
+/-- TWO IS POSITIVE.
+
+The field axioms alone do not give `2 ≠ 0`, since `1 + 1 = 0` in characteristic
+two, so `realLOne_ne_zero` does not reach it. The ORDER rules it out.
+-/
+theorem realLTwo_pos : realLLt realLZero.{u} (realLAdd realLOne.{u} realLOne.{u}) := by
+  have h := realLLt_add_right realLZero_mem realLOne_mem realLOne_mem realLZero_lt_one
+  rw [realLAdd_comm realLZero_mem realLOne_mem, realLAdd_zero realLOne_mem] at h
+  exact realLLt_trans realLZero_mem realLOne_mem realLTwo_mem realLZero_lt_one h
+
+#print axioms realLTwo_mem
+#print axioms realLTwo_pos
+
 /-! ## The two reals
 
 A located pair carries strictly more than a Dedekind cut, and the difference is
@@ -3298,6 +3315,13 @@ theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ Rea
   have := realLLe_add_right hc hd hb h₂
   rwa [realLAdd_comm hc hb, realLAdd_comm hd hb] at this
 
+set_option maxHeartbeats 1000000 in
+/-- Squares of negations agree. -/
+theorem realLNeg_sq {a : ZFSet.{u}} (ha : a ∈ RealL.{u}) :
+    realLMul (realLNeg a) (realLNeg a) = realLMul a a := by
+  rw [realLNeg_realLMul ha (realLNeg_mem ha), realLMul_comm ha
+    (realLNeg_mem ha), realLNeg_realLMul ha ha,
+    realLNeg_realLNeg (realLMul_mem ha ha)]
 /-- Moving a summand across `≤`, in the one direction the bracket needs. -/
 theorem realLLe_neg_of_le_add {a e : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (he : e ∈ RealL.{u}) (h : realLLe realLZero.{u} (realLAdd a e)) :
@@ -3786,5 +3810,5 @@ end Analysis
 
 
 namespace ZFSet
-export Analysis (BoundedLocated Close FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart boundsOf boundsOf_subset corners_of_refinement corners_of_refinement' disp_sub dyadicHi dyadicLo eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket glb_of_familyLocatedInf glb_of_familyLocatedInf_set infLower infUpper inf_realLLe_of_mem invLower invScale invScale_mem invUpper isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_sup le_sup_realLLe located_bracket located_eq_of_subset lowerBound_boundsOf lower_pair_bound lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_add_self realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_refl realLLe_sub_nonneg realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLSub_add_sub realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum sub_pos_of_lt supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
+export Analysis (BoundedLocated Close FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart boundsOf boundsOf_subset corners_of_refinement corners_of_refinement' disp_sub dyadicHi dyadicLo eq_zero_of_add_self_eq_zero exists_pos_lower exists_rat_bracket glb_of_familyLocatedInf glb_of_familyLocatedInf_set infLower infUpper inf_realLLe_of_mem invLower invScale invScale_mem invUpper isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_sup le_sup_realLLe located_bracket located_eq_of_subset lowerBound_boundsOf lower_pair_bound lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_one mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_zero mul_located negLower negUpper pairLe pairLe_antisymm realLAdd realLAdd_assoc realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_mul realLAdd_neg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_zero realLApart realLApart_add_self realLApart_irrefl realLApart_symm realLApart_tight realLApart_zero_one realLInv realLInvApart realLInvApart_mem realLInv_mem realLLe realLLe_add realLLe_add_right realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_refl realLLe_sub_nonneg realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_trans realLMax realLMaxList realLMin realLMinList realLMin_le_right realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_mem realLMul_neg realLMul_neg_neg realLMul_one realLMul_pos realLMul_shuffle_pair realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOne realLOne_mem realLOne_mul realLSq_pos realLSub_add_cancel realLSub_add_sub realLTwo_mem realLTwo_pos realLZero realLZero_add realLZero_lt_one realLZero_mem realLZero_mul realL_inverses shift_sub sq_sum sub_pos_of_lt supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_injective upper_eq_of_lower upper_eq_of_lower_eq upper_pair_bound upper_pos_of_witness)
 end ZFSet

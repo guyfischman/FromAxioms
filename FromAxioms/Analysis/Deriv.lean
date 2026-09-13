@@ -124,6 +124,10 @@ composition is the general fact and the affine case is an instance of it: a map
 that moves points by at most `K` times the step turns a modulus for `H` into a
 modulus for `H ∘ G`, by asking for the step `K` times smaller. -/
 
+/-- The point a fraction `t` of the way from `a` to `x`. -/
+def segment (a x t : ZFSet.{u}) : ZFSet.{u} :=
+  realLAdd a (realLMul t (realLAdd x (realLNeg a)))
+
 /-- The diameter bound. The difference of two points of `[p, q]` is within
 `q - p`, with no sign decided: each side of the bracket is the sum of the two
 one-sided estimates. -/
@@ -193,5 +197,5 @@ theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
 end Analysis
 
 namespace ZFSet
-export Analysis (TaggedPartition UniformlyContinuousOn VanishReadout exists_rat_bound realLOf_mem_realLIcc withinOf_diam withinOf_mono)
+export Analysis (TaggedPartition UniformlyContinuousOn VanishReadout exists_rat_bound realLOf_mem_realLIcc segment withinOf_diam withinOf_mono)
 end ZFSet

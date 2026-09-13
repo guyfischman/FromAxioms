@@ -1095,13 +1095,7 @@ theorem hom_pow {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ one₂ a
     rw [hom_mul hh (ringPow_mem h₁ ha k) ha, hom_pow hh h₁ ha k]
 
 /-- A ring hom respects repeated ADDITION, which is `hom_pow` above with the
-other operation and the same three lines.
-
-RELOCATED FROM `SetTheory/Extension.lean`. Everything it names ---
-`IsRingHom`, `IsRing`, `gpow`, `opAt`, `hom_zero`, `hom_add'`, `ringNsmul_mem`
---- is declared in THIS file, so the separation bought nothing and cost
-reachability: `NumberTheory.PadicRing` and `SetTheory.Extension` are SIBLINGS,
-and no import fixes a sibling. Its multiplicative twin was here all along. -/
+other operation and the same three lines. -/
 theorem hom_nsmul {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero₂ one₂ a : ZFSet.{u}}
     (hh : IsRingHom h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂)
     (h₁ : IsRing R₁ add₁ mul₁ zero₁ one₁) (h₂ : IsRing R₂ add₂ mul₂ zero₂ one₂)
@@ -1188,19 +1182,19 @@ theorem isField_of_finite_domain {R add mul zero one : ZFSet.{u}}
 `opAt mul a y`, never `opAt mul y a`.
 
 THAT ORDER DISAGREES WITH `IsIdeal.absorb`, AND THE DISAGREEMENT REPORTS AS A
-TIMEOUT RATHER THAN A MISMATCH. `absorb` concludes `opAt mul r a ∈ I` with the
-RING element first and the IDEAL element second, so showing a `ringMultiples`
-element lies in an ideal asks the elaborator to unify `opAt mul a y` against
-`opAt mul r ?x`. That does not match --- and it does not FAIL either, because the
-metavariable lets it SEARCH. Measured 2026-09-04: a five-line ideal-extensionality
-proof burned 1600000 heartbeats this way, and the missing step was one
-commutation.
+TIMEOUT RATHER THAN A MISMATCH. `absorb` concludes `opAt mul r a ∈ I` with
+the RING element first and the IDEAL element second, so showing a
+`ringMultiples` element lies in an ideal asks the elaborator to unify
+`opAt mul a y` against `opAt mul r ?x`. That does not match --- and it does not
+FAIL either, because the metavariable lets it SEARCH. A five-line
+ideal-extensionality proof can burn 1600000 heartbeats this way when the
+missing step is one commutation.
 
 So supply the commutation rather than raising `maxHeartbeats`: the limit is not
 the problem, and raising it turns a fast failure into a slow one behind a green
-build. The same order gap surfaced honestly as `Application type mismatch` in
-`idealProd_idealColon_eq_of_mem` on the same day --- whether it reports as a type
-error or as a timeout turns on whether a metavariable is in the way. -/
+build. The same order gap surfaced as `Application type mismatch` in
+`idealProd_idealColon_eq_of_mem` --- whether it reports as a type error or as a
+timeout turns on whether a metavariable is in the way. -/
 def ringMultiples (R mul a : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun w => ∃ y, y ∈ R ∧ w = opAt mul a y) R
 
@@ -1655,6 +1649,15 @@ def idealProdGens (R mul I J : ZFSet.{u}) : ZFSet.{u} := pairwiseOp R mul I J
 def idealProd (R add mul zero I J : ZFSet.{u}) : ZFSet.{u} :=
   genIdeal R add mul zero (idealProdGens R mul I J)
 
+/-! ## The uniformizer layer
+
+Lemmas about a uniformizer, general over `IsRing`. -/
+
+/-- A regular element: one that kills nothing but zero. The per-element form
+of the domain condition, which `IsCancellative` states globally. -/
+def IsRegularElt (R mul zero a : ZFSet.{u}) : Prop :=
+  ∀ x, x ∈ R → opAt mul a x = zero → x = zero
+
 /-! ## Invertibility, and the one hypothesis that makes the monoid a group
 
 Everything above is a commutative MONOID. What separates it from the class
@@ -1821,7 +1824,8 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 #print axioms mem_ringMultiples_self
 #print axioms opAt_restrictLeft_bridge
 end Algebra
+#print axioms Algebra.IsRegularElt
 #print axioms Algebra.StableVanishing
 namespace ZFSet
-export Algebra (DecidableVanishing IsCommSemiring IsEmbedding IsField IsIdeal IsInvertibleIdeal IsPrimeIdeal IsRing IsRingHom IsRingNC IsSemiring IsSubring StableVanishing addAt_mem addAt_mem_nc addAt_mem_semi cls_eq_zero_iff decidableVanishing_imageIn_of_embedding field_mul_eq_zero genIdeal gpow_zero_eq_zero hom_add hom_add' hom_app_mem hom_mul hom_mul' hom_neg hom_nsmul hom_one hom_pow hom_zero idealProd idealProdGens idealRel idealSum ideal_absorbs ideal_add ideal_inverse ideal_mem_zero ideal_neg_mem ideal_neg_mem_nc ideal_subset imageIn_id isCommSemiring_of_isRing isCongruence_idealRel_add isCongruence_idealRel_add_nc isCongruence_idealRel_mul isEmbedding_id isField_imageIn_of_embedding isField_of_finite_domain isField_quotient_of_prime isIdeal_ringMultiples isRingHom_id isRing_congQuotient isRing_quotientByIdeal isRing_subring isSubring_imageIn isSubring_imageIn_of_subring mem_ringMultiples_iff mem_ringMultiples_self mulAt_mem mulAt_mem_nc mulAt_mem_semi mul_zero_of_isRing mul_zero_of_isRingNC natIn opAt_restrictLeft_of_isSubring opAt_subring_add opAt_subring_mul opair_mem_idealRel_iff pairwiseOp powerList_subset_ring ringAdd_assoc ringAdd_assoc_nc ringAdd_comm ringAdd_comm_nc ringAdd_left_comm ringAdd_neg ringAdd_neg_nc ringAdd_shuffle_pair ringAdd_shuffle_pair_nc ringAdd_sub_cancel ringAdd_zero ringAdd_zero_nc ringMul_neg ringMul_neg_nc ringMul_shuffle_pair ringMul_sub ringMultiples ringNeg ringNegOne_mul ringNegOne_mul_nc ringNegOne_pow ringNeg_add ringNeg_addAt ringNeg_addAt_nc ringNeg_add_nc ringNeg_eq_of_add_zero ringNeg_mem ringNeg_mem_nc ringNeg_mul ringNeg_mul_nc ringNeg_neg ringNeg_neg_nc ringNeg_zero ringNeg_zero_nc ringNsmul ringNsmul_add ringNsmul_def ringNsmul_mem ringNsmul_mem_semi ringNsmul_mul ringNsmul_mul_semi ringNsmul_succ ringNsmul_sum ringNsmul_sum_semi ringNsmul_zero ringOne_mul ringOne_mul_nc ringOne_pow ringPow ringPow_add ringPow_def ringPow_mem ringPow_mem_semi ringPow_mul ringPow_succ ringRight_distrib ringRight_distrib_nc ringSub ringSub_addAt_nc ringSub_def ringSub_eq_zero_iff ringSub_mem ringSub_mem_nc ringSub_mul ringSub_mulAt ringSub_self ringSub_self_nc ringSub_swap ringSub_swap_nc ringSub_trans ringSub_trans_nc ringSub_zero ringZero_add ringZero_add_nc ringZero_mul stableVanishing_of_decidableVanishing units zero_mul_of_isRingNC)
+export Algebra (DecidableVanishing IsCommSemiring IsEmbedding IsField IsIdeal IsInvertibleIdeal IsPrimeIdeal IsRegularElt IsRing IsRingHom IsRingNC IsSemiring IsSubring StableVanishing addAt_mem addAt_mem_nc addAt_mem_semi cls_eq_zero_iff decidableVanishing_imageIn_of_embedding field_mul_eq_zero genIdeal gpow_zero_eq_zero hom_add hom_add' hom_app_mem hom_mul hom_mul' hom_neg hom_nsmul hom_one hom_pow hom_zero idealProd idealProdGens idealRel idealSum ideal_absorbs ideal_add ideal_inverse ideal_mem_zero ideal_neg_mem ideal_neg_mem_nc ideal_subset imageIn_id isCommSemiring_of_isRing isCongruence_idealRel_add isCongruence_idealRel_add_nc isCongruence_idealRel_mul isEmbedding_id isField_imageIn_of_embedding isField_of_finite_domain isField_quotient_of_prime isIdeal_ringMultiples isRingHom_id isRing_congQuotient isRing_quotientByIdeal isRing_subring isSubring_imageIn isSubring_imageIn_of_subring mem_ringMultiples_iff mem_ringMultiples_self mulAt_mem mulAt_mem_nc mulAt_mem_semi mul_zero_of_isRing mul_zero_of_isRingNC natIn opAt_restrictLeft_of_isSubring opAt_subring_add opAt_subring_mul opair_mem_idealRel_iff pairwiseOp powerList_subset_ring ringAdd_assoc ringAdd_assoc_nc ringAdd_comm ringAdd_comm_nc ringAdd_left_comm ringAdd_neg ringAdd_neg_nc ringAdd_shuffle_pair ringAdd_shuffle_pair_nc ringAdd_sub_cancel ringAdd_zero ringAdd_zero_nc ringMul_neg ringMul_neg_nc ringMul_shuffle_pair ringMul_sub ringMultiples ringNeg ringNegOne_mul ringNegOne_mul_nc ringNegOne_pow ringNeg_add ringNeg_addAt ringNeg_addAt_nc ringNeg_add_nc ringNeg_eq_of_add_zero ringNeg_mem ringNeg_mem_nc ringNeg_mul ringNeg_mul_nc ringNeg_neg ringNeg_neg_nc ringNeg_zero ringNeg_zero_nc ringNsmul ringNsmul_add ringNsmul_def ringNsmul_mem ringNsmul_mem_semi ringNsmul_mul ringNsmul_mul_semi ringNsmul_succ ringNsmul_sum ringNsmul_sum_semi ringNsmul_zero ringOne_mul ringOne_mul_nc ringOne_pow ringPow ringPow_add ringPow_def ringPow_mem ringPow_mem_semi ringPow_mul ringPow_succ ringRight_distrib ringRight_distrib_nc ringSub ringSub_addAt_nc ringSub_def ringSub_eq_zero_iff ringSub_mem ringSub_mem_nc ringSub_mul ringSub_mulAt ringSub_self ringSub_self_nc ringSub_swap ringSub_swap_nc ringSub_trans ringSub_trans_nc ringSub_zero ringZero_add ringZero_add_nc ringZero_mul stableVanishing_of_decidableVanishing units zero_mul_of_isRingNC)
 end ZFSet

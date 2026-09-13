@@ -2398,10 +2398,6 @@ theorem foldF_extend_monoid {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {F : Nat → ZFSet.{u}} (hF : ∀ i, F i ∈ M) (m d : Nat)
     (hz : ∀ i, i < d → F (m + i) = e) :
     foldF op e F (m + d) = foldF op e F m := by
-  -- `foldF_split` was GENERALISED upstream 2026-08-28: its membership
-  -- hypothesis moved from an unbounded first argument to a BOUNDED last one,
-  -- `∀ i, i < a + b → F i ∈ M`. Strictly the better lemma, and it breaks every
-  -- caller written against the old shape --- this call is updated to match.
   rw [foldF_split hM m d (fun i _ => hF i), foldF_zeros_monoid hM d hz,
     right_id_monoid hM (foldF_mem hM m (fun i _ => hF i))]
 

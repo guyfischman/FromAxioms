@@ -170,5 +170,9 @@
  "Geometry.HilbertIncidence": [
   "axiomatic geometry",
   -300
+ ],
+ "Geometry.sqDist_apex_left": [
+  "Euclid I.1 in coordinates",
+  -300
  ]
 }

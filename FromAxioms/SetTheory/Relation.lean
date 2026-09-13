@@ -601,23 +601,6 @@ def idOn (x : ZFSet.{u}) : ZFSet.{u} := graphOn x x (fun w => w)
 theorem app_idOn {x w : ZFSet.{u}} (hw : w ∈ x) : app (idOn x) w = w :=
   app_graphOn (fun _ hm => hm) hw
 
-/-! `idMap` AND `app_idMap` STOOD HERE AND ARE RETIRED, 2026-09-02. `idMap x`
-was `graphOn x x (fun z => z)` and `idOn x` above is `graphOn x x (fun w => w)`
---- ONE definition under two names, 66 lines apart in this file, each with its
-own accessor proved by the same one-liner.
-
-REPORTED BY `flt`, WHO PAID FOR IT WITH A RED BUILD, and that is the reason it
-is a retirement rather than a note. Elaboration crosses the defeq; `rw` does
-not. The identity-hom API was SPLIT between the two --- `polyMap_idOn` and
-`isEmbedding_idOn` at `idOn`, `isRingHom_id` at `idMap` --- so
-`const_coeff_eq_foldF_neg_of_split_self` built a hypothesis spelled `idOn` and
-got a result spelling `idMap`, and `rw [app_idOn ..]` reported the pattern
-absent from a goal that visibly contained it.
-
-`idOn` IS THE KEEPER BY MEASUREMENT, not by which read better: 744 mentions
-under `FromAxioms/` against 27. The letter reporting the pair counted only the
-identity-hom API and made it 3 against 2; taking that as a count of the tree
-would have been a peer's figure standing in for a measurement. -/
 
 /-- Two functions with disjoint domains are a function. What lets a map
 defined by cases be assembled from pieces, each of which is the graph of a

@@ -109,7 +109,7 @@ Three things about that list are load-bearing:
    it.
 
 Probed, and CLASSICAL -- each `[propext, Classical.choice, Quot.sound]`,
-re-measured in this tree 2026-09-01 with `Nat.div_pos` alongside as a control:
+measured with `Nat.div_pos` alongside as a control:
 
     Nat.div_pos            Nat.mul_lt_mul_left
     Nat.instLawfulEqOrd    Nat.instTransOrd
@@ -117,10 +117,9 @@ re-measured in this tree 2026-09-01 with `Nat.div_pos` alongside as a control:
 THE TWO INSTANCES ARE WHY THIS HALF OF THE TABLE EXISTS. The other names are
 lemmas, which a proof cites by name and a reader can find in the source text.
 `Nat.instLawfulEqOrd` and `Nat.instTransOrd` are INSTANCES: they arrive through
-Std's order machinery with nothing at the use site naming them, so a declaration
-goes classical with no classical name written anywhere in it. Finding them took
-`set_option pp.explicit true in #print` after three guesses at the instance name
-failed -- the guesses were all wrong, and the printed term is what settled it.
+Std's order machinery with nothing at the use site naming them, so a
+declaration goes classical with no classical name written anywhere in it.
+`set_option pp.explicit true in #print` shows them.
 
 WHICH IS THE SAME LESSON AS `by_cases` ONE LAYER DOWN: the door does not have
 to appear in the source. There the tactic supplied `Classical.propDecidable`
