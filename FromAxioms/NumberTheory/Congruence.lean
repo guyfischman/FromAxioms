@@ -163,6 +163,28 @@ def beta (a b i : Nat) : Nat := a % betaMod b i
 #print axioms crt
 #print axioms cong_symm
 
+/-- A congruence yields an additive witness, in one orientation or the other.
+`Nat` subtraction truncates, so `a - b` is not the difference when `b` exceeds
+`a`; naming which side is larger keeps every later step additive. -/
+theorem cong_cases {n a b : Nat} (h : Cong n a b) :
+    ∃ c, a = b + n * c ∨ b = a + n * c := by
+  unfold Cong at h
+  obtain ⟨qa, hqa⟩ : ∃ q, a / n = q := ⟨_, rfl⟩
+  obtain ⟨qb, hqb⟩ : ∃ q, b / n = q := ⟨_, rfl⟩
+  have ha : a = n * qa + a % n := by rw [← hqa]; exact (Nat.div_add_mod a n).symm
+  have hb : b = n * qb + a % n := by
+    rw [← hqb, h]; exact (Nat.div_add_mod b n).symm
+  cases Nat.le_total qa qb with
+  | inl hle =>
+    obtain ⟨d, hd⟩ : ∃ d, qb = qa + d := ⟨qb - qa, by omega⟩
+    rw [hd, Nat.mul_add] at hb
+    exact ⟨d, Or.inr (by omega)⟩
+  | inr hle =>
+    obtain ⟨d, hd⟩ : ∃ d, qa = qb + d := ⟨qa - qb, by omega⟩
+    rw [hd, Nat.mul_add] at ha
+    exact ⟨d, Or.inl (by omega)⟩
+
+
 #print axioms inverse_of_two_le
 
 #print axioms cong_refl
@@ -173,5 +195,6 @@ def beta (a b i : Nat) : Nat := a % betaMod b i
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Cong beta betaMod cong_add cong_add_mul cong_mul cong_of_eq_add_mul cong_refl cong_symm cong_trans crt exists_inverse)
+export NumberTheory (Cong beta betaMod cong_add cong_add_mul cong_cases cong_mul cong_of_eq_add_mul cong_refl cong_symm cong_trans crt exists_inverse)
+#print axioms NumberTheory.cong_cases
 end ZFSet

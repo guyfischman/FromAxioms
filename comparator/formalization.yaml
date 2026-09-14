@@ -219,3 +219,18 @@ pairs:
       two. Both sides are over Lean's `Nat`, so nothing is transferred: the pair
       is the `prodList`/`List.prod` bridge and the zero case, where
       `primeFactorsList 0` is empty and `0` is not prime.
+
+  - id: int-no-zero-div
+    date: 628
+    rows:
+      - "zero and the negative numbers"
+    mathlib: mul_eq_zero
+    mathlib_source: Mathlib/Algebra/GroupWithZero/Defs.lean:283
+    ours: NumberTheory.intMul_ne_zero
+    status: complete
+    note: >
+      Registered from the compiled proof terms rather than by hand:
+      `mathlib` is the first Mathlib proposition Lean reports the
+      challenge's witness depending on, and `ours` is the tower
+      theorem the Solution rests on. `Comparator/Audit.lean` is the
+      instrument and re-derives both.

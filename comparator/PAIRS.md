@@ -63,6 +63,21 @@ a pair is narrower than what it matches.
 - surcharge beyond both: `[]`
 - generality: not computed here; see `formalization.yaml`
 
+## `Comparator.IntNoZeroDiv.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Quot.sound]`
+- rests on 7 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.intMul_ne_zero`
+    - `NumberTheory.intOfLean_mem_Int`
+    - `NumberTheory.intOfLean_injective`
+    - `NumberTheory.intOfLean_zero`
+- Mathlib's own proof applies 2 theorem(s), among them
+    - `mul_eq_zero`
+    - `mul_neg`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+
 ## `Comparator.IrrationalSqrtPrime.solution`
 
 - statement certified as Mathlib's: yes

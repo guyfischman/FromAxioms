@@ -43,6 +43,7 @@ import Comparator.Bezout.Solution
 import Comparator.ChineseRemainder.Solution
 import Comparator.InfinitudePrimes.Solution
 import Comparator.UniqueFactorisation.Solution
+import Comparator.IntNoZeroDiv.Solution
 
 open Lean
 
@@ -161,7 +162,8 @@ def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.Bezout, `Nat.gcd_eq_gcd_ab),
   (`Comparator.ChineseRemainder, `Nat.chineseRemainder),
   (`Comparator.InfinitudePrimes, `Nat.exists_infinite_primes),
-  (`Comparator.UniqueFactorisation, `Nat.primeFactorsList_unique)]
+  (`Comparator.UniqueFactorisation, `Nat.primeFactorsList_unique),
+  (`Comparator.IntNoZeroDiv, `mul_eq_zero)]
 
 /-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
 
