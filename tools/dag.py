@@ -310,19 +310,34 @@ def graph():
     # principle's level is the longest chain of proved implications from it
     # down to other principles on the rail, so principles no proof separates
     # share a level, and a lower row always means a proved implication.
-    placed = [s for s in princ if s not in unranked]
-    below = {s: {t for t in placed if t != s and t.lower() in _derives(s.lower())}
+    #
+    # PRINCIPLES THAT IMPLY EACH OTHER ARE ONE CLASS, and share a level. Counting
+    # chains through a cycle made each level depend on which member the walk
+    # reached first, which followed the hash seed. Levels are counted over the
+    # classes, which form no cycle, in sorted order.
+    placed = sorted(s for s in princ if s not in unranked)
+    derived = {s: _derives(s.lower()) for s in placed}
+    below = {s: {t for t in placed if t != s and t.lower() in derived[s]}
              for s in placed}
-    level = {}
-
-    def _level(s, seen=()):
-        if s not in level:
-            level[s] = 0 if not below[s] else 1 + max(
-                _level(x, seen + (s,)) for x in below[s] if x not in seen)
-        return level[s]
-
+    klass = {}
     for s in placed:
-        _level(s)
+        if s not in klass:
+            members = sorted([s] + [t for t in below[s] if s in below[t]])
+            for m in members:
+                klass[m] = members[0]
+    reps = sorted(set(klass.values()))
+    under = {r: sorted({klass[t] for s in placed if klass[s] == r
+                        for t in below[s]} - {r}) for r in reps}
+    rlevel = {}
+
+    def _level(r):
+        if r not in rlevel:
+            rlevel[r] = 0 if not under[r] else 1 + max(_level(x) for x in under[r])
+        return rlevel[r]
+
+    for r in reps:
+        _level(r)
+    level = {s: rlevel[klass[s]] for s in placed}
     ranked = sorted(placed, key=lambda s: (level[s], s)) + sorted(unranked)
     pr_idx = {s: len(names) + 2 + i for i, s in enumerate(ranked)}
     ax_idx["Classical.choice"] = len(names) + 2 + len(ranked)
