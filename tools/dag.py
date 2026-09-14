@@ -282,8 +282,23 @@ def graph():
                     changed = True
         return have - {start}
 
-    strength = {s: len(_derives(s.lower())) for s in princ}
-    ranked = sorted(princ, key=lambda s: (strength[s], s))
+    # HYPOTHESES THE REGISTRY NAMES BESIDE A PROOF, which the lattice may not
+    # know. `BinaryDCOn` is what the exact intermediate value theorem's proof
+    # takes, and with no lattice node it was on no rail at all. It is drawn,
+    # but not ranked: its place in the strength order is the lattice's to give.
+    lattice_keys = {n.lower() for n in lat["nodes"]}
+    unranked = set()
+    for e in equivs:
+        for x in list(e.get("extra", [])) + list(e.get("forward_extra", [])):
+            if x.lower() in lattice_keys or any(s.lower() == x.lower() for s in princ):
+                continue
+            full = next((n for n in names if n.split(".")[-1].lower() == x.lower()
+                         and by[n].get("isPropDef")), None)
+            if full and any(full in by[n].get("refs", ()) and n != full for n in names):
+                princ[full.split(".")[-1]] = full
+                unranked.add(full.split(".")[-1])
+    strength = {s: len(_derives(s.lower())) for s in princ if s not in unranked}
+    ranked = sorted(strength, key=lambda s: (strength[s], s)) + sorted(unranked)
     pr_idx = {s: len(names) + 2 + i for i, s in enumerate(ranked)}
     ax_idx["Classical.choice"] = len(names) + 2 + len(ranked)
     nodes = [{
@@ -419,7 +434,8 @@ def graph():
     for i, s in enumerate(ranked):
         nodes.append({"n": s, "f": princ[s], "m": "(principle)",
                       "k": "principle", "l": -1, "a": [], "i": [], "d": 0,
-                      "lm": "", "r": i + 1, "u": _decl_url(by, princ[s])})
+                      "lm": "", "r": i + 1, "u": _decl_url(by, princ[s]),
+                      **({"ur": True} if s in unranked else {})})
     nodes.append({"n": "Classical.choice", "f": "Classical.choice",
                   "m": "(kernel axiom)", "k": "axiom", "l": -1,
                   "a": ["Classical.choice"], "i": [], "d": 0, "lm": "",
@@ -454,6 +470,12 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
     for s, full in princ.items():
         if full in priced:
             out.append(f"`{full}` is a priced landmark statement on the rail")
+    # Every principle a drawn bracket names is on the rail.
+    for nd in nodes:
+        for r in (nd.get("br") or {}).get("used") or ():
+            if r["p"] not in princ:
+                out.append(f"landmark `{nd['f']}` uses `{r['p']}`, which is not "
+                           f"on the principle rail")
     # Every link into this repository lands on its line.
     def need(url, what):
         if not url or "#L" not in url:
@@ -569,15 +591,21 @@ Object.entries(byL).forEach(([l,col]) =>
 // order the lattice's own closure puts them, and Classical.choice at the bottom
 // because it proves em, which is the top of the lattice. Reading down the rail
 // is reading up in strength, which is the picture's actual claim.
+// Unranked principles last, below `Classical.choice`: the ranked order ends
+// at choice, and what the lattice has not placed sits outside it.
 const RAIL = N.filter(n=>n.k==='axiom'||n.k==='principle')
-              .sort((a,b)=>a.r-b.r);
+              .sort((a,b)=>(!!a.ur - !!b.ur) || a.r-b.r);
 RAIL.forEach((n,i)=>{ n.x=40; n.y=120+i*44; });
-const RMAX = Math.max(1, ...RAIL.map(n=>n.r));
+// Ranked principles set the colour scale; an unranked one has no strength to
+// map, so it takes a neutral grey rather than a hue that would claim one.
+const RMAX = Math.max(1, ...RAIL.filter(n=>!n.ur).map(n=>n.r));
+const FIRST_UR = RAIL.findIndex(n=>n.ur);
 // A spectrum, not four fixed colours: each strength gets its own hue, and two
 // principles the lattice cannot separate share one. Blue is cheap, red is
 // Classical.choice -- the same reading as everywhere else in the project.
 function railHue(r){ return 210 - 210*(r/RMAX); }
-function railCol(n){ return 'hsl(' + railHue(n.r) + ' 62%% 45%%)'; }
+function railCol(n){ return n.ur ? 'hsl(215 12%% 48%%)'
+                              : 'hsl(' + railHue(n.r) + ' 62%% 45%%)'; }
 // What is the STRONGEST root reaching each declaration. Computed once: an
 // edge's colour is the strongest assumption flowing down it, so a reader can
 // see the price of a region without selecting anything.
@@ -706,9 +734,12 @@ function draw(){
   // position each frame keeps it on the left edge at every zoom, and because
   // it goes through the same px/py override as everything else, its edges and
   // hit-testing need no special case.
+  // UNRANKED PRINCIPLES SIT APART, below a gap and a label, so the rail's
+  // order still reads as strength: nothing has placed them in it.
+  const gap = i => (FIRST_UR >= 0 && i >= FIRST_UR) ? 34 : 0;
   RAIL.forEach((n,i)=>{
     n.px = (14 - view.x)/view.s;
-    n.py = (70 + i*24 - view.y)/view.s; });
+    n.py = (70 + i*24 + gap(i) - view.y)/view.s; });
   const line=css('--line'), red=css('--red'), blue=css('--blue'),
         amber=css('--amber'), ink=css('--ink');
   g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height);
@@ -769,6 +800,17 @@ function draw(){
       g.setLineDash(PSEL.direct.has(id) ? [] : [5/view.s, 4/view.s]);
       g.beginPath(); g.moveTo(X(sel),Y(sel)); g.lineTo(X(m),Y(m)); g.stroke(); }
     g.setLineDash([]); g.globalAlpha = 1; }
+  // A SELECTED LANDMARK'S BRACKET, drawn. Its principles reach it through the
+  // proof, and where the landmark is a statement that proof sits downstream
+  // of it, so no dependency edge joins them and the cone showed nothing from
+  // `SignDisjunction` to the intermediate value theorem.
+  if(sel && sel.br){
+    const want = new Set([...(sel.br.used || []), ...sel.br.rev].map(r => r.p));
+    g.lineWidth = 1.2/view.s; g.globalAlpha = 0.9;
+    for(const r of RAIL){ if(!want.has(r.n)) continue;
+      g.strokeStyle = railCol(r);
+      g.beginPath(); g.moveTo(X(r),Y(r)); g.lineTo(X(sel),Y(sel)); g.stroke(); }
+    g.globalAlpha = 1; }
   if(sel && !PSEL){ g.lineWidth=1.0/view.s; g.globalAlpha=0.85;
     // Every edge INSIDE the cone, not just the selected node's own -- and each
     // in the colour of the strongest assumption reaching its target, so the
@@ -918,6 +960,11 @@ function draw(){
       g.globalAlpha = (sel && !foc) ? 0.28 : 1;
       g.fillStyle=ink; g.fillText(s, x, y); }
     g.globalAlpha=1; }
+  if(FIRST_UR >= 0){
+    const n = RAIL[FIRST_UR];
+    g.font = '600 '+(10/view.s)+'px ui-sans-serif, system-ui';
+    g.fillStyle = css('--muted') || '#888'; g.textAlign = 'left';
+    g.fillText('not in the lattice', X(n), Y(n) - 16/view.s); }
   for(const h of sideHead){
     g.font='700 '+(26/view.s)+'px ui-sans-serif, system-ui';
     g.fillStyle=css('--dim')||'#888'; g.textAlign='center';
