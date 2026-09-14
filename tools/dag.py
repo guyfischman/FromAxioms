@@ -51,6 +51,12 @@ KERNEL = ("propext", "Quot.sound", "Classical.choice")
 REPO = "https://github.com/guyfischman/FromAxioms/"
 _SOURCES = {}
 
+# What the page must show, checked when it is built. Each of these fails by
+# drawing LESS -- a section left out, a link without its line -- and a smaller
+# picture raises no error, so `graph()` records the reasons here and every mode
+# refuses on them.
+PROBLEMS = []
+
 
 def _decl_url(by, name):
     """The published source line declaring `name`, as a link."""
@@ -418,11 +424,62 @@ def graph():
                   "m": "(kernel axiom)", "k": "axiom", "l": -1,
                   "a": ["Classical.choice"], "i": [], "d": 0, "lm": "",
                   "r": len(ranked) + 1})
+    PROBLEMS.clear()
+    PROBLEMS.extend(_conformance(by, land, nodes, pairs, equivs, princ, priced))
     edges = [[idx[d], idx[n]] for n in names for d in deps[n]]
     edges += [[ax_idx[a], idx[n]] for n, got in intro.items() for a in got]
     edges += [[pr_idx[s], idx[n]] for s, full in princ.items()
               for n in names if full in by[n].get("refs", ()) and n != full]
     return {"nodes": nodes, "edges": edges}
+
+
+def _conformance(by, land, nodes, pairs, equivs, princ, priced):
+    """Everything the page should show and would silently not."""
+    out = []
+    drawn = {what for what, _yr in land.values()}
+    # A pair attaches to its landmark by the row label, exactly.
+    for row, rec in sorted(pairs.items()):
+        if row not in drawn:
+            out.append(f"pair `{rec['id']}` matches the row `{row}`, which no "
+                       f"drawn landmark carries")
+        if rec["ml"] and not rec["mlu"]:
+            out.append(f"pair `{rec['id']}` names `{rec['ml']}` with no pinned "
+                       f"source to link")
+    # A registry landmark whose statement is published is drawn.
+    for e in equivs:
+        if e.get("landmark") and e["statement"] in by and e["landmark"] not in drawn:
+            out.append(f"`{e['statement']}` is published and priced as "
+                       f"`{e['landmark']}`, which is not drawn")
+    # A priced statement is a result, never a principle on the rail.
+    for s, full in princ.items():
+        if full in priced:
+            out.append(f"`{full}` is a priced landmark statement on the rail")
+    # Every link into this repository lands on its line.
+    def need(url, what):
+        if not url or "#L" not in url:
+            out.append(f"{what} has no link to its line")
+    for nd in nodes:
+        if not nd.get("lm"):
+            continue
+        need(nd.get("u"), f"landmark `{nd['f']}`")
+        br = nd["br"]
+        for r in br["rev"]:
+            need(r["pu"], f"principle `{r['p']}`")
+            need(r["bu"], f"reversal `{r['by']}`")
+        if br["via"]:
+            need(br["vu"], f"proof `{br['via']}`")
+        for r in br["used"] or ():
+            need(r["pu"], f"principle `{r['p']}`")
+    return sorted(set(out))
+
+
+def _refuse():
+    if not PROBLEMS:
+        return False
+    print(f"  dag.py: the page would omit {len(PROBLEMS)} thing(s) it should show:")
+    for p in PROBLEMS:
+        print(f"    {p}")
+    return True
 
 
 def _topo(by, deps):
@@ -1247,7 +1304,18 @@ def main():
     ap = argparse.ArgumentParser(description="The dependency DAG, as a page.")
     ap.add_argument("--record", action="store_true")
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--conform", action="store_true",
+                    help="only check what the page must show")
     args = ap.parse_args()
+
+    if args.conform:
+        if graph() is None:
+            print("  dag.py: the elaborated export is not current; nothing checked")
+            return 1
+        if _refuse():
+            return 1
+        print("  OK -- every landmark, pair and link the page must show is there")
+        return 0
 
     fresh = page()
     if fresh is None:
@@ -1276,6 +1344,8 @@ def main():
     # for this and geometry hit it once; the `page() is None` NOTE above fires
     # only when the export is ABSENT, never when it is merely stale, which is
     # the case that costs anything.
+    if _refuse():
+        return 1
     OUT.parent.mkdir(exist_ok=True)
     if args.record:
         OUT.write_text(fresh)
