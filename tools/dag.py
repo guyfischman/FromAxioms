@@ -237,7 +237,14 @@ def graph():
     # it would read as something other theorems pay for.
     equivs = json.loads((ROOT / "tools" / "classical.json").read_text()) \
         .get("_equivalences", [])
-    priced = {e["statement"] for e in equivs if e.get("landmark")}
+    # EVERY STATEMENT THE REGISTRY PRICES, landmark or not: `SubsetFinite` is
+    # equivalent to excluded middle and carries no landmark, and it is a
+    # result the lattice places, never a principle other theorems pay for.
+    priced = {e["statement"] for e in equivs}
+    # A FAMILY'S STATEMENTS ARE CALIBRATIONS, not principles: `TernaryLLPO` is
+    # the ternary walk's LLPO question and is priced at `llpo`.
+    priced |= {s for f in json.loads((ROOT / "tools" / "classical.json").read_text())
+               .get("_families", []) for s in f.get("statements", [])}
     cand = {}
     for n in names:
         s = n.split(".")[-1]
@@ -297,8 +304,26 @@ def graph():
             if full and any(full in by[n].get("refs", ()) and n != full for n in names):
                 princ[full.split(".")[-1]] = full
                 unranked.add(full.split(".")[-1])
-    strength = {s: len(_derives(s.lower())) for s in princ if s not in unranked}
-    ranked = sorted(strength, key=lambda s: (strength[s], s)) + sorted(unranked)
+    # LEVELS, NOT A RANKING. The lattice orders few pairs of principles: most
+    # are simply not compared by any published proof, and a single ranked
+    # column asserted an order between them anyway, broken alphabetically. A
+    # principle's level is the longest chain of proved implications from it
+    # down to other principles on the rail, so principles no proof separates
+    # share a level, and a lower row always means a proved implication.
+    placed = [s for s in princ if s not in unranked]
+    below = {s: {t for t in placed if t != s and t.lower() in _derives(s.lower())}
+             for s in placed}
+    level = {}
+
+    def _level(s, seen=()):
+        if s not in level:
+            level[s] = 0 if not below[s] else 1 + max(
+                _level(x, seen + (s,)) for x in below[s] if x not in seen)
+        return level[s]
+
+    for s in placed:
+        _level(s)
+    ranked = sorted(placed, key=lambda s: (level[s], s)) + sorted(unranked)
     pr_idx = {s: len(names) + 2 + i for i, s in enumerate(ranked)}
     ax_idx["Classical.choice"] = len(names) + 2 + len(ranked)
     nodes = [{
@@ -431,15 +456,17 @@ def graph():
     nodes.append({"n": "Quot.sound", "f": "Quot.sound", "m": "(kernel axiom)",
                   "k": "axiom", "l": -1, "a": ["Quot.sound"], "i": [], "d": 0,
                   "lm": "", "r": 0})
+    top = max(level.values(), default=-1) + 1
     for i, s in enumerate(ranked):
         nodes.append({"n": s, "f": princ[s], "m": "(principle)",
                       "k": "principle", "l": -1, "a": [], "i": [], "d": 0,
-                      "lm": "", "r": i + 1, "u": _decl_url(by, princ[s]),
+                      "lm": "", "r": (top + 1 if s in unranked else level[s] + 1),
+                      "u": _decl_url(by, princ[s]),
                       **({"ur": True} if s in unranked else {})})
     nodes.append({"n": "Classical.choice", "f": "Classical.choice",
                   "m": "(kernel axiom)", "k": "axiom", "l": -1,
                   "a": ["Classical.choice"], "i": [], "d": 0, "lm": "",
-                  "r": len(ranked) + 1})
+                  "r": top + 1})
     PROBLEMS.clear()
     PROBLEMS.extend(_conformance(by, land, nodes, pairs, equivs, princ, priced))
     edges = [[idx[d], idx[n]] for n in names for d in deps[n]]
@@ -591,18 +618,23 @@ Object.entries(byL).forEach(([l,col]) =>
 // order the lattice's own closure puts them, and Classical.choice at the bottom
 // because it proves em, which is the top of the lattice. Reading down the rail
 // is reading up in strength, which is the picture's actual claim.
-// Unranked principles last, below `Classical.choice`: the ranked order ends
-// at choice, and what the lattice has not placed sits outside it.
+// ROWS BY LEVEL. `r` is a level: principles no proof separates share one, and
+// sit side by side. Unranked principles come last, below `Classical.choice`,
+// since nothing has placed them.
 const RAIL = N.filter(n=>n.k==='axiom'||n.k==='principle')
-              .sort((a,b)=>(!!a.ur - !!b.ur) || a.r-b.r);
+              .sort((a,b)=>(!!a.ur - !!b.ur) || a.r-b.r || a.n.localeCompare(b.n));
 RAIL.forEach((n,i)=>{ n.x=40; n.y=120+i*44; });
 // Ranked principles set the colour scale; an unranked one has no strength to
 // map, so it takes a neutral grey rather than a hue that would claim one.
 const RMAX = Math.max(1, ...RAIL.filter(n=>!n.ur).map(n=>n.r));
 const FIRST_UR = RAIL.findIndex(n=>n.ur);
-// A spectrum, not four fixed colours: each strength gets its own hue, and two
-// principles the lattice cannot separate share one. Blue is cheap, red is
-// Classical.choice -- the same reading as everywhere else in the project.
+// One row per level; the unranked form their own row after `Classical.choice`.
+const ROWKEY = n => n.ur ? 'u' : String(n.r);
+const ROWS = [...new Set(RAIL.map(ROWKEY))];
+let RAILBOTTOM = 0;
+// A spectrum, not four fixed colours: each level gets its own hue, and
+// principles at one level share it. Blue is cheap, red is Classical.choice --
+// the same reading as everywhere else in the project.
 function railHue(r){ return 210 - 210*(r/RMAX); }
 function railCol(n){ return n.ur ? 'hsl(215 12%% 48%%)'
                               : 'hsl(' + railHue(n.r) + ' 62%% 45%%)'; }
@@ -734,12 +766,25 @@ function draw(){
   // position each frame keeps it on the left edge at every zoom, and because
   // it goes through the same px/py override as everything else, its edges and
   // hit-testing need no special case.
-  // UNRANKED PRINCIPLES SIT APART, below a gap and a label, so the rail's
-  // order still reads as strength: nothing has placed them in it.
-  const gap = i => (FIRST_UR >= 0 && i >= FIRST_UR) ? 34 : 0;
-  RAIL.forEach((n,i)=>{
-    n.px = (14 - view.x)/view.s;
-    n.py = (70 + i*24 + gap(i) - view.y)/view.s; });
+  // Screen-placed rows, boxes side by side within a row. Measured here so the
+  // positions exist before any edge is drawn from them.
+  // A level WRAPS at a fixed width, so a row of ten principles stays a block
+  // on the left rather than a line across the timeline.
+  g.setTransform(1,0,0,1,0,0);
+  g.font = '600 10px ui-sans-serif, system-ui';
+  const RAILW = 250;
+  let y = 70, prevKey = null, x = 14;
+  RAIL.forEach(n=>{
+    const key = ROWKEY(n), w = g.measureText(n.n).width + 12;
+    if(key !== prevKey){
+      if(prevKey !== null) y += 24;
+      if(n.ur) y += 30;
+      x = 14; prevKey = key; }
+    else if(x + w > 14 + RAILW){ x = 14; y += 22; }
+    n.px = (x - view.x)/view.s;
+    n.py = (y - view.y)/view.s;
+    x += w + 6; });
+  RAILBOTTOM = y + 16;
   const line=css('--line'), red=css('--red'), blue=css('--blue'),
         amber=css('--amber'), ink=css('--ink');
   g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height);
@@ -827,8 +872,7 @@ function draw(){
                                      : line;
       g.beginPath(); g.moveTo(X(A),Y(A)); g.lineTo(X(B),Y(B)); g.stroke(); }
     g.globalAlpha=1; }
-  for(const n of N){ if(!visible(n)) continue;
-    if(n.k==='axiom' || n.k==='principle'){
+  function drawRailBox(n){
       const isAx = n.k==='axiom';
       g.fillStyle = railCol(n);
       // The box is measured from its text, not fixed at 92. `CountableBoolChoice`
@@ -845,8 +889,9 @@ function draw(){
       g.fillStyle='#fff';
       g.textAlign='left'; g.fillText(n.n, X(n)+6/view.s, Y(n)+3.4/view.s);
       LABELS.push({n:n, x0:X(n), y0:Y(n)-bh/2, x1:X(n)+bw, y1:Y(n)+bh/2});
-      g.textAlign='left';
-      continue; }
+      g.textAlign='left'; }
+  for(const n of N){ if(!visible(n)) continue;
+    if(n.k==='axiom' || n.k==='principle') continue;
     const cl = n.a.indexOf('Classical.choice') >= 0;
     g.fillStyle = (hi&&cl) ? red
                 : n.i.length ? amber
@@ -965,6 +1010,14 @@ function draw(){
     g.font = '600 '+(10/view.s)+'px ui-sans-serif, system-ui';
     g.fillStyle = css('--muted') || '#888'; g.textAlign = 'left';
     g.fillText('not in the lattice', X(n), Y(n) - 16/view.s); }
+  // THE RAIL LAST, on its own panel. The timeline's axis note and the landmark
+  // labels are drawn above, and painting the rail before them put the note
+  // across its lower rows.
+  g.save(); g.setTransform(DPR,0,0,DPR,0,0);
+  g.fillStyle = css('--bg') || '#fff'; g.globalAlpha = 0.96;
+  g.fillRect(0, 56, 14 + 250 + 14, RAILBOTTOM - 44);
+  g.restore(); g.setTransform(view.s*DPR,0,0,view.s*DPR,view.x*DPR,view.y*DPR);
+  for(const n of RAIL) if(visible(n)) drawRailBox(n);
   for(const h of sideHead){
     g.font='700 '+(26/view.s)+'px ui-sans-serif, system-ui';
     g.fillStyle=css('--dim')||'#888'; g.textAlign='center';
@@ -1237,10 +1290,14 @@ function fitTo(ns, pad){
   // the canvas was made HiDPI, so this fitted the layout to a viewport twice
   // the real width: every label came out at double size and the last two
   // landmarks fell off the right edge.
-  const w = c.width/DPR - 330, h = c.height/DPR;
+  // AND THE RAIL'S PANEL ON THE LEFT. The rail is pinned to the screen and
+  // painted last, so a frame that used the full width put the earliest
+  // landmarks underneath it.
+  const left = 14 + 250 + 14;
+  const w = c.width/DPR - 330 - left, h = c.height/DPR;
   const s = Math.min((w-2*m)/Math.max(1,x1-x0), (h-2*m)/Math.max(1,y1-y0));
   view.s = Math.max(0.05, Math.min(6, s));
-  view.x = w/2 - (x0+x1)/2*view.s;
+  view.x = left + w/2 - (x0+x1)/2*view.s;
   view.y = h/2 - (y0+y1)/2*view.s;
 }
 // Changing a mode re-fits: the landmarks view used to leave the camera where
