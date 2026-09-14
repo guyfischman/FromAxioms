@@ -182,5 +182,9 @@
  "Geometry.sas": [
   "the congruence criteria",
   -300
+ ],
+ "Metamath.ExactIVT01": [
+  "the intermediate value theorem, exactly",
+  1967
  ]
 }
