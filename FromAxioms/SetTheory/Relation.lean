@@ -678,10 +678,10 @@ theorem app_natSeq {B : ZFSet.{u}} {K : Nat → ZFSet.{u}} (hK : ∀ m, K m ∈ 
 
 /-! ## Injections and surjections
 
-Stated for set functions, so that "there is an injection `x → y`" is a
-statement about sets rather than about Lean's function space. The distinction
-matters: a Lean-level function is available for refuting things about it, but
-only a set function can be quantified over inside the theory. -/
+Stated for set functions, so that "there is an injection `x → y`" is a statement
+about sets rather than about Lean's function space. The distinction matters:
+a Lean-level function is available for refuting things about it, but only a
+set function can be quantified over inside the theory. -/
 
 def IsInjection (f x y : ZFSet.{u}) : Prop :=
   IsFunction f ∧ domain f = x ∧ range f ⊆ y ∧

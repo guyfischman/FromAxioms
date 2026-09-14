@@ -733,8 +733,8 @@ are its laws, and they are what the binomial theorem needs. -/
 
 The lemmas below are stated about `gpow`. Restating them breaks every
 downstream `rw` that matches on `gpow`, because `rw` matches syntactically
-while a definition unfolds only for typechecking; migrating those call sites is
-queued separately. `ringNsmul_def` is the bridge. -/
+while a definition unfolds only for typechecking. `ringNsmul_def` is the
+bridge. -/
 def ringNsmul (add zero a : ZFSet.{u}) (k : Nat) : ZFSet.{u} := gpow add zero a k
 
 /-- The ladder is the iterate, by definition. -/

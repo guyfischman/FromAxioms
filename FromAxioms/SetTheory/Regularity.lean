@@ -29,10 +29,10 @@ the statement, `regularityProp_of_em` proves it from `EM`, and
 `em_of_regularity` derives `EM` back, so foundation over this tree's other
 axioms IS excluded middle rather than merely following from it.
 
-The obstruction is the familiar one. Knowing that no
-infinite descent exists does not hand you a minimal element; extracting one
-from `x ≠ ∅` means reasoning by contradiction, and `x ≠ ∅` carries no witness.
-That is the same barrier `Quantifiers.lean` demonstrated in Phase 1.
+The obstruction is the familiar one. Knowing that no infinite descent exists
+does not hand you a minimal element; extracting one from `x ≠ ∅` means
+reasoning by contradiction, and `x ≠ ∅` carries no witness. That is the same
+barrier `Quantifiers.lean` demonstrated in Phase 1.
 -/
 
 import FromAxioms.SetTheory.ZFSet

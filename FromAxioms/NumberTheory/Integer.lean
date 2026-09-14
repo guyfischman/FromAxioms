@@ -122,7 +122,75 @@ def intNeg (z : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun p => ∃ a b, opair a b ∈ z ∧
         ∃ s t, p = opair s t ∧ add b t = add s a) omegaPairs.{u}
 
+/-- Absolute value on the integers, and nothing is decided.
+
+`intOf a b` denotes `a - b`, and the naturals are ordered by containment, so
+`max a b` is `a ∪ b` and `min a b` is `a ∩ b`. Hence
+
+    |a - b| = (a ∪ b) - (a ∩ b)
+
+which reads no sign: union and intersection are defined without reference to the
+order, so whichever of `a`, `b` is larger, the same expression names the answer.
+
+Relational, in this file's own idiom (`intNeg`), so there is no lift obligation
+-- well-definedness is `intAbs_intOf` instead. -/
+def intAbs (z : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun p => ∃ a b, opair a b ∈ z ∧
+        ∃ s t, p = opair s t ∧ add (a ∪ b) t = add s (a ∩ b)) omegaPairs.{u}
+
+/-- The absolute value of `a - b` is `max a b - min a b`, with no comparison.
+
+No hypothesis relates `a` and `b`: the naturals are ordered by containment and
+both lattice operations are total, so the larger and the smaller are named
+rather than selected, so this absolute value reads no sign.
+
+The content is `union_inter_transfer` -- `intAbs` quantifies over an arbitrary
+representative, and the max-min pair must be the same difference on each. -/
+theorem intAbs_intOf_gen {a b : ZFSet.{u}} (ha : a ∈ omega.{u})
+    (hb : b ∈ omega.{u}) : intAbs (intOf a b) = intOf (a ∪ b) (a ∩ b) := by
+  refine ext _ _ fun p => ?_
+  refine Iff.trans (mem_sep_iff _ p _) (Iff.trans ?_
+    (mem_intOf_iff (union_mem_omega ha hb) (inter_mem_omega ha hb) p).symm)
+  constructor
+  · rintro ⟨hp, a', b', h₁, s, t, rfl, he⟩
+    obtain ⟨_, ha', _, hb', h1e, r₁⟩ := (mem_intOf_iff ha hb _).mp h₁
+    obtain ⟨rfl, rfl⟩ := opair_injective h1e
+    refine ⟨s, mem_prod_left hp, t, mem_prod_right hp, rfl, ?_⟩
+    have htr := union_inter_transfer ha hb ha' hb' r₁
+    obtain ⟨ns, rfl⟩ := (mem_omega_iff s).mp (mem_prod_left hp)
+    obtain ⟨nt, rfl⟩ := (mem_omega_iff t).mp (mem_prod_right hp)
+    obtain ⟨nu, hu⟩ := (mem_omega_iff (a ∪ b)).mp (union_mem_omega ha hb)
+    obtain ⟨ni, hi⟩ := (mem_omega_iff (a ∩ b)).mp (inter_mem_omega ha hb)
+    obtain ⟨nu', hu'⟩ := (mem_omega_iff (a' ∪ b')).mp (union_mem_omega ha' hb')
+    obtain ⟨ni', hi'⟩ := (mem_omega_iff (a' ∩ b')).mp (inter_mem_omega ha' hb')
+    rw [hu, hi]
+    rw [hu', hi'] at he
+    rw [hu, hi', hu', hi] at htr
+    rw [add_ofNat, add_ofNat] at he htr ⊢
+    have k₁ := ofNat_injective he
+    have k₂ := ofNat_injective htr
+    exact congrArg ofNat (by omega)
+  · rintro ⟨s, hs, t, ht, rfl, he⟩
+    exact ⟨opair_mem_prod hs ht, a, b,
+      mem_cls_self intRel_isEquivRel (opair_mem_prod ha hb), s, t, rfl, he⟩
+
+/-- Absolute value in the `intOf` normal form. Split out so the triangle
+inequality's rewrites stay small -- doing it inline exceeds the heartbeat limit,
+since each step unifies against a term carrying four `ofNat`s. -/
+theorem intAbs_intOf_nat (m n : Nat) :
+    intAbs (intOf (ofNat.{u} m) (ofNat.{u} n))
+      = intOf (ofNat.{u} (Nat.max m n)) (ofNat.{u} (Nat.min m n)) := by
+  rw [intAbs_intOf_gen (ofNat_mem_omega m) (ofNat_mem_omega n),
+    ofNat_union, ofNat_inter]
+
+#print axioms intAbs_intOf_nat
 #print axioms Int
+
+/-- The absolute value of a difference whose subtrahend dominates. -/
+theorem intAbs_intOf {a b : ZFSet.{u}} (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
+    (h : a ⊆ b) : intAbs (intOf a b) = intOf b a := by
+  rw [intAbs_intOf_gen ha hb, union_eq_right_of_subset h,
+    inter_eq_left_of_subset h]
 
 /-- Multiplication of integers, on the difference classes. -/
 def intMul (z w : ZFSet.{u}) : ZFSet.{u} :=
@@ -344,6 +412,61 @@ theorem intMul_intOf {a b c d : ZFSet.{u}} (ha : a ∈ omega.{u}) (hb : b ∈ om
     exact ⟨opair_mem_prod hs ht, a, b, c, d,
       mem_cls_self intRel_isEquivRel (opair_mem_prod ha hb),
       mem_cls_self intRel_isEquivRel (opair_mem_prod hc hd), s, t, rfl, he⟩
+
+/-- The absolute value is multiplicative.
+
+`|zw| = |z| |w|` on representatives. Both sides are `intOf` of a max and a min,
+so the theorem is one equation between naturals; `omega_subset_total` supplies
+the four orderings and `cross_subset` decides which of the two cross products
+is the larger in each. -/
+theorem intAbs_mul {a b c d : ZFSet.{u}} (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
+    (hc : c ∈ omega.{u}) (hd : d ∈ omega.{u}) :
+    intAbs (intMul (intOf a b) (intOf c d))
+      = intMul (intAbs (intOf a b)) (intAbs (intOf c d)) := by
+  have hU := add_mem_omega (mul_mem_omega ha hc) (mul_mem_omega hb hd)
+  have hV := add_mem_omega (mul_mem_omega ha hd) (mul_mem_omega hb hc)
+  rw [intMul_intOf ha hb hc hd, intAbs_intOf_gen hU hV,
+    intAbs_intOf_gen ha hb, intAbs_intOf_gen hc hd,
+    intMul_intOf (union_mem_omega ha hb) (inter_mem_omega ha hb)
+      (union_mem_omega hc hd) (inter_mem_omega hc hd)]
+  refine (intOf_eq_intOf_iff (union_mem_omega hU hV) (inter_mem_omega hU hV)
+    (add_mem_omega (mul_mem_omega (union_mem_omega ha hb) (union_mem_omega hc hd))
+      (mul_mem_omega (inter_mem_omega ha hb) (inter_mem_omega hc hd)))
+    (add_mem_omega (mul_mem_omega (union_mem_omega ha hb) (inter_mem_omega hc hd))
+      (mul_mem_omega (inter_mem_omega ha hb) (union_mem_omega hc hd)))).mpr ?_
+  rcases omega_subset_total hb ha with h1 | h1 <;>
+    rcases omega_subset_total hd hc with h2 | h2
+  · rw [union_eq_left_of_subset h1, inter_eq_right_of_subset h1,
+      union_eq_left_of_subset h2, inter_eq_right_of_subset h2,
+      union_eq_left_of_subset (cross_subset ha hb hc hd h1 h2),
+      inter_eq_right_of_subset (cross_subset ha hb hc hd h1 h2)]
+  · rw [union_eq_left_of_subset h1, inter_eq_right_of_subset h1,
+      union_eq_right_of_subset h2, inter_eq_left_of_subset h2,
+      union_eq_right_of_subset (cross_subset ha hb hd hc h1 h2),
+      inter_eq_left_of_subset (cross_subset ha hb hd hc h1 h2)]
+  · have h3 := cross_subset hb ha hc hd h1 h2
+    rw [add_comm (mul_mem_omega hb hd) (mul_mem_omega ha hc),
+      add_comm (mul_mem_omega hb hc) (mul_mem_omega ha hd)] at h3
+    rw [union_eq_right_of_subset h1, inter_eq_left_of_subset h1,
+      union_eq_left_of_subset h2, inter_eq_right_of_subset h2,
+      union_eq_right_of_subset h3, inter_eq_left_of_subset h3,
+      add_comm (mul_mem_omega hb hd) (mul_mem_omega ha hc),
+      add_comm (mul_mem_omega hb hc) (mul_mem_omega ha hd)]
+  · have h3 := cross_subset hb ha hd hc h1 h2
+    rw [add_comm (mul_mem_omega hb hc) (mul_mem_omega ha hd),
+      add_comm (mul_mem_omega hb hd) (mul_mem_omega ha hc)] at h3
+    rw [union_eq_right_of_subset h1, inter_eq_left_of_subset h1,
+      union_eq_right_of_subset h2, inter_eq_left_of_subset h2,
+      union_eq_left_of_subset h3, inter_eq_right_of_subset h3,
+      add_comm (mul_mem_omega hb hd) (mul_mem_omega ha hc),
+      add_comm (mul_mem_omega hb hc) (mul_mem_omega ha hd)]
+
+/-- Multiplicativity, on the integers rather than on representatives. -/
+theorem intAbs_intMul {z w : ZFSet.{u}} (hz : z ∈ Int.{u}) (hw : w ∈ Int.{u}) :
+    intAbs (intMul z w) = intMul (intAbs z) (intAbs w) := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Int_iff w).mp hw
+  exact intAbs_mul ha hb hc hd
 
 theorem intMul_mem_Int {z w : ZFSet.{u}} (hz : z ∈ Int.{u}) (hw : w ∈ Int.{u}) :
     intMul z w ∈ Int.{u} := by
@@ -1084,6 +1207,19 @@ theorem exists_intOfNat_of_intNonneg {z : ZFSet.{u}} (hz : z ∈ Int.{u})
   have h : na + 0 = na - nb + nb := by omega
   rw [h]
 
+/-- The absolute value is the integer or its negation, and the disjunction is
+decided by a comparison of naturals.
+
+Nothing here is chosen: `omega_subset_total` is a theorem, so the branch is
+computed from the representative rather than assumed. -/
+theorem intAbs_eq_self_or_neg {z : ZFSet.{u}} (hz : z ∈ Int.{u}) :
+    intAbs z = z ∨ intAbs z = intNeg z := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
+  rw [intAbs_intOf_gen ha hb, intNeg_intOf ha hb]
+  rcases omega_subset_total hb ha with h | h
+  · exact Or.inl (by rw [union_eq_left_of_subset h, inter_eq_right_of_subset h])
+  · exact Or.inr (by rw [union_eq_right_of_subset h, inter_eq_left_of_subset h])
+
 /-- `m - n` for `n ≤ m`, staying inside the numerals. -/
 theorem intOfNat_sub (m n : Nat) (h : n ≤ m) :
     intAdd (intOfNat.{u} m) (intNeg (intOfNat.{u} n)) = intOfNat.{u} (m - n) := by
@@ -1097,6 +1233,12 @@ theorem intOfNat_sub (m n : Nat) (h : n ≤ m) :
 
 /-! ## Audit -/
 
+#print axioms NumberTheory.intAbs
+#print axioms NumberTheory.intAbs_intOf_gen
+#print axioms NumberTheory.intAbs_intOf
+#print axioms NumberTheory.intAbs_mul
+#print axioms NumberTheory.intAbs_intMul
+#print axioms NumberTheory.intAbs_eq_self_or_neg
 #print axioms intRel_isEquivRel
 #print axioms intOf_eq_intOf_iff
 #print axioms intAdd_intOf
@@ -1246,5 +1388,5 @@ end NumberTheory
 #print axioms NumberTheory.intOf_succ_pos
 
 namespace ZFSet
-export NumberTheory (Int boundedInts boundedInts_subset exists_intOfNat_of_intNonneg exists_intOfNat_of_intPositive intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_le_add_left_iff intAdd_le_add_right_iff intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_right_cancel intAdd_zero intLe intLe_antisymm intLe_intOf intLe_neg_zero_iff intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_le_mul_right intMul_le_mul_right_iff intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_ne_zero intMul_neg intMul_one intMul_zero intNeg intNeg_eq_zero_iff intNeg_intAdd intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_succ_add_one intNeg_zero intNonneg intNonneg_iff intOf intOfNat intOfNat_add intOfNat_eq_iff intOfNat_injective intOfNat_le_iff intOfNat_mem_Int intOfNat_mem_intPositive intOfNat_mul intOfNat_sub intOfNat_succ intOfNat_zero intOf_eq_intOf_iff intOf_mem_Int intOf_succ_pos intOne intOne_eq_intOfNat_one intOne_le_of_intPositive intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_of_intZero_le intPositive_or_neg intPositive_subset intRel intRel_isEquivRel intZero intZero_le_of_intPositive intZero_mem_Int intZero_mul int_eq_or_ne int_lt_intOfNat_mul mem_Int_iff mem_boundedInts_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff not_intPositive_intNeg_intOfNat ofNat_mem_intPositive omegaPairs one_mem_intPositive shift_mem_boundedInts)
+export NumberTheory (Int boundedInts boundedInts_subset exists_intOfNat_of_intNonneg exists_intOfNat_of_intPositive intAbs intAbs_eq_self_or_neg intAbs_intMul intAbs_intOf intAbs_intOf_gen intAbs_intOf_nat intAbs_mul intAdd intAdd_assoc intAdd_comm intAdd_intOf intAdd_le_add_left_iff intAdd_le_add_right_iff intAdd_left_cancel intAdd_mem_Int intAdd_mem_intPositive intAdd_mul intAdd_neg intAdd_right_cancel intAdd_zero intLe intLe_antisymm intLe_intOf intLe_neg_zero_iff intLe_ofNat intLe_refl intLe_total intLe_trans intMul intMul_add intMul_assoc intMul_comm intMul_intOf intMul_le_mul_right intMul_le_mul_right_iff intMul_left_cancel intMul_mem_Int intMul_mem_intPositive intMul_mul_comm intMul_ne_zero intMul_neg intMul_one intMul_zero intNeg intNeg_eq_zero_iff intNeg_intAdd intNeg_intNeg intNeg_intOf intNeg_mem_Int intNeg_mul intNeg_succ_add_one intNeg_zero intNonneg intNonneg_iff intOf intOfNat intOfNat_add intOfNat_eq_iff intOfNat_injective intOfNat_le_iff intOfNat_mem_Int intOfNat_mem_intPositive intOfNat_mul intOfNat_sub intOfNat_succ intOfNat_zero intOf_eq_intOf_iff intOf_mem_Int intOf_succ_pos intOne intOne_eq_intOfNat_one intOne_le_of_intPositive intOne_mem_Int intOne_mul intPositive intPositive_ne_zero intPositive_ofNat intPositive_of_intZero_le intPositive_or_neg intPositive_subset intRel intRel_isEquivRel intZero intZero_le_of_intPositive intZero_mem_Int intZero_mul int_eq_or_ne int_lt_intOfNat_mul mem_Int_iff mem_boundedInts_iff mem_intOf_iff mem_intPositive_iff mem_intRel_iff mem_omegaPairs_iff not_intPositive_intNeg_intOfNat ofNat_mem_intPositive omegaPairs one_mem_intPositive shift_mem_boundedInts)
 end ZFSet

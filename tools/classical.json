@@ -55,7 +55,12 @@
   "registry was silent here, and a maintained registry is believed where it",
   "says nothing."
  ],
- "_unplaced": [],
+ "_unplaced": [
+  {
+   "principle": "NumberTheory.Eis.SplitDecision",
+   "note": "PROVED, not assumed: `NumberTheory.Eis.splitDecision` derives it with no hypothesis, so it is not a lattice node and no edge places it. `exists_irreducible_factor` still takes it as a hypothesis, which the theorem that discharges it makes unnecessary."
+  }
+ ],
  "_equivalences": [
   {
    "statement": "Constructive.TernaryZeroDecidable",
@@ -64,14 +69,6 @@
    "reversal": "Constructive.wlpo_of_ternary_zero_decidable",
    "forward": "Constructive.ternary_zero_decidable_of_wlpo",
    "note": "deciding whether a walk-built real *is* zero. One quantifier weaker than membership in its cut, and correspondingly one step down the lattice from LPO"
-  },
-  {
-   "statement": "Constructive.TernaryLLPO",
-   "principle": "llpo",
-   "landmark": "the principles of omniscience",
-   "reversal": "Constructive.llpo_of_ternary_llpo",
-   "forward": "Constructive.ternary_llpo_of_llpo",
-   "note": "of two walk-built reals that cannot both be positive, one is at most zero. The three-way form of LLPO over the ternary digits"
   },
   {
    "statement": "SetTheory.SubsetFinite",

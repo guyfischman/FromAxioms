@@ -108,3 +108,14 @@ a pair is narrower than what it matches.
 - surcharge beyond both: `[]`
 - generality: not computed here; see `formalization.yaml`
 
+## `Comparator.UniqueFactorisation.solution`
+
+- statement certified as Mathlib's: yes
+- this pair costs: `[propext, Quot.sound, Classical.choice]`
+- rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
+    - `NumberTheory.factorization_perm`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `Nat.primeFactorsList_unique`
+- surcharge beyond both: `[]`
+- generality: not computed here; see `formalization.yaml`
+

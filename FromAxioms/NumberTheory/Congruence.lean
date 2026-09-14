@@ -36,6 +36,8 @@ def Cong (n a b : Nat) : Prop := a % n = b % n
 
 theorem cong_refl (n a : Nat) : Cong n a a := rfl
 
+theorem cong_symm {n a b : Nat} (h : Cong n a b) : Cong n b a := h.symm
+
 theorem cong_trans {n a b c : Nat} (h₁ : Cong n a b) (h₂ : Cong n b c) :
     Cong n a c := h₁.trans h₂
 
@@ -159,6 +161,8 @@ def beta (a b i : Nat) : Nat := a % betaMod b i
 #print axioms cong_mul
 #print axioms exists_inverse
 #print axioms crt
+#print axioms cong_symm
+
 #print axioms inverse_of_two_le
 
 #print axioms cong_refl
@@ -169,5 +173,5 @@ def beta (a b i : Nat) : Nat := a % betaMod b i
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Cong beta betaMod cong_add cong_add_mul cong_mul cong_of_eq_add_mul cong_refl cong_trans crt exists_inverse)
+export NumberTheory (Cong beta betaMod cong_add cong_add_mul cong_mul cong_of_eq_add_mul cong_refl cong_symm cong_trans crt exists_inverse)
 end ZFSet

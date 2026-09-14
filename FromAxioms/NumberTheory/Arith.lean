@@ -24,6 +24,7 @@ recursion alone does not give.
 -/
 
 import FromAxioms.NumberTheory.Natural
+import FromAxioms.SetTheory.Pair
 
 universe u
 
@@ -281,8 +282,148 @@ the ring forms do not --- it has no negation at all. -/
     mul (ofNat.{u} 1) x = x := by
   rw [mul_comm (ofNat_mem_omega 1) hx, mul_one hx]
 
+/-! ## Audit -/
+
+/-- `x ⊆ y` makes the union the larger and the intersection the smaller --
+which is `max` and `min` once the order is containment. -/
+theorem union_eq_right_of_subset {x y : ZFSet.{u}} (h : x ⊆ y) : x ∪ y = y :=
+  ext _ _ fun w => ⟨fun hw => ((mem_union_iff _ _ _).mp hw).elim (fun a => h w a) id,
+    fun hw => (mem_union_iff _ _ _).mpr (Or.inr hw)⟩
+
+theorem inter_eq_left_of_subset {x y : ZFSet.{u}} (h : x ⊆ y) : x ∩ y = x :=
+  ext _ _ fun w => ⟨fun hw => ((mem_sep_iff _ _ _).mp hw).left,
+    fun hw => (mem_sep_iff _ _ _).mpr ⟨hw, h w hw⟩⟩
+
+/-- Union of naturals is the larger, at the `ofNat` level.
+
+`exact`, not `rw`: `Nat.max_eq_right` speaks of `Max.max` while the goal
+carries `Nat.max`, and unification passes between them where a rewrite cannot.
+-/
+theorem ofNat_union (m n : Nat) :
+    ofNat.{u} m ∪ ofNat.{u} n = ofNat.{u} (Nat.max m n) := by
+  rcases Nat.le_total m n with h | h
+  · rw [union_eq_right_of_subset ((ofNat_subset_iff m n).mpr h)]
+    exact congrArg ofNat (Nat.max_eq_right h).symm
+  · rw [union_comm, union_eq_right_of_subset ((ofNat_subset_iff n m).mpr h)]
+    exact congrArg ofNat (Nat.max_eq_left h).symm
+
+/-- Intersection of naturals is the smaller, at the `ofNat` level. -/
+theorem ofNat_inter (m n : Nat) :
+    ofNat.{u} m ∩ ofNat.{u} n = ofNat.{u} (Nat.min m n) := by
+  rcases Nat.le_total m n with h | h
+  · rw [inter_eq_left_of_subset ((ofNat_subset_iff m n).mpr h)]
+    exact congrArg ofNat (Nat.min_eq_left h).symm
+  · rw [inter_comm, inter_eq_left_of_subset ((ofNat_subset_iff n m).mpr h)]
+    exact congrArg ofNat (Nat.min_eq_right h).symm
+
+/-- The comparison transfers to any representative.
+
+If `a - b = a' - b'` as integers and `a ⊆ b`, then `a' ⊆ b'`. So `intAbs` is
+well defined: the union and intersection resolve the same way on every
+representative, so the absolute value does not depend on which is chosen. -/
+theorem subset_of_rel_of_subset {a b a' b' : ZFSet.{u}}
+    (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
+    (ha' : a' ∈ omega.{u}) (hb' : b' ∈ omega.{u})
+    (r : add a b' = add a' b) (h : a ⊆ b) : a' ⊆ b' := by
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨na', rfl⟩ := (mem_omega_iff a').mp ha'
+  obtain ⟨nb', rfl⟩ := (mem_omega_iff b').mp hb'
+  rw [add_ofNat, add_ofNat] at r
+  have k := ofNat_injective r
+  have hle := (ofNat_subset_iff na nb).mp h
+  exact (ofNat_subset_iff na' nb').mpr (by omega)
+
+/-- The naturals are closed under union: it is the larger of the two. -/
+theorem union_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u})
+    (hy : y ∈ omega.{u}) : x ∪ y ∈ omega.{u} := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
+  rw [ofNat_union]
+  exact ofNat_mem_omega _
+
+/-- The naturals are closed under intersection: it is the smaller. -/
+theorem inter_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u})
+    (hy : y ∈ omega.{u}) : x ∩ y ∈ omega.{u} := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
+  rw [ofNat_inter]
+  exact ofNat_mem_omega _
+
+theorem union_eq_left_of_subset {x y : ZFSet.{u}} (h : y ⊆ x) : x ∪ y = x :=
+  Eq.trans (union_comm x y) (union_eq_right_of_subset h)
+
+theorem inter_eq_right_of_subset {x y : ZFSet.{u}} (h : y ⊆ x) : x ∩ y = y :=
+  Eq.trans (inter_comm x y) (inter_eq_left_of_subset h)
+
+/-- The cross products are ordered by their factors.
+
+If `b ⊆ a` and `d ⊆ c` then `ad + bc ⊆ ac + bd`, the gap being the product of
+the two differences. The one nonlinear step in the arithmetic of an absolute
+value, and it closes because writing `a = b + p` and `c = d + q` turns every
+term into a sum of products of the base variables -- which `omega` compares as
+opaque atoms. -/
+theorem cross_subset {a b c d : ZFSet.{u}}
+    (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
+    (hc : c ∈ omega.{u}) (hd : d ∈ omega.{u})
+    (h1 : b ⊆ a) (h2 : d ⊆ c) :
+    add (mul a d) (mul b c) ⊆ add (mul a c) (mul b d) := by
+  obtain ⟨na, rfl⟩ := (mem_omega_iff a).mp ha
+  obtain ⟨nb, rfl⟩ := (mem_omega_iff b).mp hb
+  obtain ⟨nc, rfl⟩ := (mem_omega_iff c).mp hc
+  obtain ⟨nd, rfl⟩ := (mem_omega_iff d).mp hd
+  have k1 := (ofNat_subset_iff nb na).mp h1
+  have k2 := (ofNat_subset_iff nd nc).mp h2
+  rw [mul_ofNat, mul_ofNat, mul_ofNat, mul_ofNat, add_ofNat, add_ofNat]
+  refine (ofNat_subset_iff _ _).mpr ?_
+  obtain ⟨p, rfl⟩ := Nat.exists_eq_add_of_le k1
+  obtain ⟨q, rfl⟩ := Nat.exists_eq_add_of_le k2
+  simp only [Nat.add_mul, Nat.mul_add]
+  omega
+
+/-- The max-min pair transfers along a difference relation.
+
+From `a + b' = a' + b` -- the relation defining an integer's difference class --
+the pair `(max, min)` moves to the other representative: `(a ∪ b) - (a ∩ b)` and
+`(a' ∪ b') - (a' ∩ b')` are the same difference.
+
+So an absolute value on the integers is well defined without reading a sign.
+`subset_of_rel_of_subset` carries the comparison across, and then each side's
+union and intersection resolve to the same two sets, so the identity is
+commutativity of `add` rather than arithmetic. -/
+theorem union_inter_transfer {a b a' b' : ZFSet.{u}}
+    (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
+    (ha' : a' ∈ omega.{u}) (hb' : b' ∈ omega.{u})
+    (r : add a b' = add a' b) :
+    add (a ∪ b) (a' ∩ b') = add (a' ∪ b') (a ∩ b) := by
+  rcases omega_subset_total ha hb with h | h
+  · have h' := subset_of_rel_of_subset ha hb ha' hb' r h
+    rw [union_eq_right_of_subset h, inter_eq_left_of_subset h,
+      union_eq_right_of_subset h', inter_eq_left_of_subset h',
+      add_comm hb ha', ← r, add_comm ha hb']
+  · have r' : add b a' = add b' a := by
+      rw [add_comm hb ha', add_comm hb' ha]; exact r.symm
+    have h' := subset_of_rel_of_subset hb ha hb' ha' r' h
+    have e1 : a ∪ b = a := Eq.trans (union_comm a b) (union_eq_right_of_subset h)
+    have e2 : a ∩ b = b := Eq.trans (inter_comm a b) (inter_eq_left_of_subset h)
+    have e3 : a' ∪ b' = a' :=
+      Eq.trans (union_comm a' b') (union_eq_right_of_subset h')
+    have e4 : a' ∩ b' = b' :=
+      Eq.trans (inter_comm a' b') (inter_eq_left_of_subset h')
+    rw [e1, e2, e3, e4]
+    exact r
+
+#print axioms NumberTheory.union_eq_right_of_subset
 #print axioms mem_add_iff
 #print axioms add_empty
+#print axioms NumberTheory.inter_eq_left_of_subset
+#print axioms NumberTheory.ofNat_union
+#print axioms NumberTheory.ofNat_inter
+#print axioms NumberTheory.cross_subset
+#print axioms NumberTheory.union_mem_omega
+#print axioms NumberTheory.inter_mem_omega
+#print axioms NumberTheory.union_inter_transfer
+#print axioms NumberTheory.subset_of_rel_of_subset
 #print axioms add
 #print axioms add_succ
 #print axioms add_ofNat
@@ -300,8 +441,10 @@ the ring forms do not --- it has no negation at all. -/
 #print axioms mul_mem_omega
 #print axioms mul_succ
 #print axioms mul_comm
+#print axioms union_eq_left_of_subset
+#print axioms inter_eq_right_of_subset
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ empty_add mem_add_iff mem_mul_iff mul mul_add mul_comm mul_empty mul_mem_omega mul_ofNat mul_succ)
+export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ cross_subset empty_add inter_eq_left_of_subset inter_eq_right_of_subset inter_mem_omega mem_add_iff mem_mul_iff mul mul_add mul_comm mul_empty mul_mem_omega mul_ofNat mul_succ ofNat_inter ofNat_union subset_of_rel_of_subset union_eq_left_of_subset union_eq_right_of_subset union_inter_transfer union_mem_omega)
 end ZFSet

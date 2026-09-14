@@ -202,3 +202,20 @@ pairs:
       Both sides quantify over Lean's `Nat`, so nothing is transferred; the only
       step is `Comparator/Bridge/NatPrime.lean`, which relates the two spellings
       of primality as an iff and is shared with `irrational-sqrt-prime`.
+
+  - id: unique-factorisation
+    date: 1801
+    rows:
+      - "unique factorisation"
+    mathlib: Nat.primeFactorsList_unique
+    mathlib_source: Mathlib/Data/Nat/Factors.lean:173
+    ours: NumberTheory.factorization_perm
+    status: complete
+    note: >
+      `Nat.factors_unique`, which the registry named, does not exist --- mathlib
+      renamed the family to `primeFactorsList`. Mathlib's statement is relative
+      to that canonical list; ours is symmetric, so mathlib's is the instance at
+      `l₂ := primeFactorsList n` and the tower's theorem is the stronger of the
+      two. Both sides are over Lean's `Nat`, so nothing is transferred: the pair
+      is the `prodList`/`List.prod` bridge and the zero case, where
+      `primeFactorsList 0` is empty and `0` is not prime.
