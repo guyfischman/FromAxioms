@@ -77,6 +77,9 @@ instance : Membership ZFSet.{u} ZFSet.{u} := ⟨fun x w => SetTheory.Mem w x⟩
 
 instance : HasSubset ZFSet.{u} := ⟨fun x y => ∀ w : ZFSet.{u}, w ∈ x → w ∈ y⟩
 
+theorem subset_def (x y : ZFSet.{u}) : x ⊆ y ↔ ∀ w : ZFSet.{u}, w ∈ x → w ∈ y :=
+  Iff.rfl
+
 /-- `ZFSet` is a `def` for a `Quotient`, so unification will happily unfold it
 and then fail to find the `Membership ZFSet ZFSet` instance. Supplying the
 motive explicitly, at type `ZFSet`, keeps instance resolution on the rails. -/
@@ -210,6 +213,7 @@ theorem succ_mem_omega : ∀ x : ZFSet.{u}, x ∈ omega.{u} → succ x ∈ omega
 #print axioms omega            -- INFINITY, as the constructor
 
 #print axioms mk_eq_mk
+#print axioms subset_def
 #print axioms mk_subset_mk
 #print axioms ext_iff
 #print axioms mem_insert_iff
@@ -217,5 +221,5 @@ theorem succ_mem_omega : ∀ x : ZFSet.{u}, x ∈ omega.{u} → succ x ∈ omega
 end SetTheory
 
 namespace ZFSet
-export SetTheory (Mem empty empty_mem_omega ext ext_iff insert mem_insert_iff mem_pair_iff mem_powerset_iff mem_sUnion_iff mem_sep_iff mk mk_eq_mk mk_subset_mk not_mem_empty omega pair powerset sUnion sep succ succ_mem_omega)
+export SetTheory (Mem empty empty_mem_omega ext ext_iff insert mem_insert_iff mem_pair_iff mem_powerset_iff mem_sUnion_iff mem_sep_iff mk mk_eq_mk mk_subset_mk not_mem_empty omega pair powerset sUnion sep subset_def succ succ_mem_omega)
 end ZFSet

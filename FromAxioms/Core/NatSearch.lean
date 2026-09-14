@@ -92,6 +92,58 @@ theorem exists_least {Q : Nat → Prop} (hdec : ∀ n, Q n ∨ ¬ Q n) :
     · exact ih j hj hQj
     · exact ⟨n, hQ, hno⟩
 
+/-- The largest member, or zero for an empty list. -/
+def listMax : List Nat → Nat
+  | [] => 0
+  | e :: es => max e (listMax es)
+
+/-- The smallest member, or zero for an empty list. -/
+def listMin : List Nat → Nat
+  | [] => 0
+  | e :: es => min e (listMin es)
+
+theorem le_listMax : ∀ (l : List Nat) (e : Nat), e ∈ l → e ≤ listMax l
+  | [], e, he => absurd he (by simp)
+  | a :: t, e, he => by
+    have hstep : listMax (a :: t) = max a (listMax t) := rfl
+    cases he with
+    | head => rw [hstep]; omega
+    | tail _ ht =>
+      have := le_listMax t e ht
+      rw [hstep]
+      omega
+
+theorem listMin_le : ∀ (l : List Nat) (e : Nat), e ∈ l → listMin l ≤ e
+  | [], e, he => absurd he (by simp)
+  | a :: t, e, he => by
+    have hstep : listMin (a :: t) = min a (listMin t) := rfl
+    cases he with
+    | head => rw [hstep]; omega
+    | tail _ ht =>
+      have := listMin_le t e ht
+      rw [hstep]
+      omega
+
+theorem listMax_mem : ∀ (l : List Nat), l ≠ [] → listMax l ∈ l
+  | [], h => absurd rfl h
+  | a :: t, _ => by
+    show max a (listMax t) ∈ a :: t
+    rcases Nat.le_total (listMax t) a with hle | hle
+    · have hm : max a (listMax t) = a := by omega
+      rw [hm]
+      exact List.Mem.head _
+    · cases t with
+      | nil =>
+        have h0 : listMax ([] : List Nat) = 0 := rfl
+        have hm : max a (listMax ([] : List Nat)) = a := by omega
+        rw [hm]
+        exact List.Mem.head _
+      | cons b r =>
+        have hm : max a (listMax (b :: r)) = listMax (b :: r) := by omega
+        rw [hm]
+        exact List.Mem.tail _
+          (listMax_mem (b :: r) (fun h => List.noConfusion h))
+
 /-! ## Unbounded search over a decidable sequence
 
 `Nat.find` is not in core against this toolchain, and BD-N's diagonal needs the
@@ -101,6 +153,92 @@ existential steers it through `Acc` -- the one place a `Prop` may drive a
 computation without choice. The interface takes `α : Nat → Bool`, not a
 `Prop`-valued disjunction, because a `Prop`-level `Or` cannot eliminate into
 data. -/
+
+/-- One step up the walk, allowed only over a miss. -/
+def seekStep (α : Nat → Bool) (a b : Nat) : Prop :=
+  And (a = b + 1) (α b = false)
+
+/-- A point with a hit above it is accessible: the walk cannot step past the
+hit. The induction is on the distance to the witness. -/
+theorem seekStep_acc (α : Nat → Bool) :
+    ∀ (m n : Nat), α (n + m) = true → Acc (seekStep α) n
+  | 0, n, h =>
+    Acc.intro n (fun _ hs => Bool.noConfusion (h.symm.trans hs.right))
+  | m + 1, n, h =>
+    Acc.intro n (fun a hs => by
+      rw [hs.left]
+      exact seekStep_acc α m (n + 1) (by
+        rw [show n + 1 + m = n + (m + 1) from by omega]
+        exact h))
+
+/-- The walk itself: stop at a hit, step over a miss. Structural on the
+accessibility proof, so it computes. -/
+noncomputable def seekFrom (α : Nat → Bool) :
+    (n : Nat) → Acc (seekStep α) n → Nat :=
+  fun _ a =>
+    Acc.rec (motive := fun _ _ => Nat)
+      (fun n _ ih =>
+        match h : α n with
+        | true => n
+        | false => ih (n + 1) ⟨rfl, h⟩)
+      a
+
+/-- The search: the existential steers, the walk computes -- at the
+kernel; the code generator does not support `Acc.rec`, which is a fact about
+the compiler backend and not about choice. -/
+noncomputable def natFind (α : Nat → Bool) (h : ∃ n, α n = true) : Nat :=
+  seekFrom α 0 (h.elim (fun m hm => seekStep_acc α m 0 (by
+    rw [show 0 + m = m from by omega]
+    exact hm)))
+
+/-- The walk finds a hit. -/
+theorem seekFrom_hit (α : Nat → Bool) :
+    ∀ (n : Nat) (a : Acc (seekStep α) n), α (seekFrom α n a) = true := by
+  intro n a
+  induction a with
+  | intro n hchild ih =>
+    show α (match h : α n with
+      | true => n
+      | false => seekFrom α (n + 1) (hchild (n + 1) ⟨rfl, h⟩)) = true
+    split
+    case h_1 heq => exact heq
+    case h_2 heq => exact ih (n + 1) ⟨rfl, heq⟩
+
+/-- Everything the walk stepped over was a miss. -/
+theorem seekFrom_least (α : Nat → Bool) :
+    ∀ (n : Nat) (a : Acc (seekStep α) n) (k : Nat), n ≤ k →
+      k < seekFrom α n a → α k = false := by
+  intro n a
+  induction a with
+  | intro n hchild ih =>
+    intro k hnk hk
+    rw [show seekFrom α n (Acc.intro n hchild)
+        = (match h : α n with
+          | true => n
+          | false => seekFrom α (n + 1) (hchild (n + 1) ⟨rfl, h⟩))
+      from rfl] at hk
+    rcases Nat.lt_or_ge k (n + 1) with hlt | hge
+    · have hkn : k = n := by omega
+      revert hk
+      split
+      case h_1 => intro hk; exact absurd hk (by omega)
+      case h_2 heq => intro _; rw [hkn]; exact heq
+    · revert hk
+      split
+      case h_1 => intro hk; exact absurd hk (by omega)
+      case h_2 heq =>
+        intro hk
+        exact ih (n + 1) ⟨rfl, heq⟩ k hge hk
+
+/-- `natFind` hits. -/
+theorem natFind_spec (α : Nat → Bool) (h : ∃ n, α n = true) :
+    α (natFind α h) = true :=
+  seekFrom_hit α 0 _
+
+/-- `natFind` is least. -/
+theorem natFind_least (α : Nat → Bool) (h : ∃ n, α n = true) :
+    ∀ k, k < natFind α h → α k = false :=
+  fun k hk => seekFrom_least α 0 _ k (Nat.zero_le k) hk
 
 /-- The naturals below `n`, descending: `below 3 = [2, 1, 0]`.
 
@@ -131,6 +269,45 @@ theorem length_below : ∀ n : Nat, (below n).length = n
 
 #print axioms Core.mem_below
 #print axioms Core.length_below
+
+/-- The smallest of `a` and the members of `l`. Seeded with a member rather
+than with zero, the bound says something: a zero seed sits below
+every position and the window degenerates to `[0, listMax + 1)`. -/
+def minOf (a : Nat) : List Nat → Nat
+  | [] => a
+  | b :: r => min b (minOf a r)
+
+theorem minOf_le_seed (a : Nat) : ∀ l : List Nat, minOf a l ≤ a
+  | [] => Nat.le_refl a
+  | b :: r => by
+    have := minOf_le_seed a r
+    show min b (minOf a r) ≤ a
+    omega
+
+theorem minOf_le (a : Nat) : ∀ (l : List Nat) (e : Nat), e ∈ l → minOf a l ≤ e
+  | [], e, he => absurd he (by simp)
+  | b :: r, e, he => by
+    show min b (minOf a r) ≤ e
+    cases he with
+    | head => omega
+    | tail _ ht =>
+      have := minOf_le a r e ht
+      omega
+
+/-- The seeded minimum is a member, or the seed. The rational step needs
+it: the window's lower end must BE a selected position, or the strict
+inequality it has to supply has nothing to come from. -/
+theorem minOf_mem (a : Nat) : ∀ l : List Nat, minOf a l = a ∨ minOf a l ∈ l
+  | [] => Or.inl rfl
+  | b :: r => by
+    show min b (minOf a r) = a ∨ min b (minOf a r) ∈ b :: r
+    rcases Nat.le_total b (minOf a r) with hle | hle
+    · have hb : min b (minOf a r) = b := by omega
+      exact Or.inr (by rw [hb]; exact List.Mem.head _)
+    · have hb : min b (minOf a r) = minOf a r := by omega
+      rcases minOf_mem a r with h | h
+      · exact Or.inl (by rw [hb, h])
+      · exact Or.inr (by rw [hb]; exact List.Mem.tail _ h)
 
 /-! ## Bounded search: the decision, the witness, and the largest failure
 
@@ -229,17 +406,54 @@ theorem mod_ne_zero_of_between {p m : Nat}
 
 #print axioms mod_ne_zero_of_between
 
+/-! ## The reduction, finished -/
+/-- The unary crossing: a decided predicate on `Nat` has a `Bool` function.
+
+This is the schema CF_d, stated as a Prop rather than as a schema.
+Vafeiadou, A comparison of minimal systems for constructive analysis
+(arXiv:1808.00383), §3.1.1, verbatim:
+
+    CF_d   ∀x (B(x) ∨ ¬B(x)) → ∃β ∀x [ β(x) ≤ 1 & (β(x) = 0 ↔ B(x)) ]
+
+with `β` not free in `B(x)`. Her `β(x) ≤ 1` is `Bool`, and `β(x) = 0 ↔ B(x)`
+is `K i = true ↔ P i` with the polarity written the other way round.
+
+This is STATED AS a Prop rather than being the schema, because CF_d ranges over
+FORMULAS `B` of a two-sorted arithmetic, where this quantifies over
+`P : Nat → Prop`, an object of the theory. A statement is at least as strong as
+its schema, so this bounds CF_d from above and the converse is a question about
+the language rather than about the principle.
+
+Its place there: CF_d is what separates Troelstra's `EL` from Kleene's `M`.
+`AC₀₀!` entails it (Proposition 3.1), `QF-AC₀₀ + CF_d` entails `AC₀₀!`
+(Theorem 3.2), and `EL` does not prove it (Theorem 3.4). -/
+def BoolReadout1 : Prop :=
+  ∀ P : Nat → Prop, (∀ i, P i ∨ ¬ P i) →
+    ∃ K : Nat → Bool, ∀ i, (K i = true ↔ P i)
+#print axioms seekStep_acc
 #print axioms forall_lt_succ
 end Core
 
 #print axioms Core.exists_lt_or_not
 #print axioms Core.exists_pair_or_inj
 #print axioms Core.exists_least
+#print axioms Core.seekFrom_hit
+#print axioms Core.seekFrom_least
+#print axioms Core.natFind_spec
+#print axioms Core.natFind_least
+
+#print axioms Core.le_listMax
+#print axioms Core.listMin_le
+#print axioms Core.listMax_mem
+#print axioms Core.minOf
+#print axioms Core.minOf_le_seed
+#print axioms Core.minOf_le
+#print axioms Core.minOf_mem
 #print axioms Core.bounded_forall_dec
 #print axioms Core.bounded_forall_or_witness_of_or
 #print axioms Core.bounded_forall_or_witness
 #print axioms Core.prodUpto
 
 namespace ZFSet
-export Core (below bounded_forall_dec bounded_forall_or_witness bounded_forall_or_witness_of_or exists_least exists_lt_or_not exists_pair_or_inj forall_lt_succ length_below mem_below mod_ne_zero_of_between prodUpto)
+export Core (BoolReadout1 below bounded_forall_dec bounded_forall_or_witness bounded_forall_or_witness_of_or exists_least exists_lt_or_not exists_pair_or_inj forall_lt_succ le_listMax length_below listMax listMax_mem listMin listMin_le mem_below minOf minOf_le minOf_le_seed minOf_mem mod_ne_zero_of_between natFind natFind_least natFind_spec prodUpto seekFrom seekFrom_hit seekFrom_least seekStep seekStep_acc)
 end ZFSet

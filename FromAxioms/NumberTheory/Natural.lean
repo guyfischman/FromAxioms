@@ -48,7 +48,7 @@ import FromAxioms.SetTheory.Regularity
 
 universe u
 
-open SetTheory
+open Algebra SetTheory
 namespace NumberTheory
 
 /-! ## `Nat` and `omega` are the same thing -/
@@ -214,15 +214,82 @@ theorem ofNat_subset_iff (m n : Nat) : ofNat.{u} m ⊆ ofNat.{u} n ↔ m ≤ n :
     obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff w m).mp hw
     exact (mem_ofNat_iff _ n).mpr ⟨k, Nat.lt_of_lt_of_le hk h, rfl⟩
 
+/-! ## Successor against the set operations
+
+Connects `succ`, defined as `insert x x`, to the operations in `Algebra.lean`. -/
+
+@[simp] theorem succ_inter_self (x : ZFSet.{u}) : succ x ∩ x = x :=
+  ext _ _ fun w => by
+    simp only [mem_inter_iff, mem_succ_iff]
+    exact ⟨And.right, fun h => ⟨Or.inr h, h⟩⟩
+
+/-! ## Audit
+
+Everything is `[propext, Quot.sound]`. In particular `Classical.choice` does
+not appear: P4 uses `inductionOn`, the constructive half of regularity, not
+the classical existence statement. Peano arithmetic costs no choice.
+-/
+
+/-- Naturals are comparable, as a theorem rather than an assumption.
+
+Constructively, ordinals are not comparable. For the NATURALS it is free:
+`mem_omega_iff` names each as an `ofNat`, and `ofNat_subset_iff` turns
+containment into Lean's own `≤`, where `Nat.le_total` holds with no principle.
+
+The general statement is the one that costs something; this one is a fact about
+a set whose elements are all reachable by a recursion. -/
+theorem omega_subset_total {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u}) :
+    x ⊆ y ∨ y ⊆ x := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
+  exact (Nat.le_total m n).imp
+    (fun h => (ofNat_subset_iff m n).mpr h)
+    (fun h => (ofNat_subset_iff n m).mpr h)
+
 #print axioms omega_induction   -- P5
 #print axioms succ_ne_empty     -- P3
 #print axioms not_mem_mem       -- foundation, in the form P4 needs
 #print axioms succ_injective    -- P4
 #print axioms ofNat_injective
 #print axioms mem_omega_iff
+#print axioms omega_subset_total
 #print axioms omega_transitive
 #print axioms ofNat_transitive
 #print axioms empty_mem_ofNat_succ
+#print axioms succ_inter_self
+
+
+/-! ## The first two numerals
+
+Small enough to be read directly, and used wherever a bit or a two-element
+domain is wanted.
+-/
+
+theorem mem_one_iff (x : ZFSet.{u}) : x ∈ ofNat.{u} 1 ↔ x = empty.{u} := by
+  rw [ofNat_succ, ofNat_zero]
+  refine Iff.trans (mem_succ_iff x empty.{u}) ⟨fun h => ?_, Or.inl⟩
+  rcases h with he | hc
+  · exact he
+  · exact absurd hc (not_mem_empty x)
+
+theorem empty_mem_one : empty.{u} ∈ ofNat.{u} 1 := (mem_one_iff _).mpr rfl
+
+theorem empty_ne_one : empty.{u} ≠ ofNat.{u} 1 := by
+  intro he
+  have h := empty_mem_one.{u}
+  rw [← he] at h
+  exact not_mem_empty _ h
+
+/-- The disjunction is free; only reading it as data is not. -/
+theorem mem_two_cases {z : ZFSet.{u}} (h : z ∈ ofNat.{u} 2) :
+    z = empty.{u} ∨ z = ofNat.{u} 1 := by
+  rcases (mem_succ_iff z (ofNat.{u} 1)).mp h with he | hlt
+  · exact Or.inr he
+  · rcases (mem_succ_iff z (ofNat.{u} 0)).mp hlt with he | hc
+    · exact Or.inl he
+    · exact absurd hc (not_mem_empty z)
+
+
 #print axioms ofNat_zero
 #print axioms ofNat_succ
 #print axioms ofNat_mem_omega
@@ -231,8 +298,12 @@ theorem ofNat_subset_iff (m n : Nat) : ofNat.{u} m ⊆ ofNat.{u} n ↔ m ≤ n :
 #print axioms mem_of_mem_ofNat
 #print axioms mem_ofNat_iff
 #print axioms ofNat_subset_iff
+#print axioms mem_one_iff
+#print axioms empty_mem_one
+#print axioms empty_ne_one
+#print axioms mem_two_cases
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (empty_mem_ofNat_succ mem_ofNat_iff mem_of_mem_ofNat mem_omega_iff mem_succ_iff mem_succ_self not_mem_mem ofNat ofNat_injective ofNat_mem_omega ofNat_subset_iff ofNat_succ ofNat_transitive ofNat_zero omega_induction omega_transitive succ_injective succ_ne_empty)
+export NumberTheory (empty_mem_ofNat_succ empty_mem_one empty_ne_one mem_ofNat_iff mem_of_mem_ofNat mem_omega_iff mem_one_iff mem_succ_iff mem_succ_self mem_two_cases not_mem_mem ofNat ofNat_injective ofNat_mem_omega ofNat_subset_iff ofNat_succ ofNat_transitive ofNat_zero omega_induction omega_subset_total omega_transitive succ_injective succ_inter_self succ_ne_empty)
 end ZFSet

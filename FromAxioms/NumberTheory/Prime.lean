@@ -1163,6 +1163,7 @@ theorem lam_dvd_iff {x : Eis} :
 #print axioms dvd_trans
 #print axioms norm_induction
 #print axioms dvd_add
+#print axioms mul_add
 #print axioms lam_dvd_iff
 #print axioms mod_add_div
 

@@ -226,6 +226,15 @@ def snd (p : ZFSet.{u}) : ZFSet.{u} :=
 These answer for an arbitrary member, which is what a caller holding `p ∈ prod
 x y` actually has. -/
 
+/-- A member of a product is its own two components paired. The converse
+direction of `fst_opair`/`snd_opair`: the step any argument takes when it knows
+what a pair's components must be and wants the pair back. -/
+theorem opair_fst_snd {p x y : ZFSet.{u}} (h : p ∈ prod x y) :
+    opair (fst p) (snd p) = p := by
+  obtain ⟨a, -, b, -, rfl⟩ := (mem_prod_iff p x y).mp h
+  rw [fst_opair, snd_opair]
+
+
 /-- A pair's first coordinate lies in the left factor. Stated as a `Prop` so it
 can be used where destructuring the product membership cannot -- eliminating
 that existential into `Type` is what a construction avoiding a side readout
@@ -234,7 +243,15 @@ theorem fst_mem_of_mem_prod {P A B : ZFSet.{u}} (h : P ∈ prod A B) : fst P ∈
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_prod_iff P A B).mp h
   rwa [fst_opair]
 
+/-- And the second in the right factor. -/
+theorem snd_mem_of_mem_prod {P A B : ZFSet.{u}} (h : P ∈ prod A B) : snd P ∈ B := by
+  obtain ⟨a, ha, b, hb, rfl⟩ := (mem_prod_iff P A B).mp h
+  rwa [snd_opair]
+
+#print axioms opair_fst_snd
 #print axioms fst_mem_of_mem_prod
+#print axioms snd_mem_of_mem_prod
+
 /-! ## The tagged union
 
 Two sets side by side, each member carrying which side it came from. The tags
@@ -295,5 +312,5 @@ theorem mem_pairRel_iff {X a b c d : ZFSet.{u}}
 end SetTheory
 
 namespace ZFSet
-export SetTheory (empty_prod fst fst_mem_of_mem_prod fst_mem_sUnion fst_opair mem_map_of_forall_mem mem_map_of_maps mem_opair_iff mem_pairRel_iff mem_prod_iff mem_prod_left mem_prod_right opair opair_eq_opair_iff opair_injective opair_mem_powerset opair_mem_prod pair_comm pair_eq_pair_iff pair_eq_singleton_iff pair_self prod prod_empty snd snd_mem_sUnion snd_opair)
+export SetTheory (empty_prod fst fst_mem_of_mem_prod fst_mem_sUnion fst_opair mem_map_of_forall_mem mem_map_of_maps mem_opair_iff mem_pairRel_iff mem_prod_iff mem_prod_left mem_prod_right opair opair_eq_opair_iff opair_fst_snd opair_injective opair_mem_powerset opair_mem_prod pair_comm pair_eq_pair_iff pair_eq_singleton_iff pair_self prod prod_empty snd snd_mem_of_mem_prod snd_mem_sUnion snd_opair)
 end ZFSet

@@ -46,6 +46,27 @@ theorem mul_lt_mul_right' {m n k : Nat} (hk : 0 < k) (h : m < n) : m * k < n * k
   rw [Nat.add_mul, Nat.one_mul] at hstep
   omega
 
+/-- `Nat.lt_of_mul_lt_mul_left` without the axiom. -/
+theorem lt_of_mul_lt_mul_left' {a b c : Nat} (h : a * b < a * c) : b < c := by
+  rcases Nat.lt_or_ge b c with hlt | hge
+  · exact hlt
+  · exact absurd (Nat.mul_le_mul_left a hge) (by omega)
+
+/-- `List.perm_cons_erase` for `Nat`, where the equality test is decidable. -/
+theorem perm_cons_erase' : ∀ (a : Nat) (l : List Nat), a ∈ l → l.Perm (a :: l.erase a)
+  | a, [], h => absurd h (by simp)
+  | a, b :: t, h => by
+    rcases Nat.decEq b a with hne | heq
+    · have hmem : a ∈ t := by
+        rcases List.mem_cons.mp h with rfl | h'
+        · exact absurd rfl hne
+        · exact h'
+      rw [List.erase_cons_tail (by simp [hne])]
+      exact List.Perm.trans (List.Perm.cons b (perm_cons_erase' a t hmem))
+        (List.Perm.swap a b (t.erase a))
+    · subst heq
+      rw [List.erase_cons_head]
+
 /-- `Nat.pow_lt_pow_right` without the axiom. -/
 theorem pow_lt_pow_right' {b j k : Nat} (hb : 1 < b) (hjk : j < k) : b ^ j < b ^ k := by
   have hpos : 0 < b ^ j := Nat.pow_pos (by omega)
@@ -69,6 +90,9 @@ theorem pow_right_injective {b j k : Nat} (hb : 1 < b) (h : b ^ j = b ^ k) : j =
   · exact absurd h (by have := pow_lt_pow_right' hb hgt; omega)
 
 #print axioms mul_lt_mul_right'
+#print axioms lt_of_mul_lt_mul_left'
+#print axioms perm_cons_erase'
+
 /-- The split from `n <= m`, by deciding `n < m`. -/
 theorem eq_or_lt_of_le' {n m : Nat} (h : n ≤ m) : n = m ∨ n < m :=
   if hlt : n < m then Or.inr hlt
@@ -150,8 +174,46 @@ theorem div_lt_of_lt_mul' {m n k : Nat} (h : m < n * k) : m / n < k := by
 #print axioms Core.div_lt_of_lt_mul'
 
 
+/-- A number splitting as `a + M * c` with `a < M` has remainder `a`. Abstracted
+so `t` occurs ONCE -- in place, `x` appears on both sides of the goal and any
+`rw` of its decomposition rewrites the right-hand side too. -/
+theorem nat_mod_of_split {M a c t : Nat} (hlt : a < M)
+    (hx : t = a + M * c) : t % M = a := by
+  rw [hx, Nat.add_mul_mod_self_left, Nat.mod_eq_of_lt hlt]
+
+/-- `Nat.mod_pow_succ`, constructively. Core's is CLASSICAL --
+`[propext, Classical.choice, Quot.sound]` -- as are `Nat.mod_mul` and
+`Nat.mod_mul_right_div_self`. Every piece used here is not: `Nat.div_add_mod`
+and `Nat.add_mul_mod_self_left` are `[propext]`, and `Nat.mod_lt` depends on no
+axioms at all. -/
+theorem nat_mod_pow_succ {b : Nat} (hb : 0 < b) (x k : Nat) :
+    x % b ^ (k + 1) = x % b ^ k + b ^ k * (x / b ^ k % b) := by
+  have hK : 0 < b ^ k := Nat.pow_pos hb
+  have hr : x % b ^ k < b ^ k := Nat.mod_lt _ hK
+  have hq : x / b ^ k % b < b := Nat.mod_lt _ hb
+  have hlt : b ^ k * (x / b ^ k % b) + x % b ^ k < b ^ k * b := by
+    have hstep : b ^ k * (x / b ^ k % b + 1) ≤ b ^ k * b :=
+      Nat.mul_le_mul_left _ hq
+    rw [Nat.mul_succ] at hstep
+    omega
+  have hx : x = (b ^ k * (x / b ^ k % b) + x % b ^ k)
+      + b ^ k * b * (x / b ^ k / b) := by
+    have h1 := Nat.div_add_mod x (b ^ k)
+    have h2 := Nat.div_add_mod (x / b ^ k) b
+    calc x = b ^ k * (x / b ^ k) + x % b ^ k := h1.symm
+      _ = b ^ k * (b * (x / b ^ k / b) + x / b ^ k % b) + x % b ^ k := by rw [h2]
+      _ = (b ^ k * (x / b ^ k % b) + x % b ^ k)
+            + b ^ k * b * (x / b ^ k / b) := by
+          rw [Nat.mul_add, ← Nat.mul_assoc]
+          omega
+  rw [Nat.pow_succ, nat_mod_of_split hlt hx]
+  exact Nat.add_comm _ _
+
+#print axioms nat_mod_of_split
+#print axioms nat_mod_pow_succ
+
 end Core
 
 namespace ZFSet
-export Core (div_lt_of_lt_mul' eq_or_lt_of_le' mul_lt_mul_right' pow_lt_pow_right' pow_right_injective)
+export Core (div_lt_of_lt_mul' eq_or_lt_of_le' lt_of_mul_lt_mul_left' mul_lt_mul_right' nat_mod_of_split nat_mod_pow_succ perm_cons_erase' pow_lt_pow_right' pow_right_injective)
 end ZFSet

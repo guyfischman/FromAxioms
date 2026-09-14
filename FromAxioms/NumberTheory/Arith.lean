@@ -249,6 +249,13 @@ theorem mul_comm {x y : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u})
   obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
   rw [mul_ofNat, mul_ofNat, Nat.mul_comm]
 
+theorem mul_add {x y z : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u})
+    (hz : z ∈ omega.{u}) : mul x (add y z) = add (mul x y) (mul x z) := by
+  obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
+  obtain ⟨n, rfl⟩ := (mem_omega_iff y).mp hy
+  obtain ⟨k, rfl⟩ := (mem_omega_iff z).mp hz
+  rw [add_ofNat, mul_ofNat, mul_ofNat, mul_ofNat, add_ofNat, Nat.mul_add]
+
 /-! ## The laws a SEMIRING needs that a ring derives
 
 `IsRing` states two multiplicative laws and gets their transposes from
@@ -281,6 +288,7 @@ the ring forms do not --- it has no negation at all. -/
 #print axioms add_ofNat
 #print axioms add_assoc
 #print axioms mul_ofNat
+#print axioms mul_add
 #print axioms empty_mul
 #print axioms mul_one
 #print axioms one_mul
@@ -295,5 +303,5 @@ the ring forms do not --- it has no negation at all. -/
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ empty_add mem_add_iff mem_mul_iff mul mul_comm mul_empty mul_mem_omega mul_ofNat mul_succ)
+export NumberTheory (add add_assoc add_comm add_empty add_mem_omega add_ofNat add_succ empty_add mem_add_iff mem_mul_iff mul mul_add mul_comm mul_empty mul_mem_omega mul_ofNat mul_succ)
 end ZFSet
