@@ -441,7 +441,11 @@ def graph():
                         used.append({"p": x, "pu": _decl_url(by, full)})
         else:
             used = [link(s) for s in principles_in(name)]
-        nd["br"] = {"rev": rev, "used": used, "via": via,
+        # The kernel axioms the cited proof rests on, beside its principles: a
+        # proof using no principle still uses `propext` and `Quot.sound`, and
+        # the row said `none`.
+        ax = [a for a in KERNEL if via and a in by[via].get("axioms", ())]
+        nd["br"] = {"rev": rev, "used": used, "ax": ax, "via": via,
                     "vu": _decl_url(by, via) if via else None}
         if got[0] in pairs:
             nd["pr"] = pairs[got[0]]
@@ -672,10 +676,12 @@ function bracketHtml(b){
     ? b.rev.map(r => link(tagHtml(esc(r.p), css('--amber')), r.pu) + ' by '
         + link('<code>'+esc(shortName(r.by))+'</code>', r.bu)).join(' ')
     : '<span class=p>no reversal published</span>';
+  const parts = b.used === null ? [] :
+    b.used.map(r => link(tagHtml(esc(r.p), css('--amber')), r.pu))
+      .concat((b.ax || []).map(a => tagHtml(a, a === 'Classical.choice'
+        ? css('--red') : css('--blue'))));
   const used = b.used === null ? '<span class=p>no proof published</span>'
-    : b.used.length
-    ? b.used.map(r => link(tagHtml(esc(r.p), css('--amber')), r.pu)).join(' ')
-    : '<span class=p>none</span>';
+    : parts.length ? parts.join(' ') : '<span class=p>none</span>';
   return '<div class=sec>Bracket</div>'
     + '<div class=row>Needed, by reversal: ' + rev + '</div>'
     + '<div class=row>Used by the proof'
@@ -1222,11 +1228,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
           + n.p.map(x=>tag(x, css('--amber'))).join('')
           + '</p><div class=p>Named in its statement, so this is what the '
           + 'THEOREM costs. The axioms above are what its proof used.</div>'
-        : '<div class=p><b>No principle in its statement.</b> A hypothesis '
-          + 'can supply the same strength as data -- a selector, a readout, a '
-          + 'structure carrying a decision -- so this is a lower bound on '
-          + 'what the theorem assumes, not a proof that it assumes '
-          + 'nothing.</div>')
+        : '')
     + '<p><b>'+n.up.length+'</b> direct dependencies, <b>'+seen.size
     + '</b> in its whole cone; <b>'+n.dn.length+'</b> depend on it.</p>'
     + (n.i.length ? '<p>Introduces '+n.i.join(', ')
