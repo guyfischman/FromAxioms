@@ -178,5 +178,9 @@
  "Geometry.playfair_unique": [
   "the parallel postulate, explicitly",
   -300
+ ],
+ "Geometry.sas": [
+  "the congruence criteria",
+  -300
  ]
 }

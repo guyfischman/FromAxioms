@@ -67,6 +67,26 @@ theorem sqNorm_sub {ux uy vx vy : ZFSet.{u}} (hux : ux ∈ RealL.{u})
     realLAdd_interchange hxx hvxx hyy hvyy,
     realLAdd_interchange hxv hxv hyv hyv]
 
+/-! ## Side-angle-side
+
+With both pairs of sides congruent, congruence of the included angles is
+exactly equality of the dot products -- no ratio, because the denominators the
+ratio would have are equal by hypothesis. SAS is then polarisation applied
+twice. -/
+
+/-- SAS, and it is free. Two sides and the included dot product determine
+the third side. -/
+theorem sas {ux uy vx vy ux' uy' vx' vy' : ZFSet.{u}} (hux : ux ∈ RealL.{u})
+    (huy : uy ∈ RealL.{u}) (hvx : vx ∈ RealL.{u}) (hvy : vy ∈ RealL.{u})
+    (hux' : ux' ∈ RealL.{u}) (huy' : uy' ∈ RealL.{u}) (hvx' : vx' ∈ RealL.{u})
+    (hvy' : vy' ∈ RealL.{u})
+    (hu : sqNorm ux uy = sqNorm ux' uy')
+    (hv : sqNorm vx vy = sqNorm vx' vy')
+    (hdot : dotP ux uy vx vy = dotP ux' uy' vx' vy') :
+    sqNorm (realLAdd ux (realLNeg vx)) (realLAdd uy (realLNeg vy))
+      = sqNorm (realLAdd ux' (realLNeg vx')) (realLAdd uy' (realLNeg vy')) := by
+  rw [sqNorm_sub hux huy hvx hvy, sqNorm_sub hux' huy' hvx' hvy', hu, hv, hdot]
+
 /-! ## Transferring a segment onto a ray
 
 The first statement in this track that needs a square root of a quantity
@@ -138,6 +158,7 @@ theorem pythagoras_points {xA yA xB yB xC yC : ZFSet.{u}} (hxA : xA ∈ RealL.{u
     disp_sub hyC hyB hyA]
 
 #print axioms Geometry.sqNorm_sub
+#print axioms Geometry.sas
 #print axioms Geometry.sqDist_eq_sqNorm
 #print axioms Geometry.pythagoras
 #print axioms Geometry.pythagoras_points
@@ -146,5 +167,5 @@ theorem pythagoras_points {xA yA xB yB xC yC : ZFSet.{u}} (hxA : xA ∈ RealL.{u
 end Geometry
 
 namespace ZFSet
-export Geometry (dotP pythagoras pythagoras_points sqDist_comm sqDist_eq_sqNorm sqNorm sqNorm_mem sqNorm_sub)
+export Geometry (dotP pythagoras pythagoras_points sas sqDist_comm sqDist_eq_sqNorm sqNorm sqNorm_mem sqNorm_sub)
 end ZFSet
