@@ -233,6 +233,48 @@ def BinaryDC : Prop := ∀ A B : Nat → Nat → Prop, (∀ k n, A k n ∨ B k n
   ∃ c : Nat → Nat, (∀ n, c n ≤ 1) ∧
     ∀ n, (c n = 0 ∧ A (tnum c n) n) ∨ (c n = 1 ∧ B (tnum c n) n)
 
+/-! ## What the axiom actually buys
+
+Hand the same recursion its decisions as data -- a `Bool` at each stage --
+and it needs no axiom at all. So `BinaryDC` is not doing anything with the
+shape of the recursion; the whole of its content is turning a `Prop`-level
+disjunction into a `Bool`. That places the principle: it is a choice
+principle, not an omniscience one. `LPO` and its relatives decide statements
+that were undecided; `BinaryDC` is handed the disjunctions and only has to act
+on them. -/
+
+def boolNum (a : Nat → Nat → Bool) : Nat → Nat
+  | 0 => 0
+  | n + 1 => 3 * boolNum a n + 2 * (if a (boolNum a n) n then 0 else 1)
+
+def boolDCDigit (a : Nat → Nat → Bool) (n : Nat) : Nat :=
+  if a (boolNum a n) n then 0 else 1
+
+theorem tnum_boolDCDigit (a : Nat → Nat → Bool) :
+    ∀ n : Nat, tnum (boolDCDigit a) n = boolNum a n
+  | 0 => rfl
+  | n + 1 => by
+    simp only [tnum, boolNum, boolDCDigit, tnum_boolDCDigit a n]
+
+/-- The decisions as a `Bool`-valued function: constructive, and enough. -/
+theorem binaryDC_of_bool (a : Nat → Nat → Bool) (A B : Nat → Nat → Prop)
+    (hA : ∀ k n, a k n = true → A k n) (hB : ∀ k n, a k n = false → B k n) :
+    ∃ c : Nat → Nat, (∀ n, c n ≤ 1) ∧
+      ∀ n, (c n = 0 ∧ A (tnum c n) n) ∨ (c n = 1 ∧ B (tnum c n) n) := by
+  refine ⟨boolDCDigit a, fun n => ?_, fun n => ?_⟩
+  · rw [boolDCDigit]
+    split <;> omega
+  · rw [tnum_boolDCDigit a n]
+    cases hb : a (boolNum a n) n with
+    | true =>
+      refine Or.inl ⟨?_, hA _ _ hb⟩
+      rw [boolDCDigit, hb]
+      rfl
+    | false =>
+      refine Or.inr ⟨?_, hB _ _ hb⟩
+      rw [boolDCDigit, hb]
+      rfl
+
 /-! ## The set-function form
 
 `exists_missed` quantifies over Lean-level families, which is the stronger
@@ -256,12 +298,16 @@ The diagonal is constructive. Every declaration here takes the digits resolving
 each stage as a hypothesis and stays at `[propext, Quot.sound]`. -/
 
 #print axioms BinaryDC
+#print axioms boolNum
+#print axioms boolDCDigit
+#print axioms tnum_boolDCDigit
 #print axioms dyadicOf
 #print axioms dyadicOf_mem_Rat
 #print axioms dyadicOf_nonneg
 #print axioms ratNat_two_mul_half
 #print axioms dyadicOf_le_two
 #print axioms dyadicOf_split
+#print axioms binaryDC_of_bool
 #print axioms LocatorDC
 /-- The sharp upper bound on a dyadic sum, which `dyadicOf_le_two` is the
 slack form of.
@@ -838,6 +884,121 @@ theorem takeBits_length : ∀ (n : Nat) (b : Nat → Bool),
       rw [takeBits_length n (fun i => b (i + 1))]
 
 #print axioms SetTheory.takeBits_length
+/-- The upper ends DECREASE: the intervals are genuinely nested.
+
+    v(n+m) + 3*(1/3)^(n+m)   <=   v n + 3*(1/3)^n
+
+`takeBits_bracket` gives `v(n+m) <= v n + 3*(1/3)^n`, which is NOT enough ---
+add `3*(1/3)^(n+m)` on the left and it could spill past the right. Nesting
+needs the tail bounded by `w n - w (n+m)`, not by `w n`, which is the
+difference between `triadicOf_le_three` and `triadicOf_sharp`.
+
+THE SHARP BOUND IS SPENT HERE. It was proved with integer coefficients for the
+separation argument and is ATTAINED by the all-true string; the same attainment
+makes the interval ends meet instead of overlap. A slack bound yields a
+shrinking window but not a nested one, and `IsNested` asks for nested. -/
+theorem takeBits_upper_anti (b : Nat → Bool) (n m : Nat) :
+    ratLe (ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b (n + m))))
+        (ratMul (ratPow (ratNat.{u} 1 3) (n + m)) (ratNat.{u} 3 1)))
+      (ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+        (ratMul (ratPow (ratNat.{u} 1 3) n) (ratNat.{u} 3 1))) := by
+  have hth : ratNat.{u} 1 3 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h2 : ratNat.{u} 2 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h3 : ratNat.{u} 3 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have hkn : ratPow (ratNat.{u} 1 3) n ∈ NumberTheory.Rat.{u} := ratPow_mem hth n
+  have hkm : ratPow (ratNat.{u} 1 3) m ∈ NumberTheory.Rat.{u} := ratPow_mem hth m
+  have hkn0 : ratLe ratZero.{u} (ratPow (ratNat.{u} 1 3) n) :=
+    ratPow_nonneg hth (ratLe_of_lt ratZero_mem_Rat hth (ratNat_one_pos (by omega))) n
+  have hpre := takeBits_take n m b
+  have hta := triadicOf_mem_Rat.{u} (takeBits b n)
+  have htd := triadicOf_mem_Rat.{u} (List.drop n (takeBits b (n + m)))
+  have hlen : (List.drop n (takeBits b (n + m))).length = m := by
+    rw [List.length_drop, takeBits_length (n + m) b]
+    omega
+  have hsplit : ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b (n + m)))
+      = ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+        (ratMul (ratPow (ratNat.{u} 1 3) n)
+          (ratMul (ratNat.{u} 2 1)
+            (triadicOf.{u} (List.drop n (takeBits b (n + m)))))) := by
+    rw [triadicOf_split n (takeBits b (n + m)), hpre,
+      ratMul_add h2 hta (ratMul_mem_Rat hkn htd),
+      ← ratMul_assoc h2 hkn htd, ratMul_comm h2 hkn, ratMul_assoc hkn h2 htd]
+  have hsharp := triadicOf_sharp (List.drop n (takeBits b (n + m)))
+  rw [hlen] at hsharp
+  -- scale the sharp bound by `(1/3)^n`
+  have hkey := ratMul_le_mul_right
+    (ratAdd_mem_Rat (ratMul_mem_Rat h2 htd) (ratMul_mem_Rat h3 hkm)) h3 hkn hsharp hkn0
+  rw [ratAdd_mul (ratMul_mem_Rat h2 htd) (ratMul_mem_Rat h3 hkm) hkn,
+    ratMul_comm (ratMul_mem_Rat h2 htd) hkn,
+    ratMul_comm (ratMul_mem_Rat h3 hkm) hkn,
+    ← ratMul_assoc hkn h3 hkm, ratMul_comm hkn h3, ratMul_assoc h3 hkn hkm,
+    ratMul_comm h3 (ratMul_mem_Rat hkn hkm),
+    ratMul_comm h3 hkn] at hkey
+  -- `hkey : (1/3)^n * (2t) + ((1/3)^n * (1/3)^m) * 3 <= (1/3)^n * 3`
+  rw [hsplit, ratPow_add hth n m,
+    ratAdd_assoc (ratMul_mem_Rat h2 hta)
+      (ratMul_mem_Rat hkn (ratMul_mem_Rat h2 htd))
+      (ratMul_mem_Rat (ratMul_mem_Rat hkn hkm) h3)]
+  exact (ratAdd_le_add_left_iff (ratMul_mem_Rat h2 hta)
+    (ratAdd_mem_Rat (ratMul_mem_Rat hkn (ratMul_mem_Rat h2 htd))
+      (ratMul_mem_Rat (ratMul_mem_Rat hkn hkm) h3))
+    (ratMul_mem_Rat hkn h3)).mpr hkey
+
+#print axioms SetTheory.takeBits_upper_anti
+
+--
+--
+--
+
+/-- Prefix values are monotone in the depth, in `i <= j` form.
+
+`takeBits_bracket` is stated on an explicit extension `n, m`, which is the shape
+its proof wants; every consumer instead has an ORDER hypothesis. Converting once
+here keeps `Nat.le.dest` out of each caller --- and the `IsNested` fields, which
+arrive with `omega` subset hypotheses, need exactly this form. -/
+theorem takeBits_mono (b : Nat → Bool) {i j : Nat} (hij : i ≤ j) :
+    ratLe (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b i)))
+      (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b j))) := by
+  obtain ⟨a, ha⟩ := Nat.le.dest hij
+  have h := (takeBits_bracket b i a).1
+  rw [ha] at h
+  exact h
+
+/-- Upper ends are antitone in the depth, the dual reindexing. -/
+theorem takeBits_anti (b : Nat → Bool) {i j : Nat} (hij : i ≤ j) :
+    ratLe (ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b j)))
+        (ratMul (ratPow (ratNat.{u} 1 3) j) (ratNat.{u} 3 1)))
+      (ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b i)))
+        (ratMul (ratPow (ratNat.{u} 1 3) i) (ratNat.{u} 3 1))) := by
+  obtain ⟨a, ha⟩ := Nat.le.dest hij
+  have h := takeBits_upper_anti b i a
+  rw [ha] at h
+  exact h
+
+/-- Each interval is non-degenerate: the lower end is strictly below the
+upper. The window `3 * (1/3)^n` is positive, which is all this needs, and
+`IsNested.bracket` asks for it at every index. -/
+theorem takeBits_lt (b : Nat → Bool) (n : Nat) :
+    ratLt (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+      (ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+        (ratMul (ratPow (ratNat.{u} 1 3) n) (ratNat.{u} 3 1))) := by
+  have hth : ratNat.{u} 1 3 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h3 : ratNat.{u} 3 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have hk : ratPow (ratNat.{u} 1 3) n ∈ NumberTheory.Rat.{u} := ratPow_mem hth n
+  refine ratLt_add_pos
+    (ratMul_mem_Rat (ratNat_mem_Rat (by omega)) (triadicOf_mem_Rat _))
+    (ratMul_mem_Rat hk h3) ?_
+  exact ratMul_pos hk h3 (ratPow_pos hth (ratNat_one_pos (by omega)) n)
+    (ratNat_pos (by omega))
+
+#print axioms SetTheory.takeBits_mono
+#print axioms SetTheory.takeBits_anti
+#print axioms SetTheory.takeBits_lt
+
+--
+--
+--
+
 /-- The prefix values as a `ratSeqs` element. -/
 def triLowSeq (b : Nat → Bool) : ZFSet.{u} :=
   natSeq NumberTheory.Rat.{u}
@@ -853,9 +1014,77 @@ theorem triLow_mem (b : Nat → Bool) (n : Nat) :
     ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)) ∈ NumberTheory.Rat.{u} :=
   ratMul_mem_Rat (ratNat_mem_Rat (by omega)) (triadicOf_mem_Rat _)
 
+theorem triHigh_mem (b : Nat → Bool) (n : Nat) :
+    ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+      (ratMul (ratPow (ratNat.{u} 1 3) n) (ratNat.{u} 3 1)) ∈ NumberTheory.Rat.{u} :=
+  ratAdd_mem_Rat (triLow_mem b n)
+    (ratMul_mem_Rat (ratPow_mem (ratNat_mem_Rat (by omega)) n)
+      (ratNat_mem_Rat (by omega)))
+
+theorem app_triLowSeq (b : Nat → Bool) (n : Nat) :
+    app (triLowSeq.{u} b) (ofNat.{u} n)
+      = ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)) :=
+  app_natSeq (triLow_mem b) n
+
+theorem app_triHighSeq (b : Nat → Bool) (n : Nat) :
+    app (triHighSeq.{u} b) (ofNat.{u} n)
+      = ratAdd (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
+        (ratMul (ratPow (ratNat.{u} 1 3) n) (ratNat.{u} 3 1)) :=
+  app_natSeq (triHigh_mem b) n
+
+/-- The prefix intervals of a bit sequence are NESTED.
+
+Every field discharged from the base-three bracket, and no choice anywhere.
+
+`shrink` IS THE FIELD THAT DOES NOT COME FROM THE NEIGHBOURING CONSTRUCTION.
+`isNested_ternary` discharges it with `shrink_of_invWidth`, which matches the
+width at index `n` against `invWidth (ofNat n)` --- and that FAILS here, since
+the window is `3` at `n = 0` while `invWidth (ofNat 0)` is `1`. The field's own
+form is an existential over depths, so `exists_ratPow_mul_lt` answers it
+directly. Copying the neighbour would have been a false start. -/
+theorem isNested_triadic (b : Nat → Bool) :
+    IsNested (triLowSeq.{u} b) (triHighSeq.{u} b) where
+  lower_seq := natSeq_mem_ratSeqs (triLow_mem b)
+  upper_seq := natSeq_mem_ratSeqs (triHigh_mem b)
+  lower_mono m hm n hn hmn := by
+    obtain ⟨i, rfl⟩ := (mem_omega_iff m).mp hm
+    obtain ⟨j, rfl⟩ := (mem_omega_iff n).mp hn
+    rw [app_triLowSeq, app_triLowSeq]
+    exact takeBits_mono b ((ofNat_subset_iff i j).mp hmn)
+  upper_mono m hm n hn hmn := by
+    obtain ⟨i, rfl⟩ := (mem_omega_iff m).mp hm
+    obtain ⟨j, rfl⟩ := (mem_omega_iff n).mp hn
+    rw [app_triHighSeq, app_triHighSeq]
+    exact takeBits_anti b ((ofNat_subset_iff i j).mp hmn)
+  bracket n hn := by
+    obtain ⟨i, rfl⟩ := (mem_omega_iff n).mp hn
+    rw [app_triLowSeq, app_triHighSeq]
+    exact takeBits_lt b i
+  shrink := by
+    intro eps heps heps0
+    have hth : ratNat.{u} 1 3 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+    have h3 : ratNat.{u} 3 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+    obtain ⟨N, hN⟩ := exists_ratPow_mul_lt hth h3 heps
+      (ratLe_of_lt ratZero_mem_Rat hth (ratNat_one_pos (by omega)))
+      ((ratNat_lt_iff (by omega) (by omega)).mpr (by omega))
+      (ratLe_of_lt ratZero_mem_Rat h3 (ratNat_pos (by omega)))
+      heps0
+    refine ⟨ofNat.{u} N, ofNat_mem_omega N, ?_⟩
+    rw [app_triLowSeq, app_triHighSeq]
+    have hV := triLow_mem b N
+    have hw : ratMul (ratPow (ratNat.{u} 1 3) N) (ratNat.{u} 3 1)
+        ∈ NumberTheory.Rat.{u} := ratMul_mem_Rat (ratPow_mem hth N) h3
+    rwa [ratAdd_comm hV hw, ratAdd_assoc hw hV (ratNeg_mem_Rat hV),
+      ratAdd_neg hV, ratAdd_zero hw]
+
 #print axioms SetTheory.triLowSeq
 #print axioms SetTheory.triHighSeq
+#print axioms SetTheory.app_triLowSeq
 #print axioms SetTheory.triLow_mem
+#print axioms SetTheory.triHigh_mem
+#print axioms SetTheory.app_triHighSeq
+#print axioms SetTheory.isNested_triadic
+
 /-- The real named by an infinite bit sequence, base three.
 
 The embedding `(Nat -> Bool) -> RealL`, built from the nested prefix intervals.
@@ -872,7 +1101,12 @@ nothing, is what makes the asymmetry visible rather than asserted. -/
 def triadicReal (b : Nat → Bool) : ZFSet.{u} :=
   opair (nestLower (triLowSeq.{u} b)) (nestUpper (triHighSeq.{u} b))
 
+theorem triadicReal_mem (b : Nat → Bool) : triadicReal.{u} b ∈ RealL.{u} :=
+  (mem_RealL_iff _).mpr ⟨_, _, rfl, isLocated_nest (isNested_triadic b)⟩
+
 #print axioms SetTheory.triadicReal
+#print axioms SetTheory.triadicReal_mem
+
 /-- A prefix is the previous prefix with the next bit appended.
 
 `takeBits` is built from the FRONT --- `takeBits b (n+1) = b 0 :: takeBits (shift
@@ -1012,6 +1246,131 @@ theorem takeBits_strict_sep (b c : Nat → Bool) (k : Nat)
 --
 --
 
+/-- The embedded reals of sequences differing at a known index are APART.
+
+The capstone of the base-three construction: `(Nat -> Bool) -> RealL` is not
+merely injective but APARTNESS-reflecting, and choice-free.
+
+HOW THE STRICT INEQUALITY BECOMES AN APARTNESS. `realLLt x y` unfolds to
+`exists r, r in snd x and r in fst y`, and for these nested reals that is a
+rational strictly above one of `b`'s upper ends and strictly below one of `c`'s
+lower ends. `takeBits_strict_sep` puts `b`'s upper end at depth `k+1` strictly
+below `c`'s lower end there, and `rat_dense` produces the witness between them.
+A non-strict separation would leave no room for `r` --- which is exactly why the
+general separation lemma could not be used here.
+
+THE HYPOTHESIS IS THE FIRST DIFFERENCE, GIVEN. Locating it inside an arbitrary
+pair of distinct sequences is a bounded search on `Bool` and is separate; this lemma
+is about what the difference BUYS, not about finding it. -/
+theorem triadicReal_apart_at (b c : Nat → Bool) (k : Nat)
+    (hpre : takeBits b k = takeBits c k) (hne : b k ≠ c k) :
+    realLApart (triadicReal.{u} b) (triadicReal.{u} c) := by
+  have step : ∀ x y : Nat → Bool, takeBits x k = takeBits y k →
+      x k = false → y k = true →
+      realLLt (triadicReal.{u} x) (triadicReal.{u} y) := by
+    intro x y hp hx hy
+    obtain ⟨r, hrQ, hr1, hr2⟩ := rat_dense
+      (triHigh_mem x (k + 1)) (triLow_mem y (k + 1))
+      (takeBits_strict_sep x y k hp hx hy)
+    refine ⟨r, ?_, ?_⟩
+    · show r ∈ snd (opair (nestLower (triLowSeq.{u} x)) (nestUpper (triHighSeq.{u} x)))
+      rw [snd_opair]
+      refine (mem_nestUpper_iff _ _).mpr ⟨hrQ, ofNat.{u} (k + 1), ofNat_mem_omega _, ?_⟩
+      rw [app_triHighSeq]
+      exact hr1
+    · show r ∈ fst (opair (nestLower (triLowSeq.{u} y)) (nestUpper (triHighSeq.{u} y)))
+      rw [fst_opair]
+      refine (mem_nestLower_iff _ _).mpr ⟨hrQ, ofNat.{u} (k + 1), ofNat_mem_omega _, ?_⟩
+      rw [app_triLowSeq]
+      exact hr2
+  cases hb : b k with
+  | false =>
+      have hc : c k = true := by
+        cases hcv : c k with
+        | true => rfl
+        | false => exact absurd (hb.trans hcv.symm) hne
+      exact Or.inl (step b c hpre hb hc)
+  | true =>
+      have hc : c k = false := by
+        cases hcv : c k with
+        | false => rfl
+        | true => exact absurd (hb.trans hcv.symm) hne
+      exact Or.inr (step c b hpre.symm hc hb)
+
+#print axioms SetTheory.triadicReal_apart_at
+
+--
+--
+
+/-- Sequences whose prefixes differ have a FIRST differing index.
+
+The bounded search that turns a bare disagreement into the hypothesis
+`triadicReal_apart_at` wants: an index where the prefixes still agree and the
+bits do not.
+
+THE CASE SPLIT USES THE `Bool` DECIDABILITY INSTANCE, VIA `decide`, and that is
+deliberate. `by_cases` on `takeBits b n = takeBits c n` would take whatever
+`Decidable` instance elaboration finds, and if it falls back to
+`Classical.propDecidable` the whole development silently acquires
+`Classical.choice`. `List Bool` has a real decidable equality; going through
+`decide` and `of_decide_eq_true`/`of_decide_eq_false` names it and cannot fall
+back. The axiom print is the only thing that would have caught the difference.
+
+INDUCTION ON THE LENGTH, with `takeBits_succ` to expose the last bit: if the
+shorter prefixes already agree the difference is that bit; otherwise it is
+strictly earlier and the hypothesis applies. -/
+theorem first_diff_seq : ∀ (n : Nat) (b c : Nat → Bool),
+    takeBits b n ≠ takeBits c n →
+    ∃ k, k < n ∧ takeBits b k = takeBits c k ∧ b k ≠ c k
+  | 0, b, c, h => absurd rfl h
+  | n + 1, b, c, h => by
+      cases hdec : decide (takeBits b n = takeBits c n) with
+      | true =>
+          have hpre := of_decide_eq_true hdec
+          refine ⟨n, Nat.lt_succ_self n, hpre, fun hbit => ?_⟩
+          apply h
+          rw [takeBits_succ n b, takeBits_succ n c, hpre, hbit]
+      | false =>
+          have hne := of_decide_eq_false hdec
+          obtain ⟨k, hk, hpre, hbit⟩ := first_diff_seq n b c hne
+          exact ⟨k, Nat.lt_succ_of_lt hk, hpre, hbit⟩
+
+/-- Distinct bit sequences name APART reals, with no index supplied.
+
+`triadicReal_apart_at` needs the first difference; this finds it. Together they
+say the base-three embedding reflects apartness from a bare disagreement. -/
+theorem triadicReal_apart (b c : Nat → Bool) (n : Nat)
+    (h : takeBits b n ≠ takeBits c n) :
+    realLApart (triadicReal.{u} b) (triadicReal.{u} c) := by
+  obtain ⟨k, -, hpre, hbit⟩ := first_diff_seq n b c h
+  exact triadicReal_apart_at b c k hpre hbit
+
+#print axioms SetTheory.first_diff_seq
+#print axioms SetTheory.triadicReal_apart
+
+--
+
+/-- The embedding is injective, as the weaker corollary of apartness.
+
+Stated because a consumer wanting only distinctness should not have to know
+about `realLApart`, and because the DERIVATION DIRECTION matters: apartness
+gives `≠` by irreflexivity, for free, while the converse needs a stability
+principle this tree does not have. Anything that can be phrased with the
+apartness should be. -/
+theorem triadicReal_ne (b c : Nat → Bool) (n : Nat)
+    (h : takeBits b n ≠ takeBits c n) :
+    triadicReal.{u} b ≠ triadicReal.{u} c := by
+  intro heq
+  have hap := triadicReal_apart b c n h
+  rw [heq] at hap
+  exact realLApart_irrefl (triadicReal_mem c) hap
+
+#print axioms SetTheory.triadicReal_ne
+
+--
+--
+--
+
 /-- The dyadic readout, as APPROXIMATION rather than naming.
 
 The expensive direction of `set, uncountability`, stated over the base where it
@@ -1043,6 +1402,24 @@ def DyadicApprox : Prop :=
         (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) n))))
 
 #print axioms SetTheory.DyadicApprox
+/-- Appending a bit adds exactly one grid step.
+
+    dyadicOf (s ++ [b])  =  dyadicOf s  +  (1/2)^|s| * dyadicOf [b]
+
+The base-two analogue of the exact step, and the fact the tiling rests on: the
+depth-`n` values are the multiples of `(1/2)^(n-1)`, spaced by exactly the
+window `2 * (1/2)^n`, so the brackets abut with no hole and no overlap.
+
+`dyadicOf_split` at `k = |s|` does the work; `List.take_left` and
+`List.drop_left` supply the two halves, both taking their lists IMPLICITLY. -/
+theorem dyadicOf_snoc (s : List Bool) (b : Bool) :
+    dyadicOf.{u} (s ++ [b])
+      = ratAdd (dyadicOf.{u} s)
+        (ratMul (ratPow (ratNat.{u} 1 2) s.length) (dyadicOf.{u} [b])) := by
+  have htake : List.take s.length (s ++ [b]) = s := List.take_left
+  have hdrop : List.drop s.length (s ++ [b]) = [b] := List.drop_left
+  rw [dyadicOf_split s.length (s ++ [b]), htake, hdrop]
+
 /-- A one-bit dyadic string is worth its bit, as two lemmas rather than an
 `if` --- an inline `if` on a `Bool` needs a `Decidable` instance that can fall
 back to `Classical`. -/
@@ -1054,11 +1431,314 @@ theorem dyadicOf_false : dyadicOf.{u} [false] = ratZero.{u} := by
   show ratMul (ratNat.{u} 1 2) ratZero.{u} = ratZero.{u}
   exact ratMul_zero (ratNat_mem_Rat (by omega))
 
+#print axioms SetTheory.dyadicOf_snoc
 #print axioms SetTheory.dyadicOf_true
 #print axioms SetTheory.dyadicOf_false
 
 --
 --
+
+/-- The TWO-CELL readout, which is the shape a locator's bounded search
+actually delivers.
+
+Same statement as `DyadicApprox` with the window doubled: `4 * (1/2)^n` rather
+than `2 * (1/2)^n`, i.e. two abutting cells rather than one.
+
+WHY IT IS SEPARATELY NAMED. A locator decides at PAIRS `p < q` and never at a
+point, while the two halves of a dyadic cell MEET at a single rational --- so
+"is x left or right of the midpoint" is not a question a locator answers. What a
+search over its `Bool` outputs on the pairs `(v i, v (i+1))` yields is the
+largest `i` with `x > v i`, hence `v i < x < v (i+2)`: TWO cells. Naming that
+shape separately means a reversal can target what the construction produces
+instead of what one would prefer it produced. -/
+def DyadicApprox2 : Prop :=
+  ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
+    realLLe (realLOf ratZero.{u}) x →
+    realLLe x (realLOf (ratNat.{u} 2 1)) →
+    ∀ n : Nat, ∃ s : List Bool, s.length = n ∧
+      realLLe (realLOf (dyadicOf.{u} s)) x ∧
+      realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n))))
+
+#print axioms SetTheory.DyadicApprox2
+/-- A child two-cell bracket sits inside its parent's.
+
+    [ v(s++[b]),  v(s++[b]) + 4*(1/2)^(n+1) ]   inside
+    [ v s,        v s       + 4*(1/2)^n     ]
+
+The invariant a depth-by-depth readout maintains: extending the string by one
+bit refines the bracket without leaving the previous one, so a descending search
+never needs to backtrack.
+
+THE ARITHMETIC IS TIGHT AND IT IS WHY THE FORM IS TWO-CELL. The child's offset
+is `(1/2)^n * dyadicOf [b]`, at most `(1/2)^n`, and its window is
+`4*(1/2)^(n+1) = 2*(1/2)^n`; together at most `3*(1/2)^n`, against the parent's
+`4*(1/2)^n`. A ONE-cell parent would offer only `2*(1/2)^n` against the same
+required `3*(1/2)^n` and the containment would FAIL. That is the same arithmetic
+that forces the two-cell shape on the locator construction, seen from the other
+side. -/
+theorem dyadic_child_inside (s : List Bool) (b : Bool) :
+    ratLe (dyadicOf.{u} s) (dyadicOf.{u} (s ++ [b]))
+    ∧ ratLe (ratAdd (dyadicOf.{u} (s ++ [b]))
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) (s.length + 1))))
+      (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) s.length))) := by
+  have hh : ratNat.{u} 1 2 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h2 : ratNat.{u} 2 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h4 : ratNat.{u} 4 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have hk : ratPow (ratNat.{u} 1 2) s.length ∈ NumberTheory.Rat.{u} :=
+    ratPow_mem hh s.length
+  have hk0 : ratLe ratZero.{u} (ratPow (ratNat.{u} 1 2) s.length) :=
+    ratPow_nonneg hh (ratLe_of_lt ratZero_mem_Rat hh (ratNat_one_pos (by omega))) s.length
+  have hd := dyadicOf_mem_Rat.{u} s
+  have hb := dyadicOf_mem_Rat.{u} [b]
+  have hstep := dyadicOf_snoc s b
+  have hb1 : ratLe (dyadicOf.{u} [b]) ratOne.{u} := by
+    cases b with
+    | true => rw [dyadicOf_true]; exact ratLe_refl ratOne_mem_Rat
+    | false =>
+        rw [dyadicOf_false]
+        exact ratLe_of_lt ratZero_mem_Rat ratOne_mem_Rat ratZero_lt_one
+  refine ⟨?_, ?_⟩
+  · rw [hstep]
+    have hnn : ratLe ratZero.{u}
+        (ratMul (ratPow (ratNat.{u} 1 2) s.length) (dyadicOf.{u} [b])) :=
+      ratZero_le_mul hk hb hk0 (dyadicOf_nonneg [b])
+    have hz := (ratAdd_le_add_left_iff hd ratZero_mem_Rat
+      (ratMul_mem_Rat hk hb)).mpr hnn
+    rwa [ratAdd_zero hd] at hz
+  · -- the child's window, `4*(1/2)^(n+1)`, is `2*(1/2)^n`
+    have hwin : ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) (s.length + 1))
+        = ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) s.length) := by
+      rw [ratPow_succ, ← ratMul_assoc h4 hk hh, ratMul_comm h4 hk,
+        ratMul_assoc hk h4 hh]
+      have h42 : ratMul (ratNat.{u} 4 1) (ratNat.{u} 1 2) = ratNat.{u} 2 1 := by
+        rw [ratNat_mul (by omega) (by omega)]
+        exact (ratNat_eq_iff (by omega) (by omega)).mpr (by omega)
+      rw [h42, ratMul_comm hk h2]
+    -- offset plus child window, with every scalar on the LEFT so they combine
+    have hoff : ratMul (ratPow (ratNat.{u} 1 2) s.length) (dyadicOf.{u} [b])
+        = ratMul (dyadicOf.{u} [b]) (ratPow (ratNat.{u} 1 2) s.length) :=
+      ratMul_comm hk hb
+    have hsum : ratLe (ratAdd (ratMul (dyadicOf.{u} [b]) (ratPow (ratNat.{u} 1 2) s.length))
+        (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) s.length)))
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) s.length)) := by
+      rw [← ratAdd_mul hb h2 hk]
+      refine ratMul_le_mul_right (ratAdd_mem_Rat hb h2) h4 hk ?_ hk0
+      have h12 : ratAdd ratOne.{u} (ratNat.{u} 2 1) = ratNat.{u} 3 1 := by
+        rw [← ratNat_one_one, ratNat_add_same_denom (by omega : (0:Nat) < 1)]
+      refine ratLe_trans (ratAdd_mem_Rat hb h2) (ratAdd_mem_Rat ratOne_mem_Rat h2) h4
+        ((ratAdd_le_add_right_iff h2 hb ratOne_mem_Rat).mpr hb1) ?_
+      rw [h12]
+      exact (ratNat_le_iff (by omega) (by omega)).mpr (by omega)
+    rw [hstep, hwin, hoff,
+      ratAdd_assoc hd (ratMul_mem_Rat hb hk) (ratMul_mem_Rat h2 hk)]
+    exact (ratAdd_le_add_left_iff hd
+      (ratAdd_mem_Rat (ratMul_mem_Rat hb hk) (ratMul_mem_Rat h2 hk))
+      (ratMul_mem_Rat h4 hk)).mpr hsum
+
+#print axioms SetTheory.dyadic_child_inside
+
+--
+--
+--
+
+/-- The two children do NOT cover the parent bracket.
+
+Both child brackets end at or before `v + 3*(1/2)^n`, while the parent's ends at
+`v + 4*(1/2)^n`. So the strip `(v + 3K, v + 4K]` lies in the parent and in
+neither child.
+
+THIS RETRACTS A CLAIM MADE ONE STEP EARLIER. `dyadic_child_inside`'s note said
+containment means "a descending search never backtracks". Containment is true;
+that consequence is NOT. A search that has committed to `s` and finds `x` in the
+uncovered strip must move to a SIBLING subtree, because the grid point that
+brackets `x` at depth `n+1` --- namely `v + 2K` --- is a descendant of the NEXT
+depth-`n` string, not of `s`.
+
+WHAT IT MEANS FOR THE READOUT. The construction cannot be a simple top-down
+refinement of one string. It has to search the depth-`(n+1)` GRID, which is what
+the locator-based argument already indicated by producing an index rather than a
+path. Two independent routes now say the same thing: the readout is a search
+over a grid, not a descent through a tree. -/
+theorem children_do_not_cover (s : List Bool) (b : Bool) :
+    ratLe (ratAdd (dyadicOf.{u} (s ++ [b]))
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) (s.length + 1))))
+      (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 3 1) (ratPow (ratNat.{u} 1 2) s.length)))
+    ∧ ratLt (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 3 1) (ratPow (ratNat.{u} 1 2) s.length)))
+      (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) s.length))) := by
+  have hh : ratNat.{u} 1 2 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h2 : ratNat.{u} 2 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h3 : ratNat.{u} 3 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have h4 : ratNat.{u} 4 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
+  have hk : ratPow (ratNat.{u} 1 2) s.length ∈ NumberTheory.Rat.{u} :=
+    ratPow_mem hh s.length
+  have hk0 : ratLt ratZero.{u} (ratPow (ratNat.{u} 1 2) s.length) :=
+    ratPow_pos hh (ratNat_one_pos (by omega)) s.length
+  have hd := dyadicOf_mem_Rat.{u} s
+  have hb := dyadicOf_mem_Rat.{u} [b]
+  have hb1 : ratLe (dyadicOf.{u} [b]) ratOne.{u} := by
+    cases b with
+    | true => rw [dyadicOf_true]; exact ratLe_refl ratOne_mem_Rat
+    | false =>
+        rw [dyadicOf_false]
+        exact ratLe_of_lt ratZero_mem_Rat ratOne_mem_Rat ratZero_lt_one
+  have hwin : ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) (s.length + 1))
+      = ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) s.length) := by
+    rw [ratPow_succ, ← ratMul_assoc h4 hk hh, ratMul_comm h4 hk, ratMul_assoc hk h4 hh]
+    have h42 : ratMul (ratNat.{u} 4 1) (ratNat.{u} 1 2) = ratNat.{u} 2 1 := by
+      rw [ratNat_mul (by omega) (by omega)]
+      exact (ratNat_eq_iff (by omega) (by omega)).mpr (by omega)
+    rw [h42, ratMul_comm hk h2]
+  refine ⟨?_, ?_⟩
+  · rw [dyadicOf_snoc s b, hwin, ratMul_comm hk hb,
+      ratAdd_assoc hd (ratMul_mem_Rat hb hk) (ratMul_mem_Rat h2 hk)]
+    refine (ratAdd_le_add_left_iff hd
+      (ratAdd_mem_Rat (ratMul_mem_Rat hb hk) (ratMul_mem_Rat h2 hk))
+      (ratMul_mem_Rat h3 hk)).mpr ?_
+    rw [← ratAdd_mul hb h2 hk]
+    refine ratMul_le_mul_right (ratAdd_mem_Rat hb h2) h3 hk ?_ (ratLe_of_lt ratZero_mem_Rat hk hk0)
+    have h12 : ratAdd ratOne.{u} (ratNat.{u} 2 1) = ratNat.{u} 3 1 := by
+      rw [← ratNat_one_one, ratNat_add_same_denom (by omega : (0:Nat) < 1)]
+    refine ratLe_trans (ratAdd_mem_Rat hb h2) (ratAdd_mem_Rat ratOne_mem_Rat h2) h3
+      ((ratAdd_le_add_right_iff h2 hb ratOne_mem_Rat).mpr hb1) ?_
+    rw [h12]
+    exact ratLe_refl h3
+  · refine (ratAdd_lt_add_left_iff hd (ratMul_mem_Rat h3 hk) (ratMul_mem_Rat h4 hk)).mpr ?_
+    -- `ratMul_lt_mul_right` takes `t != 0` and `0 <= t`, NOT `0 < t`
+    exact ratMul_lt_mul_right h3 h4 hk (ratNe_zero_of_pos hk0)
+      (ratLe_of_lt ratZero_mem_Rat hk hk0)
+      ((ratNat_lt_iff (by omega) (by omega)).mpr (by omega))
+
+#print axioms SetTheory.children_do_not_cover
+
+
+--
+--
+--
+
+/-- The depth-`n` grid string for the value `k`.
+
+`k` in binary, most significant bit first, padded to length `n`. These enumerate
+the depth-`n` dyadic grid, which is what a readout has to search: the brackets
+are indexed by VALUE, and `children_do_not_cover` showed the search cannot be a
+descent through the prefix tree.
+
+THE COMPARISON IS `Nat`'s OWN DECIDABLE INSTANCE, via `decide`. `2^n <= k` is
+decidable arithmetic; writing it as an `if` with an inferred instance would risk
+`Classical.propDecidable`, which is how a development acquires
+`Classical.choice` while every proof still compiles. -/
+def bitsOf : Nat → Nat → List Bool
+  | _, 0 => []
+  | k, n + 1 => decide (2 ^ n ≤ k) :: bitsOf (k % 2 ^ n) n
+
+/-- A grid string has the depth asked for. -/
+theorem bitsOf_length : ∀ (n k : Nat), (bitsOf k n).length = n
+  | 0, _ => rfl
+  | n + 1, k => by
+      show (bitsOf (k % 2 ^ n) n).length + 1 = n + 1
+      rw [bitsOf_length n (k % 2 ^ n)]
+
+/-- The value of a grid string one level down, high branch. -/
+theorem dyadicOf_bitsOf_high {k n : Nat} (h : 2 ^ n ≤ k) :
+    dyadicOf.{u} (bitsOf k (n + 1))
+      = ratAdd ratOne.{u}
+        (ratMul (ratNat.{u} 1 2) (dyadicOf.{u} (bitsOf (k % 2 ^ n) n))) := by
+  show dyadicOf.{u} (decide (2 ^ n ≤ k) :: bitsOf (k % 2 ^ n) n) = _
+  rw [decide_eq_true h]
+  rfl
+
+/-- And the low branch.
+
+TWO LEMMAS RATHER THAN ONE WITH AN `if`. The `if` version compiled and printed
+clean --- its condition is a `Bool` equality with a real instance --- but every
+consumer has to case-split anyway, and an inline `if` is the shape that risks
+`Classical.propDecidable` when the condition is not so obviously decidable. The
+same choice was made for `triadicOf_true`/`triadicOf_false`. -/
+theorem dyadicOf_bitsOf_low {k n : Nat} (h : ¬ (2 ^ n ≤ k)) :
+    dyadicOf.{u} (bitsOf k (n + 1))
+      = ratMul (ratNat.{u} 1 2) (dyadicOf.{u} (bitsOf (k % 2 ^ n) n)) := by
+  show dyadicOf.{u} (decide (2 ^ n ≤ k) :: bitsOf (k % 2 ^ n) n) = _
+  rw [decide_eq_false h]
+  rfl
+
+#print axioms SetTheory.bitsOf
+#print axioms SetTheory.bitsOf_length
+#print axioms SetTheory.dyadicOf_bitsOf_high
+#print axioms SetTheory.dyadicOf_bitsOf_low
+
+--
+--
+--
+--
+--
+--
+--
+
+/-- Halving a `ratNat` doubles its denominator.
+
+`ratNat_eq_iff` CROSS-MULTIPLIES, which hands `omega` a product of atoms it
+cannot reason about. When the two sides already agree after `Nat` simplification,
+close by `rfl` instead. -/
+theorem half_ratNat (a b : Nat) (hb : 0 < b) :
+    ratMul (ratNat.{u} 1 2) (ratNat.{u} a b) = ratNat.{u} a (2 * b) := by
+  rw [ratNat_mul (by omega) hb, Nat.one_mul]
+
+/-- One plus a `ratNat`. -/
+theorem one_add_ratNat (a b : Nat) (hb : 0 < b) :
+    ratAdd ratOne.{u} (ratNat.{u} a b) = ratNat.{u} (b + a) b := by
+  -- the chain closes at `Nat.mul_one`; a further `Nat.one_mul` is a trailing
+  -- step and errors with `Did not find ... 1 * ?n`
+  rw [← ratNat_one_one, ratNat_add (by omega) hb, Nat.one_mul, Nat.mul_one]
+
+/-- The closed form: a grid string's value is its index over the grid.
+
+    k < 2^n   ->   dyadicOf (bitsOf k n)  =  2k / 2^n
+
+so the depth-`n` values are exactly the multiples of `2/2^n = 2*(1/2)^n`, which
+IS the window --- the brackets abut, and this is that statement.
+
+THE HYPOTHESIS IS NOT DECORATION. `bitsOf k 0 = []` for EVERY `k`, discarding the
+index, so without `k < 2^n` the claim is false at `n = 0` for any positive `k`.
+The bound is what makes the padding faithful.
+
+TWO ARITHMETIC TRAPS, both from handing `omega` the wrong shape:
+  * `ratNat_eq_iff` cross-multiplies. Here both sides end with the SAME
+    denominator, so proving the NUMERATORS equal as `Nat` and rewriting is
+    linear, where the cross-multiplied form is a product of atoms and `omega`
+    refuses it.
+  * `2^n` is opaque to `omega`. Naming it with its positivity, and stating
+    `2^(n+1) = 2 * 2^n` separately, keeps every remaining step linear. -/
+theorem dyadicOf_bitsOf_value : ∀ (n k : Nat), k < 2 ^ n →
+    dyadicOf.{u} (bitsOf k n) = ratNat.{u} (2 * k) (2 ^ n)
+  | 0, k, hk => by
+      have hk0 : k = 0 := by omega
+      subst hk0
+      show ratZero.{u} = ratNat.{u} 0 1
+      rw [← ratNat_zero (by omega : (0:Nat) < 1)]
+  | n + 1, k, hk => by
+      have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+      have hpow : (2:Nat) ^ (n + 1) = 2 * 2 ^ n := by
+        rw [Nat.pow_succ]; omega
+      have hmod : k % 2 ^ n < 2 ^ n := Nat.mod_lt k hp
+      have hih := dyadicOf_bitsOf_value n (k % 2 ^ n) hmod
+      by_cases hb : 2 ^ n ≤ k
+      · have hk' : k % 2 ^ n = k - 2 ^ n := by
+          rw [Nat.mod_eq_sub_mod hb, Nat.mod_eq_of_lt (by rw [hpow] at hk; omega)]
+        -- the numerator is `2*2^n + ...`, not `2^n + ...`: the denominator was
+        -- already doubled by the halving, and `one_add_ratNat` adds THAT
+        have hnum : 2 * 2 ^ n + 2 * (k - 2 ^ n) = 2 * k := by omega
+        rw [dyadicOf_bitsOf_high hb, hih, half_ratNat _ _ hp,
+          one_add_ratNat _ _ (by omega), hk', hnum, hpow]
+      · have hk' : k % 2 ^ n = k := Nat.mod_eq_of_lt (by omega)
+        rw [dyadicOf_bitsOf_low hb, hih, half_ratNat _ _ hp, hk', hpow]
+
+#print axioms SetTheory.half_ratNat
+#print axioms SetTheory.one_add_ratNat
+#print axioms SetTheory.dyadicOf_bitsOf_value
 
 /-! ## The hole in the image -/
 
@@ -1114,5 +1794,5 @@ theorem triadicOf_gap (s : List Bool) :
 end SetTheory
 
 namespace ZFSet
-export SetTheory (BinaryDC Locates LocatorDC dyadicOf dyadicOf_half_le dyadicOf_head_separation dyadicOf_le_sharp dyadicOf_le_two dyadicOf_mem_Rat dyadicOf_nonneg dyadicOf_split dyadicOf_split_separation leftEnd ratNat_two_mul_half rightEnd)
+export SetTheory (BinaryDC Locates LocatorDC binaryDC_of_bool boolDCDigit boolNum dyadicOf dyadicOf_half_le dyadicOf_head_separation dyadicOf_le_sharp dyadicOf_le_two dyadicOf_mem_Rat dyadicOf_nonneg dyadicOf_split dyadicOf_split_separation leftEnd ratNat_two_mul_half rightEnd tnum_boolDCDigit)
 end ZFSet

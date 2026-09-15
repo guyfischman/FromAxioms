@@ -59,18 +59,6 @@
   "meaning": "the carrier with its operations is a ring",
   "verdict": "never"
  },
- "LLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "n/a",
-   "shape": "omniscience"
-  },
-  "discharge": "same as LPO",
-  "kind": "principle",
-  "meaning": "of two sequences at most one of which fires, one can be named",
-  "verdict": "never"
- },
  "LPO": {
   "calibration": {
    "forward": "n/a",
@@ -107,6 +95,17 @@
   "meaning": "Markov: a sequence that cannot be zero everywhere fires",
   "verdict": "never"
  },
+ "MonotoneConvergence": {
+  "calibration": {
+   "forward": "open",
+   "principle": "lpo",
+   "reverse": "Analysis.lpo_of_monotoneConvergence",
+   "shape": "omniscience"
+  },
+  "discharge": "BRACKETED IN THE LATTICE. Both edges are registered: `monotoneConvergence_of_em` bounds it ABOVE and `lpo_of_monotoneConvergence` bounds it BELOW, so `em -> monotoneconvergence -> lpo` stands and the node is not one-sided. WHAT IS OPEN is narrower: whether LPO ALONE suffices, which is the forward against this entry's `principle: lpo`. A third route, `monotoneConvergence_of_located`, takes the SCHEMA `forall x, x in Real -> Located x` rather than a nullary Prop. That schema is `CutLocated`, which is EQUIVALENT to `em`, so the route derives through the `em` edge rather than adding one. It spends its hypothesis at exactly one step, obtaining a member and a non-member of the supremum within `e`; everything before is `seqSup_spec` and everything after is arithmetic. Demanding locatedness at ONE real per sequence rather than at every real is not a weakening: the constant sequence at any real `x` is monotone and bounded by `x`, its range is `{x}` and its union is `x`, so the schema hands back `Located x` for an arbitrary real. The two are equivalent and the upper bracket stays at EM-strength. The forward reduces to one condition: term-locatedness whose non-member witness misses EVERY term rather than the one it was found at, which under monotonicity is a tail condition. On the staircase family that condition and LPO are equivalent, both directions. That does not discharge the forward: one family is not all sequences, and the staircase is the family the lower bracket was built on.",
+  "kind": "principle",
+  "meaning": "a monotone sequence bounded above converges"
+ },
  "SubsetFinite": {
   "calibration": {
    "forward": "SetTheory.subsetFinite_of_em",
@@ -128,17 +127,6 @@
   "discharge": "never: lives in _equivalences as a measured strength",
   "kind": "principle",
   "meaning": "the ternary digit stream of a real is decidable"
- },
- "TernaryLLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "Constructive.llpo_of_ternary_llpo",
-   "shape": "omniscience"
-  },
-  "discharge": "reversed to LLPO",
-  "kind": "principle",
-  "meaning": "the three-way form of LLPO over the ternary digits"
  },
  "TernaryZeroDecidable": {
   "calibration": {
@@ -510,5 +498,5 @@
   "the same reason: it is calibrated against `lpo`, and minting a node with one",
   "edge out and nothing in moves `what implies this` rather than closing it."
  ],
- "_uncalibrated": 1
+ "_uncalibrated": 2
 }

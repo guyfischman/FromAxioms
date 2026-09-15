@@ -19,7 +19,7 @@
   "dcomega",
   "dcon",
   "decidablerealllt",
-  "dyadicapprox",
+  "dyadicapprox2",
   "em",
   "exactivt01",
   "familylocated",
@@ -29,8 +29,10 @@
   "hasapprox",
   "isnoetherian",
   "llpo",
-  "locatordc",
   "lpo",
+  "maxattainmenttop",
+  "maxattainmenttoplocated",
+  "monotoneconvergence",
   "mp",
   "neapartzero",
   "pathselection",
@@ -112,13 +114,6 @@
    "to": "llpo"
   },
   {
-   "by": "Constructive.llpo_of_ternary_llpo",
-   "from": [
-    "ternaryllpo"
-   ],
-   "to": "llpo"
-  },
-  {
    "by": "Constructive.llpo_of_wkl",
    "from": "wkl",
    "to": "llpo"
@@ -127,6 +122,11 @@
    "by": "Constructive.llpo_of_wlpo",
    "from": "wlpo",
    "to": "llpo"
+  },
+  {
+   "by": "Analysis.lpo_of_monotoneConvergence",
+   "from": "monotoneconvergence",
+   "to": "lpo"
   },
   {
    "by": "Constructive.lpo_of_ternary_decidable",
@@ -142,6 +142,11 @@
     "mp"
    ],
    "to": "lpo"
+  },
+  {
+   "by": "Topology.maxAttainmentTop_of_located",
+   "from": "maxattainmenttoplocated",
+   "to": "maxattainmenttop"
   },
   {
    "by": "Constructive.mp_of_lpo",

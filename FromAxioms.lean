@@ -12,6 +12,7 @@ available. See `FromAxioms.Logic` for why the two roots are kept apart.
 -/
 import FromAxioms.Algebra
 import FromAxioms.Analysis
+import FromAxioms.CategoryTheory
 import FromAxioms.Combinatorics
 import FromAxioms.Constructive
 import FromAxioms.Core

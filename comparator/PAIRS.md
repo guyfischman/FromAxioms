@@ -108,6 +108,21 @@ a pair is narrower than what it matches.
     - `SetTheory.opair_eq_opair_iff`
     - `NumberTheory.ofNat_injective`
 
+## `Comparator.ProductUniversal.solution`
+
+- this pair costs: `[Quot.sound]`
+- rests on 1 tower proposition(s), costing `[]`
+    - `CategoryTheory.prodT_universal`
+
+## `Comparator.Soundness.solution`
+
+- this pair costs: `[]`
+- rests on 11 tower proposition(s), costing `[]`
+    - `Algebra.soundness`
+    - `Algebra.Derives.assume`
+    - `Algebra.Derives.imp_intro`
+    - `Algebra.Derives.imp_elim`
+
 ## `Comparator.UniqueFactorisation.solution`
 
 - this pair costs: `[propext, Quot.sound, Classical.choice]`

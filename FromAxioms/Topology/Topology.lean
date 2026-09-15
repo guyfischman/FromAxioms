@@ -599,6 +599,69 @@ theorem isConditionallyComplete_of_located_of_em (hem : Constructive.EM)
     IsConditionallyComplete X lt :=
   fun S hsub hne hbdd => h S hsub hne (isLocatedSubset_of_em hem hsub hso) hbdd
 
+/-- Max attainment at mathlib's generality, as a named hypothesis.
+
+`IsCompact.exists_isMaxOn` restated over this tree's vocabulary: a continuous
+map from a compact space into a conditionally complete order attains a maximum
+on any inhabited compact subset.
+
+A HYPOTHESIS, not a theorem, for a measured reason. Two of its three inputs
+have no located-real instance: `[0,1]` is not
+open-cover compact without the fan theorem, and
+`Topology.IsConditionallyComplete` fails for `RealL` in this naive form because a
+located real admits no decidable order. So this predicate is calibrated ---
+`Analysis.MaxAttainmentCompact` descends from it, and through
+`Metamath.llpo_of_max_attainment` the whole chain still reaches `LLPO`.
+
+That descent is rung 12's real content and it is NOT proved here: it needs the
+metric carrier of rung 6 exhibited as a compact space in THIS sense, which is
+precisely the fan-theorem step. Stated so the shape is on record and the gap is
+visible rather than implied. -/
+def MaxAttainmentTop : Prop :=
+  -- the universe is ANNOTATED: a bare `∀ T X ...` leaves every binder's
+  -- `ZFSet.{?u}` free, and a `Prop`-valued definition gives Lean nothing to
+  -- solve them from. Every other calibrated predicate here (`ExactIVT01`,
+  -- `MaxAttainment01`) pins `.{u}` for the same reason.
+  ∀ T X K lt f Y S : ZFSet.{u},
+    IsTopology T X → IsCompact T X K → (∃ a, a ∈ K) →
+    IsStrictOrderOn Y lt →
+    IsOrderTopology S Y lt → IsConditionallyComplete Y lt →
+    IsContinuous f X Y T S →
+      ∃ c, c ∈ K ∧ ∀ x, x ∈ K → opair (app f c) (app f x) ∉ lt
+
+/-- Max attainment over a LOCATED conditionally complete order.
+
+`Topology.MaxAttainmentTop` with `Topology.IsConditionallyCompleteLocated` in place of
+`Topology.IsConditionallyComplete`, and the change of direction is worth being
+explicit about: weakening a HYPOTHESIS of the quantified statement makes the
+PREDICATE stronger, so this implies `MaxAttainmentTop` and not the reverse ---
+`Topology.maxAttainmentTop_of_located` is that implication.
+
+Why the stronger one is the one worth descending from. A descent proving
+`MaxAttainmentTop -> LLPO` alongside auxiliary hypotheses measures the
+hypothesis SET, and `Metamath.llpo_of_conditionally_complete` shows the naive
+supremum in that set already reaches `LLPO` by itself, so the descent says
+nothing about maxima. Replace it with the located form and that shortcut is
+closed: the located supremum is what a located real actually admits, so it can
+no longer be the source of a taboo, and whatever the descent then reaches has
+to come through max attainment. -/
+def MaxAttainmentTopLocated : Prop :=
+  ∀ T X K lt f Y S : ZFSet.{u},
+    IsTopology T X → IsCompact T X K → (∃ a, a ∈ K) →
+    IsStrictOrderOn Y lt →
+    IsOrderTopology S Y lt → IsConditionallyCompleteLocated Y lt →
+    IsContinuous f X Y T S →
+      ∃ c, c ∈ K ∧ ∀ x, x ∈ K → opair (app f c) (app f x) ∉ lt
+
+/-- The located form is the stronger predicate, because its hypothesis is
+the weaker one. Composition with
+`Topology.isConditionallyCompleteLocated_of_isConditionallyComplete`. -/
+theorem maxAttainmentTop_of_located (h : MaxAttainmentTopLocated.{u}) :
+    MaxAttainmentTop.{u} :=
+  fun T X K lt f Y S hT hK hne hord htop hcc hf =>
+    h T X K lt f Y S hT hK hne hord htop
+      (isConditionallyCompleteLocated_of_isConditionallyComplete hcc) hf
+
 #print axioms mem_subspaceOpens_iff
 #print axioms isTopology_subspaceOpens
 #print axioms mem_preimageIn_iff
@@ -615,6 +678,9 @@ end Topology
 #print axioms Topology.IsCompact
 #print axioms Topology.CoverData
 #print axioms Topology.IsStrictOrderOn
+#print axioms Topology.MaxAttainmentTop
+#print axioms Topology.MaxAttainmentTopLocated
+#print axioms Topology.maxAttainmentTop_of_located
 #print axioms Topology.IsOrderTopology
 #print axioms Topology.IsConditionallyComplete
 #print axioms Topology.IsLocatedSubset
@@ -624,5 +690,5 @@ end Topology
 #print axioms Topology.isLocatedSubset_of_em
 #print axioms Topology.isConditionallyComplete_of_located_of_em
 namespace ZFSet
-export Topology (CoverData IsClosed IsCompact IsConditionallyComplete IsConditionallyCompleteLocated IsContinuous IsLocatedSubset IsOrderTopology IsStrictOrderOn IsTopology exists_mem_of_lt_sup exists_realLt_around isClosed_inter_of_detachable isClosed_union isConditionallyCompleteLocated_of_isConditionallyComplete isConditionallyComplete_of_located_of_em isLocatedSubset_of_em isTopology_realOpens isTopology_subspaceOpens mem_preimageIn_iff mem_realInterval_iff mem_realOpens_iff mem_subspaceOpens_iff preimageIn realInterval realLt realLt_realMax realLt_realMin realMax realMax_mem_Real realMin realMin_mem_Real realOpens spec subspaceOpens)
+export Topology (CoverData IsClosed IsCompact IsConditionallyComplete IsConditionallyCompleteLocated IsContinuous IsLocatedSubset IsOrderTopology IsStrictOrderOn IsTopology MaxAttainmentTop MaxAttainmentTopLocated exists_mem_of_lt_sup exists_realLt_around isClosed_inter_of_detachable isClosed_union isConditionallyCompleteLocated_of_isConditionallyComplete isConditionallyComplete_of_located_of_em isLocatedSubset_of_em isTopology_realOpens isTopology_subspaceOpens maxAttainmentTop_of_located mem_preimageIn_iff mem_realInterval_iff mem_realOpens_iff mem_subspaceOpens_iff preimageIn realInterval realLt realLt_realMax realLt_realMin realMax realMax_mem_Real realMin realMin_mem_Real realOpens spec subspaceOpens)
 end ZFSet

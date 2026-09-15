@@ -251,3 +251,37 @@ pairs:
       LEMMA in mathlib to cite. `Solution.lean` is four lines by comparison: the
       tower states the fan theorem as a named principle and derives it from a
       decider.
+
+  - id: product-universal
+    date: 1914
+    rows:
+      - "ordered pair from sets"
+    mathlib: none --- the challenge is discharged from Lean CORE
+    ours: SetTheory.opair_eq_opair_iff
+    status: complete
+    note: >
+      NO MATHLIB THEOREM IS NAMED BECAUSE THERE IS NONE TO NAME, and
+      that is measured rather than assumed: `Comparator/Audit.lean`
+      walks this challenge's compiled witness and reports ZERO Mathlib
+      propositions in its dependency set --- it rests on Lean core
+      (`Classical.em`, `Classical.choose`, `Nat.rec`, `Prod.ext`).
+      `mathlib_source` is omitted for the same reason: there is no
+      declaration to cite, and a line number invented to fill the
+      field would be worse than the blank.
+
+  - id: soundness
+    date: 1930
+    rows:
+      - "intuitionistic logic as a formal system"
+    mathlib: none --- the challenge is discharged from Lean CORE
+    ours: Algebra.soundness
+    status: complete
+    note: >
+      NO MATHLIB THEOREM IS NAMED BECAUSE THERE IS NONE TO NAME, and
+      that is measured rather than assumed: `Comparator/Audit.lean`
+      walks this challenge's compiled witness and reports ZERO Mathlib
+      propositions in its dependency set --- it rests on Lean core
+      (`Classical.em`, `Classical.choose`, `Nat.rec`, `Prod.ext`).
+      `mathlib_source` is omitted for the same reason: there is no
+      declaration to cite, and a line number invented to fill the
+      field would be worse than the blank.

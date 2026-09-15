@@ -215,6 +215,14 @@
   "Brouwer's fan theorem",
   1927
  ],
+ "Analysis.lpo_of_monotoneConvergence": [
+  "monotone convergence for bounded sequences",
+  1861
+ ],
+ "Algebra.soundness": [
+  "intuitionistic logic as a formal system",
+  1930
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

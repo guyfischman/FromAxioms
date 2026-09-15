@@ -102,6 +102,11 @@ theorem isCommMonoid_of_isGroup {G op e : ZFSet.{u}} (hG : IsGroup G op e)
 
 `Enum F n S` says `F` restricted to `{0, ..., n-1}` is a bijection onto `S`. -/
 
+structure Enum (F : Nat → ZFSet.{u}) (n : Nat) (S : ZFSet.{u}) : Prop where
+  maps : ∀ i, i < n → F i ∈ S
+  inj : ∀ i j, i < n → j < n → F i = F j → i = j
+  onto : ∀ x, x ∈ S → ∃ i, i < n ∧ F i = x
+
 /-- Reindex to omit position `j`. -/
 def skipAt (j : Nat) (F : Nat → ZFSet.{u}) : Nat → ZFSet.{u} :=
   fun i => if i < j then F i else F (i + 1)
@@ -158,6 +163,25 @@ theorem skipAt_origAt (j : Nat) (F : Nat → ZFSet.{u}) (i : Nat) :
     show _ = F (if i < j then i else i + 1)
     rw [if_neg (show ¬ i < j by omega)]
 
+/-- Deleting a value from a range shortens it by one. -/
+theorem survAt_lt_of_ne {j x n : Nat} (hj : j < n + 1) (hx : x < n + 1)
+    (hne : x ≠ j) : survAt j x < n := by
+  unfold survAt
+  rcases Nat.lt_or_ge x j with h | h
+  · rw [if_pos h]; omega
+  · rw [if_neg (by omega)]; omega
+
+#print axioms survAt_lt_of_ne
+
+/-- The embedding into the longer range lands in it. `survAt_lt_of_ne` is the other direction. -/
+theorem origAt_lt {n j i : Nat} (hi : i < n) : origAt j i < n + 1 := by
+  unfold origAt
+  rcases Nat.lt_or_ge i j with h | h
+  · rw [if_pos h]; omega
+  · rw [if_neg (by omega : ¬ i < j)]; omega
+
+#print axioms origAt_lt
+
 /-- A fold stays inside a set closed under the operation. No ring, no
 monoid, no commutativity -- the zero and the two-argument closure are the whole
 hypothesis, so a SUBRING uses it without first exhibiting its restricted ring
@@ -175,6 +199,54 @@ theorem foldF_mem_closed {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 
 #print axioms foldF_mem_closed
 
+
+/-- A `List.foldr` over ring elements stays in the ring. By recursion on
+the list; `List.foldr_induction` does not exist in this Lean. -/
+theorem foldr_mem {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
+    ∀ (l : List ZFSet.{u}), (∀ x, x ∈ l → x ∈ M) →
+      List.foldr (fun r acc => opAt op r acc) e l ∈ M
+  | [], _ => hM.mem_e
+  | x :: xs, hmem => by
+    show opAt op x (List.foldr (fun r acc => opAt op r acc) e xs) ∈ M
+    exact opAt_mem_monoid hM (hmem x List.mem_cons_self)
+      (foldr_mem hM xs (fun y hy => hmem y (List.mem_cons_of_mem _ hy)))
+
+#print axioms foldr_mem
+
+/-- A `List.foldr` with an arbitrary seed is the fold with the identity seed,
+times that seed. The auxiliary the range bridge needs: peeling the last
+element of a range leaves a fold whose seed is no longer `e`. -/
+theorem foldr_seed {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
+    ∀ (l : List ZFSet.{u}), (∀ x, x ∈ l → x ∈ M) → ∀ z, z ∈ M →
+      List.foldr (fun r acc => opAt op r acc) z l
+        = opAt op (List.foldr (fun r acc => opAt op r acc) e l) z
+  | [], _, z, hz => by
+    show z = opAt op e z
+    exact (hM.left_id z hz).symm
+  | x :: xs, hmem, z, hz => by
+    have hx : x ∈ M := hmem x List.mem_cons_self
+    have hxs : ∀ y, y ∈ xs → y ∈ M := fun y hy => hmem y (List.mem_cons_of_mem _ hy)
+    have hfold : List.foldr (fun r acc => opAt op r acc) e xs ∈ M :=
+      foldr_mem hM xs hxs
+    show opAt op x (List.foldr (fun r acc => opAt op r acc) z xs)
+      = opAt op (opAt op x (List.foldr (fun r acc => opAt op r acc) e xs)) z
+    rw [foldr_seed hM xs hxs z hz, hM.assoc _ hx _ hfold _ hz]
+
+#print axioms foldr_seed
+
+
+/-- `gpow` stays in any subset closed under the operation, the companion of
+`foldF_mem_closed` and needed for the same reason: a subset can be closed under
+an operation without being a monoid, and `gpow_mem_bare` asks for the monoid.
+`ratIn` is exactly that case -- closed under both fraction operations, and
+carrying neither structure. -/
+theorem gpow_mem_closed {S op e a : ZFSet.{u}} (he : e ∈ S)
+    (hop : ∀ x, x ∈ S → ∀ y, y ∈ S → opAt op x y ∈ S) (ha : a ∈ S) :
+    ∀ n : Nat, gpow op e a n ∈ S
+  | 0 => he
+  | n + 1 => hop _ (gpow_mem_closed he hop ha n) _ ha
+
+#print axioms gpow_mem_closed
 
 theorem foldF_congr {op e : ZFSet.{u}} {F G : Nat → ZFSet.{u}} :
     ∀ k : Nat, (∀ i, i < k → F i = G i) → foldF op e F k = foldF op e G k
@@ -380,6 +452,37 @@ theorem foldF_peel_pair {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
   rw [foldF_skip hM (n + 1) p (by omega) hmem,
     foldF_skip hM n 0 (by omega) hskip, skipAt_lt hp]
 
+/-- A `List.foldr` over a mapped range is the indexed fold.
+
+`evalAt_polyProd_foldr` produces the first and `foldF_mul_units` consumes the
+second; nothing joined them.
+
+They accumulate from opposite ends --- `foldF` from the left, `List.foldr` from
+the right --- so they agree only up to commutativity, hence `IsCommMonoid`. The
+induction uses `List.range_succ`, which appends at the END and so matches
+`foldF`'s own recursion; `List.range_succ_eq_map` conses at the front and
+fights it. -/
+theorem foldr_range_eq_foldF {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
+    {f : Nat -> ZFSet.{u}} (hf : forall i, f i ∈ M) :
+    forall n : Nat,
+      List.foldr (fun r acc => opAt op r acc) e ((List.range n).map f)
+        = foldF op e f n
+  | 0 => by rw [List.range_zero]; rfl
+  | n + 1 => by
+    have hmem : forall x, x ∈ (List.range n).map f -> x ∈ M := by
+      intro x hx
+      obtain ⟨i, -, rfl⟩ := List.mem_map.mp hx
+      exact hf i
+    rw [List.range_succ, List.map_append, List.foldr_append]
+    show List.foldr (fun r acc => opAt op r acc)
+        (opAt op (f n) e) ((List.range n).map f) = _
+    rw [hM.comm _ (hf n) _ hM.mem_e, hM.left_id _ (hf n),
+      foldr_seed hM _ hmem (f n) (hf n),
+      foldr_range_eq_foldF hM hf n]
+    rfl
+
+#print axioms foldr_range_eq_foldF
+
 /-- Peel off the first term instead of the last. -/
 theorem foldF_cons {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F : Nat → ZFSet.{u}} :
     ∀ n : Nat, (∀ i, i < n + 1 → F i ∈ M) →
@@ -414,6 +517,29 @@ theorem foldF_reverse {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F : Nat �
     show opAt op (foldF op e F n) (F n) = opAt op (F (n - 0)) (foldF op e F n)
     rw [show n - 0 = n from rfl,
       hM.comm _ (hmem n (by omega)) _ (foldF_mem hM n (fun i hi => hmem i (by omega)))]
+
+/-- A `List.foldr` over `List.range n` is the index fold `foldF`.
+
+The two fold layers had no lemma joining them. `foldF` carries the
+commutative-monoid machinery --- reversal, permutation, termwise addition ---
+while the polynomial layer emits `List.foldr`, because a product over roots is a
+fold over a LIST. Everything proved about either was unavailable to the other.
+
+Stated over `List.range n` with `F` applied INSIDE the fold rather than over a
+mapped list: `List.foldr_map` turns any `l.map g` into that form, so the
+un-mapped statement covers both and the induction stays on `n`. -/
+theorem foldr_range_eq_foldF_below {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
+    ∀ (n : Nat) (F : Nat → ZFSet.{u}), (∀ i, i < n → F i ∈ M) →
+      List.foldr (fun j acc => opAt op (F j) acc) e (List.range n) = foldF op e F n
+  | 0, _, _ => rfl
+  | n + 1, F, hmem => by
+    rw [List.range_succ_eq_map]
+    show opAt op (F 0)
+        (List.foldr (fun j acc => opAt op (F j) acc) e
+          ((List.range n).map Nat.succ)) = foldF op e F (n + 1)
+    rw [List.foldr_map,
+      foldr_range_eq_foldF_below hM n (fun i => F (i + 1)) (fun i hi => hmem (i + 1) (by omega)),
+      foldF_cons hM n hmem]
 
 /-- Folds add termwise. -/
 theorem foldF_add {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F G : Nat → ZFSet.{u}} :
@@ -525,6 +651,98 @@ theorem foldF_triangle {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     rw [hstep, foldF_add hM (k + 1) (fun a _ => hinner a) (fun a _ => hdiag a), ← ih,
       hE, hD2, hM.assoc _ hleft _ hD _ (hS (k + 1) 0)]
 
+/-! ## Invariance
+
+Two enumerations of the same set agree on length and on fold. The two claims
+share an induction: removing the last element of one enumeration and the
+matching element of the other reduces both at once. -/
+
+theorem enum_fold_unique {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
+    (g : ZFSet.{u} → ZFSet.{u}) :
+    ∀ n : Nat, ∀ m : Nat, ∀ F G : Nat → ZFSet.{u}, ∀ S : ZFSet.{u},
+      (∀ w, w ∈ S → g w ∈ M) → Enum F n S → Enum G m S →
+      n = m ∧ foldF op e (fun i => g (F i)) n = foldF op e (fun i => g (G i)) m := by
+  intro n
+  induction n with
+  | zero =>
+    intro m F G S hsub hF hG
+    rcases Nat.eq_zero_or_pos m with rfl | hm
+    · exact ⟨rfl, rfl⟩
+    · exact absurd (hF.onto (G 0) (hG.maps 0 hm)) (by rintro ⟨i, hi, -⟩; omega)
+  | succ n ih =>
+    intro m F G S hsub hF hG
+    have ha : F n ∈ S := hF.maps n (by omega)
+    -- `m` cannot be zero, since `S` has the element `F n`
+    obtain ⟨m, rfl⟩ : ∃ m', m = m' + 1 := by
+      rcases Nat.eq_zero_or_pos m with rfl | hm
+      · obtain ⟨i, hi, -⟩ := hG.onto (F n) ha
+        exact absurd hi (by omega)
+      · exact ⟨m - 1, by omega⟩
+    obtain ⟨j, hj, hGj⟩ := hG.onto (F n) ha
+    -- drop `F n` from both enumerations
+    have hFrest : Enum F n (S \ singleton (F n)) := by
+      refine ⟨fun i hi => (mem_sdiff_iff _ _ _).mpr ⟨hF.maps i (by omega), fun hmem => ?_⟩,
+        fun i j hi hj he => hF.inj i j (by omega) (by omega) he, fun x hx => ?_⟩
+      · have := hF.inj i n (by omega) (by omega) ((mem_singleton_iff _ _).mp hmem)
+        omega
+      · obtain ⟨hxS, hxne⟩ := (mem_sdiff_iff _ _ _).mp hx
+        obtain ⟨i, hi, hix⟩ := hF.onto x hxS
+        refine ⟨i, ?_, hix⟩
+        rcases Nat.lt_or_ge i n with h | h
+        · exact h
+        · obtain rfl : i = n := by omega
+          exact absurd ((mem_singleton_iff _ _).mpr hix.symm) hxne
+    have hGrest : Enum (skipAt j G) m (S \ singleton (F n)) := by
+      refine ⟨fun i hi => ?_, fun i i' hi hi' he => ?_, fun x hx => ?_⟩
+      · rcases Nat.lt_or_ge i j with h | h
+        · rw [skipAt_lt h]
+          refine (mem_sdiff_iff _ _ _).mpr ⟨hG.maps i (by omega), fun hmem => ?_⟩
+          have := hG.inj i j (by omega) hj (((mem_singleton_iff _ _).mp hmem).trans hGj.symm)
+          omega
+        · rw [skipAt_ge h]
+          refine (mem_sdiff_iff _ _ _).mpr ⟨hG.maps (i + 1) (by omega), fun hmem => ?_⟩
+          have := hG.inj (i + 1) j (by omega) hj
+            (((mem_singleton_iff _ _).mp hmem).trans hGj.symm)
+          omega
+      · rcases Nat.lt_or_ge i j with h | h <;> rcases Nat.lt_or_ge i' j with h' | h'
+        · rw [skipAt_lt h, skipAt_lt h'] at he
+          exact hG.inj i i' (by omega) (by omega) he
+        · rw [skipAt_lt h, skipAt_ge h'] at he
+          have := hG.inj i (i' + 1) (by omega) (by omega) he
+          omega
+        · rw [skipAt_ge h, skipAt_lt h'] at he
+          have := hG.inj (i + 1) i' (by omega) (by omega) he
+          omega
+        · rw [skipAt_ge h, skipAt_ge h'] at he
+          have := hG.inj (i + 1) (i' + 1) (by omega) (by omega) he
+          omega
+      · obtain ⟨hxS, hxne⟩ := (mem_sdiff_iff _ _ _).mp hx
+        obtain ⟨k, hk, hkx⟩ := hG.onto x hxS
+        have hkj : k ≠ j := by
+          intro he
+          rw [he, hGj] at hkx
+          exact hxne ((mem_singleton_iff _ _).mpr hkx.symm)
+        rcases Nat.lt_or_ge k j with h | h
+        · exact ⟨k, by omega, by rw [skipAt_lt h]; exact hkx⟩
+        · refine ⟨k - 1, by omega, ?_⟩
+          rw [skipAt_ge (show j ≤ k - 1 by omega), show k - 1 + 1 = k by omega]
+          exact hkx
+    have hsub' : ∀ w, w ∈ S \ singleton (F n) → g w ∈ M :=
+      fun w hw => hsub _ ((mem_sdiff_iff _ _ _).mp hw).left
+    obtain ⟨hlen, hfold⟩ := ih m F (skipAt j G) _ hsub' hFrest hGrest
+    refine ⟨by omega, ?_⟩
+    have hGm : ∀ i, i < m + 1 → g (G i) ∈ M := fun i hi => hsub _ (hG.maps i hi)
+    show opAt op (foldF op e (fun i => g (F i)) n) (g (F n))
+      = foldF op e (fun i => g (G i)) (m + 1)
+    rw [foldF_skip hM m j (by omega) hGm,
+      foldF_congr (F := skipAt j (fun i => g (G i))) (G := fun i => g (skipAt j G i)) m
+        (fun i hi => by
+          show skipAt j (fun i => g (G i)) i = g (skipAt j G i)
+          rcases Nat.lt_or_ge i j with h | h
+          · rw [skipAt_lt h, skipAt_lt h]
+          · rw [skipAt_ge h, skipAt_ge h]),
+      ← hfold, hGj]
+
 /-! ## The fold of a set
 
 `IsFoldMapOf g S v` is a `Prop` with at most one witness, so the value can be
@@ -615,6 +833,8 @@ and the value is extracted from a singleton. -/
 #print axioms skipAt_origAt
 #print axioms foldF_reverse
 #print axioms foldF_add
+#print axioms foldr_range_eq_foldF_below
+
 #print axioms foldF_pointwise_add
 #print axioms foldF_drop_last
 #print axioms foldF_trunc
@@ -671,6 +891,7 @@ theorem foldF_single_below_monoid {M op e : ZFSet.{u}}
           (fun i hi hne => hz i (by omega) hne)]
 
 #print axioms foldF_single_below_monoid
+#print axioms enum_fold_unique
 #print axioms foldF_unit
 #print axioms hom_foldF_monoid
 
@@ -790,6 +1011,132 @@ theorem survPair_pairs {G op e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 #print axioms survPair_invol
 #print axioms survPair_pairs
 
+/-- The pairing transports to the survivors when it is conditional.
+`survPair_pairs` needs `F (sigma j) = ginv (F j)` at every index; this asks it
+only where `sigma` moves `j`, which is what a family with self-paired indices
+supplies. -/
+theorem survPair_pairs_of_fixed {G op e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
+    {sigma : Nat → Nat} {p n : Nat} (hp : 0 < p)
+    (hinvol : ∀ i, i < n + 2 → sigma (sigma i) = i) (h0p : sigma 0 = p)
+    (hpairs : ∀ j, j < n + 2 → sigma j ≠ j → F (sigma j) = ginv G op e (F j))
+    {i : Nat} (hi : i < n) (hne : survPair sigma p i ≠ i) :
+    skipAt 0 (skipAt p F) (survPair sigma p i)
+      = ginv G op e (skipAt 0 (skipAt p F) i) := by
+  have hx := origAt_pair_ne p i
+  have hX : origAt p (origAt 0 i) < n + 2 := origAt_pair_lt hi
+  have hs := sigma_survives (hinvol 0 (by omega)) (hinvol _ hX) h0p
+    hx.left hx.right
+  have hfixX : sigma (origAt p (origAt 0 i)) ≠ origAt p (origAt 0 i) := by
+    intro h
+    refine hne ?_
+    show survAt 0 (survAt p (sigma (origAt p (origAt 0 i)))) = i
+    rw [h, survAt_pair_origAt]
+  rw [skipAt_skipAt_origAt, skipAt_skipAt_origAt]
+  show F (origAt p (origAt 0 (survPair sigma p i)))
+    = ginv G op e (F (origAt p (origAt 0 i)))
+  unfold survPair
+  rw [origAt_pair_survAt hp hs.left hs.right, hpairs _ hX hfixX]
+
+#print axioms survPair_pairs_of_fixed
+
+/-- A survivor the transported map fixes was fixed by the original.
+The pair peel removes `0` and `p`; a survivor `sigma` sends to itself carries
+the unit value the fold needs. -/
+theorem survPair_fixed_unit {e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
+    {sigma : Nat → Nat} {p n : Nat} (hp : 0 < p)
+    (hinvol : ∀ i, i < n + 2 → sigma (sigma i) = i) (h0p : sigma 0 = p)
+    (hfix : ∀ j, j < n + 2 → sigma j = j → F j = e)
+    {i : Nat} (hi : i < n) (hfixed : survPair sigma p i = i) :
+    skipAt 0 (skipAt p F) i = e := by
+  have hx := origAt_pair_ne p i
+  have hX : origAt p (origAt 0 i) < n + 2 := origAt_pair_lt hi
+  have hs := sigma_survives (hinvol 0 (by omega)) (hinvol _ hX) h0p
+    hx.left hx.right
+  have h2 : origAt p (origAt 0 (survPair sigma p i)) = origAt p (origAt 0 i) := by
+    rw [hfixed]
+  rw [show survPair sigma p i
+      = survAt 0 (survAt p (sigma (origAt p (origAt 0 i)))) from rfl,
+    origAt_pair_survAt hp hs.left hs.right] at h2
+  rw [skipAt_skipAt_origAt]
+  exact hfix _ hX h2
+
+#print axioms survPair_fixed_unit
+
+/-- An involution folds to the unit, self-paired indices allowed.
+Pairs `{i, sigma i}` contribute `op x (ginv x)`, and an index `sigma` fixes
+contributes the unit outright. `foldF_involution` is the case where no index is
+fixed. The branch is on index `0`: fixed, it peels alone; paired, it peels with
+`sigma 0` and `survPair` carries the involution to the survivors. -/
+theorem foldF_involution_of_fixed {G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hab : IsAbelian G op) :
+    ∀ n : Nat, ∀ F : Nat → ZFSet.{u}, ∀ sigma : Nat → Nat,
+      (∀ i, F i ∈ G) →
+      (∀ i, i < n → sigma (sigma i) = i) →
+      (∀ i, i < n → sigma i < n) →
+      (∀ i, i < n → sigma i ≠ i → F (sigma i) = ginv G op e (F i)) →
+      (∀ i, i < n → sigma i = i → F i = e) →
+      foldF op e F n = e := by
+  have hM := isCommMonoid_of_isGroup hG hab
+  intro n
+  induction n using Nat.strongRecOn with
+  | _ n ih =>
+    match n with
+    | 0 => intro _ _ _ _ _ _ _; rfl
+    | (m + 1) =>
+      intro F sigma hmem hinvol hmaps hpairs hfix
+      rcases Nat.eq_zero_or_pos (sigma 0) with hz | hpos
+      · have hskip : ∀ i, skipAt 0 F i ∈ G := fun i => by
+          rw [skipAt_origAt]; exact hmem _
+        have hX0 : ∀ i : Nat, i < m → origAt 0 i < m + 1 := fun i hi => origAt_lt hi
+        have hsig0 : ∀ i : Nat, i < m → sigma (origAt 0 i) ≠ 0 := by
+          intro i hi h
+          have hb := hinvol _ (hX0 i hi)
+          rw [h, hz] at hb
+          exact origAt_ne 0 i hb.symm
+        have hunfix : ∀ i : Nat, i < m →
+            survAt 0 (sigma (origAt 0 i)) = i →
+            sigma (origAt 0 i) = origAt 0 i := by
+          intro i hi h
+          have h2 : origAt 0 (survAt 0 (sigma (origAt 0 i))) = origAt 0 i := by rw [h]
+          rw [origAt_survAt (hsig0 i hi)] at h2
+          exact h2
+        rw [foldF_skip hM m 0 (by omega) (fun i _ => hmem i),
+          hfix 0 (by omega) hz,
+          right_id_monoid hM (foldF_mem hM m (fun i _ => hskip i))]
+        refine ih m (by omega) (skipAt 0 F) (fun i => survAt 0 (sigma (origAt 0 i)))
+          hskip ?_ ?_ ?_ ?_
+        · intro i hi
+          show survAt 0 (sigma (origAt 0 (survAt 0 (sigma (origAt 0 i))))) = i
+          rw [origAt_survAt (hsig0 i hi), hinvol _ (hX0 i hi), survAt_origAt]
+        · intro i hi
+          exact survAt_lt_of_ne (by omega) (hmaps _ (hX0 i hi)) (hsig0 i hi)
+        · intro i hi hne
+          rw [skipAt_origAt, skipAt_origAt, origAt_survAt (hsig0 i hi)]
+          refine hpairs _ (hX0 i hi) ?_
+          intro h
+          refine hne ?_
+          show survAt 0 (sigma (origAt 0 i)) = i
+          rw [h]
+          exact survAt_origAt 0 i
+        · intro i hi hfixed
+          rw [skipAt_origAt]
+          exact hfix _ (hX0 i hi) (hunfix i hi hfixed)
+      · match m with
+        | 0 =>
+          exact absurd (show sigma 0 = 0 by have := hmaps 0 (by omega); omega)
+            (by omega)
+        | (m' + 1) =>
+          rw [foldF_peel_pair_collapse hG hab m' (sigma 0) hpos
+            (hmaps 0 (by omega)) hmem (hpairs 0 (by omega) (by omega))]
+          exact ih m' (by omega) _ (survPair sigma (sigma 0))
+            (fun i => by rw [skipAt_skipAt_origAt]; exact hmem _)
+            (fun i hi => survPair_invol hpos hinvol rfl hi)
+            (fun i hi => survPair_maps hpos (hmaps 0 (by omega)) hmaps hinvol rfl hi)
+            (fun i hi hne => survPair_pairs_of_fixed hpos hinvol rfl hpairs hi hne)
+            (fun i hi hfixed => survPair_fixed_unit hpos hinvol rfl hfix hi hfixed)
+
+#print axioms foldF_involution_of_fixed
+
 /-- The conditioned recursion: the involution's clauses are asked for on
 `{0..n-1}` only, which is what a partial involution can supply. -/
 theorem foldF_involution {G op e : ZFSet.{u}} (hG : IsGroup G op e)
@@ -844,6 +1191,79 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 
 #print axioms IsCommMonoid.toMonoid
 #print axioms gpow_add_of_commMonoid
+/-- A fold whose summand depends only on `t % f` collapses to a power.
+
+    fold over t < g*f of H (t % f)  =  (fold over a < f of H a) ^ g
+
+`foldF_flatten` splits the range and `foldF_const` collapses the outer fold,
+which is constant because the summand ignores `t / f`.
+
+This is the shape the character-family product takes once `mul_mod_of_split`
+has shown the exponent depends only on the residue: the product FIBRES over the
+inner index `g` times, so `foldF_permOn` --- a permutation lemma ---
+cannot be applied at the top level. -/
+theorem foldF_flatten_const {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
+    {H : Nat → ZFSet.{u}} (hmem : ∀ a : Nat, H a ∈ M) (f g : Nat) :
+    foldF op e (fun t => H (t % f)) (g * f)
+      = gpow op e (foldF op e H f) g := by
+  rw [← foldF_flatten hM (G := fun _ a => H a) (fun _ a => hmem a) f g,
+    foldF_const]
+
+/-- Any TWO distinct factors move to the outside of a fold.
+
+    foldF F (n+2)
+      = opAt (opAt (foldF (skipAt (survAt j p) (skipAt j F)) n) (F p)) (F j)
+
+`foldF_peel_pair` already does this when one of the two is index `0`, which is
+where `app_charFamily_zero` puts the TRIVIAL character. The conjugate pair row
+1837's non-real case needs is two NON-zero indices, so the peel runs `foldF_skip`
+twice and `survAt j p` is where `p` has moved after `j` is removed.
+
+`skipAt_origAt` and `origAt_survAt` are what put `F p` back at the end: skipping
+re-indexes, and `origAt j (survAt j p) = p` exactly when `p /= j`, which is the
+hypothesis. -/
+theorem foldF_peel_two {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
+    {F : Nat → ZFSet.{u}} (n j p : Nat) (hj : j < n + 2) (hp : p < n + 2)
+    (hjp : p ≠ j) (hmem : ∀ i, i < n + 2 → F i ∈ M) :
+    foldF op e F (n + 2)
+      = opAt op (opAt op (foldF op e (skipAt (survAt j p) (skipAt j F)) n) (F p))
+        (F j) := by
+  have hq : survAt j p ≤ n := by
+    rw [survAt]
+    rcases Nat.lt_or_ge p j with h | h
+    · rw [if_pos h]; omega
+    · rw [if_neg (Nat.not_lt.mpr h)]
+      have : j < p := Nat.lt_of_le_of_ne h (fun hh => hjp hh.symm)
+      omega
+  have hskipmem : ∀ i : Nat, i < n + 1 → skipAt j F i ∈ M := by
+    intro i hi
+    rw [skipAt_origAt]
+    refine hmem _ ?_
+    rw [origAt]
+    rcases Nat.lt_or_ge i j with h | h
+    · rw [if_pos h]; omega
+    · rw [if_neg (Nat.not_lt.mpr h)]; omega
+  have hval : skipAt j F (survAt j p) = F p := by
+    rw [skipAt_origAt, origAt_survAt hjp]
+  rw [foldF_skip hM (n + 1) j (by omega) hmem,
+    foldF_skip hM n (survAt j p) hq hskipmem, hval]
+
+/-- An inverse in a commutative monoid is unique.
+`inv_unique` says this for a GROUP; the proof never uses invertibility of `z`,
+so it holds wherever `opAt` is associative, commutative and unital. That
+matters because `Complex` under `cMul` is NOT a group --- zero has no inverse
+--- but it IS a commutative monoid, via `isCommMonoid_ringMul`. -/
+theorem inv_unique_monoid {M op e z w w' : ZFSet.{u}} (hM : IsCommMonoid M op e)
+    (hz : z ∈ M) (hw : w ∈ M) (hw' : w' ∈ M)
+    (h1 : opAt op z w = e) (h2 : opAt op z w' = e) : w = w' := by
+  calc w = opAt op w e := (right_id_monoid hM hw).symm
+    _ = opAt op w (opAt op z w') := by rw [h2]
+    _ = opAt op (opAt op w z) w' := (hM.assoc w hw z hz w' hw').symm
+    _ = opAt op (opAt op z w) w' := by rw [hM.comm w hw z hz]
+    _ = opAt op e w' := by rw [h1]
+    _ = w' := hM.left_id w' hw'
+
+
 #print axioms opAt_mem_monoid
 #print axioms right_id_monoid
 #print axioms isCommMonoid_of_isGroup
@@ -859,5 +1279,9 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 end Algebra
 
 namespace ZFSet
-export Algebra (flat_div_mod flat_lt foldF foldF_add foldF_congr foldF_cons foldF_const foldF_drop_last foldF_flatten foldF_involution foldF_map foldF_mem foldF_mem_closed foldF_mem_closed_below foldF_peel_pair foldF_peel_pair_collapse foldF_pointwise_add foldF_reverse foldF_single_below_monoid foldF_skip foldF_split foldF_swap foldF_triangle foldF_trunc foldF_unit foldF_zeros_monoid ginv ginv_ginv ginv_mem gpow_add_of_commMonoid hom_foldF_monoid IsCommMonoid isCommMonoid_of_isGroup left_comm_monoid opAt_ginv opAt_mem_monoid opAt_shuffle4 origAt origAt_ne origAt_pair_lt origAt_pair_ne origAt_pair_survAt origAt_survAt right_id_monoid sigma_survives skipAt skipAt_ge skipAt_lt skipAt_origAt skipAt_skipAt_origAt survAt survAt_origAt survAt_pair_lt survAt_pair_origAt survPair survPair_invol survPair_maps survPair_nofix survPair_pairs)
+export Algebra (Enum enum_fold_unique flat_div_mod flat_lt foldF foldF_add foldF_congr foldF_cons foldF_const foldF_drop_last foldF_flatten foldF_flatten_const foldF_involution foldF_map foldF_mem foldF_mem_closed foldF_mem_closed_below foldF_peel_pair foldF_peel_pair_collapse foldF_peel_two foldF_pointwise_add foldF_reverse foldF_single_below_monoid foldF_skip foldF_split foldF_swap foldF_triangle foldF_trunc foldF_unit foldF_zeros_monoid foldr_mem foldr_range_eq_foldF foldr_range_eq_foldF_below foldr_seed ginv ginv_ginv ginv_mem gpow_add_of_commMonoid gpow_mem_closed hom_foldF_monoid inv_unique_monoid IsCommMonoid isCommMonoid_of_isGroup left_comm_monoid opAt_ginv opAt_mem_monoid opAt_shuffle4 origAt origAt_ne origAt_pair_lt origAt_pair_ne origAt_pair_survAt origAt_survAt right_id_monoid sigma_survives skipAt skipAt_ge skipAt_lt skipAt_origAt skipAt_skipAt_origAt survAt survAt_origAt survAt_pair_lt survAt_pair_origAt survPair survPair_invol survPair_maps survPair_nofix survPair_pairs)
+#print axioms Algebra.foldF_flatten_const
+#print axioms Algebra.foldF_peel_two
+#print axioms Algebra.inv_unique_monoid
+
 end ZFSet

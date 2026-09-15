@@ -23,3 +23,4 @@ import FromAxioms.Algebra.LinAlg
 import FromAxioms.Algebra.Ordered
 import FromAxioms.Algebra.TowerLaw
 import FromAxioms.Algebra.PointIdeal
+import FromAxioms.Algebra.Heyting
