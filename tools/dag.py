@@ -140,9 +140,10 @@ def _pairs():
 
         pid = lines[s][len("  - id: "):].strip()
         ml, src = get("mathlib"), get("mathlib_source") or ""
+        ml = ml.strip('"').strip() if ml else ml
         mlu = None
         m = re.match(r"(Mathlib/\S+\.lean):(\d+)$", src)
-        if ml and ml.startswith("none"):
+        if ml and ml.lstrip("(").startswith("none"):
             ml = None
         elif m and rev:
             mlu = (f"https://github.com/leanprover-community/mathlib4/blob/"
