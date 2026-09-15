@@ -189,6 +189,22 @@ theorem isNested_ternary {c : Nat → Nat} (hc : ∀ n, c n ≤ 1) :
     rw [app_tlowSeq, app_thighSeq, invWidth_ofNat]
     exact ternary_width i
 
+/-! ## Audit
+
+Choice-free throughout, by the shape of the recursion: the digit enters as a
+factor, never as a branch. -/
+
+/-- A positive walk numerator means some digit fired, and names one. -/
+theorem exists_of_tnum_pos {c : Nat → Nat} :
+    ∀ n : Nat, 0 < tnum c n → ∃ i : Nat, 0 < c i
+  | 0, h => absurd h (by rw [tnum]; omega)
+  | n + 1, h => by
+    rcases Nat.eq_zero_or_pos (c n) with hz | hp
+    · refine exists_of_tnum_pos n ?_
+      rw [tnum, hz] at h
+      omega
+    · exact ⟨n, hp⟩
+
 #print axioms isNested_ternary
 #print axioms tnum_lt_pow3
 #print axioms mul3
@@ -207,6 +223,8 @@ theorem isNested_ternary {c : Nat → Nat} (hc : ∀ n, c n ≤ 1) :
 #print axioms app_thighSeq
 end Analysis
 
+#print axioms Analysis.exists_of_tnum_pos
+
 namespace ZFSet
-export Analysis (app_thighSeq app_tlowSeq isNested_ternary pow3 pow3_pos succ_le_pow3 ternary_width thigh thighSeq thigh_anti thigh_mem_Rat thigh_step tlow tlowSeq tlow_lt_thigh tlow_mem_Rat tlow_mono tlow_step tnum tnum_lt_pow3)
+export Analysis (app_thighSeq app_tlowSeq exists_of_tnum_pos isNested_ternary pow3 pow3_pos succ_le_pow3 ternary_width thigh thighSeq thigh_anti thigh_mem_Rat thigh_step tlow tlowSeq tlow_lt_thigh tlow_mem_Rat tlow_mono tlow_step tnum tnum_lt_pow3)
 end ZFSet

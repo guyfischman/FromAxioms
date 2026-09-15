@@ -83,6 +83,17 @@
   "meaning": "Markov: a sequence that cannot be zero everywhere fires",
   "verdict": "never"
  },
+ "SubsetFinite": {
+  "calibration": {
+   "forward": "SetTheory.subsetFinite_of_em",
+   "principle": "em",
+   "reverse": "SetTheory.em_of_subset_finite",
+   "shape": "omniscience"
+  },
+  "discharge": "no, and it is an EQUIVALENCE: a subset of a finite set being finite IS excluded middle. The registry recorded forward as n/a while subsetFinite_of_em was already proved",
+  "kind": "principle",
+  "meaning": "a subset of a finite set is finite"
+ },
  "TernaryZeroDecidable": {
   "calibration": {
    "forward": "n/a",

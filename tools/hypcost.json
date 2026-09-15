@@ -13,7 +13,8 @@
  "EM": [
   "FromAxioms/Constructive/Reverse.lean::dne_of_em",
   "FromAxioms/Constructive/Reverse.lean::familyLocated_of_em",
-  "FromAxioms/Constructive/Reverse.lean::wem_of_em"
+  "FromAxioms/Constructive/Reverse.lean::wem_of_em",
+  "FromAxioms/SetTheory/Cardinal.lean::subsetFinite_of_em"
  ],
  "FamilyLocated": [
   "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",

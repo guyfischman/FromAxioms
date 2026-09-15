@@ -99,6 +99,13 @@
    "to": "signdisjunction"
   },
   {
+   "by": "SetTheory.subsetFinite_of_em",
+   "from": [
+    "em"
+   ],
+   "to": "subsetfinite"
+  },
+  {
    "by": "Constructive.wem_of_em",
    "from": "em",
    "to": "wem"

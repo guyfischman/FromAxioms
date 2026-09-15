@@ -44,6 +44,24 @@ namespace Constructive
 /-- The limited principle of omniscience. -/
 def LPO : Prop := ∀ α : Nat → Bool, (∃ n, α n = true) ∨ (∀ n, α n = false)
 
+/-- `LPO`'s disjunction is NOT-NOT true at every sequence, so the principle
+is precisely the gap between `¬¬P` and `P` -- and no argument whose conclusions
+are ¬¬-STABLE can ever reach it.
+
+That is a general bound rather than a remark. `withinOf_of_cases` and its
+family dispose of an arbitrary `Prop` for free, and ENTIRELY by stability: the
+proof is `withinOf_stable` applied to a double negation. So the technique is
+available exactly when the target is stable, `WLPO` and `LLPO` are disjunctions
+too, and any claim of the form this is free because the conclusion is stable
+is automatically not a route to an omniscience principle. -/
+theorem not_not_lpo_pointwise (α : Nat → Bool) :
+    ¬¬ ((∃ n, α n = true) ∨ (∀ n, α n = false)) := by
+  intro h
+  exact h (Or.inr (fun n => by
+    cases hn : α n with
+    | true => exact absurd (h (Or.inl ⟨n, hn⟩)) (fun x => x)
+    | false => rfl))
+
 /-- Its weak form: decide only whether the sequence is identically zero. -/
 def WLPO : Prop := ∀ α : Nat → Bool, (∀ n, α n = false) ∨ ¬ (∀ n, α n = false)
 
@@ -349,6 +367,8 @@ theorem exists_first_diff : ∀ u v : List Bool, u.length = v.length → u ≠ v
 #print axioms tnum_pos_iff
 #print axioms tnum_eq_zero
 end Constructive
+#print axioms Constructive.not_not_lpo_pointwise
+
 namespace ZFSet
-export Constructive (Extendable LLPO LPO MP TernaryLLPO TernaryZeroDecidable TreeReadout Unbounded WLPO boolDigit boolDigit_eq_one_iff boolDigit_le_one extend llpo_of_ternary_llpo not_exists_true take ternary_eq_zero_iff tnum_eq_zero tnum_pos_iff wlpo_of_ternary_zero_decidable zero_mem_ternary_iff)
+export Constructive (Extendable LLPO LPO MP TernaryLLPO TernaryZeroDecidable TreeReadout Unbounded WLPO boolDigit boolDigit_eq_one_iff boolDigit_le_one extend llpo_of_ternary_llpo not_exists_true not_not_lpo_pointwise take ternary_eq_zero_iff tnum_eq_zero tnum_pos_iff wlpo_of_ternary_zero_decidable zero_mem_ternary_iff)
 end ZFSet

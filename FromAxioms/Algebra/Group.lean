@@ -138,6 +138,10 @@ and inverses; a homomorphism is a set function that commutes with the two
 operations. The theorem that ties them is that an image is a subgroup -- which
 is how `2ℤ` arrives below, without a separate closure argument. -/
 
+def IsSubgroup (H G op e : ZFSet.{u}) : Prop :=
+  H ⊆ G ∧ e ∈ H ∧ (∀ a, a ∈ H → ∀ b, b ∈ H → opAt op a b ∈ H) ∧
+    (∀ a, a ∈ H → ∃ b, b ∈ H ∧ opAt op a b = e ∧ opAt op b a = e)
+
 def IsHom (f G₁ op₁ G₂ op₂ : ZFSet.{u}) : Prop :=
   IsFunction f ∧ domain f = G₁ ∧ range f ⊆ G₂ ∧
     ∀ a, a ∈ G₁ → ∀ b, b ∈ G₁ → app f (opAt op₁ a b) = opAt op₂ (app f a) (app f b)
@@ -152,6 +156,21 @@ theorem isHom_op {f G₁ op₁ G₂ op₂ a b : ZFSet.{u}} (h : IsHom f G₁ op�
 theorem app_mem_of_isHom {f G₁ op₁ G₂ op₂ a : ZFSet.{u}} (h : IsHom f G₁ op₁ G₂ op₂)
     (ha : a ∈ G₁) : app f a ∈ G₂ :=
   h.right.right.left _ (app_mem_range h.left (by rw [h.right.left]; exact ha))
+
+/-- A homomorphism sends the identity to the identity: `f e · f e = f e`, and
+cancelling on the left leaves `f e = e'`. -/
+theorem hom_id {f G₁ op₁ e₁ G₂ op₂ e₂ : ZFSet.{u}} (h₁ : IsGroup G₁ op₁ e₁)
+    (h₂ : IsGroup G₂ op₂ e₂) (h : IsHom f G₁ op₁ G₂ op₂) : app f e₁ = e₂ := by
+  have hfe : app f e₁ ∈ G₂ := app_mem_of_isHom h h₁.mem_e
+  obtain ⟨b, hb, hab, hba⟩ := h₂.inverses _ hfe
+  have hstep : app f (opAt op₁ e₁ e₁) = opAt op₂ (app f e₁) (app f e₁) :=
+    isHom_op h h₁.mem_e h₁.mem_e
+  rw [h₁.left_id e₁ h₁.mem_e] at hstep
+  -- multiply both sides by the inverse of `f e₁`
+  have hcancel : opAt op₂ b (app f e₁) = opAt op₂ b (opAt op₂ (app f e₁) (app f e₁)) := by
+    rw [← hstep]
+  rw [hba, ← h₂.assoc b hb _ hfe _ hfe, hba, h₂.left_id _ hfe] at hcancel
+  exact hcancel.symm
 
 /-! ## Quotients by a congruence
 
@@ -267,6 +286,35 @@ theorem op_left_cancel {G op e a b c : ZFSet.{u}} (h : IsGroup G op e) (ha : a �
   rw [ha'a, h.left_id b hb, h.left_id c hc] at hstep
   exact hstep
 
+def cosetRel (H G op : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun z => ∃ a, a ∈ G ∧ ∃ b, b ∈ G ∧ z = opair a b ∧
+        ∃ h, h ∈ H ∧ b = opAt op a h) (prod G G)
+
+theorem opair_mem_cosetRel_iff {H G op a b : ZFSet.{u}} (ha : a ∈ G) (hb : b ∈ G) :
+    opair a b ∈ cosetRel H G op ↔ ∃ h, h ∈ H ∧ b = opAt op a h := by
+  refine Iff.trans (mem_sep_iff _ _ _) ⟨?_, ?_⟩
+  · rintro ⟨-, a', ha', b', hb', he, hh⟩
+    obtain ⟨rfl, rfl⟩ := opair_injective he
+    exact hh
+  · rintro ⟨h, hh, he⟩
+    exact ⟨opair_mem_prod ha hb, a, ha, b, hb, rfl, h, hh, he⟩
+
+theorem isEquivRel_cosetRel {H G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e) : IsEquivRel (cosetRel H G op) G where
+  refl a ha := (opair_mem_cosetRel_iff ha ha).mpr
+    ⟨e, hH.right.left, (hG.right_id a ha).symm⟩
+  symm a b ha hb hab := by
+    obtain ⟨h, hh, rfl⟩ := (opair_mem_cosetRel_iff ha hb).mp hab
+    obtain ⟨h', hh', hhh', -⟩ := hH.right.right.right h hh
+    refine (opair_mem_cosetRel_iff hb ha).mpr ⟨h', hh', ?_⟩
+    rw [hG.assoc a ha h (hH.left h hh) h' (hH.left h' hh'), hhh', hG.right_id a ha]
+  trans a b c ha hb hc hab hbc := by
+    obtain ⟨h, hh, rfl⟩ := (opair_mem_cosetRel_iff ha hb).mp hab
+    obtain ⟨h', hh', rfl⟩ := (opair_mem_cosetRel_iff hb hc).mp hbc
+    refine (opair_mem_cosetRel_iff ha hc).mpr
+      ⟨opAt op h h', hH.right.right.left h hh h' hh', ?_⟩
+    exact hG.assoc a ha h (hH.left h hh) h' (hH.left h' hh')
+
 /-! ## The inverse as a set function, and a section of the quotient
 
 Two things Lagrange's counting step needs. The inverse map is definable because
@@ -300,6 +348,185 @@ theorem app_invMap {G op e a : ZFSet.{u}} (h : IsGroup G op e) (ha : a ∈ G) :
   rw [he]
   exact ⟨hb, hab, hba⟩
 
+/-- A section of the quotient map, given that there are finitely many
+cosets. `finite_choice` supplies it -- no axiom. -/
+theorem exists_coset_section {H G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e)
+    (hfin : IsFinite (quotientSet (cosetRel H G op) G)) :
+    ∃ s, IsFunction s ∧ domain s = quotientSet (cosetRel H G op) G ∧
+      ∀ C, C ∈ quotientSet (cosetRel H G op) G → app s C ∈ C := by
+  have hid : ∀ C, C ∈ quotientSet (cosetRel H G op) G →
+      app (idOn (quotientSet (cosetRel H G op) G)) C = C := fun C hC => app_idOn hC
+  obtain ⟨s, hs, hsdom, hsspec⟩ := finite_choice hfin
+    (isInjection_idOn _).left (isInjection_idOn _).right.left (fun C hC => by
+      rw [hid C hC]
+      obtain ⟨a, ha, rfl⟩ := (mem_quotientSet_iff _ _ C).mp hC
+      exact ⟨a, mem_cls_self (isEquivRel_cosetRel hG hH) ha⟩)
+  refine ⟨s, hs, hsdom, fun C hC => ?_⟩
+  have := hsspec C hC
+  rwa [hid C hC] at this
+
+/-! ## Lagrange
+
+`a ↦ ⟨aH, s(aH)⁻¹·a⟩` is a bijection `G → (G/H) × H`, with inverse
+`⟨C, h⟩ ↦ s C · h`. Everything it needs is now in place, and the second
+component lands in `H` for the reason the coset relation was set up to give:
+`s(aH) = a·h`, so `s(aH)⁻¹·a = h⁻¹`. -/
+
+theorem cls_eq_of_mem {r x a b : ZFSet.{u}} (h : IsEquivRel r x) (ha : a ∈ x)
+    (hb : b ∈ cls r x a) : cls r x b = cls r x a :=
+  (cls_eq_cls_iff h ((mem_cls_iff r x a b).mp hb).left ha).mpr
+    (h.symm a b ha ((mem_cls_iff r x a b).mp hb).left ((mem_cls_iff r x a b).mp hb).right)
+
+theorem lagrange_component {H G op e a b : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e) (ha : a ∈ G)
+    (hsa : b ∈ cls (cosetRel H G op) G a) :
+    opAt op (app (invMap G op e) b) a ∈ H := by
+  have hbG : b ∈ G := ((mem_cls_iff _ _ _ b).mp hsa).left
+  obtain ⟨h, hh, hba⟩ := (opair_mem_cosetRel_iff ha hbG).mp
+    ((mem_cls_iff _ _ _ b).mp hsa).right
+  obtain ⟨h', hh', hhh', hh'h⟩ := hH.right.right.right h hh
+  have hhG := hH.left h hh
+  have hh'G := hH.left h' hh'
+  obtain ⟨hbinvG, hbb, hbb'⟩ := app_invMap hG hbG
+  -- `a = b·h'`, and then `b⁻¹·a = h'`
+  have hab : opAt op b h' = a := by
+    rw [hba, hG.assoc a ha h hhG h' hh'G, hhh', hG.right_id a ha]
+  have hfinal : opAt op (app (invMap G op e) b) a = h' := by
+    rw [← hab, ← hG.assoc (app (invMap G op e) b) hbinvG b hbG h' hh'G, hbb',
+      hG.left_id h' hh'G]
+  rw [hfinal]
+  exact hh'
+
+/-- Lagrange's theorem, as a bijection: `G` is equinumerous with
+`(G/H) × H`. -/
+theorem equinumerous_prod_quotient {H G op e s : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e)
+    (hsspec : ∀ C, C ∈ quotientSet (cosetRel H G op) G → app s C ∈ C) :
+    Equinumerous G (prod (quotientSet (cosetRel H G op) G) H) := by
+  have hrel := isEquivRel_cosetRel hG hH
+  have hmem : ∀ a, a ∈ G → app s (cls (cosetRel H G op) G a) ∈ cls (cosetRel H G op) G a :=
+    fun a ha => hsspec _ (cls_mem_quotientSet ha)
+  have hmaps : ∀ a, a ∈ G →
+      opair (cls (cosetRel H G op) G a)
+        (opAt op (app (invMap G op e) (app s (cls (cosetRel H G op) G a))) a)
+      ∈ prod (quotientSet (cosetRel H G op) G) H := fun a ha =>
+    opair_mem_prod (cls_mem_quotientSet ha) (lagrange_component hG hH ha (hmem a ha))
+  have happ : ∀ a, a ∈ G →
+      app (graphOn G (prod (quotientSet (cosetRel H G op) G) H)
+        (fun a => opair (cls (cosetRel H G op) G a)
+          (opAt op (app (invMap G op e) (app s (cls (cosetRel H G op) G a))) a))) a
+      = opair (cls (cosetRel H G op) G a)
+          (opAt op (app (invMap G op e) (app s (cls (cosetRel H G op) G a))) a) :=
+    fun a ha => app_graphOn hmaps ha
+  refine ⟨_, ⟨graphOn_isFunction _ _ _, graphOn_domain hmaps, graphOn_range, ?_⟩,
+    ⟨graphOn_isFunction _ _ _, graphOn_domain hmaps, graphOn_range, ?_⟩⟩
+  · -- injective: equal classes give the same `s`, and then left cancellation
+    intro a ha b hb he
+    rw [happ a ha, happ b hb] at he
+    obtain ⟨hcls, hcomp⟩ := opair_injective he
+    rw [hcls] at hcomp
+    obtain ⟨hinvG, -, -⟩ := app_invMap hG (((mem_cls_iff _ _ _ _).mp (hmem b hb)).left)
+    exact op_left_cancel hG hinvG ha hb hcomp
+  · -- surjective: `⟨C, h⟩` is the image of `s C · h`
+    intro p hp
+    obtain ⟨C, hC, h, hh, rfl⟩ := (mem_prod_iff p _ _).mp hp
+    obtain ⟨c, hc, rfl⟩ := (mem_quotientSet_iff _ _ C).mp hC
+    have hsc := hsspec _ hC
+    have hscG : app s (cls (cosetRel H G op) G c) ∈ G :=
+      ((mem_cls_iff _ _ _ _).mp hsc).left
+    have hhG := hH.left h hh
+    refine ⟨opAt op (app s (cls (cosetRel H G op) G c)) h,
+      opAt_mem hG hscG hhG, ?_⟩
+    rw [happ _ (opAt_mem hG hscG hhG)]
+    -- the class is unchanged, so `s` returns the same representative
+    have hclseq : cls (cosetRel H G op) G (opAt op (app s (cls (cosetRel H G op) G c)) h)
+        = cls (cosetRel H G op) G c := by
+      refine cls_eq_of_mem hrel hc ?_
+      refine (mem_cls_iff _ _ _ _).mpr ⟨opAt_mem hG hscG hhG, ?_⟩
+      obtain ⟨h₀, hh₀, hsc₀⟩ := (opair_mem_cosetRel_iff hc hscG).mp
+        ((mem_cls_iff _ _ _ _).mp hsc).right
+      refine (opair_mem_cosetRel_iff hc (opAt_mem hG hscG hhG)).mpr
+        ⟨opAt op h₀ h, hH.right.right.left h₀ hh₀ h hh, ?_⟩
+      rw [hsc₀, hG.assoc c hc h₀ (hH.left h₀ hh₀) h hhG]
+    rw [hclseq]
+    -- and the second component is `h` again
+    obtain ⟨hinvG, hbb, hbb'⟩ := app_invMap hG hscG
+    refine congrArg _ ?_
+    rw [← hG.assoc (app (invMap G op e) (app s (cls (cosetRel H G op) G c))) hinvG
+      (app s (cls (cosetRel H G op) G c)) hscG h hhG, hbb', hG.left_id h hhG]
+
+/-- Lagrange's theorem. If a group has finitely many cosets of `H` and `H`
+is finite, the group is finite and its order is the product. Every hypothesis is
+about finiteness; nothing here is classical. -/
+theorem lagrange {H G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e) {k m : Nat}
+    (hq : Equinumerous (quotientSet (cosetRel H G op) G) (ofNat.{u} k))
+    (hHfin : Equinumerous H (ofNat.{u} m)) :
+    Equinumerous G (ofNat.{u} (k * m)) := by
+  obtain ⟨s, -, -, hsspec⟩ := exists_coset_section hG hH ⟨k, hq⟩
+  refine equinumerous_trans (equinumerous_prod_quotient hG hH hsspec) ?_
+  refine equinumerous_trans (equinumerous_prod hq hHfin) (equinumerous_prod_ofNat k m)
+
+/-! ## Lagrange, constructively
+
+The hypotheses `lagrange` needs are `|G/H| = k` and `|H| = m`. Both follow from
+what a constructive algebraist would actually assume: `G` finite and membership
+in `H` detachable. Detachability makes `H` finite and makes the
+coset relation decidable, which makes the quotient a finite image
+(`isFinite_imageIn`). -/
+
+theorem quotientSet_eq_image (H G op : ZFSet.{u}) :
+    imageIn (clsMap (cosetRel H G op) G) G (quotientSet (cosetRel H G op) G)
+      = quotientSet (cosetRel H G op) G := by
+  refine ext _ _ fun C => ⟨fun hC => (mem_imageIn_iff _ _ _ C).mp hC |>.left, fun hC => ?_⟩
+  obtain ⟨a, ha, rfl⟩ := (mem_quotientSet_iff _ _ C).mp hC
+  exact (mem_imageIn_iff _ G _ _).mpr ⟨hC, a, ha, (app_clsMap ha).symm⟩
+
+/-- Detachable membership in `H` decides the coset relation, hence equality of
+classes. -/
+theorem cls_eq_or_ne_of_detachable {H G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e)
+    (hdet : ∀ a, a ∈ G → a ∈ H ∨ a ∉ H) {a b : ZFSet.{u}} (ha : a ∈ G) (hb : b ∈ G) :
+    cls (cosetRel H G op) G a = cls (cosetRel H G op) G b ∨
+      cls (cosetRel H G op) G a ≠ cls (cosetRel H G op) G b := by
+  obtain ⟨hinvG, hinv, hinv'⟩ := app_invMap hG ha
+  -- `a ~ b` exactly when `a⁻¹·b ∈ H`
+  have hiff : opair a b ∈ cosetRel H G op ↔ opAt op (app (invMap G op e) a) b ∈ H := by
+    constructor
+    · rintro hr
+      obtain ⟨h, hh, rfl⟩ := (opair_mem_cosetRel_iff ha hb).mp hr
+      have hhG := hH.left h hh
+      rw [← hG.assoc (app (invMap G op e) a) hinvG a ha h hhG, hinv',
+        hG.left_id h hhG]
+      exact hh
+    · intro hmem
+      refine (opair_mem_cosetRel_iff ha hb).mpr ⟨_, hmem, ?_⟩
+      rw [← hG.assoc a ha (app (invMap G op e) a) hinvG b hb, hinv,
+        hG.left_id b hb]
+  rcases hdet _ (opAt_mem hG hinvG hb) with h | h
+  · exact Or.inl ((cls_eq_cls_iff (isEquivRel_cosetRel hG hH) ha hb).mpr (hiff.mpr h))
+  · exact Or.inr fun he => h (hiff.mp
+      ((cls_eq_cls_iff (isEquivRel_cosetRel hG hH) ha hb).mp he))
+
+/-- Lagrange, with constructive hypotheses: `G` finite and `H` detachable. -/
+theorem lagrange_of_detachable {H G op e : ZFSet.{u}} (hG : IsGroup G op e)
+    (hH : IsSubgroup H G op e) {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n))
+    (hdet : ∀ a, a ∈ G → a ∈ H ∨ a ∉ H) :
+    ∃ k m : Nat, Equinumerous (quotientSet (cosetRel H G op) G) (ofNat.{u} k) ∧
+      Equinumerous H (ofNat.{u} m) ∧ Equinumerous G (ofNat.{u} (k * m)) := by
+  -- `H` is finite because it is detachable
+  obtain ⟨m, hm⟩ := isFinite_of_detachable n H G hH.left hGfin hdet
+  -- and the quotient is a finite image, because the relation is decidable
+  have himg : IsFinite (imageIn (clsMap (cosetRel H G op) G) G (quotientSet (cosetRel H G op) G)) := by
+    refine isFinite_imageIn n G _ _ hGfin (fun a ha b hb => ?_)
+      (fun a ha => by rw [app_clsMap ha]; exact cls_mem_quotientSet ha)
+    rw [app_clsMap ha, app_clsMap hb]
+    exact cls_eq_or_ne_of_detachable hG hH hdet ha hb
+  rw [quotientSet_eq_image] at himg
+  obtain ⟨k, hk⟩ := himg
+  exact ⟨k, m, hk, hm, lagrange hG hH hk hm⟩
+
 /-! ## Powers, and finite order
 
 `a^k` is a `Nat`-indexed iteration, so it is a Lean-level family; `natSeq` turns
@@ -314,7 +541,12 @@ def gpow (op e a : ZFSet.{u}) : Nat → ZFSet.{u}
 /-! ### The order arithmetic, over a monoid
 
 Every proof below uses `assoc`, `left_id` and `right_id`. The group forms that
-follow are one-liners through `IsGroup.toMonoid`. -/
+follow are one-liners through `IsGroup.toMonoid`.
+
+`gpow_inj_below` is NOT here, because it is proved by CANCELLATION, which is
+where inverses are genuinely used. It weakens to a monoid only with the extra
+hypothesis that some power is the identity, which is a different theorem rather
+than the same one at lower cost. -/
 
 theorem gpow_mem_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e) (ha : a ∈ M) :
     ∀ k : Nat, gpow op e a k ∈ M
@@ -332,6 +564,52 @@ theorem gpow_add_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e) (ha : a ∈ 
       = opAt op (gpow op e a j) (opAt op (gpow op e a k) a)
     rw [gpow_add_bare hM ha j k,
       hM.assoc _ (gpow_mem_bare hM ha j) _ (gpow_mem_bare hM ha k) a ha]
+
+theorem gpow_one_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e) (ha : a ∈ M) :
+    gpow op e a 1 = a := by
+  show opAt op (gpow op e a 0) a = a
+  exact hM.left_id _ ha
+
+theorem gpow_id_bare {M op e : ZFSet.{u}} (hM : IsMonoid M op e) :
+    ∀ k : Nat, gpow op e e k = e
+  | 0 => rfl
+  | k + 1 => by
+    show opAt op (gpow op e e k) e = e
+    rw [gpow_id_bare hM k, hM.right_id _ hM.mem_e]
+
+theorem gpow_mul_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e) (ha : a ∈ M)
+    (j : Nat) :
+    ∀ k : Nat, gpow op e a (j * k) = gpow op e (gpow op e a j) k
+  | 0 => by rw [Nat.mul_zero]; rfl
+  | k + 1 => by
+    show gpow op e a (j * (k + 1))
+      = opAt op (gpow op e (gpow op e a j) k) (gpow op e a j)
+    rw [Nat.mul_succ, gpow_add_bare hM ha (j * k) j, gpow_mul_bare hM ha j k]
+
+theorem gpow_mul_eq_id_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e)
+    (ha : a ∈ M) {m : Nat} (hme : gpow op e a m = e) :
+    ∀ j : Nat, gpow op e a (j * m) = e
+  | 0 => by
+    rw [Nat.zero_mul]
+    rfl
+  | i + 1 => by
+    rw [Nat.succ_mul, gpow_add_bare hM ha (i * m) m,
+      gpow_mul_eq_id_bare hM ha hme i, hme, hM.left_id _ hM.mem_e]
+
+theorem gpow_mod_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e) (ha : a ∈ M)
+    {m : Nat} (hm : 0 < m) (hme : gpow op e a m = e) :
+    ∀ k : Nat, gpow op e a k = gpow op e a (k % m) := by
+  intro k
+  induction k using Nat.strongRecOn with
+  | _ k ih =>
+    rcases Nat.lt_or_ge k m with hlt | hge
+    · rw [Nat.mod_eq_of_lt hlt]
+    · have hstep : gpow op e a k = gpow op e a (k - m) := by
+        have he : gpow op e a (m + (k - m)) = gpow op e a k := by
+          rw [show m + (k - m) = k by omega]
+        rw [← he, gpow_add_bare hM ha m (k - m), hme,
+          hM.left_id _ (gpow_mem_bare hM ha _)]
+      rw [hstep, ih (k - m) (by omega), ← Nat.mod_eq_sub_mod hge]
 
 theorem gpow_mem {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) :
     ∀ k : Nat, gpow op e a k ∈ G :=
@@ -364,6 +642,9 @@ theorem gpow_id {G op e : ZFSet.{u}} (hG : IsGroup G op e) :
     show opAt op (gpow op e e k) e = e
     rw [gpow_id hG k, hG.right_id e hG.mem_e]
 
+theorem gpow_mul {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) (j : Nat) :
+    ∀ k : Nat, gpow op e a (j * k) = gpow op e (gpow op e a j) k :=
+  gpow_mul_bare hG.toMonoid ha j
 /-- Pigeonhole for a sequence in a finite set, WITH THE BOUND. Two of the
 first `n+1` values coincide, and the later index is one of those `n+1`.
 
@@ -425,6 +706,64 @@ theorem exists_repeat_of_finite {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
   let ⟨j, k, hlt, _, hjk⟩ := exists_repeat_of_finite_lt hmaps hGfin
   ⟨j, k, hlt, hjk⟩
 
+/-- Every element of a finite group has finite order. The powers cannot all
+be distinct, and cancelling a repetition leaves the identity. -/
+theorem exists_gpow_eq_id {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) :
+    ∃ m : Nat, 0 < m ∧ gpow op e a m = e := by
+  -- the powers, as a set function on `ω`
+  have hmaps : ∀ k : Nat, gpow op e a k ∈ G := gpow_mem hG ha
+  -- if they were distinct on `{0,…,n}` we would inject `n+1` points into `n`
+  have hnotinj : ¬ ∀ j k : Nat, j < n + 1 → k < n + 1 →
+      gpow op e a j = gpow op e a k → j = k := by
+    intro hinj
+    have hdom : Dominates (ofNat.{u} (n + 1)) (ofNat.{u} n) := by
+      refine dominates_trans ⟨graphOn (ofNat.{u} (n + 1)) G (natFun G (gpow op e a)),
+        graphOn_isFunction _ _ _, graphOn_domain (fun w hw => ?_), graphOn_range,
+        fun w hw w' hw' he => ?_⟩ (dominates_of_equinumerous hGfin)
+      · obtain ⟨k, -, rfl⟩ := (mem_ofNat_iff w (n + 1)).mp hw
+        rw [natFun_ofNat hmaps k]
+        exact hmaps k
+      · obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff w (n + 1)).mp hw
+        obtain ⟨k', hk', rfl⟩ := (mem_ofNat_iff w' (n + 1)).mp hw'
+        rw [app_graphOn (fun m hm => by
+              obtain ⟨i, -, rfl⟩ := (mem_ofNat_iff m (n + 1)).mp hm
+              rw [natFun_ofNat hmaps i]; exact hmaps i) hw,
+            app_graphOn (fun m hm => by
+              obtain ⟨i, -, rfl⟩ := (mem_ofNat_iff m (n + 1)).mp hm
+              rw [natFun_ofNat hmaps i]; exact hmaps i) hw',
+            natFun_ofNat hmaps k, natFun_ofNat hmaps k'] at he
+        rw [hinj k k' hk hk' he]
+    have := dominates_ofNat_le _ _ hdom
+    omega
+  -- so two powers agree; cancelling the common prefix leaves the identity
+  rcases exists_pair_or_inj (P := fun j k => gpow op e a j = gpow op e a k)
+    (fun j k => eq_or_ne_of_finite hGfin (hmaps j) (hmaps k)) (n + 1) with
+    ⟨j, k, hj, hk, hne, hjk⟩ | hinj
+  · -- put the smaller index first
+    rcases Nat.lt_or_ge j k with hlt | hge
+    · refine ⟨k - j, by omega, ?_⟩
+      have hsum : gpow op e a (j + (k - j)) = gpow op e a j := by
+        rw [show j + (k - j) = k by omega, ← hjk]
+      rw [gpow_add hG ha j (k - j)] at hsum
+      have hid : opAt op (gpow op e a j) (gpow op e a (k - j))
+          = opAt op (gpow op e a j) e := by
+        rw [hsum, hG.right_id _ (hmaps j)]
+      exact op_left_cancel hG (hmaps j) (hmaps (k - j)) hG.mem_e hid
+    · refine ⟨j - k, by omega, ?_⟩
+      have hsum : gpow op e a (k + (j - k)) = gpow op e a k := by
+        rw [show k + (j - k) = j by omega, hjk]
+      rw [gpow_add hG ha k (j - k)] at hsum
+      have hid : opAt op (gpow op e a k) (gpow op e a (j - k))
+          = opAt op (gpow op e a k) e := by
+        rw [hsum, hG.right_id _ (hmaps k)]
+      exact op_left_cancel hG (hmaps k) (hmaps (j - k)) hG.mem_e hid
+  · exact absurd hinj hnotinj
+
+/-- The first power is the element, as a fact about `gpow` alone. -/
+theorem gpow_one {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) :
+    gpow op e a 1 = a := hG.left_id a ha
+
 /-- In an abelian group the power of a product is the product of the powers. -/
 theorem gpow_opAt {G op e a b : ZFSet.{u}} (hG : IsGroup G op e) (hab : IsAbelian G op)
     (ha : a ∈ G) (hb : b ∈ G) :
@@ -442,6 +781,13 @@ theorem gpow_opAt {G op e a b : ZFSet.{u}} (hG : IsGroup G op e) (hab : IsAbelia
       hG.assoc _ ha _ hbk _ hb,
       ← hG.assoc _ hak _ ha _ (opAt_mem hG hbk hb)]
 
+/-! ## Divisibility of exponents -/
+
+/-- Powers repeat with period `m` once `a^m = e`. -/
+theorem gpow_mod {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) {m : Nat}
+    (hm : 0 < m) (hme : gpow op e a m = e) :
+    ∀ k : Nat, gpow op e a k = gpow op e a (k % m) :=
+  gpow_mod_bare hG.toMonoid ha hm hme
 /-! ## The cyclic subgroup, and `a^|G| = e`
 
 `⟨a⟩` is the image of `ω` under `k ↦ a^k`. With `a^m = e` for the least such
@@ -450,6 +796,190 @@ Lagrange then divides `m` into `|G|` and `a^|G| = e` follows. -/
 
 def cyclic (G op e a : ZFSet.{u}) : ZFSet.{u} :=
   imageIn (natSeq G (gpow op e a)) omega.{u} G
+
+theorem mem_cyclic_iff {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    (w : ZFSet.{u}) : w ∈ cyclic G op e a ↔ w ∈ G ∧ ∃ k : Nat, w = gpow op e a k := by
+  refine Iff.trans (mem_imageIn_iff _ _ _ w) ⟨?_, ?_⟩
+  · rintro ⟨hwG, n, hn, he⟩
+    obtain ⟨k, rfl⟩ := (mem_omega_iff n).mp hn
+    exact ⟨hwG, k, by rwa [app_natSeq (gpow_mem hG ha) k] at he⟩
+  · rintro ⟨hwG, k, rfl⟩
+    exact ⟨hwG, ofNat.{u} k, ofNat_mem_omega k, by rw [app_natSeq (gpow_mem hG ha) k]⟩
+
+theorem isSubgroup_cyclic {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hm : 0 < m) (hme : gpow op e a m = e) :
+    IsSubgroup (cyclic G op e a) G op e := by
+  refine ⟨imageIn_subset _ _ _, ?_, ?_, ?_⟩
+  · exact (mem_cyclic_iff hG ha e).mpr ⟨hG.mem_e, 0, rfl⟩
+  · rintro x hx y hy
+    obtain ⟨-, j, rfl⟩ := (mem_cyclic_iff hG ha x).mp hx
+    obtain ⟨-, k, rfl⟩ := (mem_cyclic_iff hG ha y).mp hy
+    exact (mem_cyclic_iff hG ha _).mpr
+      ⟨opAt_mem hG (gpow_mem hG ha j) (gpow_mem hG ha k), j + k,
+        (gpow_add hG ha j k).symm⟩
+  · rintro x hx
+    obtain ⟨-, k, rfl⟩ := (mem_cyclic_iff hG ha x).mp hx
+    -- the inverse is the power that completes a full period
+    refine ⟨gpow op e a (m - k % m), (mem_cyclic_iff hG ha _).mpr
+      ⟨gpow_mem hG ha _, m - k % m, rfl⟩, ?_, ?_⟩
+    · rw [gpow_mod hG ha hm hme k, ← gpow_add hG ha (k % m) (m - k % m),
+        show k % m + (m - k % m) = m by have := Nat.mod_lt k hm; omega, hme]
+    · rw [gpow_mod hG ha hm hme k, ← gpow_add hG ha (m - k % m) (k % m),
+        show m - k % m + k % m = m by have := Nat.mod_lt k hm; omega, hme]
+
+/-- With `m` least, the powers below `m` are distinct, so `⟨a⟩` has `m`
+elements. -/
+theorem equinumerous_cyclic {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hm : 0 < m) (hme : gpow op e a m = e)
+    (hleast : ∀ k, k < m → 0 < k → gpow op e a k ≠ e) :
+    Equinumerous (ofNat.{u} m) (cyclic G op e a) := by
+  have hmaps : ∀ w, w ∈ ofNat.{u} m → natFun G (gpow op e a) w ∈ cyclic G op e a := by
+    intro w hw
+    obtain ⟨k, -, rfl⟩ := (mem_ofNat_iff w m).mp hw
+    rw [natFun_ofNat (gpow_mem hG ha) k]
+    exact (mem_cyclic_iff hG ha _).mpr ⟨gpow_mem hG ha k, k, rfl⟩
+  have happ : ∀ k : Nat, k < m →
+      app (graphOn (ofNat.{u} m) (cyclic G op e a) (natFun G (gpow op e a))) (ofNat.{u} k)
+        = gpow op e a k := by
+    intro k hk
+    rw [app_graphOn hmaps ((mem_ofNat_iff _ m).mpr ⟨k, hk, rfl⟩),
+      natFun_ofNat (gpow_mem hG ha) k]
+  -- distinctness below `m`: a coincidence would give a smaller period
+  have hinj : ∀ j, j < m → ∀ k, k < m → gpow op e a j = gpow op e a k → j = k := by
+    intro j hj k hk he
+    rcases Nat.lt_or_ge j k with hlt | hge
+    · exfalso
+      have hcancel : gpow op e a (k - j) = e := by
+        have hsum : gpow op e a (j + (k - j)) = gpow op e a j := by
+          rw [show j + (k - j) = k by omega, ← he]
+        rw [gpow_add hG ha j (k - j)] at hsum
+        exact op_left_cancel hG (gpow_mem hG ha j) (gpow_mem hG ha _) hG.mem_e
+          (by rw [hsum, hG.right_id _ (gpow_mem hG ha j)])
+      exact hleast (k - j) (by omega) (by omega) hcancel
+    · rcases Nat.eq_or_lt_of_le hge with heq | hlt
+      · omega
+      · exfalso
+        have hcancel : gpow op e a (j - k) = e := by
+          have hsum : gpow op e a (k + (j - k)) = gpow op e a k := by
+            rw [show k + (j - k) = j by omega, he]
+          rw [gpow_add hG ha k (j - k)] at hsum
+          exact op_left_cancel hG (gpow_mem hG ha k) (gpow_mem hG ha _) hG.mem_e
+            (by rw [hsum, hG.right_id _ (gpow_mem hG ha k)])
+        exact hleast (j - k) (by omega) (by omega) hcancel
+  refine ⟨_, ⟨graphOn_isFunction _ _ _, graphOn_domain hmaps, graphOn_range, ?_⟩,
+    ⟨graphOn_isFunction _ _ _, graphOn_domain hmaps, graphOn_range, ?_⟩⟩
+  · intro w hw w' hw' he
+    obtain ⟨j, hj, rfl⟩ := (mem_ofNat_iff w m).mp hw
+    obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff w' m).mp hw'
+    rw [happ j hj, happ k hk] at he
+    rw [hinj j hj k hk he]
+  · intro v hv
+    obtain ⟨-, k, rfl⟩ := (mem_cyclic_iff hG ha v).mp hv
+    refine ⟨ofNat.{u} (k % m), (mem_ofNat_iff _ m).mpr ⟨k % m, Nat.mod_lt k hm, rfl⟩, ?_⟩
+    rw [happ (k % m) (Nat.mod_lt k hm), ← gpow_mod hG ha hm hme k]
+
+/-- Membership in `⟨a⟩` is decidable, because it is a bounded search over the
+powers below the period. -/
+theorem cyclic_detachable {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) {m : Nat} (hm : 0 < m)
+    (hme : gpow op e a m = e) (w : ZFSet.{u}) (hw : w ∈ G) :
+    w ∈ cyclic G op e a ∨ w ∉ cyclic G op e a := by
+  rcases exists_lt_or_not (Q := fun k => w = gpow op e a k)
+    (fun k => eq_or_ne_of_finite hGfin hw (gpow_mem hG ha k)) m with ⟨k, -, hk⟩ | hno
+  · exact Or.inl ((mem_cyclic_iff hG ha w).mpr ⟨hw, k, hk⟩)
+  · refine Or.inr fun hmem => ?_
+    obtain ⟨-, k, hk⟩ := (mem_cyclic_iff hG ha w).mp hmem
+    exact hno (k % m) (Nat.mod_lt k hm) (by rw [hk, gpow_mod hG ha hm hme k])
+
+/-! ## The order of an element
+
+The least positive exponent returning the identity. It is the size of the
+cyclic subgroup the element generates, so Lagrange makes it divide the order of
+the group -- and `gpow_card_eq_id`, which Fermat and Euler are instances of,
+falls out of that. -/
+
+def IsOrderOf (m : Nat) (op e a : ZFSet.{u}) : Prop :=
+  0 < m ∧ gpow op e a m = e ∧ ∀ k, k < m → 0 < k → gpow op e a k ≠ e
+
+theorem gpow_eq_id_iff_bare {M op e a : ZFSet.{u}} (hM : IsMonoid M op e)
+    (ha : a ∈ M) {m : Nat} (hm : IsOrderOf m op e a) (k : Nat) :
+    gpow op e a k = e ↔ k % m = 0 := by
+  constructor
+  · intro hk
+    rcases Nat.eq_zero_or_pos (k % m) with h | h
+    · exact h
+    · exact absurd (by rw [← gpow_mod_bare hM ha hm.left hm.right.left k]; exact hk)
+        (hm.right.right (k % m) (Nat.mod_lt k hm.left) h)
+  · intro hk
+    have hsplit : k = (k / m) * m := by
+      have := Nat.div_add_mod k m
+      rw [hk, Nat.mul_comm] at this
+      omega
+    rw [hsplit]
+    exact gpow_mul_eq_id_bare hM ha hm.right.left _
+
+theorem exists_order {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) : ∃ m : Nat, IsOrderOf m op e a := by
+  obtain ⟨m₀, hm₀, hme₀⟩ := exists_gpow_eq_id hG ha hGfin
+  obtain ⟨m, ⟨hmpos, hmid⟩, hleast⟩ := exists_least
+    (Q := fun k => 0 < k ∧ gpow op e a k = e)
+    (fun k => by
+      rcases Nat.eq_zero_or_pos k with rfl | hk
+      · exact Or.inr (fun h => by omega)
+      · rcases eq_or_ne_of_finite hGfin (gpow_mem hG ha k) hG.mem_e with h | h
+        · exact Or.inl ⟨hk, h⟩
+        · exact Or.inr (fun hc => h hc.right)) m₀ ⟨hm₀, hme₀⟩
+  exact ⟨m, hmpos, hmid, fun k hk hk0 he => hleast k hk ⟨hk0, he⟩⟩
+
+/-- Whole periods return the identity. -/
+theorem gpow_mul_eq_id {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hme : gpow op e a m = e) : ∀ j : Nat, gpow op e a (j * m) = e :=
+  gpow_mul_eq_id_bare hG.toMonoid ha hme
+/-- An exponent returns the identity exactly when the order divides it. -/
+theorem gpow_eq_id_iff {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hm : IsOrderOf m op e a) (k : Nat) :
+    gpow op e a k = e ↔ k % m = 0 :=
+  gpow_eq_id_iff_bare hG.toMonoid ha hm k
+theorem gpow_inj_below {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hleast : ∀ k, k < m → 0 < k → gpow op e a k ≠ e) :
+    ∀ j, j < m → ∀ k, k < m → gpow op e a j = gpow op e a k → j = k := by
+  intro j hj k hk he
+  rcases Nat.lt_or_ge j k with hlt | hge
+  · exfalso
+    have hcancel : gpow op e a (k - j) = e := by
+      have hsum : gpow op e a (j + (k - j)) = gpow op e a j := by
+        rw [show j + (k - j) = k by omega, ← he]
+      rw [gpow_add hG ha j (k - j)] at hsum
+      exact op_left_cancel hG (gpow_mem hG ha j) (gpow_mem hG ha _) hG.mem_e
+        (by rw [hsum, hG.right_id _ (gpow_mem hG ha j)])
+    exact hleast (k - j) (by omega) (by omega) hcancel
+  · rcases Nat.eq_or_lt_of_le hge with heq | hlt
+    · omega
+    · exfalso
+      have hcancel : gpow op e a (j - k) = e := by
+        have hsum : gpow op e a (k + (j - k)) = gpow op e a k := by
+          rw [show k + (j - k) = j by omega, he]
+        rw [gpow_add hG ha k (j - k)] at hsum
+        exact op_left_cancel hG (gpow_mem hG ha k) (gpow_mem hG ha _) hG.mem_e
+          (by rw [hsum, hG.right_id _ (gpow_mem hG ha k)])
+      exact hleast (j - k) (by omega) (by omega) hcancel
+
+/-- The cyclic subgroup generated by an element has exactly `order` elements. -/
+theorem equinumerous_cyclic_order {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {m : Nat} (hm : IsOrderOf m op e a) : Equinumerous (ofNat.{u} m) (cyclic G op e a) :=
+  equinumerous_cyclic hG ha hm.left hm.right.left hm.right.right
+
+/-- The order of an element divides the order of the group -- Lagrange
+applied to the subgroup it generates. -/
+theorem order_divides_card {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) {m : Nat} (hm : IsOrderOf m op e a) :
+    ∃ k : Nat, n = k * m := by
+  obtain ⟨k, m', hq, hm', hprod⟩ := lagrange_of_detachable hG
+    (isSubgroup_cyclic hG ha hm.left hm.right.left) hGfin
+    (fun g hg => cyclic_detachable hG ha hGfin hm.left hm.right.left g hg)
+  have hmm : m = m' :=
+    card_unique (equinumerous_symm (equinumerous_cyclic_order hG ha hm)) hm'
+  exact ⟨k, by rw [hmm]; exact card_unique hGfin hprod⟩
 
 /-! ## Restricting an operation
 
@@ -546,10 +1076,40 @@ Nothing classical, and nothing new proved about `ℤ`: the group axioms are the
 #print axioms inv_unique
 #print axioms isGroup_intAdd
 #print axioms isAbelian_intAdd
+#print axioms hom_id
 #print axioms isGroup_congQuotient
+#print axioms isEquivRel_cosetRel
 #print axioms invMap_isFunction
+#print axioms exists_coset_section
+#print axioms equinumerous_prod_quotient
+#print axioms lagrange
+#print axioms lagrange_of_detachable
+#print axioms exists_gpow_eq_id
+#print axioms gpow_mod
+#print axioms isSubgroup_cyclic
+#print axioms equinumerous_cyclic
+#print axioms order_divides_card
+#print axioms gpow_eq_id_iff
 #print axioms opAt_restrictOp
 #print axioms gpow_opAt
+#print axioms gpow_one
+
+#print axioms gpow_inj_below
+-- Cons at the head, so the recursion matches `Distinct`'s own: a list built by
+-- appending needs a separate lemma before its head clause can be reached.
+
+/-- An element whose order is the group's size generates the group. The
+cyclic subgroup it spans is contained and equinumerous, so it is everything --
+no construction, just a count. -/
+theorem cyclic_eq_of_order_card {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
+    {n : Nat} (hfin : Equinumerous G (ofNat.{u} n)) (hord : IsOrderOf n op e a) :
+    cyclic G op e a = G := by
+  refine subset_eq_of_card_eq (fun w hw => ((mem_cyclic_iff hG ha w).mp hw).left)
+    (equinumerous_symm (equinumerous_cyclic_order hG ha hord)) hfin
+
+#print axioms cyclic_eq_of_order_card
+
+
 /-- The first `n` powers of `a`, top first: `a^(n-1) … a^0`.
 
 `(below n).map` rather than its own recursion -- the recursion IS `below`'s, and
@@ -575,6 +1135,12 @@ theorem length_powerList (op e a : ZFSet.{u}) (n : Nat) :
 #print axioms opAt_mem_bare
 #print axioms gpow_mem_bare
 #print axioms gpow_add_bare
+#print axioms gpow_one_bare
+#print axioms gpow_id_bare
+#print axioms gpow_mul_bare
+#print axioms gpow_mul_eq_id_bare
+#print axioms gpow_mod_bare
+#print axioms gpow_eq_id_iff_bare
 #print axioms intAdd_maps
 
 #print axioms IsGroup.toMonoid
@@ -586,11 +1152,22 @@ theorem length_powerList (op e a : ZFSet.{u}) (n : Nat) :
 #print axioms congOp_domain
 #print axioms congOp_range
 #print axioms op_left_cancel
+#print axioms opair_mem_cosetRel_iff
 #print axioms app_invMap
+#print axioms cls_eq_of_mem
+#print axioms lagrange_component
+#print axioms quotientSet_eq_image
+#print axioms cls_eq_or_ne_of_detachable
 #print axioms gpow_mem
 #print axioms gpow_add
 #print axioms gpow_id
+#print axioms gpow_mul
 #print axioms exists_repeat_of_finite
+#print axioms mem_cyclic_iff
+#print axioms cyclic_detachable
+#print axioms exists_order
+#print axioms gpow_mul_eq_id
+#print axioms equinumerous_cyclic_order
 #print axioms isFunction_sep_prod
 #print axioms isFunction_restrictOp
 #print axioms restrictOp_domain
@@ -602,5 +1179,5 @@ theorem length_powerList (op e a : ZFSet.{u}) (n : Nat) :
 end Algebra
 
 namespace ZFSet
-export Algebra (IsAbelian IsCongruence IsGroup IsHom IsMonoid app_invMap app_mem_of_isHom congOp congOp_domain congOp_isFunction congOp_range cyclic exists_repeat_of_finite gpow gpow_add gpow_add_bare gpow_id gpow_mem gpow_mem_bare gpow_opAt intAddOp invMap invMap_isFunction inv_unique isAbelian_intAdd isFunction_restrictLeft isFunction_restrictOp isFunction_sep_prod isGroup_congQuotient isGroup_intAdd isHom_op length_powerList mem_powerList opAt_congOp opAt_intAddOp opAt_interchange opAt_mem opAt_mem_bare opAt_restrictLeft opAt_restrictOp op_left_cancel powerList restrictLeft restrictLeft_domain restrictLeft_range restrictOp restrictOp_domain restrictOp_range)
+export Algebra (IsAbelian IsCongruence IsGroup IsHom IsMonoid IsOrderOf IsSubgroup app_invMap app_mem_of_isHom cls_eq_of_mem cls_eq_or_ne_of_detachable congOp congOp_domain congOp_isFunction congOp_range cosetRel cyclic cyclic_detachable cyclic_eq_of_order_card equinumerous_cyclic equinumerous_cyclic_order equinumerous_prod_quotient exists_coset_section exists_gpow_eq_id exists_order exists_repeat_of_finite gpow gpow_add gpow_add_bare gpow_eq_id_iff gpow_eq_id_iff_bare gpow_id gpow_id_bare gpow_inj_below gpow_mem gpow_mem_bare gpow_mod gpow_mod_bare gpow_mul gpow_mul_bare gpow_mul_eq_id gpow_mul_eq_id_bare gpow_one gpow_one_bare gpow_opAt hom_id intAddOp invMap invMap_isFunction inv_unique isAbelian_intAdd isEquivRel_cosetRel isFunction_restrictLeft isFunction_restrictOp isFunction_sep_prod isGroup_congQuotient isGroup_intAdd isHom_op isSubgroup_cyclic lagrange lagrange_component lagrange_of_detachable length_powerList mem_cyclic_iff mem_powerList opAt_congOp opAt_intAddOp opAt_interchange opAt_mem opAt_mem_bare opAt_restrictLeft opAt_restrictOp op_left_cancel opair_mem_cosetRel_iff order_divides_card powerList quotientSet_eq_image restrictLeft restrictLeft_domain restrictLeft_range restrictOp restrictOp_domain restrictOp_range)
 end ZFSet

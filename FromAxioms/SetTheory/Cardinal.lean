@@ -142,6 +142,46 @@ def Dominates (x y : ZFSet.{u}) : Prop := ∃ f, IsInjection f x y
 theorem equinumerous_refl (x : ZFSet.{u}) : Equinumerous x x :=
   ⟨idOn x, isInjection_idOn x, isSurjection_idOn x⟩
 
+/-- The image of an injective `Nat`-indexed family has as many elements as its
+index bound.
+
+Stated over a set `S` given by its MEMBERSHIP characterisation rather than as a
+`range`, so a caller who already holds the set by a separation supplies `hS`
+directly instead of transporting across an equality. `equinumerous_cyclic` is
+this argument written out at `gpow`, where only the injectivity step is about
+groups. -/
+theorem equinumerous_natImage {T S : ZFSet.{u}} {K : Nat → ZFSet.{u}}
+    (hK : ∀ i, K i ∈ T) {m : Nat}
+    (hS : ∀ z, z ∈ S ↔ ∃ i, i < m ∧ z = K i)
+    (hinj : ∀ j, j < m → ∀ k, k < m → K j = K k → j = k) :
+    Equinumerous (ofNat.{u} m) S := by
+  have hmaps : ∀ n, n ∈ ofNat.{u} m → natFun T K n ∈ S := by
+    intro n hn
+    obtain ⟨i, hi, rfl⟩ := (mem_ofNat_iff n m).mp hn
+    rw [natFun_ofNat hK i]
+    exact (hS _).mpr ⟨i, hi, rfl⟩
+  have happ : ∀ i : Nat, i < m →
+      app (graphOn (ofNat.{u} m) S (natFun T K)) (ofNat.{u} i) = K i := by
+    intro i hi
+    rw [app_graphOn hmaps ((mem_ofNat_iff _ m).mpr ⟨i, hi, rfl⟩), natFun_ofNat hK i]
+  have hfun := graphOn_isFunction (ofNat.{u} m) S (natFun T K)
+  have hdom := graphOn_domain hmaps
+  have hinj' : ∀ a, a ∈ ofNat.{u} m → ∀ b, b ∈ ofNat.{u} m →
+      app (graphOn (ofNat.{u} m) S (natFun T K)) a
+        = app (graphOn (ofNat.{u} m) S (natFun T K)) b → a = b := by
+    intro a ha b hb he
+    obtain ⟨j, hj, rfl⟩ := (mem_ofNat_iff a m).mp ha
+    obtain ⟨k, hk, rfl⟩ := (mem_ofNat_iff b m).mp hb
+    rw [happ j hj, happ k hk] at he
+    exact congrArg _ (hinj j hj k hk he)
+  refine ⟨graphOn (ofNat.{u} m) S (natFun T K),
+    ⟨hfun, hdom, graphOn_range, hinj'⟩, ⟨hfun, hdom, graphOn_range, ?_⟩⟩
+  intro b hb
+  obtain ⟨i, hi, rfl⟩ := (hS b).mp hb
+  exact ⟨ofNat.{u} i, (mem_ofNat_iff _ m).mpr ⟨i, hi, rfl⟩, happ i hi⟩
+
+#print axioms equinumerous_natImage
+
 theorem equinumerous_symm {x y : ZFSet.{u}} (h : Equinumerous x y) : Equinumerous y x := by
   obtain ⟨f, hf, hs⟩ := h
   exact ⟨invOn f x y, isInjection_invOn hf hs, isSurjection_invOn hf hs⟩
@@ -244,6 +284,156 @@ at a time.
 This is the constructive content behind "finite choice is free", and what a
 counting argument like Lagrange's needs, where the family is the cosets and a
 representative has to be picked in each. -/
+
+theorem finite_choice_ofNat : ∀ n : Nat, ∀ F : ZFSet.{u}, IsFunction F →
+    domain F = ofNat.{u} n → (∀ a, a ∈ ofNat.{u} n → ∃ y, y ∈ app F a) →
+      ∃ g, IsFunction g ∧ domain g = ofNat.{u} n ∧
+        ∀ a, a ∈ ofNat.{u} n → app g a ∈ app F a
+  | 0, F, hF, hdom, hne => by
+    refine ⟨empty.{u}, ⟨fun z hz => absurd hz (not_mem_empty z),
+      fun a b b' hb => absurd hb (not_mem_empty _)⟩, ?_, ?_⟩
+    · refine ext _ _ fun a => ⟨fun ha => ?_, fun ha => ?_⟩
+      · obtain ⟨b, hb⟩ := (mem_domain_iff a _).mp ha
+        exact absurd hb (not_mem_empty _)
+      · rw [ofNat_zero] at ha
+        exact absurd ha (not_mem_empty a)
+    · intro a ha
+      rw [ofNat_zero] at ha
+      exact absurd ha (not_mem_empty a)
+  | n + 1, F, hF, hdom, hne => by
+    -- split off the last index
+    have hlast : ofNat.{u} n ∈ ofNat.{u} (n + 1) := by
+      rw [ofNat_succ]
+      exact mem_succ_self _
+    have hsub : ∀ a, a ∈ ofNat.{u} n → a ∈ ofNat.{u} (n + 1) := by
+      intro a ha
+      rw [ofNat_succ]
+      exact (mem_succ_iff a _).mpr (Or.inr ha)
+    -- the restricted family
+    have hFdom : ∀ a, a ∈ ofNat.{u} n → a ∈ domain F := fun a ha => by
+      rw [hdom]; exact hsub a ha
+    have hrestrict : IsFunction (sep (fun z => ∃ a, a ∈ ofNat.{u} n ∧ z = opair a (app F a))
+        (prod (ofNat.{u} n) (range F))) := isFunction_graphOn (app F)
+    have happR : ∀ a, a ∈ ofNat.{u} n →
+        app (sep (fun z => ∃ a, a ∈ ofNat.{u} n ∧ z = opair a (app F a))
+          (prod (ofNat.{u} n) (range F))) a = app F a := by
+      intro a ha
+      exact app_eq hrestrict ((mem_sep_iff _ _ _).mpr
+        ⟨opair_mem_prod ha (app_mem_range hF (hFdom a ha)), a, ha, rfl⟩)
+    have hrdom : domain (sep (fun z => ∃ a, a ∈ ofNat.{u} n ∧ z = opair a (app F a))
+        (prod (ofNat.{u} n) (range F))) = ofNat.{u} n := by
+      refine ext _ _ fun a => ⟨fun ha => ?_, fun ha => ?_⟩
+      · obtain ⟨b, hb⟩ := (mem_domain_iff a _).mp ha
+        exact mem_prod_left ((mem_sep_iff _ _ _).mp hb).left
+      · exact (mem_domain_iff a _).mpr ⟨app F a, (mem_sep_iff _ _ _).mpr
+          ⟨opair_mem_prod ha (app_mem_range hF (hFdom a ha)), a, ha, rfl⟩⟩
+    obtain ⟨g, hg, hgdom, hgspec⟩ := finite_choice_ofNat n _ hrestrict hrdom
+      (fun a ha => by rw [happR a ha]; exact hne a (hsub a ha))
+    -- and the value at the last index
+    obtain ⟨y, hy⟩ := hne (ofNat.{u} n) hlast
+    refine ⟨g ∪ singleton (opair (ofNat.{u} n) y), ⟨?_, ?_⟩, ?_, ?_⟩
+    · intro z hz
+      rcases (mem_union_iff z _ _).mp hz with h | h
+      · exact hg.left z h
+      · rw [(mem_singleton_iff z _).mp h]
+        exact ⟨_, _, rfl⟩
+    · intro a b b' hb hb'
+      rcases (mem_union_iff _ _ _).mp hb with h | h <;>
+        rcases (mem_union_iff _ _ _).mp hb' with h' | h'
+      · exact hg.right a b b' h h'
+      · -- one pair is the new one, so `a` is the last index and is not in `g`'s domain
+        have hmem : a ∈ ofNat.{u} n := by
+          rw [← hgdom]
+          exact (mem_domain_iff a g).mpr ⟨b, h⟩
+        obtain ⟨ha, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h')
+        rw [ha] at hmem
+        exact absurd hmem (not_mem_self (ofNat.{u} n))
+      · have hmem : a ∈ ofNat.{u} n := by
+          rw [← hgdom]
+          exact (mem_domain_iff a g).mpr ⟨b', h'⟩
+        obtain ⟨ha, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h)
+        rw [ha] at hmem
+        exact absurd hmem (not_mem_self (ofNat.{u} n))
+      · obtain ⟨-, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h)
+        obtain ⟨-, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h')
+        rfl
+    · refine ext _ _ fun a => ⟨fun ha => ?_, fun ha => ?_⟩
+      · obtain ⟨b, hb⟩ := (mem_domain_iff a _).mp ha
+        rcases (mem_union_iff _ _ _).mp hb with h | h
+        · exact hsub a (by rw [← hgdom]; exact (mem_domain_iff a g).mpr ⟨b, h⟩)
+        · obtain ⟨rfl, -⟩ := opair_injective ((mem_singleton_iff _ _).mp h)
+          exact hlast
+      · rw [ofNat_succ] at ha
+        rcases (mem_succ_iff a _).mp ha with rfl | ha'
+        · exact (mem_domain_iff _ _).mpr ⟨y, (mem_union_iff _ _ _).mpr
+            (Or.inr ((mem_singleton_iff _ _).mpr rfl))⟩
+        · obtain ⟨b, hb⟩ := (mem_domain_iff a g).mp (by rw [hgdom]; exact ha')
+          exact (mem_domain_iff a _).mpr ⟨b, (mem_union_iff _ _ _).mpr (Or.inl hb)⟩
+    · intro a ha
+      have hfun : IsFunction (g ∪ singleton (opair (ofNat.{u} n) y)) := by
+        constructor
+        · intro z hz
+          rcases (mem_union_iff z _ _).mp hz with h | h
+          · exact hg.left z h
+          · rw [(mem_singleton_iff z _).mp h]
+            exact ⟨_, _, rfl⟩
+        · intro c b b' hb hb'
+          rcases (mem_union_iff _ _ _).mp hb with h | h <;>
+            rcases (mem_union_iff _ _ _).mp hb' with h' | h'
+          · exact hg.right c b b' h h'
+          · have hmem : c ∈ ofNat.{u} n := by
+              rw [← hgdom]
+              exact (mem_domain_iff c g).mpr ⟨b, h⟩
+            obtain ⟨hc, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h')
+            rw [hc] at hmem
+            exact absurd hmem (not_mem_self (ofNat.{u} n))
+          · have hmem : c ∈ ofNat.{u} n := by
+              rw [← hgdom]
+              exact (mem_domain_iff c g).mpr ⟨b', h'⟩
+            obtain ⟨hc, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h)
+            rw [hc] at hmem
+            exact absurd hmem (not_mem_self (ofNat.{u} n))
+          · obtain ⟨-, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h)
+            obtain ⟨-, rfl⟩ := opair_injective ((mem_singleton_iff _ _).mp h')
+            rfl
+      rw [ofNat_succ] at ha
+      rcases (mem_succ_iff a _).mp ha with rfl | ha'
+      · rw [app_eq hfun ((mem_union_iff _ _ _).mpr
+          (Or.inr ((mem_singleton_iff _ _).mpr rfl)))]
+        exact hy
+      · have hgmem : opair a (app g a) ∈ g :=
+          opair_app_mem hg (by rw [hgdom]; exact ha')
+        rw [app_eq hfun ((mem_union_iff _ _ _).mpr (Or.inl hgmem))]
+        have := hgspec a ha'
+        rwa [happR a ha'] at this
+
+/-- Finite choice, for any finite index set: transport the numeral version
+along the bijection. -/
+theorem finite_choice {x F : ZFSet.{u}} (hx : IsFinite x) (hF : IsFunction F)
+    (hdom : domain F = x) (hne : ∀ a, a ∈ x → ∃ y, y ∈ app F a) :
+    ∃ g, IsFunction g ∧ domain g = x ∧ ∀ a, a ∈ x → app g a ∈ app F a := by
+  obtain ⟨n, f, hf, hs⟩ := hx
+  -- the family pulled back to the numeral
+  have hinv : ∀ k, k ∈ ofNat.{u} n → invApp f k ∈ x := fun k hk => invApp_mem hf hs hk
+  have hmapsF : ∀ k, k ∈ ofNat.{u} n → app F (invApp f k) ∈ range F := fun k hk =>
+    app_mem_range hF (by rw [hdom]; exact hinv k hk)
+  have hF'fun : IsFunction (graphOn (ofNat.{u} n) (range F) (fun k => app F (invApp f k))) :=
+    graphOn_isFunction _ _ _
+  have hF'dom : domain (graphOn (ofNat.{u} n) (range F) (fun k => app F (invApp f k)))
+      = ofNat.{u} n := graphOn_domain hmapsF
+  have hF'app : ∀ k, k ∈ ofNat.{u} n →
+      app (graphOn (ofNat.{u} n) (range F) (fun k => app F (invApp f k))) k
+        = app F (invApp f k) := fun k hk => app_graphOn hmapsF hk
+  obtain ⟨g', hg'fun, hg'dom, hg'spec⟩ := finite_choice_ofNat n _ hF'fun hF'dom
+    (fun k hk => by rw [hF'app k hk]; exact hne _ (hinv k hk))
+  -- and pushed forward again
+  have hmapsg : ∀ a, a ∈ x → app g' (app f a) ∈ range g' := fun a ha =>
+    app_mem_range hg'fun (by rw [hg'dom]; exact app_mem_of_isInjection hf ha)
+  refine ⟨graphOn x (range g') (fun a => app g' (app f a)), graphOn_isFunction _ _ _,
+    graphOn_domain hmapsg, fun a ha => ?_⟩
+  rw [app_graphOn hmapsg ha]
+  have hstep := hg'spec (app f a) (app_mem_of_isInjection hf ha)
+  rwa [hF'app _ (app_mem_of_isInjection hf ha), invApp_eq hf ha rfl] at hstep
 
 /-- Products respect equinumerosity, componentwise. -/
 theorem equinumerous_prod {x y x' y' : ZFSet.{u}} (hx : Equinumerous x x')
@@ -538,6 +728,13 @@ theorem isFinite_of_detachable : ∀ n : Nat, ∀ x y : ZFSet.{u}, x ⊆ y →
       rw [← hx]
       exact hm
 
+/-- The forward direction: with `em` every subset of a finite set is finite,
+so `SubsetFinite` is pinned at exactly excluded middle. -/
+theorem subsetFinite_of_em (hem : EM) : SubsetFinite.{u} := by
+  intro x y hsub hy
+  obtain ⟨n, hn⟩ := hy
+  exact isFinite_of_detachable n x y hsub hn (fun a _ => hem (a ∈ x))
+
 /-- A bounded existential over a finite set is decidable, when the predicate
 is. -/
 theorem exists_or_not_of_finite {P : ZFSet.{u} → Prop} : ∀ n : Nat, ∀ y : ZFSet.{u},
@@ -547,6 +744,77 @@ theorem exists_or_not_of_finite {P : ZFSet.{u} → Prop} : ∀ n : Nat, ∀ y : 
     rcases exists_or_all_of_equinumerous hy hdet with h | h
     · exact Or.inl h
     · exact Or.inr (fun ⟨a, ha, hpa⟩ => h a ha hpa)
+
+/-- The image of a finite set is finite, when equality on the values is
+decidable -- which is the hypothesis a constructive statement has to carry, and
+which `eq_or_ne_of_finite` supplies whenever the target is finite too. -/
+theorem isFinite_imageIn : ∀ n : Nat, ∀ y g z : ZFSet.{u}, Equinumerous y (ofNat.{u} n) →
+    (∀ a, a ∈ y → ∀ b, b ∈ y → app g a = app g b ∨ app g a ≠ app g b) →
+      (∀ a, a ∈ y → app g a ∈ z) → IsFinite (imageIn g y z)
+  | 0, y, g, z, hy, _, _ => by
+    have hempty : imageIn g y z = empty.{u} := by
+      refine ext _ _ fun w => ⟨fun hw => ?_, fun hw => absurd hw (not_mem_empty w)⟩
+      obtain ⟨-, a, ha, -⟩ := (mem_imageIn_iff g y z w).mp hw
+      obtain ⟨f, hf, -⟩ := hy
+      have := app_mem_of_isInjection hf ha
+      rw [ofNat_zero] at this
+      exact absurd this (not_mem_empty _)
+    rw [hempty]
+    exact ⟨0, by rw [ofNat_zero]; exact equinumerous_refl _⟩
+  | n + 1, y, g, z, hy, hdec, hmaps => by
+    obtain ⟨f, hf, hs⟩ := hy
+    have hlast : ofNat.{u} n ∈ ofNat.{u} (n + 1) := by
+      rw [ofNat_succ]
+      exact mem_succ_self _
+    have hb₀ : invApp f (ofNat.{u} n) ∈ y := invApp_mem hf hs hlast
+    have hy' := equinumerous_erase hf hs
+    have hsub : ∀ a, a ∈ y \ singleton (invApp f (ofNat.{u} n)) → a ∈ y :=
+      fun a ha => ((mem_sdiff_iff a y _).mp ha).left
+    obtain ⟨m, hm⟩ := isFinite_imageIn n _ g z hy'
+      (fun a ha b hb => hdec a (hsub a ha) b (hsub b hb))
+      (fun a ha => hmaps a (hsub a ha))
+    -- the image splits off the last value
+    have hsplit : ∀ w, w ∈ imageIn g y z ↔
+        w ∈ imageIn g (y \ singleton (invApp f (ofNat.{u} n))) z ∨
+          w = app g (invApp f (ofNat.{u} n)) := by
+      intro w
+      constructor
+      · intro hw
+        obtain ⟨hwz, a, ha, rfl⟩ := (mem_imageIn_iff g y z w).mp hw
+        rcases eq_or_ne_of_finite ⟨f, hf, hs⟩ ha hb₀ with rfl | hne
+        · exact Or.inr rfl
+        · exact Or.inl ((mem_imageIn_iff g _ z _).mpr ⟨hwz, a,
+            (mem_sdiff_iff a y _).mpr ⟨ha, fun hmem => hne ((mem_singleton_iff _ _).mp hmem)⟩,
+            rfl⟩)
+      · rintro (hw | rfl)
+        · obtain ⟨hwz, a, ha, he⟩ := (mem_imageIn_iff g _ z w).mp hw
+          exact (mem_imageIn_iff g y z w).mpr ⟨hwz, a, hsub a ha, he⟩
+        · exact (mem_imageIn_iff g y z _).mpr ⟨hmaps _ hb₀, _, hb₀, rfl⟩
+    -- decide whether the last value was already there
+    rcases exists_or_not_of_finite (P := fun a => app g a = app g (invApp f (ofNat.{u} n)))
+      n _ hy' (fun a ha => hdec a (hsub a ha) _ hb₀) with ⟨a, ha, hae⟩ | hno
+    · refine ⟨m, ?_⟩
+      have heq : imageIn g y z = imageIn g (y \ singleton (invApp f (ofNat.{u} n))) z := by
+        refine ext _ _ fun w => ⟨fun hw => ?_, fun hw => (hsplit w).mpr (Or.inl hw)⟩
+        rcases (hsplit w).mp hw with h | rfl
+        · exact h
+        · exact (mem_imageIn_iff g _ z _).mpr ⟨hmaps _ hb₀, a, ha, hae.symm⟩
+      rw [heq]
+      exact hm
+    · refine ⟨m + 1, ?_⟩
+      have heq : imageIn g y z = imageIn g (y \ singleton (invApp f (ofNat.{u} n))) z
+          ∪ singleton (app g (invApp f (ofNat.{u} n))) := by
+        refine ext _ _ fun w => ⟨fun hw => ?_, fun hw => ?_⟩
+        · rcases (hsplit w).mp hw with h | rfl
+          · exact (mem_union_iff _ _ _).mpr (Or.inl h)
+          · exact (mem_union_iff _ _ _).mpr (Or.inr ((mem_singleton_iff _ _).mpr rfl))
+        · rcases (mem_union_iff _ _ _).mp hw with h | h
+          · exact (hsplit w).mpr (Or.inl h)
+          · exact (hsplit w).mpr (Or.inr ((mem_singleton_iff _ _).mp h))
+      rw [heq]
+      refine equinumerous_insert hm (fun hmem => hno ?_)
+      obtain ⟨-, a, ha, he⟩ := (mem_imageIn_iff g _ z _).mp hmem
+      exact ⟨a, ha, he.symm⟩
 
 /-! ## Pigeonhole
 
@@ -861,9 +1129,48 @@ theorem mem_or_not_mem_of_subset {S T : ZFSet.{u}} {n m : Nat}
   · exact Or.inl ha
   · exact Or.inr fun hmem => hno ⟨w, hmem, rfl⟩
 
+/-! ## Pigeonhole
+
+A subset of a finite set with the same size is the whole set, so an injection
+between sets of equal finite size is onto. Both need membership in the subset to
+be decidable, which finiteness supplies. -/
+
+theorem subset_eq_of_card_eq {S Y : ZFSet.{u}} {n : Nat} (hsub : S ⊆ Y)
+    (hS : Equinumerous S (ofNat.{u} n)) (hY : Equinumerous Y (ofNat.{u} n)) : S = Y := by
+  refine ext _ _ (fun y => ⟨fun hy => hsub _ hy, fun hy => ?_⟩)
+  rcases mem_or_not_mem_of_subset hY hS hsub hy with hin | hout
+  · exact hin
+  · exfalso
+    have hins := equinumerous_insert hS hout
+    have hle : n + 1 ≤ n :=
+      dominates_ofNat_le _ _ (dominates_trans (dominates_of_equinumerous
+        (equinumerous_symm hins)) (dominates_ofNat_of_subset (fun w hw => ?_) hY))
+    · omega
+    · rcases (mem_union_iff w S _).mp hw with h | h
+      · exact hsub _ h
+      · rw [(mem_singleton_iff _ _).mp h]
+        exact hy
+
 /-! ## Sets named by a list
 
 A duplicate-free list of length `n` names a set of size `n`. -/
+
+def listToSet : List ZFSet.{u} → ZFSet.{u}
+  | [] => empty.{u}
+  | a :: as => listToSet as ∪ singleton a
+
+theorem mem_listToSet_iff : ∀ (rs : List ZFSet.{u}) (w : ZFSet.{u}),
+    w ∈ listToSet rs ↔ w ∈ rs
+  | [], w => ⟨fun hw => absurd hw (not_mem_empty w), fun hw => absurd hw List.not_mem_nil⟩
+  | a :: as, w => by
+    refine Iff.trans (mem_union_iff w _ _) ⟨fun h => ?_, fun h => ?_⟩
+    · rcases h with h | h
+      · exact List.mem_cons_of_mem _ ((mem_listToSet_iff as w).mp h)
+      · rw [(mem_singleton_iff _ _).mp h]
+        exact List.mem_cons_self
+    · rcases List.mem_cons.mp h with rfl | h'
+      · exact Or.inr ((mem_singleton_iff _ _).mpr rfl)
+      · exact Or.inl ((mem_listToSet_iff as w).mpr h')
 
 def Distinct : List ZFSet.{u} → Prop
   | [] => True
@@ -888,6 +1195,8 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 #print axioms equinumerous_trans
 #print axioms dominates_trans
 #print axioms isFinite_ofNat
+#print axioms finite_choice_ofNat
+#print axioms finite_choice
 #print axioms equinumerous_prod
 #print axioms dominates_ofNat_le
 #print axioms card_unique
@@ -899,9 +1208,74 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 #print axioms equinumerous_erase
 #print axioms equinumerous_insert
 #print axioms isFinite_of_detachable
+#print axioms subsetFinite_of_em
+
+/-! ## The same theorem over a Lean TYPE
+
+`SubsetFinite` above is stated over `ZFSet`, and the usual statement over a
+Lean type, where `Set α` is `α → Prop`. No `ZFSet` is the `α` that statement
+quantifies over, so the ZFSet form cannot discharge one about it.
+
+A classical proof of the same theorem is free, because the decision that
+selects the subset is ambient. This one carries it, and `subsetFinite_of_em`
+above says where --- `isFinite_of_detachable … (fun a _ => hem (a ∈ x))`. The
+principle buys DETACHABILITY of the subset.
+
+AND `List.filter` IS UNAVAILABLE, WHICH IS THE CONSTRUCTIVE CONTENT RATHER
+THAN AN INCONVENIENCE. `filter` wants a `Decidable` instance --- `Type`-valued
+--- and `Constructive.EM` is a `Prop`. Eliminating a `Prop` disjunction into
+`Type` is large elimination and is refused. So the selecting list cannot be
+COMPUTED from `EM` at all; it has to be produced inside a proof, where the goal
+is a `Prop` and case analysis on `hem (s a)` is ordinary. That is why
+`exists_sublist_of_em` returns an EXISTENTIAL and recurses on the ambient list
+rather than being a function.
+-/
+
 #print axioms exists_or_not_of_finite
+#print axioms isFinite_imageIn
 #print axioms equinumerous_prod_ofNat
 #print axioms equinumerous_singleton_one
+
+/-- An injective enumeration gives a duplicate-free list.
+
+`Distinct` has exactly one lemma in this tree and no way to BUILD one, so every
+argument wanting a list of distinct roots has had to hand-roll the recursion.
+This is that recursion once.
+
+The induction is on the FRONT of `List.range`, via `List.range_succ_eq_map`,
+because `Distinct` is defined head-first; `List.range_succ` appends at the back
+and would
+need an append lemma that does not exist either. -/
+theorem distinct_map_range_of_inj {f : Nat → ZFSet.{u}} :
+    ∀ n : Nat,
+      (∀ i, i < n → ∀ j, j < n → i ≠ j → f i ≠ f j) →
+      Distinct ((List.range n).map f)
+  | 0, _ => by rw [List.range_zero]; exact trivial
+  | n + 1, hinj => by
+    rw [List.range_succ_eq_map, List.map_cons, List.map_map]
+    refine ⟨fun hmem => ?_, ?_⟩
+    · obtain ⟨i, hi, he⟩ := List.mem_map.mp hmem
+      have hin : i < n := List.mem_range.mp hi
+      exact hinj 0 (by omega) (i + 1) (by omega) (by omega) he.symm
+    · exact distinct_map_range_of_inj (f := fun i => f (i + 1)) n
+        (fun i hi j hj hne => hinj (i + 1) (by omega) (j + 1) (by omega)
+          (by omega))
+
+#print axioms distinct_map_range_of_inj
+
+/-- Two folds agree when their steps agree on the list's own members.
+Core has `List.foldr_map` but no congruence for the step function, and a
+pointwise argument over a mapped list needs one. -/
+theorem foldr_ext_mem {f g : ZFSet.{u} → ZFSet.{u} → ZFSet.{u}} {e : ZFSet.{u}} :
+    ∀ l : List ZFSet.{u}, (∀ a, a ∈ l → ∀ b, f a b = g a b) →
+      List.foldr f e l = List.foldr g e l
+  | [], _ => rfl
+  | a :: as, h => by
+    show f a (List.foldr f e as) = g a (List.foldr g e as)
+    rw [foldr_ext_mem as (fun x hx b => h x (List.mem_cons_of_mem _ hx) b),
+      h a List.mem_cons_self]
+
+#print axioms foldr_ext_mem
 
 #print axioms opair_mem_pairNumeral
 #print axioms graphOn_range
@@ -919,7 +1293,9 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 #print axioms sdiff_singleton_union
 #print axioms mem_pairNumeral_iff
 #print axioms mem_or_not_mem_of_subset
+#print axioms subset_eq_of_card_eq
+#print axioms mem_listToSet_iff
 end SetTheory
 namespace ZFSet
-export SetTheory (Distinct Dominates Equinumerous IsFinite SubsetFinite app_compOn app_invOn app_mem_of_isInjection card_unique compOn dominates_ofNat_le dominates_ofNat_of_subset dominates_of_equinumerous dominates_trans em_of_subset_finite eq_or_ne_of_finite equinumerous_erase equinumerous_insert equinumerous_prod equinumerous_prod_ofNat equinumerous_refl equinumerous_sdiff_singleton equinumerous_singleton_one equinumerous_symm equinumerous_trans equinumerous_union_disjoint exists_or_all_of_equinumerous exists_or_not_of_finite graphOn_range invApp invApp_eq invApp_mem invOn isFinite_ofNat isFinite_of_detachable isInjection_compOn isInjection_idOn isInjection_invOn isSurjection_idOn isSurjection_invOn mem_or_not_mem_of_subset mem_pairNumeral_iff pairNumeral sdiff_singleton_union)
+export SetTheory (Distinct Dominates Equinumerous IsFinite SubsetFinite app_compOn app_invOn app_mem_of_isInjection card_unique compOn distinct_map_range_of_inj dominates_ofNat_le dominates_ofNat_of_subset dominates_of_equinumerous dominates_trans em_of_subset_finite eq_or_ne_of_finite equinumerous_erase equinumerous_insert equinumerous_natImage equinumerous_prod equinumerous_prod_ofNat equinumerous_refl equinumerous_sdiff_singleton equinumerous_singleton_one equinumerous_symm equinumerous_trans equinumerous_union_disjoint exists_or_all_of_equinumerous exists_or_not_of_finite finite_choice finite_choice_ofNat foldr_ext_mem graphOn_range invApp invApp_eq invApp_mem invOn isFinite_imageIn isFinite_ofNat isFinite_of_detachable isInjection_compOn isInjection_idOn isInjection_invOn isSurjection_idOn isSurjection_invOn listToSet mem_listToSet_iff mem_or_not_mem_of_subset mem_pairNumeral_iff pairNumeral sdiff_singleton_union subsetFinite_of_em subset_eq_of_card_eq)
 end ZFSet

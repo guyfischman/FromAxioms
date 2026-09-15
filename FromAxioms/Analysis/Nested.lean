@@ -172,6 +172,49 @@ theorem nest_mem_RealL {a b : ZFSet.{u}} (h : IsNested a b) :
 #print axioms nest_mem_RealL
 #print axioms IsNested
 
+/-- The standard form: a nested family of intervals contains exactly one
+real.
+
+This is the completeness statement the landmark names, and it is not
+`isLocated_nest`: that says the nest determines a located CUT, while this says
+the cut is a POINT lying in every interval and the only one.
+
+UNIQUENESS COSTS NEITHER `shrink` NOR DENSITY. `realLLt x y` is a rational `p`
+above `x` and below `y`; if `y` lies under every `b m` and some `b m` lies under
+`p`, that same `p` witnesses `realLOf (b m) < y`, which the bracketing forbids.
+So any two points bracketed by one nest are equal on the ORDER alone --- the
+widths shrinking is what makes the bracket non-trivial, not what makes it
+unique. -/
+theorem exists_unique_mem_nest {a b : ZFSet.{u}} (h : IsNested a b) :
+    ∃ x, And (x ∈ RealL.{u})
+      (And (∀ n, n ∈ omega.{u} →
+              And (realLLe (realLOf (app a n)) x)
+                  (realLLe x (realLOf (app b n))))
+        (∀ y, y ∈ RealL.{u} →
+          (∀ n, n ∈ omega.{u} →
+            And (realLLe (realLOf (app a n)) y)
+                (realLLe y (realLOf (app b n)))) → y = opair (nestLower a) (nestUpper b))) := by
+  refine ⟨opair (nestLower a) (nestUpper b), nest_mem_RealL h,
+    fun n hn => ⟨nest_ge h hn, nest_le h hn⟩, ?_⟩
+  intro y hy hbr
+  refine realLLe_antisymm hy (nest_mem_RealL h) ?_ ?_
+  · -- `y ≤ x`: a witness `p` for `x < y` sits above some `b m`, and `y ≤ b m`
+    rintro ⟨p, hpU, hpL⟩
+    rw [snd_opair] at hpU
+    obtain ⟨hpQ, m, hm, hbm⟩ := (mem_nestUpper_iff b p).mp hpU
+    exact (hbr m hm).right ⟨p, by
+      rw [realLOf, snd_opair]
+      exact (mem_sep_iff _ p _).mpr ⟨hpQ, hbm⟩, hpL⟩
+  · -- `x ≤ y`: a witness `p` for `y < x` sits below some `a m`, and `a m ≤ y`
+    rintro ⟨p, hpU, hpL⟩
+    rw [fst_opair] at hpL
+    obtain ⟨hpQ, m, hm, hpa⟩ := (mem_nestLower_iff a p).mp hpL
+    exact (hbr m hm).left ⟨p, hpU, by
+      rw [realLOf, fst_opair]
+      exact (mem_ratCut_iff _ p).mpr ⟨hpQ, hpa⟩⟩
+
+#print axioms exists_unique_mem_nest
+
 /-- The usual way a construction supplies `shrink`: widths bounded by `1/(n+1)`.
 Anything shrinking geometrically clears this bar, and Archimedes
 (`exists_invWidth_lt`) does the rest. -/
@@ -194,5 +237,5 @@ end Analysis
 #print axioms Analysis.nest_ge
 #print axioms Analysis.nest_le
 namespace ZFSet
-export Analysis (IsNested isLocated_nest mem_nestLower_iff mem_nestUpper_iff nestLower nestUpper nest_ge nest_le nest_mem_RealL shrink_of_invWidth)
+export Analysis (IsNested exists_unique_mem_nest isLocated_nest mem_nestLower_iff mem_nestUpper_iff nestLower nestUpper nest_ge nest_le nest_mem_RealL shrink_of_invWidth)
 end ZFSet
