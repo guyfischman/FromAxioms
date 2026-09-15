@@ -5,7 +5,10 @@ cost of every result measured rather than assumed.
 
 **[The library from the axioms up](https://guyfischman.github.io/FromAxioms/)**
 -- every declaration, what it rests on, and where each axiom and each named
-principle first enters beneath it. Regenerated on every push.
+principle first enters beneath it. Its opening view is the dated results, each
+one carrying what a reversal proves it needs, what its proof uses, and the
+comparator pair that matches it against a previous formalization (mostly
+Mathlib). Regenerated on every push.
 
 `lake build` needs the Lean toolchain and nothing else. Mathlib appears in one
 place, `comparator/`, which is a separate package built by a separate command:
@@ -85,12 +88,14 @@ commit.
 ## The comparators
 
 A theorem here can always be doubted on the grounds that the statement was bent
-to fit the proof. `comparator/` answers that by not writing the statement. Each
-pair is two files: `Challenge.lean` imports Mathlib and states the theorem in
-Mathlib's vocabulary, and `Solution.lean` discharges that exact statement from
-this library. `challenge_is_mathlibs` proves the challenge from Mathlib, so the
-statement being matched is certified as Mathlib's before anything here touches
-it.
+to fit the proof. `comparator/` answers that by not writing the statement, in
+the form [leanprover/comparator](https://github.com/leanprover/comparator)
+established and under its names: `Challenge.lean` imports Mathlib and states the
+theorem in Mathlib's vocabulary, and `Solution.lean` discharges that exact
+statement from this library. The pairs here are checked by the Lean package
+below rather than by that tool. `challenge_is_mathlibs` proves the challenge
+from Mathlib, so the statement being matched is certified as Mathlib's before
+anything here touches it.
 
 ```sh
 cd comparator && lake build      # needs Mathlib; pinned in lake-manifest.json
@@ -100,15 +105,24 @@ cd comparator && lake build      # needs Mathlib; pinned in lake-manifest.json
 per pair: whether the proof reaches a proposition proved under `FromAxioms/`,
 and whether it reaches any Mathlib theorem that Mathlib's own proof of the
 challenge uses. The second is what a comparator may not do, and prose cannot
-establish either.
+establish either. A pair failing either question fails the build, so a pair
+that leans on the theorem it claims to match is withheld rather than published;
+two are withheld today for that reason.
 
-[comparator/PAIRS.md](comparator/PAIRS.md) is written by that build: per pair,
-what the statement is certified as, which propositions of this library the proof
-reaches, and what it costs in axioms beyond the tower theorems it uses and
-Mathlib's own proof of the same statement. Generality is not there, because
-comparing two binder lists is a reading rather than a computation;
-`comparator/formalization.yaml` carries that per pair, along with the Mathlib
-revision they were checked against.
+A pair publishes in the same commit as the result it matches, so a dated result
+arrives with its comparison rather than ahead of it.
+
+[comparator/PAIRS.md](comparator/PAIRS.md) is written by that build and lists
+every published pair: what the statement is certified as, which propositions of
+this library the proof reaches, and the surcharge, meaning the axioms the pair
+costs beyond both the tower theorems it uses and Mathlib's own proof of the same
+statement. An empty surcharge is the common case: a statement whose vocabulary
+carries `Classical.choice` costs it whoever proves it.
+
+Generality is not there, because comparing two binder lists is a reading rather
+than a computation. `comparator/formalization.yaml`, the companion convention to
+a comparator pair, carries it per pair, with the Mathlib revision the statements
+were read from and, where the two statements differ, what the difference is.
 
 ## Building
 
