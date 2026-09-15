@@ -10,24 +10,43 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
+ "DyadicApprox": [
+  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+ ],
  "EM": [
   "FromAxioms/Constructive/Reverse.lean::dne_of_em",
   "FromAxioms/Constructive/Reverse.lean::familyLocated_of_em",
   "FromAxioms/Constructive/Reverse.lean::wem_of_em",
-  "FromAxioms/SetTheory/Cardinal.lean::subsetFinite_of_em"
+  "FromAxioms/SetTheory/Cardinal.lean::subsetFinite_of_em",
+  "FromAxioms/Topology/Topology.lean::exists_mem_of_lt_sup",
+  "FromAxioms/Topology/Topology.lean::isLocatedSubset_of_em"
+ ],
+ "FANstable": [
+  "FromAxioms/Constructive/Omniscience.lean::fanΔ_of_fanStable"
+ ],
+ "FANΔ": [
+  "FromAxioms/Constructive/Omniscience.lean::isBounded_of_fanΔ"
  ],
  "FamilyLocated": [
   "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",
   "FromAxioms/Analysis/Located.lean::lub_of_familyLocated"
  ],
  "LLPO": [
+  "FromAxioms/Constructive/Omniscience.lean::exists_unbounded_child_of_llpo",
+  "FromAxioms/Constructive/Omniscience.lean::ternary_llpo_of_llpo",
   "FromAxioms/Metamath/Calibrate.lean::signDisjunction_of_llpo_binaryDC"
  ],
  "LPO": [
+  "FromAxioms/Constructive/Omniscience.lean::mp_of_lpo",
+  "FromAxioms/Constructive/Omniscience.lean::ternary_decidable_of_lpo",
+  "FromAxioms/Constructive/Omniscience.lean::wlpo_of_lpo",
   "FromAxioms/Constructive/Vanishing.lean::eq_zero_or_apart_of_lpo"
  ],
  "MP": [
   "FromAxioms/Constructive/Vanishing.lean::apart_of_mp_of_ne_zero"
+ ],
+ "PathSelection": [
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_pathSelection"
  ],
  "SignDisjunction": [
   "FromAxioms/Constructive/Vanishing.lean::llpo_of_signDisjunction",
@@ -36,7 +55,22 @@
  "SubsetFinite": [
   "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
  ],
+ "TernaryDecidable": [
+  "FromAxioms/Constructive/Omniscience.lean::lpo_of_ternary_decidable"
+ ],
+ "TernaryLLPO": [
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_ternary_llpo"
+ ],
  "TernaryZeroDecidable": [
   "FromAxioms/Constructive/Omniscience.lean::wlpo_of_ternary_zero_decidable"
+ ],
+ "WKL": [
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_wkl"
+ ],
+ "WLPO": [
+  "FromAxioms/Constructive/Omniscience.lean::decidable_bridge_of_wlpo",
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_wlpo",
+  "FromAxioms/Constructive/Omniscience.lean::lpo_of_wlpo_of_mp",
+  "FromAxioms/Constructive/Omniscience.lean::ternary_zero_decidable_of_wlpo"
  ]
 }

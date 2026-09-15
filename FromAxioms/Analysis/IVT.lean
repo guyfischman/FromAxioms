@@ -23,7 +23,6 @@ two order facts. (`realLAbs` now exists case-free in `Deriv.lean`, as
 
 import FromAxioms.Analysis.Ternary
 import FromAxioms.NumberTheory.SqrtTwo
-import FromAxioms.Topology.Metric
 import FromAxioms.Topology.Topology
 
 universe u

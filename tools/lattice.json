@@ -19,20 +19,31 @@
   "dcomega",
   "dcon",
   "decidablerealllt",
+  "dyadicapprox",
   "em",
   "exactivt01",
   "familylocated",
+  "fanbool",
+  "fanstable",
+  "fanΔ",
   "hasapprox",
   "isnoetherian",
   "llpo",
+  "locatordc",
   "lpo",
   "mp",
   "neapartzero",
+  "pathselection",
   "regularity",
   "signdisjunction",
   "subsetfinite",
+  "ternarydecidable",
+  "ternaryllpo",
   "ternaryzerodecidable",
+  "treedc",
   "wem",
+  "wkl",
+  "wklbool",
   "wlpo"
  ],
  "edges": [
@@ -81,14 +92,61 @@
    "to": "familylocated"
   },
   {
+   "by": "Constructive.fanΔ_of_fanStable",
+   "from": "fanstable",
+   "to": "fanΔ"
+  },
+  {
    "by": "Analysis.hasApprox_of_ACOmega",
    "from": "acomega",
    "to": "hasapprox"
   },
   {
+   "by": "Constructive.llpo_of_pathSelection",
+   "from": "pathselection",
+   "to": "llpo"
+  },
+  {
    "by": "Constructive.llpo_of_signDisjunction",
    "from": "signdisjunction",
    "to": "llpo"
+  },
+  {
+   "by": "Constructive.llpo_of_ternary_llpo",
+   "from": [
+    "ternaryllpo"
+   ],
+   "to": "llpo"
+  },
+  {
+   "by": "Constructive.llpo_of_wkl",
+   "from": "wkl",
+   "to": "llpo"
+  },
+  {
+   "by": "Constructive.llpo_of_wlpo",
+   "from": "wlpo",
+   "to": "llpo"
+  },
+  {
+   "by": "Constructive.lpo_of_ternary_decidable",
+   "from": [
+    "ternarydecidable"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "Constructive.lpo_of_wlpo_of_mp",
+   "from": [
+    "wlpo",
+    "mp"
+   ],
+   "to": "lpo"
+  },
+  {
+   "by": "Constructive.mp_of_lpo",
+   "from": "lpo",
+   "to": "mp"
   },
   {
    "by": "Metamath.signDisjunction_of_llpo_binaryDC",
@@ -106,9 +164,36 @@
    "to": "subsetfinite"
   },
   {
+   "by": "Constructive.ternary_llpo_of_llpo",
+   "from": [
+    "llpo"
+   ],
+   "to": "ternaryllpo"
+  },
+  {
+   "by": "Constructive.ternary_zero_decidable_of_wlpo",
+   "from": [
+    "wlpo"
+   ],
+   "to": "ternaryzerodecidable"
+  },
+  {
    "by": "Constructive.wem_of_em",
    "from": "em",
    "to": "wem"
+  },
+  {
+   "by": "Constructive.wklBool_of_llpo_treeDC",
+   "from": [
+    "llpo",
+    "treedc"
+   ],
+   "to": "wklbool"
+  },
+  {
+   "by": "Constructive.wlpo_of_lpo",
+   "from": "lpo",
+   "to": "wlpo"
   },
   {
    "by": "Constructive.wlpo_of_ternary_zero_decidable",

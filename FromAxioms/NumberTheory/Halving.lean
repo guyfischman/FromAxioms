@@ -959,7 +959,12 @@ doubled endpoints, so a walk confined to `[0,1]` converges on `√2/2`
 while every comparison it makes is between rationals; and a comparison
 between rationals is decided outright by `ratLt_or_not`. Nothing is
 hypothesised: `halve_limit_of_decider sqrtTwoDecider` takes no principle
-and no data, only the two facts that `[0,1]` starts the walk. -/
+and no data, only the two facts that `[0,1]` starts the walk.
+
+The one place irrationality is spent is `keepsR`, and it is spent to turn
+`¬ (2 < y)` into `y < 2` -- which needs `y ≠ 2`, and that is exactly
+`no_rat_sq_two`. Without it the right half would have to carry a
+non-strict bound and the interval could stall on the root. -/
 
 /-- Twice a rational. -/
 def ratTwice (x : ZFSet.{u}) : ZFSet.{u} := ratMul (ratNat.{u} 2 1) x

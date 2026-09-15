@@ -35,6 +35,18 @@
   "meaning": "excluded middle, over arbitrary propositions",
   "verdict": "never"
  },
+ "FAN\u0394": {
+  "calibration": {
+   "forward": "ZFSet.fan\u0394_of_decider",
+   "principle": "em",
+   "reverse": "open",
+   "shape": "omniscience"
+  },
+  "discharge": "UPPER BOUND ONLY, and the reverse is not merely unproved but unattempted -- recorded `n/a` in the field until 2026-08-31, which says the question does not arise, while this sentence says it is owed. fan\u0394_of_decider takes a UNIVERSAL decider, which em supplies through decider_of_em, so em implies FAN\u0394 along a two-step chain and the forward named here is the second step. Nothing goes the other way: FAN\u0394 is consumed by twelve declarations and every one concludes a MEASURE-THEORETIC statement -- unitLowerBound_of_fan\u0394, unitLengthFloor_of_fan\u0394, the four uniformCoveredDepth forms, unitLowerBoundN_of_fan\u0394, unitLowerBoundAll_of_fan\u0394, unitLowerBound2_of_fan\u0394 and unitLowerBound_of_fan\u0394_viaProduct -- and not one concludes a lattice principle. So FAN's position relative to the omniscience lattice is UNMEASURED rather than zero, and a reversal at any node would be new. Registered because it was the most-used hypothesis ABSENT FROM THIS FILE at 54 binder occurrences, ahead of ZeroOrApart at 26 and HasZeroLocators at 20. NOT unregistered outright: `fan\u0394` is a lattice.json NODE with eight edges (corrected 2026-08-29: the key is `fan\u0394`, there is no `fan` node, and the count is 8 as measured, not 10), and the two registries record different things -- lattice.json says what implies what, this file says how a hypothesis is CALIBRATED. Saying unregistered without naming which register is a claim about none of them. And FANstable is STRONGER, not weaker -- corrected 2026-08-29. It demands LESS of the bar (double-negation-stability rather than decidability) and concludes the same, so it applies to MORE bars, and fanDelta_of_fanStable is free in the direction FANstable -> FAN\u0394, which is what settles it. The earlier reading conflated 'weaker premise on B' with 'weaker principle' and those invert. So the Weierstrass line, uniformlyContinuousOn_of_fanStable and weierstrassApprox_of_fanStable, is priced at the STRONGER hypothesis -- a WORSE upper bound than the measure line's FAN\u0394, not a better one; costmap.py prints + FAN\u0394 for both and flattens that distinction. THE `reverse: open` FIELD IS REFUTED BY EDGES THIS LATTICE ALREADY HOLDS, 2026-09-04, and `open` means OWED where this question does not arise. The reverse would be `fan\u0394 -> em`. But `lattice.json`'s `_refuted` list carries BOTH `fan\u0394 -> mp` and `fan\u0394 -> llpo`, each by the intuitionism (Brouwerian continuity) model --- the model that validates FAN and refutes MP, which is what separates the constructive schools. And `llpo` and `mp` are BOTH in the closure of `em` (computed: 121 nodes, via `em -> lpo` and onward). So `fan\u0394 -> em` would compose to a refuted edge, and is itself refuted by the same model. NOT EDITED HERE, DELIBERATELY. `undischarged.py --write` regenerates `opendirection-allow.txt` from the calibration fields and `ratchets.py` keeps that list SHRINK-ONLY, so changing `open` to a refutation verdict is a ratchet action --- it must go through the tool in a pass that records the movement, not through a hand edit that makes a count drop with no line in the diff explaining it. The argument is written down here so that pass is a confirmation rather than a re-derivation. AND CHECK `OuterApproached` AT THE SAME TIME: it also records `principle: em, reverse: open`, and whether the same composition argument applies depends on what its own reverse would have to conclude --- which I have NOT checked and am not asserting. REGISTERED 2026-09-05, AND THE FIELD BELOW STILL READS `open`. The composition argued above is now recorded where the vocabulary for it exists: lattice.json's `_refuted` carries `fan\u0394 -> em` outright, by the same intuitionistic model and with em's closure re-measured at the time of writing (95 of 203 nodes, not the 121 this field claimed -- the lattice changed underneath the number and the conclusion did not). THE CALIBRATION FIELD IS DELIBERATELY UNCHANGED: its vocabulary is a theorem name, `n/a` or `open`, and undischarged.py documents `n/a` as *the question does not arise*, which is not what a refutation says. Writing `n/a` here would shrink the ratchet by overloading a word rather than by answering anything, and the count would stop being readable. What is owed is a `refuted` value in that vocabulary plus the reader change to match; until then this row is an open DIRECTION whose answer is registered one file over, which is worse bookkeeping than it sounds and better than a silent drop.",
+  "kind": "principle",
+  "meaning": "a decidable bar is uniform -- the compactness of 2^omega, read constructively",
+  "where": "FromAxioms/Foundations/Omniscience.lean"
+ },
  "IsRing": {
   "calibration": {
    "forward": "n/a",
@@ -45,6 +57,18 @@
   "discharge": "never: subject matter, not strength -- the ring is the thing under study",
   "kind": "structural",
   "meaning": "the carrier with its operations is a ring",
+  "verdict": "never"
+ },
+ "LLPO": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "llpo",
+   "reverse": "n/a",
+   "shape": "omniscience"
+  },
+  "discharge": "same as LPO",
+  "kind": "principle",
+  "meaning": "of two sequences at most one of which fires, one can be named",
   "verdict": "never"
  },
  "LPO": {
@@ -93,6 +117,28 @@
   "discharge": "no, and it is an EQUIVALENCE: a subset of a finite set being finite IS excluded middle. The registry recorded forward as n/a while subsetFinite_of_em was already proved",
   "kind": "principle",
   "meaning": "a subset of a finite set is finite"
+ },
+ "TernaryDecidable": {
+  "calibration": {
+   "forward": "Constructive.ternary_decidable_of_lpo",
+   "principle": "lpo",
+   "reverse": "Constructive.lpo_of_ternary_decidable",
+   "shape": "omniscience"
+  },
+  "discharge": "never: lives in _equivalences as a measured strength",
+  "kind": "principle",
+  "meaning": "the ternary digit stream of a real is decidable"
+ },
+ "TernaryLLPO": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "llpo",
+   "reverse": "Constructive.llpo_of_ternary_llpo",
+   "shape": "omniscience"
+  },
+  "discharge": "reversed to LLPO",
+  "kind": "principle",
+  "meaning": "the three-way form of LLPO over the ternary digits"
  },
  "TernaryZeroDecidable": {
   "calibration": {
@@ -464,5 +510,5 @@
   "the same reason: it is calibrated against `lpo`, and minting a node with one",
   "edge out and nothing in moves `what implies this` rather than closing it."
  ],
- "_uncalibrated": 0
+ "_uncalibrated": 1
 }

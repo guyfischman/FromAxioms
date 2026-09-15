@@ -8,7 +8,11 @@ import FromAxioms.SetTheory.ZFSet
 
 /-! # Dependent choice down a binary tree
 
-Dependent choice down a binary tree, at set level and at type level. -/
+Dependent choice down a binary tree, at set level and at type level.
+
+What `TreeDC` asks beyond that is a `Bool` at each index, and reading a member of
+`{∅, {∅}}` as a `Bool` is elimination into data. That is the whole difference
+between the two, and it is a `TwoReadout`. -/
 
 namespace SetTheory
 

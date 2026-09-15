@@ -46,6 +46,15 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Matrix.det_mul`
 
+## `Comparator.FanTheorem.solution`
+
+- this pair costs: `[propext, Classical.choice, Quot.sound]`
+- rests on 2 tower proposition(s), costing `[propext]`
+    - `Constructive.take.eq_2`
+    - `Constructive.fanΔ_of_decider`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `le_refl`
+
 ## `Comparator.InfinitudePrimes.solution`
 
 - this pair costs: `[propext, Quot.sound]`

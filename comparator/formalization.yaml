@@ -234,3 +234,20 @@ pairs:
       challenge's witness depending on, and `ours` is the tower
       theorem the Solution rests on. `Comparator/Audit.lean` is the
       instrument and re-derives both.
+
+  - id: fan-theorem
+    rows:
+      - "Brouwer's fan theorem"
+    mathlib: "(none --- unnamed, derivable classically from compactness)"
+    ours: Constructive.fanDelta_of_decider
+    status: complete
+    note: >
+      THE COST IS ON THE CHALLENGE SIDE HERE, which is unusual on this track.
+      Every other pair states something mathlib proves and asks whether the
+      tower can match it; this one has to WRITE the classical argument, because
+      searching the pinned v4.24.0 for `koenig`, `konig` and `Koenig` returns
+      only `SetTheory/Cardinal/*`, which is Koenig's theorem on cardinal
+      arithmetic and has nothing to do with binary trees. There is no Koenig's
+      LEMMA in mathlib to cite. `Solution.lean` is four lines by comparison: the
+      tower states the fan theorem as a named principle and derives it from a
+      decider.

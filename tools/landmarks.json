@@ -203,6 +203,18 @@
   "order of a subgroup divides",
   1770
  ],
+ "Topology.IsCompact": [
+  "compactness: every cover has a finite subcover",
+  1895
+ ],
+ "Topology.isTopology_realOpens": [
+  "topological space",
+  1914
+ ],
+ "Constructive.isBounded_of_fanΔ": [
+  "Brouwer's fan theorem",
+  1927
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

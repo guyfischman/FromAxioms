@@ -63,12 +63,42 @@
  ],
  "_equivalences": [
   {
+   "statement": "Constructive.PathSelection",
+   "principle": "llpo",
+   "reversal": "Constructive.llpo_of_pathSelection",
+   "landmark": "the principles of omniscience",
+   "note": "the step that turns 'no sequence is known to leave the tree' into an actual path. Reverses to LLPO ALONE, with no compactness and no FAN\u0394 -- the reversal's tree stays alive by a decidable bounded search, so the selection carries the entire strength of the fan-to-Koenig gap. A LOWER BOUND ONLY: no forward is proved. Moved here from _unplaced once the witness was in this tree"
+  },
+  {
+   "statement": "Constructive.WKL",
+   "principle": "llpo",
+   "reversal": "Constructive.llpo_of_wkl",
+   "landmark": "the principles of omniscience",
+   "note": "weak Koenig's lemma yields LLPO, over the same detachable List Bool trees FAN\u0394 uses. A LOWER BOUND ONLY: no forward is proved, so this is not an equivalence and must not be read as one. Whether WKL -> LPO, or WKL sits strictly between LLPO and LPO in this encoding, is open"
+  },
+  {
+   "statement": "Constructive.TernaryDecidable",
+   "principle": "lpo",
+   "landmark": "the principles of omniscience",
+   "reversal": "Constructive.lpo_of_ternary_decidable",
+   "forward": "Constructive.ternary_decidable_of_lpo",
+   "note": "deciding 0's membership in the lower cut of a real built by the ternary walk. For an arbitrary cut the same decision is EM; restricted to a real named by a binary sequence it is exactly LPO"
+  },
+  {
    "statement": "Constructive.TernaryZeroDecidable",
    "principle": "wlpo",
    "landmark": "the principles of omniscience",
    "reversal": "Constructive.wlpo_of_ternary_zero_decidable",
    "forward": "Constructive.ternary_zero_decidable_of_wlpo",
    "note": "deciding whether a walk-built real *is* zero. One quantifier weaker than membership in its cut, and correspondingly one step down the lattice from LPO"
+  },
+  {
+   "statement": "Constructive.TernaryLLPO",
+   "principle": "llpo",
+   "landmark": "the principles of omniscience",
+   "reversal": "Constructive.llpo_of_ternary_llpo",
+   "forward": "Constructive.ternary_llpo_of_llpo",
+   "note": "of two walk-built reals that cannot both be positive, one is at most zero. The three-way form of LLPO over the ternary digits"
   },
   {
    "statement": "SetTheory.SubsetFinite",
@@ -82,7 +112,7 @@
    "principle": "signdisjunction",
    "landmark": "the intermediate value theorem, exactly",
    "reversal": "Metamath.signDisjunction_of_exact_ivt",
-   "note": "an exact zero-crossing, as against the approximate one, which is free. PINNED AT `SignDisjunction`, NOT MERELY BRACKETED BY `llpo`. Both directions are landed and choice-free at [propext, Quot.sound]: `signDisjunction_of_exact_ivt` recovers the analytic LLPO from the theorem, `attainment_of_signDisjunction_binaryDCOn` returns it, and only the choice layer `BinaryDCOn` sits between them. The weaker reading prices the landmark through `exactIVT_of_llpo_binaryDC_dc`, which is the sharp form with two derivations stacked on it, so every hypothesis it adds -- `LLPO`, `BinaryDC`, full `DC` -- is one the sharp form does not need. A row can cite a true theorem and still price a landmark by a route nobody has to take.",
+   "note": "an exact zero-crossing, as against the approximate one which is free. The first of the four sandwiches closed, and the one that fixed the shape. PINNED AT `SignDisjunction`, NOT MERELY BRACKETED BY `llpo`, and this row said the weaker thing until 2026-09-06. Both directions are landed and choice-free at [propext, Quot.sound]: `signDisjunction_of_exact_ivt` (Calibrate:819) goes up, `attainment_of_signDisjunction_binaryDCOn` (Calibrate:2572) comes back, and only the choice layer `BinaryDCOn` sits between them. WHY THE OLD READING WAS UNDERSTATED RATHER THAN WRONG: its forward, `exactIVT_of_llpo_binaryDC_dc` (Calibrate:2600), is literally `exactIVT_of_llpo_binaryDC_binaryDCOn hllpo hbdc (binaryDCOn_of_dc hdc)` --- TWO derivations above the sharp form, and every hypothesis it adds (`LLPO`, `BinaryDC`, full `DC`) is one the sharp form does not need. A row can cite a true theorem and still price the landmark by a route nobody has to take.",
    "forward": "Metamath.attainment_of_signDisjunction_binaryDCOn",
    "forward_extra": [
     "binarydcon"
