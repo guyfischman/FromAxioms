@@ -8,7 +8,7 @@ unless it is qualified, and a qualified sentence nobody checks is exactly the
 kind of assertion this project exists to replace. So:
 
     no file reachable from `FromAxioms/` imports Mathlib or Batteries
-    no file reachable from `FromAxioms/Foundations.lean` imports `comparator/`
+    no file reachable from `FromAxioms.lean` imports `comparator/`
 
 The second is the direction check. Without it the dependence could silently
 reverse --- a `FromAxioms/` file citing something under `comparator/` would make
@@ -25,10 +25,9 @@ enforces and what makes the README's distinction a fact.
 
 TESTED ON COMMENT-STRIPPED SOURCE. A docstring naming Mathlib is prose, not an
 import --- this file's own header would trip a naive grep, and so would every
-parity docstring that says what mathlib's version assumes. `tools/release/emit.py`
-records what happens when that distinction is skipped: a docstring line reading
-`instance costs**` was treated as a command. `lean.strip_comments` is the shared
-answer and is used here.
+parity docstring that says what mathlib's version assumes. Skipping that
+distinction treats a docstring line reading `instance costs**` as a command.
+`lean.strip_comments` is the shared answer and is used here.
 """
 import argparse
 import pathlib
@@ -40,7 +39,7 @@ import lean  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "FromAxioms"
-FOUNDATIONS = SRC / "Foundations.lean"
+TOWER_ROOT = ROOT / "FromAxioms.lean"
 
 # An import line, after comments are stripped. Lean writes `import A.B.C`, one
 # module per line; the leading anchor is what keeps a mid-line occurrence in a
@@ -89,12 +88,12 @@ def check():
                             "the comparators"))
 
     # THE DIRECTION CHECK, stated over the ROOT rather than over every file:
-    # `Foundations.lean` is what the tower's own entry point pulls in, so a
-    # comparator reachable from it is a comparator the whole tower depends on.
-    if FOUNDATIONS.is_file():
-        for n, mod in imports_of(FOUNDATIONS):
+    # `FromAxioms.lean` is the tower's own entry point, so a comparator
+    # reachable from it is a comparator the whole tower depends on.
+    if TOWER_ROOT.is_file():
+        for n, mod in imports_of(TOWER_ROOT):
             if mod.split(".")[0] == COMPARATOR:
-                bad.append((f"FromAxioms/Foundations.lean:{n}",
+                bad.append((f"FromAxioms.lean:{n}",
                             f"imports {mod} -- direction reversed"))
 
     print("=" * 72)
