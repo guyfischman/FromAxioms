@@ -40,9 +40,8 @@ import lean  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "FromAxioms"
 # THE ROOT, WHICHEVER TREE THIS IS. The aggregate that pulls the tower in is
-# `FromAxioms/Foundations.lean` here and `FromAxioms.lean` where the public cut
-# writes it, and a hard-coded path silently skips the direction check in the
-# other tree.
+# not named the same in every tree, and a hard-coded path silently skips the
+# direction check wherever the name does not match.
 TOWER_ROOT = next((p for p in (SRC / "Foundations.lean", ROOT / "FromAxioms.lean")
                    if p.is_file()), None)
 

@@ -828,14 +828,7 @@ commutative monoid, and each proof below routes through the `_bare` or
 `_of_commMonoid` form that already asks for no more than that. They exist
 because the binomial theorem is a semiring theorem --- `add_pow` holds in
 `Nat`, which has no negation --- and `binomTerm` carries its coefficient as an
-additive iterate.
-
-Asked by statement before writing, and the queries returned SAME SHAPE only,
-never an exact type: PROVES-CHECKED: ringNsmul_mem_semi, ringNsmul_sum_semi,
-ringNsmul_mul_semi, ringPow_mem_semi, isCommSemiring_of_isRing.
-The same sweep found `IsCommMonoid.toMonoid` ALREADY PROVED (FinProd.lean 53)
-and surfaced `gpow_add_of_commMonoid`, so two of these are one-liners
-rather than the ports they were sized as. -/
+additive iterate. -/
 
 theorem ringNsmul_mem_semi {R add mul zero one a : ZFSet.{u}}
     (h : IsSemiring R add mul zero one) (ha : a ∈ R) :
