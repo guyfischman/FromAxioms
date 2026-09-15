@@ -8,7 +8,7 @@ unless it is qualified, and a qualified sentence nobody checks is exactly the
 kind of assertion this project exists to replace. So:
 
     no file reachable from `FromAxioms/` imports Mathlib or Batteries
-    no file reachable from `FromAxioms.lean` imports `comparator/`
+    no file reachable from the tower's root imports `comparator/`
 
 The second is the direction check. Without it the dependence could silently
 reverse --- a `FromAxioms/` file citing something under `comparator/` would make
@@ -39,7 +39,12 @@ import lean  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "FromAxioms"
-TOWER_ROOT = ROOT / "FromAxioms.lean"
+# THE ROOT, WHICHEVER TREE THIS IS. The aggregate that pulls the tower in is
+# `FromAxioms/Foundations.lean` here and `FromAxioms.lean` where the public cut
+# writes it, and a hard-coded path silently skips the direction check in the
+# other tree.
+TOWER_ROOT = next((p for p in (SRC / "Foundations.lean", ROOT / "FromAxioms.lean")
+                   if p.is_file()), None)
 
 # An import line, after comments are stripped. Lean writes `import A.B.C`, one
 # module per line; the leading anchor is what keeps a mid-line occurrence in a
@@ -66,12 +71,12 @@ def imports_of(path):
 
 def check():
     if not SRC.is_dir():
-        print("nomathlib: FAIL -- no FromAxioms/ directory to check")
+        print("imports: FAIL -- no FromAxioms/ directory to check")
         return 1
 
     files = sorted(SRC.rglob("*.lean"))
     if not files:
-        print("nomathlib: FAIL -- FromAxioms/ holds no .lean files, so a clean "
+        print("imports: FAIL -- FromAxioms/ holds no .lean files, so a clean "
               "result would mean nothing")
         return 1
 
@@ -88,16 +93,17 @@ def check():
                             "the comparators"))
 
     # THE DIRECTION CHECK, stated over the ROOT rather than over every file:
-    # `FromAxioms.lean` is the tower's own entry point, so a comparator
+    # the root is what the tower's own entry point pulls in, so a comparator
     # reachable from it is a comparator the whole tower depends on.
-    if TOWER_ROOT.is_file():
+    if TOWER_ROOT is not None:
+        rel_root = TOWER_ROOT.relative_to(ROOT).as_posix()
         for n, mod in imports_of(TOWER_ROOT):
             if mod.split(".")[0] == COMPARATOR:
-                bad.append((f"FromAxioms.lean:{n}",
+                bad.append((f"{rel_root}:{n}",
                             f"imports {mod} -- direction reversed"))
 
     print("=" * 72)
-    print("NOMATHLIB  -- no Mathlib, Batteries or comparator under FromAxioms/")
+    print("IMPORTS  -- no Mathlib, Batteries or comparator under FromAxioms/")
     print("=" * 72)
     print(f"  {len(files)} file(s) read, comments stripped before matching")
 

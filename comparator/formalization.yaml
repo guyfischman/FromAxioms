@@ -16,7 +16,7 @@
 # Mathlib theorem that Mathlib's own proof of the challenge uses.
 #
 # Nothing under `FromAxioms/` imports Mathlib.
-# `python3 tools/nomathlib.py --check` gates that in both directions.
+# `python3 tools/imports.py --check` gates that in both directions.
 
 version: 1
 

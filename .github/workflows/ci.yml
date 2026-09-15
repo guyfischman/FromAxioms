@@ -39,4 +39,4 @@ jobs:
       # README says the build needs the toolchain alone, and `comparator/`
       # imports Mathlib, so without this the sentence is a promise.
       - name: No Mathlib under FromAxioms
-        run: python3 tools/nomathlib.py --check
+        run: python3 tools/imports.py --check

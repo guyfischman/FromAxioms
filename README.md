@@ -10,7 +10,7 @@ principle first enters beneath it. Regenerated on every push.
 `lake build` needs the Lean toolchain and nothing else. Mathlib appears in one
 place, `comparator/`, which is a separate package built by a separate command:
 it is imported there to STATE the theorems this library is measured against,
-never to prove one. `tools/nomathlib.py --check` holds both directions, so the
+never to prove one. `tools/imports.py --check` holds both directions, so the
 sentence above is a checked fact rather than a promise.
 
 ## The point

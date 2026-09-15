@@ -4,7 +4,7 @@
 # SEPARATE FROM THE ROOT PACKAGE ON PURPOSE. `lake build` at the repository root
 # builds the tower and must not acquire a Mathlib dependency; checking a
 # comparator pair is `cd comparator && lake build`, a different command with a
-# different dependency set. `tools/nomathlib.py --check` gates the other
+# different dependency set. `tools/imports.py --check` gates the other
 # direction --- nothing under `FromAxioms/` may import Mathlib, Batteries, or
 # anything under `Comparator`.
 #
@@ -27,7 +27,7 @@ version = "git#v4.24.0"
 
 # THE TOWER ITSELF, BY PATH. A `solution.lean` has to import `FromAxioms`, so
 # the dependency edge comparator -> FromAxioms is the whole point of the pair.
-# It is also the edge `tools/nomathlib.py --check` refuses to see reversed: the
+# It is also the edge `tools/imports.py --check` refuses to see reversed: the
 # tower may not reach `Comparator`, and the check runs from
 # `FromAxioms/Foundations.lean` outward so that a reversal is caught at the
 # import graph rather than argued about in prose.
