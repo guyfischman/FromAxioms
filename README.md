@@ -10,11 +10,11 @@ one carrying what a reversal proves it needs, what its proof uses, and the
 comparator pair that matches it against a previous formalization (mostly
 Mathlib). Regenerated on every push.
 
-`lake build` needs the Lean toolchain and nothing else. Mathlib appears in one
-place, `comparator/`, which is a separate package built by a separate command:
-it is imported there to STATE the theorems this library is measured against,
-never to prove one. `tools/imports.py --check` holds both directions, so the
-sentence above is a checked fact rather than a promise.
+`lake build` needs only the Lean toolchain. Mathlib appears in one place,
+`comparator/`, which is a separate package built by a separate command: it is
+imported there to STATE the theorems this library is measured against, never to
+prove one. `tools/imports.py --check` holds both directions, so the sentence
+above is a checked fact rather than a promise.
 
 ## The point
 
