@@ -82,7 +82,7 @@ def sweep():
             # requiring one can never match and `prop_defs` stayed empty on
             # every run this detector has ever had. Nothing noticed, because
             # an empty set and a set nothing was found for print the same
-            # thing: no NOTE (FINDINGS 2192, again).
+            # thing: no NOTE.
             # A PRINCIPLE IS A CLOSED PROP. `def LPO : Prop` takes no
             # parameters; `def Btw (a b c : Point) : Prop` is an ordinary
             # predicate and there are 141 of those, which as a NOTE would be
@@ -114,7 +114,7 @@ def sweep():
 # The five kinds `hypotheses.json`'s `_README` declares, and against which it
 # says `kind` IS validated. It was not: the field was read in exactly one
 # place -- an f-string that prints it -- and never compared, which is how four
-# entries drifted to a fifth value nothing defined (FINDINGS 1033).
+# entries drifted to a fifth value nothing defined.
 #
 # **The README asserted the check in the past tense while the check did not
 # exist.** A reader who verified the claim by reading the registry's own
@@ -143,10 +143,9 @@ def bad_kinds(reg):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
-    # THE FULL LIST, BECAUSE `--check` PRINTS SIX OF EIGHTEEN. That NOTE says
-    # `e.g.` and gives a sample, which is right for a report a human reads and
-    # useless to anything that wants to ACT on the population --- and criterion 1
-    # of `ROADMAP-ACCOUNTING.md`'s end state is exactly about acting on it.
+    # THE FULL LIST, BECAUSE `--check` PRINTS A SAMPLE. That NOTE says `e.g.`,
+    # which is right for a report a human reads and useless to anything that
+    # wants to act on the population.
     #
     # It prints the same `unregistered` this file already computes rather than a
     # second derivation, because a caller reimplementing the sweep is how two
@@ -166,18 +165,16 @@ def main():
     budget = full.get("_uncalibrated")
     nodes = set(json.loads(
         (ROOT / "tools" / "lattice.json").read_text())["nodes"]) | {"none"}
-    # `relative` IS NOT A FIFTH KIND OF STRENGTH, it is the absence of a
-    # single one. A hypothesis carrying a PROMISE about its argument has a
-    # strength that varies with the argument, so `principle`, `forward` and
-    # `reverse` cannot apply --- and writing `n/a` in all three without saying
-    # WHY is the unexplained-n/a that three entries were corrected for on
-    # 2026-08-31.
+    # `relative` IS THE ABSENCE OF A SINGLE STRENGTH. A hypothesis carrying a
+    # PROMISE about its argument has a strength that varies with the argument,
+    # so `principle`, `forward` and `reverse` cannot apply, and writing `n/a` in
+    # all three says nothing about why.
     #
     # `HalveDecider` is the case: `not_halveDecider_forall` refutes the
     # universal form and `sqrtTwoDecider` builds an instance outright, so the
     # strength runs from FREE to FALSE. `Calibrate.lean`'s docstring predicted
     # the shape --- *its calibration must therefore be relative to a P, which
-    # is a different kind of registry entry (FINDINGS 889)* --- and the entry
+    # is a different kind of registry entry* --- and the entry
     # sat at `calibration: null` for want of it, counted as OWING, while both
     # ends stood proved in the tree.
     shapes = {"omniscience", "choice", "modulus", "subject", "relative"}
@@ -282,7 +279,7 @@ def main():
         print()
         print("  Classify the entry (or prove a direction) and lower the")
         print("  budget, or record the growth on its own line -- raising it")
-        print("  is two edits on purpose.")
+        print("  takes two edits.")
         return 1
     if unregistered:
         # TWO REGISTRIES, and a principle adjudicated in the other one is not
@@ -296,8 +293,7 @@ def main():
             # `'FANΔ'.lower()` is `'fanδ'` while the key is `'fanΔ'` --- the one
             # node of 86 whose key is not its own lowercase. Comparing a folded
             # name against unfolded keys reported it as UNREGISTERED, which is
-            # the same character that produced two contradictory counts across
-            # two tracks on 2026-08-28 and a third report in `lattice.py`.
+            # the same character that produced two contradictory counts.
             nodes = {k.lower() for k in json.loads(
                 (ROOT / "tools" / "lattice.json").read_text())["nodes"]}
         except (OSError, ValueError, KeyError):
@@ -318,21 +314,17 @@ def main():
     if unregistered:
         # THREE registries, not two. `_equivalences` prices a statement that no
         # declaration's audit line can reach, which is exactly the shape of a
-        # hypothesis, so it is where the sharpest of these live -- five of the
-        # thirteen this reported are there, each with a named reversal.
+        # hypothesis, so the sharpest of these live there, each with a named
+        # reversal.
         # AND `_unplaced` IS THE FOURTH, which this missed. A principle
         # adjudicated as UNPLACEABLE --- proved outright, or with an edge whose
         # witness carries an extra hypothesis that is not itself a principle ---
-        # has been ruled on deliberately, with a note saying what would close
-        # it. Reporting it as *circulating unregistered* asks a reader to
+        # has been ruled on, with a note saying what would close it. Reporting
+        # it as *circulating unregistered* asks a reader to
         # adjudicate what is already adjudicated, and the only way to satisfy
         # the report would be to give it a lattice node, which for a PROVED
         # statement is the error `_unplaced` exists to prevent.
         #
-        # Measured 2026-08-31: `SplitDecision` appeared in this list while
-        # sitting in `_unplaced` with a note recording that `splitDecision`
-        # proves it unconditionally. Same defect as `hypaudit.py`'s, fixed there
-        # an hour earlier and not looked for here.
         try:
             cls = json.loads((ROOT / "tools" / "classical.json").read_text())
             priced = {
@@ -366,8 +358,7 @@ def main():
     if unregistered:
         names = ", ".join(f"{n} ({f})" for n, f, c in unregistered[:6])
         # The COUNT, not just a sample. Six names with no total reads as six
-        # cases; it was twenty-nine (FINDINGS 2195 -- a count without its
-        # ceiling is a numerator).
+        # cases: a count without its ceiling is a numerator.
         print(f"NOTE: {len(unregistered)} closed-Prop hypotheses circulate "
               f"unregistered, e.g. {names}."
               f"\n      `_uncalibrated` counts only what the registry holds, "
@@ -406,18 +397,15 @@ def main():
         return x not in ("n/a", "open", None)
 
     equiv, bound, unmeasured = 0, 0, 0
-    # THE N/A GROUP IS NOT ONE CONDITION, and reporting it as one number told a
-    # different story than `undischarged.py`, which selects the same population
-    # and then splits it by the adjudicated `verdict`. Two instruments
-    # disagreeing about one tree is how a debt gets argued about instead of
-    # paid, so the split is reported HERE too.
+    # THE N/A GROUP IS SEVERAL CONDITIONS, so it is reported split by the
+    # adjudicated `verdict` rather than as one number.
     verdicts = collections.Counter()
     for _k, _v in reg.items():
         _c = (_v or {}).get("calibration") or {}
         _f, _r = _c.get("forward"), _c.get("reverse")
         if _real(_f) and _real(_r):
             # multi-premise forwards are counted as bounds by the entry's own
-            # `discharge` prose, which is where the extra premises are named
+            # `discharge` prose, where the extra premises are named
             if "spend" in (_v.get("discharge") or "") or \
                     "with BinaryDC" in (_v.get("discharge") or ""):
                 bound += 1
@@ -437,20 +425,11 @@ def main():
     print(f"      Of those {unmeasured}: "
           + ", ".join(f"{n} {v}" for v, n in sorted(verdicts.items()))
           + ".\n      Only `open` is debt -- `never` is the measuring stick, "
-            "the subject\n      matter, and the universe gap of FINDINGS 28. "
-            "`undischarged.py`\n      ratchets the `open` set and refuses an "
-            "UNVERDICTED entry.")
+            "the subject\n      matter, and the universe gap.")
     # A FIELD SAYING `n/a` WHILE THE ENTRY'S OWN PROSE SAYS THE DIRECTION IS
     # OWED. `n/a` means *the question does not arise*; `open` means *owed*, and
     # `_uncalibrated` counts only the latter --- so an owed direction spelled
     # `n/a` is invisible to the budget that exists to track it.
-    #
-    # Found by hand on `MonotoneConvergence` 2026-08-31, whose discharge read
-    # *open: the reverse is proved, the forward direction is not* beside
-    # `forward: "n/a"`. Two more wore the same spelling that day:
-    # `OuterApproached`, where the forward was one `Or.elim`, and the four
-    # lattice-node entries whose placement the GRAPH already held. `n/a` is the
-    # value that looks like a default and is a claim.
     #
     # DELIBERATELY NARROW: it fires only when the prose NAMES the direction
     # alongside an openness word, because a discharge may say `open` about

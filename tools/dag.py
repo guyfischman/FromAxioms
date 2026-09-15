@@ -13,10 +13,9 @@ needed.
 **"First needed" is not a metaphor here.** A declaration's axioms are the
 union of its dependencies' axioms plus whatever its own proof adds, so a
 declaration *introduces* an axiom exactly when it uses one that none of its
-dependencies use. 341 of 6196 declarations introduce anything at all, and
-only **nine** introduce `Classical.choice` -- so the classical fragment is
-not a region of the graph, it is nine entry points and their reachable set,
-which turns out to reach almost nothing.
+dependencies use. The page counts both: how many declarations introduce
+anything, and how many introduce `Classical.choice`. The classical fragment is
+those entry points and what they reach, which the drawing shows directly.
 
 **Why HTML and not another SVG.** The graph has 6196 nodes and 75217 edges.
 A static image of that is a smear, and the questions worth asking of it --
@@ -176,8 +175,8 @@ def graph():
     # complete export that is 0 of 75,470 edges, so the filter looks inert --
     # but a partial export reaches it: with 5% of rows absent it silently
     # drops 2,733 references and simply draws a smaller graph. Nothing else
-    # can catch that, because `figclaims.py` recomputes the totals from this
-    # same export, so both numbers move together and agree.
+    # can catch that: a cross-check recomputing the totals from this same
+    # export moves with it, so both numbers agree.
     dropped = sum(1 for n, r in by.items()
                   for d in r.get("refs", ()) if d != n and d not in by)
     deps = {n: sorted({d for d in r.get("refs", ()) if d in by and d != n})
@@ -211,8 +210,8 @@ def graph():
     idx = {n: i for i, n in enumerate(names)}
     # The axioms are roots of the picture, not properties of it. Each gets a
     # node at layer -1 and an edge to every declaration that *introduces* it,
-    # which is what makes the drawing start where the user's question does:
-    # at the kernel's assumptions, with each entering only where first needed.
+    # so the drawing starts where the reader's question does: at the kernel's
+    # assumptions, with each entering only where first needed.
     # Index order must match the order the root nodes are APPENDED below, not
     # KERNEL's declaration order -- `Classical.choice` is appended last so it
     # sits at the bottom of the rail, and an index computed from KERNEL would
@@ -351,9 +350,8 @@ def graph():
         # The PRINCIPLES the statement takes, read off its type. The panel
         # listed kernel axioms alone, so `mvt_lagrange_of_llpo_binaryDC_dc` --
         # whose own name says what it takes -- reported `propext, Quot.sound`
-        # and nothing else, while the drawing showed its edges to LLPO,
-        # BinaryDC and DC. The edges were right and the panel was incomplete,
-        # which is the worse way round: a reader checks the panel.
+        # alone, while the drawing showed its edges to LLPO, BinaryDC and DC.
+        # A reader checks the panel, so the panel must carry what the edges do.
         "p": sorted({x.split(".")[-1] for x in by[n].get("typeRefs", ())}
                     & set(princ)),
         "i": intro.get(n, []),
@@ -858,7 +856,7 @@ function draw(){
     g.globalAlpha=1; }
   // A SELECTED PRINCIPLE draws to the landmarks resting on it: solid where the
   // landmark names the principle itself, dashed where it rests on it through
-  // other declarations. Nothing that is not a landmark is lit.
+  // other declarations. Only landmarks are lit.
   if(PSEL){
     g.strokeStyle = railCol(sel); g.globalAlpha = 0.9; g.lineWidth = 1.2/view.s;
     for(const id of PSEL.all){ const m = N[id];
@@ -989,8 +987,8 @@ function draw(){
       // it a second time, offset, once a cone put the rail in focus.
       if(n.k==='axiom' || n.k==='principle') continue;
       const foc = inFocus(n);
-      // A dependency that is not a landmark has no `lm` name, so it is labelled
-      // by its declaration -- which is what the reader clicked to find out.
+      // A dependency with no landmark has no `lm` name, so it is labelled by
+      // its declaration, which is what the reader clicked to find out.
       const s = (n.lm || n.n || '').slice(0,44);
       if(!s) continue;
       if(n.lm){ if(done.has(n.lm)) continue; }
@@ -1236,13 +1234,13 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     // a different kind of cost: an axiom is what the kernel assumed under the
     // proof, a principle is what the STATEMENT takes as a hypothesis. Merging
     // them into one row of tags would say a theorem "depends on LLPO" in the
-    // same voice as "depends on propext", and the whole point of this
-    // development is that those are not the same claim.
+    // same voice as "depends on propext", and this development exists to
+    // separate those two claims.
     + (n.p && n.p.length
         ? '<p><b>Takes as hypotheses:</b> '
           + n.p.map(x=>tag(x, css('--amber'))).join('')
-          + '</p><div class=p>Named in its statement, so this is what the '
-          + 'THEOREM costs. The axioms above are what its proof used.</div>'
+          + '</p><div class=p>Named in its statement, so the THEOREM costs '
+          + 'it. The axioms above are what its proof used.</div>'
         : '')
     + '<p><b>'+n.up.length+'</b> direct dependencies, <b>'+seen.size
     + '</b> in its whole cone; <b>'+n.dn.length+'</b> depend on it.</p>'
@@ -1345,10 +1343,10 @@ draw();
 def caption_counts(d):
     """The two numbers the page's caption states: declarations, dependencies.
 
-    **One rule, one place.** `figclaims.py` recomputes these to check the
-    drawing, and for a while it recomputed them DIFFERENTLY -- `len(rows)` over
-    the whole export against this function's root-excluding count, a gap of
-    exactly the 13 axiom and principle nodes. Both were internally honest and
+    **One rule, one place.** A cross-check recomputing these to check the
+    drawing must count the same way: `len(rows)` over the whole export against
+    a root-excluding count differ by the axiom and principle nodes, and both
+    are internally honest while
     the figure was reported WRONG while rendering the number it meant. That is
     the ledger-parser defect in a new place: one set computed twice, disagreeing
     on the cases nobody looked at.
@@ -1371,10 +1369,8 @@ def page():
     down = set(a for a, _ in d["edges"])
     lemmas = sum(1 for i, n in enumerate(d["nodes"])
                  if n["k"] == "theorem" and i not in down)
-    # Selection, not a drop -- see `caption_counts`, which both this and
-    # `figclaims.py` now read the rule from. This reasoning lived in
-    # `dropped-allow.txt` until a refactor made that entry stale; it belongs
-    # beside the code it explains rather than in a registry row.
+    # Selection, not a drop -- see `caption_counts`, which holds the rule this
+    # and any cross-check read.
     roots = {"axiom", "principle"}
     decls = [n for n in d["nodes"] if n["k"] not in roots]
     ax = {i for i, n in enumerate(d["nodes"]) if n["k"] in roots}
@@ -1443,9 +1439,8 @@ def main():
         target = ROOT / "figures" / "dag.html"
         # SKIPPING THE FRESHNESS QUESTION IS FINE; SKIPPING VALIDITY IS NOT,
         # and an ABSENT file is the case where the note asserts most and knows
-        # least. `figures.py` had the same branch with the same hole and said
-        # the file "parses" about a file that did not exist -- a pass on both
-        # questions from the branch written to prevent one.
+        # least: a branch written to report staleness can pass on validity
+        # too, saying a file "parses" about a file that does not exist.
         #
         # With no file on disk there is nothing to fall back on, so `--record`
         # cannot keep its promise that the figures are current when it returns.

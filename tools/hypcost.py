@@ -22,7 +22,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 # not: it matches an EXPLICIT binder `(h : FAN)`. An implicit `{h : FAN}`, an
 # instance binder, or a principle reached through a structure field is invisible.
 # On this tree that currently costs nothing -- every principle is an explicit
-# binder -- but "currently" is the whole reason to write it down.
+# binder -- and "currently" is why it is written down.
 #
 # AND ONE ENTRY WAS MISSING FROM THAT LIST WHILE COSTING 31 ROOTS. A binder
 # spelled with a NAMESPACE PREFIX -- `(hdc : Constructive.DCOn.{u} ...)` --
@@ -48,9 +48,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 # case today. Silence here means "not a registered principle" as readily as it
 # means "never spent", and only `lattice.json` separates the two.
 
-# PRIVATE INCLUDED, DELIBERATELY, and the opposite of `compare.py`'s default.
-# That tool excludes private because a private lemma is not part of what the
-# library OFFERS -- a claim about the SURFACE. This one asks where a principle is
+# PRIVATE INCLUDED, which is the opposite of a surface count. A count of what
+# the library OFFERS excludes private lemmas. This one asks where a principle is
 # SPENT, and a private consumer spends it exactly as a public one does. Omitting
 # them does not merely miss roots: a public declaration forwarding to a private
 # taker is reported as a ROOT, which is a false positive, and analysis measured
@@ -74,7 +73,7 @@ def principles(root):
     Reported by `reversal`, who hit the identical transform in a five-line
     lookup of their own the same day: *`x.lower() in set` reads as a comparison
     and is a lossy transform*. The rule this tree already had -- hand-rolled
-    parsers drift -- is filed under PARSERS, and this is not a parser.
+    parsers drift -- is about parsers, and this is not one.
     """
     nodes = {n.casefold() for n in
              json.load(open(root / "tools" / "lattice.json"))["nodes"]}
@@ -155,7 +154,7 @@ def _rootkey(roots):
     A line-keyed record re-fires on every edit ABOVE a declaration, which is
     ordinary growth -- so the check would report a new root whenever anything
     moved, and a check that fires on the normal case gets ignored. The same
-    reason `citeline.py` exists and CLAUDE.md's rule to cite by NAME.
+    reason a citation names a DECLARATION rather than a line.
     """
     return {p: sorted(f"{f}::{n}" for f, _ln, n in rows)
             for p, rows in roots.items()}
@@ -167,8 +166,8 @@ def compare(roots, recorded):
     A NEW ROOT is the event nothing else reports: a principle spent where it
     was not spent before moves no audit line, trips no ratchet and touches no
     allow list, because a hypothesis-carried principle never reaches a
-    `#print axioms` line at all. That silence is the whole reason this tool
-    exists, so the new root is the FAILURE and the vanished one is a NOTE --
+    `#print axioms` line at all. This tool exists for that silence, so the new
+    root is the FAILURE and the vanished one is a NOTE --
     spending a principle in one fewer place needs no permission.
     """
     now = _rootkey(roots)

@@ -2,9 +2,8 @@
 """Phase 2 declarations as the compiler sees them.
 
 Named `astexport` rather than `ast`: `ast` is a standard-library module, and
-shadowing one breaks any tool that imports it indirectly -- which is how
-`tools/queue.py` once killed `fuzz.py` through `concurrent.futures`. The check
-in `tools/sigcheck.py` caught this one the first time it ran.
+shadowing one breaks any tool that imports it indirectly, through whatever
+imports `concurrent.futures`.
 
 `tools/lean.py` reads Lean with regexes. This reads it with Lean: it runs
 `tools/ExportAST.lean`, which walks the environment and prints one JSON object
@@ -20,8 +19,8 @@ changed the previous answer still stands (`tools/cache.py`).
 
 **Phase 2 only.** The exporter needs `import Lean`, which drags in `Init`, whose
 `And`/`Or`/`Eq` are exactly what Phase 1 declares -- so Phase 1 cannot be read
-this way and keeps the text parser. That is not a gap in the tool; it is the
-two-root split doing what it exists to do.
+this way and keeps the text parser, which is the two-root split doing what it
+exists to do.
 """
 
 import argparse
@@ -41,9 +40,9 @@ EXPORTER = ROOT / "tools" / "ExportAST.lean"
 def source_key(root=None):
     """The digest a stored export must carry to count as current.
 
-    `root` names ANOTHER tree, for a consumer holding a peer's cache --
-    `crossmerge.py` reads one per branch. Every path is then taken from that
-    tree, INCLUDING its `astexport.py`: the key covers the code that produced
+    `root` names ANOTHER tree, for a consumer holding a peer's cache. Every
+    path is then taken from that tree, INCLUDING its `astexport.py`: the key
+    covers the code that produced
     the answer, so keying a peer's cache on ours would call their export stale
     whenever this tree edited the exporter, and current whenever they did.
     """
@@ -61,18 +60,15 @@ def source_key(root=None):
          # changes what the export CONTAINS -- and adding a file moves the key
          # via the glob while adding its import moved nothing. An export
          # generated between those two edits was then served under a matching
-         # key (geometry, who lost three gate runs to it; the failure surfaces
-         # in `astcheck.py` as *parsed from X, absent from the environment*,
-         # which points at the parser and away from the cache).
+         # key, and the failure surfaces as *parsed from X, absent from the
+         # environment*, which points at the parser and away from the cache.
          #
          # The HUB is the most exposed seat, not the least: every batch that
-         # brings a new file changes the aggregator and nothing else, and the
-         # aggregator is a conflict file on most batches.
-         # EVERY MODULE, by the tree's own layout. This named
-         # `FromAxioms/Foundations.lean` and the directory beside it, which is
-         # how the private tree is arranged and not this one: neither path
-         # exists here, so the key covered nothing that changes and the cache
-         # answered every question with the first export ever taken. It served
+         # brings a new file changes the aggregator, which is therefore a
+         # conflict file on most batches.
+         # EVERY MODULE, by the tree's own layout. A key naming a path this
+         # tree does not have covers nothing that changes, so the cache
+         # answers every question with the first export ever taken. One served
          # 147 declarations against a tree holding 225, and the graph drew 7
          # landmarks of 13.
          r / "FromAxioms.lean",
@@ -194,10 +190,9 @@ if __name__ == "__main__":
 def cold_because():
     """The newest source postdating the cache, or None if the export is warm.
 
-    **Lives here because the cache does.** Two generators need it and a third
-    will: `dating.py --markdown` wrote a whole table of UNMEASURED verdicts to
-    a tracked file from a cold export -- every cost state collapsed to zero,
-    the fundamental theorem of calculus lost its SUPPLIED verdict -- and the
+    **Beside the cache, because it reads the cache.** A generator run against
+    a cold export writes a table of UNMEASURED verdicts to a tracked file --
+    every cost state collapsed to zero -- and the
     gate then PASSED, because the file matched what the generator produces from
     a cold export. A check comparing a generated file against its own generator
     verifies agreement with the generator rather than with the tree.
@@ -209,10 +204,10 @@ def cold_because():
     **KEYED ON THE DIGEST, NOT ON MTIME.** This asked a
     different question from `export`, which admits a cache on `key == source_key()`,
     and a merge separates the two answers: git moves timestamps without moving
-    bytes, so the cache reads FRESH to `freshness.py` and cold here -- and no
-    re-run converges them, because `export` will not rewrite a cache it already
-    considers current. The only exit was deleting the cache by hand, and it cost
-    two tracks a gate in one hour. 2041 had already ruled for keys over
+    bytes, so a check keyed on mtime reads FRESH while this reads cold -- and
+    no re-run converges them, because `export` will not rewrite a cache it
+    already considers current. The only exit is deleting the cache by hand. The
+    rule is keys over
     timestamps; this was the one reader that had not been brought across.
 
     It also scanned `Logic/`, which `source_key` correctly omits -- Phase 2's
@@ -221,10 +216,9 @@ def cold_because():
     """
     # THE STORED KEY, NOT MTIME, and the two are not interchangeable.
     # `source_key()` is this module's own definition of "what the cache was
-    # built from", and `freshness.py` already asks with it. This function asked
-    # with MTIME instead -- so a MERGE, which rewrites a file's timestamp
-    # without changing a byte, made the two disagree permanently: `freshness`
-    # reported FRESH, this reported cold, and re-running the export could not
+    # built from". Asking with MTIME instead lets a MERGE, which rewrites a
+    # file's timestamp without changing a byte, make the two disagree
+    # permanently: one reads FRESH, this reads cold, and re-running cannot
     # clear it because the export correctly declines to rebuild a cache it
     # considers current. The only escape was deleting the cache by hand. It
     # failed gates in two trees from two different triggers before the cause
@@ -246,10 +240,10 @@ def cold_because():
     # by mtime -- but only once the digest has already established staleness.
     # mtime picks the likely culprit; it no longer decides the verdict.
     #
-    # FOUNDATIONS ONLY, because that is what `source_key` digests. A Phase 1
-    # edit cannot move this key -- nothing imports both roots -- so a `Logic/`
-    # file can never be the culprit, and naming one would be a wrong answer to
-    # a question the digest has already settled correctly.
+    # PHASE 2 ONLY, the population `source_key` digests. A Phase 1 edit
+    # cannot move this key -- nothing imports both roots -- so a `Logic/` file
+    # can never be the culprit, and naming one would answer wrongly a question
+    # the digest has already settled.
     newest, when = None, cache.stat().st_mtime
     for path in (ROOT / "FromAxioms" / "Foundations").glob("*.lean"):
         try:

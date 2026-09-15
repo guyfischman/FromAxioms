@@ -18,23 +18,18 @@ DIFFERENT question, and none of them sweeps the library:
     hypnodes.py     NULLARY Prop-defs that are not lattice nodes -- proposal-shaped
     binders.py      binders no proof USES -- the opposite error
 
-So `hypnodes.py` is the closest, and it is a PROPOSER: it asks which nullary
-Prop-defs might deserve to be lattice nodes. This asks the auditor's question
-instead --- which principle-shaped hypotheses are TAKEN somewhere and accounted
-for NOWHERE --- and reports the takers, so a reviewer can read the site rather
+This asks the auditor's question: which principle-shaped hypotheses are TAKEN
+somewhere and accounted for NOWHERE. It reports the takers, so a reviewer can
+read the site rather
 than the name.
 
     python3 tools/hypaudit.py              # report
     python3 tools/hypaudit.py --names      # bare names, one per line
     python3 tools/hypaudit.py --taker NAME # which declarations take one
 
-**REPORT-ONLY, DELIBERATELY.** There is no `--check` and this is not wired into
-`gates.py`. Measured 2026-08-30 against a fresh export: of 157 taken nullary
-Prop-defs, 81 are REGISTERED, 27 are only MENTIONED in the parity registry, and
-49 appear in no registry at all. Most are almost certainly ordinary predicates
-stated as hypotheses precisely so their price is visible --- which is the
-discipline WORKING, not leaking. Turning this into a ratchet is a decision
-about imposing that cost, and it is not this tool's to make.
+**REPORT-ONLY.** There is no `--check`, and nothing gates on this. Most
+unaccounted names are ordinary predicates stated as hypotheses precisely so
+their price is visible, so a count here is a reading rather than a debt.
 
 **EVERY FIGURE IN THIS DOCSTRING HAS BEEN WRONG ONCE**, which is the reason
 `_freshness()` and `_population()` now print rather than leaving the reader to
@@ -46,11 +41,9 @@ claim nobody re-runs.
 **WHAT IT CANNOT SEE, and the first is the one that matters.**
 
   * PARAMETERISED principles. `DCOn (baireStateOn X)` has type
-    `ZFSet -> Prop`, so `isPropDef` is false and it is invisible here, exactly
-    as it is to `hypnodes.py`. `rowbinders.py` exists because of that gap and
-    records `the category theorem` taking `DCOn` in all four of its
-    declarations while auditing clean. A clean report from THIS tool is
-    therefore not a statement that nothing parameterised is unaccounted.
+    `ZFSet -> Prop`, so `isPropDef` is false and it is invisible here. A clean
+    report is therefore not a statement that nothing parameterised is
+    unaccounted.
   * Strengths arriving as DATA. A readout, a selector or a modulus is a
     function, not a Prop, and `hypcost.json` already holds two such nodes
     (`choice`, `natof`). This population is Props only.
@@ -103,31 +96,14 @@ def collect():
     # COMPARISON IS CASE-INSENSITIVE, which the first version got wrong and
     # which made this tool report a false gap.
     #
-    # `lattice.json` keys its nodes LOWERCASE -- `binarydcon`, `triadicplacement`
-    # -- while the export carries `NumberTheory.BinaryDCOn`. A case-sensitive
-    # compare therefore reported 16 REGISTERED principles as unregistered,
-    # including `BinaryDCOn`, which carries four of the six theorems in a paper
-    # then being prepared. Measured 2026-08-30: 62/95 case-sensitive against
-    # 78/79 correct.
-    #
-    # THE DEBT COUNT SURVIVED THE BUG at 12, because those names are absent from
-    # the registries in ANY casing -- which is why the wrong number went
-    # unnoticed for as long as it did. A defect that leaves the headline figure
-    # intact is the kind that gets built on.
+    # THE DEBT COUNT SURVIVED THE BUG, because those names are absent from
+    # the registries in ANY casing, so the headline figure stayed intact while
+    # the comparison was wrong.
     known = {n.split(".")[-1].lower() for n in (lat.get("nodes") or [])}
     known |= {k.lower() for k in hyp if not k.startswith("_")}
-    # `_unplaced` IS A REGISTRY AND WAS NOT COUNTED, so a principle deliberately
-    # adjudicated as unplaceable read as `in no registry at all` --- which is
-    # false, and worse, unfixable by the reader it was addressed to.
-    #
-    # MEASURED 2026-08-31 on `NumberTheory.Eis.SplitDecision`. It is PROVED:
-    # `splitDecision` (Prime.lean:5584) derives it with no hypothesis, so it is
-    # not a lattice node and no edge places it --- the footing
-    # `ZFSet.OmniscientNinf` has sat on in `classical.json` all along. Giving it
-    # a node to silence this tool would have put a proved statement in the
-    # strength lattice, which is the error that list exists to prevent. So the
-    # only two homes this counted were both WRONG for it, and the count could
-    # not reach zero however correctly the question was answered.
+    # `_unplaced` IS A REGISTRY. A principle adjudicated there as
+    # unplaceable is accounted for, and reporting it as unregistered asks a
+    # reader to adjudicate what is already adjudicated.
     #
     # A backlog with an irreducible floor stops being read: the stop hook prints
     # `THIS IS THE PRIORITY` at a number that no correct action can move, and
@@ -137,18 +113,6 @@ def collect():
               for e in (cls.get("_unplaced") or []) if e.get("principle")}
     # AND `hypotheses.json`, WHICH THIS COUNTED AS NO REGISTRY AT ALL --- the
     # registry `ROADMAP-ACCOUNTING`'s criterion 1 is defined against.
-    #
-    # `hyp` above is `hypcost.json`; nothing here read `hypotheses.json`, so a
-    # hypothesis registered there, with a discharge note and a calibration, was
-    # invisible to this sweep. Measured 2026-09-01 on
-    # `Topology.HasBaireSelectorsAll`, registered that morning: it did NOT
-    # appear in `in no registry at all`, and the reason is worse than if it
-    # had. It fell into the MENTIONED tier, whose test is a SUBSTRING search of
-    # `landmark-parity.json` --- and the name happens to occur in that file's
-    # category-theorem row. So the registration was reported correctly by
-    # accident, through a coincidence of prose, and a hypothesis registered in
-    # the same way whose name no parity note mentions would have been reported
-    # as unregistered while `hypotheses.py --check` called it adjudicated.
     #
     # Two tools, one question, opposite answers, and the report that carries
     # the priority is this one.
@@ -169,8 +133,8 @@ def collect():
     # DISCHARGED and the distinction is the whole care needed here: `EM` has 35
     # concluders and every one is a REVERSAL (`em_of_subgroupFinite`), deriving
     # it FROM something rather than proving it. So a positive count means only
-    # that the name appears on the right of an arrow somewhere, which is why
-    # the report says `some declaration concludes it` and not `it is proved`.
+    # that the name appears on the right of an arrow somewhere, so the report
+    # says `some declaration concludes it` and not `it is proved`.
     #
     # The sound half is the NEGATIVE: zero concluders means nothing in the
     # library so much as claims to establish it. Combined with absence from
@@ -188,11 +152,6 @@ def collect():
     # `accounted` for that reason -- collapsing them would let a name that
     # appears only inside someone's note read as adjudicated.
     #
-    # Measured 2026-08-30: 38 of the 95 otherwise-unaccounted names appear
-    # somewhere in `landmark-parity.json`, including `CountableChoiceZF`, whose
-    # taker `nonempty_integralOn_of_levelData` IS that row's `mathlib_form` and
-    # whose docstring states the price. So the tier is real -- it is the
-    # strength of the evidence that is not.
     try:
         parity_text = (ROOT / "tools" / "landmark-parity.json").read_text()
     except OSError:
@@ -211,12 +170,6 @@ def collect():
     # TWICE. `known` is lowercased; this comparison was not, so a REGISTERED
     # principle whose name has capitals was reported as a debt.
     #
-    # Measured 2026-08-30: `IdealDetachableIntBool` is BOTH a lattice node
-    # (`idealdetachableintbool`) and a `hypcost.json` key, and it was on the
-    # debt list. It has a reversal to `em` (`em_of_idealDetachableIntBool`), so
-    # it is one of the best-placed principles in the tree, listed as something
-    # nothing accounts for.
-    #
     # AND THE DOCSTRING ABOVE ASSERTED THE OPPOSITE --- *the debt count survived
     # the bug at 12, because those names are absent from the registries in ANY
     # casing*. That was written when the classification was fixed here and the
@@ -232,15 +185,12 @@ def collect():
 def _freshness():
     """Say so when the export no longer matches the sources.
 
-    ADDED 2026-08-30 AFTER THIS TOOL ANSWERED CONFIDENTLY ABOUT A TREE NOBODY
-    HAD. Three merges landed, `.lean` changed, `regen.py` had not run, and this
-    printed `157 taken / 81 registered / 49 unregistered` with no mark --- the
-    pre-merge population, presented as the post-merge one.
+    An audit tool whose output is a claim about coverage must say when its
+    export no longer matches the sources: a stale denominator makes the
+    coverage read better than it is.
 
-    `proves.py` has said this since it was written; an AUDIT tool that does not
-    is worse, because its whole output is a claim about coverage and a stale
-    denominator makes the coverage read better than it is. A count that cannot
-    announce its own staleness is `validation that cannot fail`.
+    A count that cannot announce its own staleness is validation that cannot
+    fail.
     """
     try:
         sys.path.insert(0, str(ROOT / "tools"))
@@ -263,10 +213,9 @@ def _freshness():
 def _population():
     """The extent this tool's answers are about, printed rather than assumed.
 
-    `extent.py` requires a tool that computes a declaration set and reports an
-    ABSENCE to say which population the absence is over. This one's takers come
-    from THIS tree's elaborated export, so the honest reading of every count
-    below is a floor.
+    A tool that computes a declaration set and reports an ABSENCE must say
+    which population the absence is over. These takers come from this tree's
+    elaborated export, so every count below is a floor.
     """
     print("  ONE BRANCH, AND EVERY COUNT HERE IS A LOWER BOUND. The takers are")
     print("  read from this tree's export, so a peer's declaration taking an")
@@ -364,8 +313,7 @@ def main() -> int:
     print()
     print("  AND IT CANNOT SEE PARAMETERISED PRINCIPLES. `DCOn (baireStateOn X)`")
     print("  is `ZFSet -> Prop`, so it is absent from this population entirely;")
-    print("  `rowbinders.py` is the instrument for that question. An empty")
-    print("  report here is not a clean bill for the tree.")
+    print("  An empty report here is not a clean bill for the tree.")
     return 0
 
 

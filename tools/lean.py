@@ -1,22 +1,14 @@
 #!/usr/bin/env python3
 """Reading Lean source, for the tools that have to.
 
-Four tools parse this library: `compare.py` counts declarations, `find.py`
-searches them, `dupes.py` hashes proof blocks, `chains.py` reads projections.
-They shared nothing, and each carried its own comment-stripper -- three copies
-of the same twenty lines. The copy in `dupes.py` was the one that did not know
-about `private theorem`, so a six-line window could span two declarations and
-be reported as a repeat.
+Several tools read this library's source: counting declarations, searching
+them, hashing proof blocks, reading projections. Each carrying its own
+comment-stripper is how one of them came not to know about `private theorem`,
+so a six-line window could span two declarations and be reported as a repeat.
 
-How many tools still keep their own is not written here, deliberately: a
-hand-written count restales the moment one lands, and it restales DOWNWARD, so
-a reader deciding whether to write another concludes the problem is smaller
-than it is. `parsercopies.py --check` prints the three classes on every gate
-run and its allow list holds the reason for each.
-
-Stripping comments is not cosmetic. This library's files are prose-heavy, and
-without it the declaration regex matches English: "the axiom budget" parses as
-`axiom budget`, "the structure we" as `structure we`.
+Stripping comments is necessary rather than tidy. This library's files are
+prose-heavy, and without it the declaration regex matches English: "the axiom
+budget" parses as `axiom budget`, "the structure we" as `structure we`.
 
 How to call it, because this docstring explained why the module exists and
 never said that, and the omission caused the exact failure the module prevents:
@@ -41,9 +33,9 @@ tools that wrote their own each omitted something different.
 
 `name` AND `full` ARE DIFFERENT SPELLINGS OF THE SAME DECLARATION, AND SETS
 BUILT FROM THEM DO NOT MEET. This is the one thing above that a caller can
-read correctly and still get wrong, and it cost a session: `mergedecls.py`
-compared a set of `full` names against a set of bare ones, and on `PSet.lean`
-that is 40 against 38 with an INTERSECTION OF ONE -- so every declaration read
+read correctly and still get wrong. Comparing a set of `full` names against a
+set of bare ones over one file gives an INTERSECTION OF ONE -- so every
+declaration read
 as both present and absent, a check failed every merge, and its advisory arm
 reported 11,173 deletions that had not happened.
 
@@ -51,8 +43,7 @@ The rule is not "prefer one". Both are right for different questions -- `full`
 is the identity, `name` is what a human types and what a diff line carries. The
 rule is that any comparison must fix one spelling on both sides, and where
 one side is outside your control (a diff, an allow list, a peer's registry) the
-usual answer is `d["full"].split(".")[-1]`, which is what `find.py` and
-`bundle.py` do at every comparison site.
+usual answer is `d["full"].split(".")[-1]`, fixed at every comparison site.
 """
 
 import pathlib
@@ -65,8 +56,8 @@ _STRIPPED = {}
 _STRIP_COUNTS = {}
 
 # One spelling of a Lean identifier, exported so the readers that need it do not
-# each write their own. `lattice.py`, `signature.py` and `declsize.py` all did,
-# and all three omitted the subscript range -- which truncates
+# each write their own. A hand-written copy omits the subscript range, which
+# truncates
 # `binaryDC_of_countableBoolChoice₂` to a name that does not exist, so a
 # lookup fails while the tool reports a declaration confidently.
 ATOM = r"[A-Za-z_][\w'!?₀-₉]*"
@@ -85,12 +76,11 @@ IDENT = ATOM + r"(?:\." + ATOM + r")*"
 # survive, so it is specifically Lean's own prime convention that breaks, which
 # is not a case anyone thinks to test.
 #
-# Measured by analysis, in both directions at once, and the failures are worse
-# than a miss because a primed lemma nearly always sits beside its unprimed
-# twin: `placement.py` reported `realLSum_add declared later Weier:155`, true of
-# a declaration that was not the one referenced, and `crossref.py` ATTRIBUTED a
-# citation of `foo'` to `foo` while reporting `foo'` uncited. A wrong answer
-# carrying a correct line number is not one anybody re-checks.
+# The failures are worse than a miss, because a primed lemma nearly always sits
+# beside its unprimed twin: a reader is told something true of a declaration
+# that is not the one referenced, and a citation of `foo'` is attributed to
+# `foo` while `foo'` is reported uncited. A wrong answer carrying a correct line
+# number is not one anybody re-checks.
 #
 # The class already ends the match at the right place. The `\b` adds nothing and
 # costs the prime, so there is no configuration in which it is wanted.
@@ -103,9 +93,9 @@ DECL = re.compile(
     rf"(?P<name>{IDENT})"
 )
 
-# The same shape with `private` allowed, and captured. `DECL` omits `private`
-# on purpose: `compare.py`'s denominator is what the library OFFERS, and a
-# file-internal lemma is not part of that.
+# The same shape with `private` allowed, and captured. `DECL` omits `private`,
+# because a denominator counting what the library OFFERS does not include a
+# file-internal lemma.
 #
 # But that population is wrong for the tools that answer *has this been proved
 # already*. A private hit answers "do not write this" exactly as well as a
@@ -128,10 +118,9 @@ NS_END = re.compile(r"^[ \t]*end[ \t]+([A-Za-z_][A-Za-z0-9_.']*)[ \t]*$")
 def _report_repeats():
     """One NOTE on stderr when a run re-parsed the same text many times.
 
-    STDERR deliberately: several tools emit JSON or a name list on stdout
-    that other tools parse, and a diagnostic line there would corrupt them.
-    `gates.py` scans stdout AND stderr for `NOTE:`, so the gate still shows
-    it.
+    ON STDERR, because several tools emit JSON or a name list on stdout that
+    other tools parse, and a diagnostic line there would corrupt them. A gate
+    scanning both streams for `NOTE:` still shows it.
 
     The threshold is wasted strips, not repeats: two passes over one file is
     ordinary, and thousands is the quadratic shape that cost 79.9 seconds in
@@ -169,8 +158,8 @@ def repeated_strips():
 def strip_comments(lines):
     """Blank out Lean comments, preserving line numbering.
 
-    Necessary, not cosmetic: this library's files are prose-heavy, and without
-    stripping, the declaration regex matches English. "the axiom budget" parsed
+    Necessary rather than tidy: this library's files are prose-heavy, and
+    without stripping, the declaration regex matches English. "the axiom budget" parsed
     as `axiom budget`, "the structure we" as `structure we`, and "Phase 1" as
     `axiom Phase` -- four phantom declarations in one file, inflating our counts
     and polluting SURPLUS.
@@ -183,9 +172,8 @@ def strip_comments(lines):
            hash(lines[-1]) if lines else 0)
     _STRIP_COUNTS[key] = _STRIP_COUNTS.get(key, 0) + 1
     # SPANS, not characters. The obvious loop appends one character at a time
-    # and re-slices `line[i:i+2]` at every step -- 7.7 MILLION appends over one
-    # `dating.py` run, which profiled at 85% of that tool's time and is paid
-    # again by `audit`, `compare`, `find`, `dupes` and `chains`. The markers are
+    # and re-slices `line[i:i+2]` at every step, which dominates the runtime of
+    # every tool that reads the tree. The markers are
     # sparse, so `str.find` jumps between them and whole runs of text are copied
     # in one slice.
     #
@@ -235,8 +223,8 @@ def parse_lines(lines, include_private=False, source="<lines>"):
     `similar` -- and FIVE of them import this module and rolled their own
     anyway. That is the shape of a rule that could not be followed rather than
     one being ignored: the only entry point took a PATH, so the shared reader
-    charged a filesystem round-trip per blob. `mergedel.py` reads 332 blobs per
-    run and 498 across a criss-cross base pair.
+    charged a filesystem round-trip per blob, and a caller reading hundreds of
+    blobs per run pays it hundreds of times.
 
     `source` is what the records report as their file; a revision reader passes
     `"<rev>:<relpath>"`, which is more informative than a temp file's name.
@@ -329,9 +317,9 @@ def parse_file(path, include_private=False, fresh=False):
 # All three are one shape: a line RANGE ends where the parser's next known thing
 # starts, and everything the parser does not model rides along. Centralised here
 # so a fourth tool gets it right without rediscovering it.
-# `@[...]` IS NOT A TRAILER, it is the NEXT declaration's attribute, and an
-# early version listed it here -- which would have deleted every `@[csimp]` in
-# the tree from whichever span happened to precede it. An attribute line is
+# `@[...]` IS THE NEXT DECLARATION'S ATTRIBUTE rather than a trailer. Listing
+# it here would delete every `@[csimp]` in the tree from whichever span happened
+# to precede it. An attribute line is
 # carried forward with the docstring, for the same reason and by the same code.
 TRAILER = re.compile(r"^\s*(?:#print\b|#check\b|#eval\b|#guard\b|end\b)")
 LEADER = re.compile(r"^\s*(?:@\[|/--|/-!)")
@@ -647,9 +635,9 @@ PRINCIPLE_DEF = re.compile(r"^def\s+([A-Za-z_][\w'])\s(.*?):\s*Prop\s*:=",
 def nullary_prop_defs(path):
     """Principle names defined in one file, by the arity rule.
 
-    The CRITERION lives here and the CORPUS does not: `lattice.py` asks about
-    `Omniscience.lean` alone, `hypotheses.py` about every Foundations file,
-    and both are right for their question. What must not differ is what
+    The CRITERION is here and the CORPUS is the caller's: one reader asks about
+    `Omniscience.lean` alone, another about every Foundations file, and both are
+    right for their question. What must not differ is what
     counts as a principle -- the rule was written twice, independently,
     months apart, and two copies of one definition are free to drift without
     anything noticing.
@@ -679,9 +667,9 @@ atexit.register(_report_repeats)
 
 # THEOREM STEMS THAT OTHER THEOREMS EXTEND.
 #
-# Read by `find.py`, `proves.py` and `concludes.py` at SEARCH time. It lives
-# beside the parser because it is a fact about the NAME SET the parser produces,
-# and because all three already import this module -- a fourth would be a fourth
+# Read at SEARCH time. It lives beside the parser because it is a fact about
+# the NAME SET the parser produces, and because its readers already import this
+# module -- a copy would be a
 # thing to import and to forget.
 import functools as _functools
 
