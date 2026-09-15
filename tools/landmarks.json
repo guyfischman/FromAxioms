@@ -195,6 +195,10 @@
   "real numbers by cuts",
   1872
  ],
+ "Analysis.isCauchy_of_brackets": [
+  "limits, ε-δ",
+  1821
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

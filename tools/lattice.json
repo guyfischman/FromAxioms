@@ -18,20 +18,21 @@
   "dc",
   "dcomega",
   "dcon",
-  "dyadicapprox",
+  "decidablerealllt",
   "em",
   "exactivt01",
   "familylocated",
+  "hasapprox",
   "isnoetherian",
   "llpo",
-  "locatordc",
   "lpo",
   "mp",
   "neapartzero",
+  "regularity",
   "signdisjunction",
   "subsetfinite",
-  "ternaryllpo",
   "ternaryzerodecidable",
+  "wem",
   "wlpo"
  ],
  "edges": [
@@ -73,15 +74,20 @@
    "to": "exactivt01"
   },
   {
-   "by": "Constructive.llpo_of_signDisjunction",
-   "from": "signdisjunction",
-   "to": "llpo"
+   "by": "Constructive.familyLocated_of_em",
+   "from": [
+    "em"
+   ],
+   "to": "familylocated"
   },
   {
-   "by": "Constructive.llpo_of_ternary_llpo",
-   "from": [
-    "ternaryllpo"
-   ],
+   "by": "Analysis.hasApprox_of_ACOmega",
+   "from": "acomega",
+   "to": "hasapprox"
+  },
+  {
+   "by": "Constructive.llpo_of_signDisjunction",
+   "from": "signdisjunction",
    "to": "llpo"
   },
   {
@@ -91,6 +97,11 @@
     "binarydc"
    ],
    "to": "signdisjunction"
+  },
+  {
+   "by": "Constructive.wem_of_em",
+   "from": "em",
+   "to": "wem"
   },
   {
    "by": "Constructive.wlpo_of_ternary_zero_decidable",

@@ -374,6 +374,27 @@ theorem realLSqrt_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
   · rw [realLSqrt, fst_opair, snd_opair]
   · exact isLocated_sqrt hloc (upper_pos_of_nonneg hloc hnn)
 
+/-- The root is nonnegative, whatever `z` was. No hypothesis on `z`: the
+lower cut of `realLSqrt z` admits no positive rational by construction, so this
+holds even where `z` is negative and the root means nothing.
+
+IT IS THEREFORE NOT `realLSqrt_mem`'s HYPOTHESIS, and the two read alike
+enough to be swapped. `realLSqrt_mem` asks for `realLLe realLZero z` --- the
+ARGUMENT nonnegative --- while this concludes `realLLe realLZero (realLSqrt z)`,
+the ROOT. Passing this one there is ill-typed, and the elaborator reports it as a
+`whnf` TIMEOUT rather than a type error, so the message names no mismatch and
+sends the reader to look for a performance problem. Supply the argument's
+nonnegativity from wherever the value came from. -/
+theorem realLSqrt_nonneg {z : ZFSet.{u}} :
+    realLLe realLZero.{u} (realLSqrt z) := by
+  rintro ⟨p, hpU, hpL⟩
+  rw [realLSqrt, snd_opair] at hpU
+  rw [realLZero, realLOf, fst_opair] at hpL
+  have hpQ := ((mem_sqrtUpper_iff _ p).mp hpU).left
+  exact ratLt_irrefl (ratLt_trans ratZero_mem_Rat hpQ ratZero_mem_Rat
+    ((mem_sqrtUpper_iff _ p).mp hpU).right.left
+    ((mem_ratCut_iff _ p).mp hpL).right)
+
 /-! ## The root squared
 
 Neither direction unfolds the four-corner product. A strict inequality between
@@ -481,10 +502,11 @@ end Geometry
 
 #print axioms Geometry.isLocated_sqrt
 #print axioms Geometry.realLSqrt_mem
+#print axioms Geometry.realLSqrt_nonneg
 #print axioms Geometry.realLSqrt_sq
 #print axioms Geometry.exists_gt_sq_lt
 #print axioms Geometry.exists_lt_sq_gt
 
 namespace ZFSet
-export Geometry (exists_gt_sq_lt exists_lt_sq_gt exists_small_step isLocated_sqrt mem_sqrtLower_iff mem_sqrtUpper_iff ratLt_of_sq_lt_sq ratSq_le_sq ratSq_lt_sq realLSqrt realLSqrt_mem realLSqrt_sq sq_shift sqrtLower sqrtUpper upper_pos_of_nonneg)
+export Geometry (exists_gt_sq_lt exists_lt_sq_gt exists_small_step isLocated_sqrt mem_sqrtLower_iff mem_sqrtUpper_iff ratLt_of_sq_lt_sq ratSq_le_sq ratSq_lt_sq realLSqrt realLSqrt_mem realLSqrt_nonneg realLSqrt_sq sq_shift sqrtLower sqrtUpper upper_pos_of_nonneg)
 end ZFSet

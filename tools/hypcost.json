@@ -1,4 +1,7 @@
 {
+ "ACOmega": [
+  "FromAxioms/Analysis/Cauchy.lean::hasApprox_of_ACOmega"
+ ],
  "BinaryDCOn": [
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOnAt_of_binaryDCOn",
   "FromAxioms/NumberTheory/Halving.lean::halve_limit_of_binaryDCOn"
@@ -7,8 +10,10 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
- "DyadicApprox": [
-  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+ "EM": [
+  "FromAxioms/Constructive/Reverse.lean::dne_of_em",
+  "FromAxioms/Constructive/Reverse.lean::familyLocated_of_em",
+  "FromAxioms/Constructive/Reverse.lean::wem_of_em"
  ],
  "FamilyLocated": [
   "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",
@@ -29,9 +34,6 @@
  ],
  "SubsetFinite": [
   "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
- ],
- "TernaryLLPO": [
-  "FromAxioms/Constructive/Omniscience.lean::llpo_of_ternary_llpo"
  ],
  "TernaryZeroDecidable": [
   "FromAxioms/Constructive/Omniscience.lean::wlpo_of_ternary_zero_decidable"

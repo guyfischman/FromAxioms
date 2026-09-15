@@ -164,6 +164,12 @@ theorem nest_le {a b : ZFSet.{u}} (h : IsNested a b) {n : ZFSet.{u}}
     (ratLt_trans (app_mem_Rat h.upper_seq hn) htQ (app_mem_Rat h.lower_seq hm)
       hbt htm))
 
+/-- The nest's cut is a located real. -/
+theorem nest_mem_RealL {a b : ZFSet.{u}} (h : IsNested a b) :
+    opair (nestLower a) (nestUpper b) ∈ RealL.{u} :=
+  (mem_RealL_iff _).mpr ⟨nestLower a, nestUpper b, rfl, isLocated_nest h⟩
+
+#print axioms nest_mem_RealL
 #print axioms IsNested
 
 /-- The usual way a construction supplies `shrink`: widths bounded by `1/(n+1)`.
@@ -188,5 +194,5 @@ end Analysis
 #print axioms Analysis.nest_ge
 #print axioms Analysis.nest_le
 namespace ZFSet
-export Analysis (IsNested isLocated_nest mem_nestLower_iff mem_nestUpper_iff nestLower nestUpper nest_ge nest_le shrink_of_invWidth)
+export Analysis (IsNested isLocated_nest mem_nestLower_iff mem_nestUpper_iff nestLower nestUpper nest_ge nest_le nest_mem_RealL shrink_of_invWidth)
 end ZFSet

@@ -47,18 +47,6 @@
   "meaning": "the carrier with its operations is a ring",
   "verdict": "never"
  },
- "LLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "n/a",
-   "shape": "omniscience"
-  },
-  "discharge": "same as LPO",
-  "kind": "principle",
-  "meaning": "of two sequences at most one of which fires, one can be named",
-  "verdict": "never"
- },
  "LPO": {
   "calibration": {
    "forward": "n/a",
@@ -94,17 +82,6 @@
   "kind": "principle",
   "meaning": "Markov: a sequence that cannot be zero everywhere fires",
   "verdict": "never"
- },
- "TernaryLLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "Constructive.llpo_of_ternary_llpo",
-   "shape": "omniscience"
-  },
-  "discharge": "reversed to LLPO",
-  "kind": "principle",
-  "meaning": "the three-way form of LLPO over the ternary digits"
  },
  "TernaryZeroDecidable": {
   "calibration": {

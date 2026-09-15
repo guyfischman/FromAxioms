@@ -26,7 +26,6 @@ so `setFold` is a definition rather than a choice.
 -/
 
 import FromAxioms.Algebra.Group
-import FromAxioms.Analysis.Located
 import FromAxioms.SetTheory.Cantor
 
 universe u
