@@ -10,9 +10,8 @@
 #
 # PINNED TO THE TOWER'S TOOLCHAIN, v4.24.0, and not to Mathlib's tip. A pair
 # imports BOTH Mathlib and `FromAxioms`, so one Lean must build both.
-# `.compare/mathlib4` sits at v4.34.0-rc2 and cannot serve: it is the
-# name-level comparison corpus `tools/compare.py` regexes, not something to
-# elaborate against.
+# A Mathlib checkout at a later toolchain cannot serve: it would need a
+# different Lean from the one this tower is pinned to.
 name = "comparator"
 version = "0.1.0"
 defaultTargets = ["Comparator"]
@@ -26,11 +25,11 @@ scope = "leanprover-community"
 version = "git#v4.24.0"
 
 # THE TOWER ITSELF, BY PATH. A `solution.lean` has to import `FromAxioms`, so
-# the dependency edge comparator -> FromAxioms is the whole point of the pair.
+# the dependency edge comparator -> FromAxioms is what a pair is for.
 # It is also the edge `tools/imports.py --check` refuses to see reversed: the
-# tower may not reach `Comparator`, and the check runs from
-# `FromAxioms/Foundations.lean` outward so that a reversal is caught at the
-# import graph rather than argued about in prose.
+# tower may not reach `Comparator`, and the check runs from the tower's own
+# root outward, so that a reversal is caught at the import graph rather than
+# argued about in prose.
 [[require]]
 name = "FromAxioms"
 path = ".."

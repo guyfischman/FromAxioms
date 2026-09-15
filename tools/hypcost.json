@@ -7,6 +7,13 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
+ "DyadicApprox": [
+  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+ ],
+ "FamilyLocated": [
+  "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",
+  "FromAxioms/Analysis/Located.lean::lub_of_familyLocated"
+ ],
  "LLPO": [
   "FromAxioms/Metamath/Calibrate.lean::signDisjunction_of_llpo_binaryDC"
  ],
@@ -22,6 +29,9 @@
  ],
  "SubsetFinite": [
   "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
+ ],
+ "TernaryLLPO": [
+  "FromAxioms/Constructive/Omniscience.lean::llpo_of_ternary_llpo"
  ],
  "TernaryZeroDecidable": [
   "FromAxioms/Constructive/Omniscience.lean::wlpo_of_ternary_zero_decidable"

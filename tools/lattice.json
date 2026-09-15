@@ -18,15 +18,19 @@
   "dc",
   "dcomega",
   "dcon",
+  "dyadicapprox",
   "em",
   "exactivt01",
+  "familylocated",
   "isnoetherian",
   "llpo",
+  "locatordc",
   "lpo",
   "mp",
   "neapartzero",
   "signdisjunction",
   "subsetfinite",
+  "ternaryllpo",
   "ternaryzerodecidable",
   "wlpo"
  ],
@@ -71,6 +75,13 @@
   {
    "by": "Constructive.llpo_of_signDisjunction",
    "from": "signdisjunction",
+   "to": "llpo"
+  },
+  {
+   "by": "Constructive.llpo_of_ternary_llpo",
+   "from": [
+    "ternaryllpo"
+   ],
    "to": "llpo"
   },
   {

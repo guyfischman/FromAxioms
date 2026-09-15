@@ -322,10 +322,7 @@ def writePairs : MetaM Unit := do
     if !applied.isEmpty then
       out := out ++ s!"- Mathlib's own proof applies {applied.size} theorem(s), among them\n"
       for c in applied.toList.take 3 do out := out ++ s!"    - `{c}`\n"
-    out := out ++ s!"- surcharge beyond both: `{extra.toList}`\n"
-    -- SAID PER PAIR, not only in the header. A table that silently omits
-    -- the axis a reader most wants is read as having found nothing there.
-    out := out ++ "- generality: not computed here; see `formalization.yaml`\n\n"
+    out := out ++ s!"- surcharge beyond both: `{extra.toList}`\n\n"
   IO.FS.writeFile "PAIRS.md" out
   IO.println s!"PAIRS.md written: {rows.size} pair(s)"
 

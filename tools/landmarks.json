@@ -187,6 +187,14 @@
   "algebra of logic",
   1847
  ],
+ "Analysis.cauchySchwarz_realL": [
+  "the Cauchy-Schwarz inequality",
+  1815
+ ],
+ "Analysis.isCut_lower": [
+  "real numbers by cuts",
+  1872
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

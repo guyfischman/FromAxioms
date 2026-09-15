@@ -27,7 +27,6 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.gcd_eq_gcd_ab`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.ChineseRemainder.solution`
 
@@ -36,7 +35,6 @@ a pair is narrower than what it matches.
 - rests on 1 tower proposition(s), costing `[Quot.sound, propext]`
     - `NumberTheory.crt`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.DetMul.solution`
 
@@ -50,7 +48,6 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Matrix.det_mul`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.InfinitudePrimes.solution`
 
@@ -61,7 +58,6 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.exists_infinite_primes`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.IntNoZeroDiv.solution`
 
@@ -76,7 +72,6 @@ a pair is narrower than what it matches.
     - `mul_eq_zero`
     - `mul_neg`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.IrrationalSqrtPrime.solution`
 
@@ -87,7 +82,6 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.Prime.irrational_sqrt`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.NatAddSucc.solution`
 
@@ -99,7 +93,6 @@ a pair is narrower than what it matches.
     - `NumberTheory.ofNat_succ`
     - `NumberTheory.add_succ`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.NormAddSq.solution`
 
@@ -111,7 +104,6 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `norm_add_sq_real`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.PairEncoding.solution`
 
@@ -121,7 +113,6 @@ a pair is narrower than what it matches.
     - `SetTheory.opair_eq_opair_iff`
     - `NumberTheory.ofNat_injective`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
 ## `Comparator.UniqueFactorisation.solution`
 
@@ -132,5 +123,4 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.primeFactorsList_unique`
 - surcharge beyond both: `[]`
-- generality: not computed here; see `formalization.yaml`
 
