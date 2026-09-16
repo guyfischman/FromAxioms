@@ -57,8 +57,12 @@ _SOURCES = {}
 PROBLEMS = []
 
 
-def _decl_url(by, name):
-    """The published source line declaring `name`, as a link."""
+DECL_KW = ("theorem|lemma|def|abbrev|structure|class|inductive|instance"
+           "|axiom|opaque")
+
+
+def _decl_at(by, name):
+    """`(rel, text, match)` for the line declaring `name`, or `None`."""
     r = by.get(name)
     if r is None:
         return None
@@ -73,11 +77,85 @@ def _decl_url(by, name):
     m = re.search(
         r"^[ \t]*(?:@\[[^\]]*\][ \t]*)*"
         r"(?:(?:private|protected|noncomputable|partial|unsafe)[ \t]+)*"
-        r"(?:theorem|lemma|def|abbrev|structure|class|inductive|instance|axiom|opaque)"
+        r"(?:" + DECL_KW + r")"
         r"[ \t]+(?:[\w.]*\.)?" + re.escape(short) + r"(?![\w'.])",
         text, re.M)
+    return (rel, text, m)
+
+
+def _principles():
+    """The literature name and references for each principle, by short name."""
+    f = ROOT / "tools" / "principles.json"
+    if not f.exists():
+        raise SystemExit(f"missing {f} -- what a principle is called outside "
+                         f"this library is not recoverable from the source")
+    return {k: v for k, v in json.loads(f.read_text()).items()
+            if not k.startswith("_")}
+
+
+def _decl_url(by, name):
+    """The published source line declaring `name`, as a link."""
+    got = _decl_at(by, name)
+    if got is None:
+        return None
+    rel, text, m = got
     line = f"#L{text.count(chr(10), 0, m.start()) + 1}" if m else ""
     return f"{REPO}blob/master/{rel}{line}"
+
+
+# Brackets, so a `:=` inside an anonymous constructor or a `let` does not cut
+# a signature in half.
+_OPEN, _CLOSE = "([{⟨", ")]}⟩"
+
+
+def _decl_src(by, name, cap=2400):
+    """The declaration's STATEMENT, sliced from the published source.
+
+    THE PANEL NAMED A THEOREM AND NEVER SAID WHAT IT SAYS. A reader had the
+    name, the module, the axioms and the cone, and had to open GitHub to learn
+    the one thing the page is about.
+
+    Read from the source rather than from the export, which carries hashes and
+    reference lists but no pretty-printed type. Adding one would mean a new
+    field in `ExportAST.lean` and a full rebuild to fill it, and would print
+    Lean's elaborated form rather than the text in the file -- so the panel
+    would disagree with the source it links to.
+
+    WHERE THE STATEMENT ENDS DEPENDS ON WHAT IS DECLARED. A theorem's statement
+    is its TYPE, and its body is a proof nobody reads in a side panel, so it
+    cuts at the `:=`. A definition's statement IS its body -- `LPO` is the
+    quantifier that follows the `:=`, and cutting there would leave the reader
+    with `def LPO : Prop`. A structure's fields are likewise its content, so
+    the `where` block stays.
+    """
+    got = _decl_at(by, name)
+    if got is None:
+        return None
+    _rel, text, m = got
+    if m is None:
+        return None
+    kw = re.search(r"\b(" + DECL_KW + r")\b", m.group(0))
+    theorem = bool(kw) and kw.group(1) in ("theorem", "lemma")
+    start, depth, i, n = m.start(), 0, m.start(), len(text)
+    out = None
+    while i < n:
+        c = text[i]
+        if c in _OPEN:
+            depth += 1
+        elif c in _CLOSE:
+            depth -= 1
+        elif depth == 0:
+            if theorem and text.startswith(":=", i):
+                out = text[start:i]
+                break
+            # A blank line ends a declaration carrying its body, which is
+            # every kind but a theorem.
+            if text.startswith("\n\n", i):
+                out = text[start:i]
+                break
+        i += 1
+    out = (out if out is not None else text[start:]).rstrip()
+    return out if len(out) <= cap else out[:cap].rstrip() + "\n  ..."
 
 
 def _core_url(name):
@@ -268,6 +346,15 @@ def graph():
     users = {s: [n for n in names if full in by[n].get("refs", ()) and n != full]
              for s, full in princ.items()}
     princ = {s: full for s, full in princ.items() if users[s]}
+    # AND A PRINCIPLE IS WHAT `principles.json` SAYS IS ONE. The rail is built
+    # from the lattice, which carries a node for every statement whose place
+    # needs computing -- `MaxAttainmentTop`, `HasApprox`, `FamilyLocated`.
+    # Those are this development's own statements, and drawn on the rail they
+    # read as costs a reader is expected to recognise. The registry is the list
+    # of things the page will call a principle, and it carries the name each
+    # one goes by in the literature, so nothing reaches the rail unnamed.
+    known = _principles()
+    princ = {s: full for s, full in princ.items() if s in known}
     # STRENGTH ORDER, derived from the lattice's own closure rather than
     # listed by hand. A principle that derives more is stronger; ties keep the
     # alphabetical order so the layout is stable across runs. The kernel
@@ -304,6 +391,11 @@ def graph():
             if full and any(full in by[n].get("refs", ()) and n != full for n in names):
                 princ[full.split(".")[-1]] = full
                 unranked.add(full.split(".")[-1])
+    # THE SAME RULE FOR THESE. A hypothesis the registry names beside a proof
+    # is still only drawn if the page will call it a principle.
+    unranked &= set(known)
+    princ = {s: full for s, full in princ.items() if s in known}
+
     # LEVELS, NOT A RANKING. The lattice orders few pairs of principles: most
     # are simply not compared by any published proof, and a single ranked
     # column asserted an order between them anyway, broken alphabetically. A
@@ -315,32 +407,37 @@ def graph():
     # chains through a cycle made each level depend on which member the walk
     # reached first, which followed the hash seed. Levels are counted over the
     # classes, which form no cycle, in sorted order.
-    placed = sorted(s for s in princ if s not in unranked)
-    derived = {s: _derives(s.lower()) for s in placed}
-    below = {s: {t for t in placed if t != s and t.lower() in derived[s]}
-             for s in placed}
-    klass = {}
-    for s in placed:
-        if s not in klass:
-            members = sorted([s] + [t for t in below[s] if s in below[t]])
-            for m in members:
-                klass[m] = members[0]
-    reps = sorted(set(klass.values()))
-    under = {r: sorted({klass[t] for s in placed if klass[s] == r
-                        for t in below[s]} - {r}) for r in reps}
-    rlevel = {}
+    #
+    # RUN AFTER THE BRACKETS, because the rail is not final until then: a
+    # principle no published landmark reaches is named rather than drawn, and
+    # which those are is only known once every landmark's bracket is read.
+    def _rank():
+        placed = sorted(s for s in princ if s not in unranked)
+        derived = {s: _derives(s.lower()) for s in placed}
+        below = {s: {t for t in placed if t != s and t.lower() in derived[s]}
+                 for s in placed}
+        klass = {}
+        for s in placed:
+            if s not in klass:
+                members = sorted([s] + [t for t in below[s] if s in below[t]])
+                for m in members:
+                    klass[m] = members[0]
+        reps = sorted(set(klass.values()))
+        under = {r: sorted({klass[t] for s in placed if klass[s] == r
+                            for t in below[s]} - {r}) for r in reps}
+        rlevel = {}
 
-    def _level(r):
-        if r not in rlevel:
-            rlevel[r] = 0 if not under[r] else 1 + max(_level(x) for x in under[r])
-        return rlevel[r]
+        def _level(r):
+            if r not in rlevel:
+                rlevel[r] = 0 if not under[r] else 1 + max(_level(x)
+                                                           for x in under[r])
+            return rlevel[r]
 
-    for r in reps:
-        _level(r)
-    level = {s: rlevel[klass[s]] for s in placed}
-    ranked = sorted(placed, key=lambda s: (level[s], s)) + sorted(unranked)
-    pr_idx = {s: len(names) + 2 + i for i, s in enumerate(ranked)}
-    ax_idx["Classical.choice"] = len(names) + 2 + len(ranked)
+        for r in reps:
+            _level(r)
+        lvl = {s: rlevel[klass[s]] for s in placed}
+        return lvl, sorted(placed, key=lambda s: (lvl[s], s)) + sorted(unranked)
+
     nodes = [{
         "n": n.split(".")[-1],
         "f": n,
@@ -357,6 +454,9 @@ def graph():
                     & set(princ)),
         "i": intro.get(n, []),
         "d": len(deps[n]),
+        # WHAT IT SAYS, under the name. Everything else in the panel is about
+        # the declaration; this is the declaration.
+        "s": _decl_src(by, n),
     } for n in names]
     # Landmarks, so the dated results are findable rather than being three
     # of six thousand identical dots.
@@ -464,6 +564,41 @@ def graph():
         if got[0] in pairs:
             nd["pr"] = pairs[got[0]]
 
+    # ONLY WHAT A LANDMARK PAYS FOR IS DRAWN. A principle reached by no dated
+    # result is a cost this library's headline theorems do not carry, and a
+    # rail root sitting there says otherwise: a reader takes the rail as the
+    # price list for the mathematics above it.
+    #
+    # Reached means EITHER a landmark's bracket names it -- the reversal it is
+    # pinned by, or the principles its published forward proof takes -- OR the
+    # landmark's dependency cone contains it, which is the same question the
+    # panel answers when the principle is clicked.
+    #
+    # WITHHELD, NOT DISCARDED. `LLPO` and `MP` are principles by anyone's
+    # reckoning and this library calibrates both; they reach no landmark today
+    # only because the reversal that would attach them is not published yet.
+    # Dropping them silently would say the library does not know them, so they
+    # are named in the panel instead, and return to the rail by themselves on
+    # the cut that publishes the link.
+    reached = set()
+    for nd in nodes:
+        if not nd.get("lm"):
+            continue
+        for r in (nd["br"]["rev"] or ()):
+            reached.add(r["p"])
+        for r in (nd["br"]["used"] or ()):
+            reached.add(r["p"])
+        reached |= set(principles_in(nd["f"]))
+    held_at = {s: full for s, full in princ.items() if s not in reached}
+    princ = {s: full for s, full in princ.items() if s in reached}
+    unranked &= set(princ)
+    for nd in nodes:
+        if "p" in nd:
+            nd["p"] = [x for x in nd["p"] if x in princ]
+    level, ranked = _rank()
+    pr_idx = {s: len(names) + 2 + i for i, s in enumerate(ranked)}
+    ax_idx["Classical.choice"] = len(names) + 2 + len(ranked)
+
     # `r` is the rail rank: weakest at 0. `propext` and `Quot.sound` sit above
     # every principle because Lean assumes them with no choice content;
     # `Classical.choice` sits below every one because it proves `em`, which is
@@ -480,6 +615,8 @@ def graph():
                       "k": "principle", "l": -1, "a": [], "i": [], "d": 0,
                       "lm": "", "r": (top + 1 if s in unranked else level[s] + 1),
                       "u": _decl_url(by, princ[s]),
+                      "s": _decl_src(by, princ[s]),
+                      "lit": known[s],
                       **({"ur": True} if s in unranked else {})})
     nodes.append({"n": "Classical.choice", "f": "Classical.choice",
                   "m": "(kernel axiom)", "k": "axiom", "l": -1,
@@ -491,7 +628,9 @@ def graph():
     edges += [[ax_idx[a], idx[n]] for n, got in intro.items() for a in got]
     edges += [[pr_idx[s], idx[n]] for s, full in princ.items()
               for n in names if full in by[n].get("refs", ()) and n != full]
-    return {"nodes": nodes, "edges": edges}
+    held = [{"n": s, "nm": known[s]["name"], "u": _decl_url(by, full)}
+            for s, full in sorted(held_at.items())]
+    return {"nodes": nodes, "edges": edges, "held": held}
 
 
 def _conformance(by, land, nodes, pairs, equivs, princ, priced):
@@ -515,6 +654,23 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
     for s, full in princ.items():
         if full in priced:
             out.append(f"`{full}` is a priced landmark statement on the rail")
+    # EVERY RAIL ROOT IS NAMED AND REACHED. Both are what the rail means: a
+    # principle is a cost a reader can look up, and the rail is the price list
+    # for the landmarks above it. Neither holds by construction once the
+    # registry or the manifest moves, and a rail that quietly regrows the
+    # statements this filter exists to remove looks exactly like a correct one.
+    known = _principles()
+    for s in princ:
+        if s not in known:
+            out.append(f"principle `{s}` is on the rail with no entry in "
+                       f"`tools/principles.json`, so the page cannot say what "
+                       f"it is called")
+    drawn_p = {nd["n"] for nd in nodes if nd.get("k") == "principle"}
+    for nd in nodes:
+        for r in (nd.get("br") or {}).get("rev") or ():
+            if r["p"] not in drawn_p:
+                out.append(f"landmark `{nd['f']}` is pinned by `{r['p']}`, "
+                           f"which is not on the principle rail")
     # Every principle a drawn bracket names is on the rail.
     for nd in nodes:
         for r in (nd.get("br") or {}).get("used") or ():
@@ -600,6 +756,14 @@ PAGE = """%(marker)s
  #side ul.lms { padding-left:16px; margin:4px 0 }
  #side .sec { margin:10px 0 2px; font-weight:600 }
  #side .row { margin:3px 0 }
+ /* The statement, as it stands in the file. Lean is written to a column and
+    wraps badly when reflowed, so it scrolls sideways rather than folding. */
+ #side pre.stmt { margin:6px 0 8px; padding:7px 8px; overflow-x:auto;
+   border:1px solid var(--line); border-radius:4px;
+   font:11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+   white-space:pre; color:var(--ink) }
+ #side ul.cite { padding-left:16px; margin:3px 0; color:var(--muted) }
+ #side ul.cite li { margin:2px 0 }
 </style>
 <div id="bar">
   <b>FromAxioms</b>
@@ -614,7 +778,8 @@ PAGE = """%(marker)s
 </div>
 <canvas id=c></canvas>
 <div id=side><h3>Click a node</h3><div class=p>Its dependencies, its axioms,
-and where each axiom first entered the library beneath it.</div></div>
+and where each axiom first entered the library beneath it.</div>
+<div id=held></div></div>
 <script>
 const DATA = %(data)s;
 const N = DATA.nodes, E = DATA.edges;
@@ -676,6 +841,28 @@ let view={x:20,y:20,s:0.55}, drag=null, sel=null, filt=null;
 const css = v => getComputedStyle(document.documentElement)
   .getPropertyValue(v).trim();
 let focus = new Set();
+// THE RAIL IS THE PRICE LIST FOR WHAT IS DRAWN, so a principle no published
+// landmark reaches is not on it. Saying which those are is the difference
+// between a rail that is a function of what is published and one a reader
+// mistakes for everything the library knows: `LLPO` and `MP` are calibrated
+// here and reach no dated result yet, and their absence would otherwise read
+// as ignorance of them.
+(function(){
+  const h = DATA.held || [], el = document.getElementById('held');
+  if(!h.length || !el) return;
+  // `esc` is declared below, with the rest of the panel helpers.
+  const e = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  el.innerHTML = '<div class=sec>Calibrated, not yet on the rail</div>'
+    + '<div class="row p">' + h.length + ' principle'
+    + (h.length===1 ? ' is' : 's are') + ' defined and calibrated here but '
+    + 'reached by no published landmark yet, so ' + (h.length===1 ? 'it is' :
+      'they are') + ' named rather than drawn.</div><ul class=cite>'
+    + h.map(x => '<li>' + (x.u ? '<a href="'+x.u+'" target=_blank rel=noopener>'
+        + e(x.n) + '</a>' : e(x.n)) + ' <span class=p>-- ' + e(x.nm)
+        + '</span></li>').join('') + '</ul>';
+})();
+
 // A selected principle under the landmarks view: which landmarks rest on it,
 // and which of those name it directly.
 let PSEL = null;
@@ -685,6 +872,28 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function link(t,u){ return u ? '<a href="'+u+'" target=_blank rel=noopener>'+t+'</a>' : t; }
 function tagHtml(t,col){ return '<span class=tag style="background:'+col+'">'+t+'</span>'; }
 function shortName(f){ return f.split('.').pop(); }
+// The declaration as the file states it. A panel that named a theorem and did
+// not say what it says left the reader to open GitHub for the one thing the
+// page is about.
+function stmtHtml(n){
+  return n.s ? '<pre class=stmt>'+esc(n.s)+'</pre>' : ''; }
+// WHAT IT IS CALLED OUTSIDE THIS LIBRARY. The rail's names are this tree's --
+// short, and chosen to fit a diagram. A reader who knows constructive reverse
+// mathematics knows `SignDisjunction` as LLPO over the reals, and nothing on
+// the page said so.
+function litHtml(l){
+  if(!l) return '';
+  const also = (l.also || []).filter(a => a !== l.name);
+  return '<div class=sec>In the literature</div>'
+    + '<div class=row>' + esc(l.name)
+    + (also.length ? ' <span class=p>(' + also.map(esc).join(', ') + ')</span>'
+                   : '') + '</div>'
+    + (l.note ? '<div class="row p">' + esc(l.note) + '</div>' : '')
+    + ((l.cite && l.cite.length)
+        ? '<ul class=cite>' + l.cite.map(c => '<li>'+esc(c)+'</li>').join('')
+          + '</ul>'
+        : '');
+}
 function bracketHtml(b){
   const rev = b.rev.length
     ? b.rev.map(r => link(tagHtml(esc(r.p), css('--amber')), r.pu) + ' by '
@@ -734,6 +943,8 @@ function principlePane(n, s){
   const got = landmarksOn(n), lms = got.lms;
   s.innerHTML = '<h3>'+link(esc(n.n), n.u)+'</h3><div class=p>'+esc(n.f)
     + ' &middot; principle</div>'
+    + stmtHtml(n)
+    + litHtml(n.lit)
     + '<p><b>'+lms.length+'</b> landmark'+(lms.length===1 ? ' rests' : 's rest')
     + ' on it'+(lms.length ? ':' : '.')+'</p>'
     + (lms.length ? '<ul class=lms>' + lms.map(m => '<li><a href="#" data-id="'
@@ -1226,6 +1437,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
   if(n.k==='principle'){ principlePane(n, s); draw(); return; }
   s.innerHTML = '<h3>'+link(esc(n.n), n.u)+'</h3>'
     + '<div class=p>'+n.f+'<br>'+n.m+' &middot; '+n.k+' &middot; layer '+n.l+'</div>'
+    + stmtHtml(n)
     + (n.lm ? '<p><b>Landmark:</b> '+esc(n.lm)+'</p>' : '')
     + (n.br ? bracketHtml(n.br) : '')
     + (n.pr ? pairHtml(n.pr) : '')

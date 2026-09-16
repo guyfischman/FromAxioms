@@ -1,0 +1,167 @@
+{
+ "_README": "What each principle on the rail is called in the literature, and where it is stated. This file also DECIDES what the page is willing to call a principle: a rail root with no entry here is refused by `dag.py --conform`, and a statement of this development's own -- max attainment over a compact space, say -- has no entry and so never reaches the rail. A principle listed here that no published landmark reaches is named in the panel rather than drawn, so the rail stays a picture of what the published tree pays for.",
+
+ "EM": {
+  "name": "the law of excluded middle",
+  "also": ["LEM", "tertium non datur"],
+  "cite": [
+   "Troelstra and van Dalen, Constructivism in Mathematics: An Introduction, North-Holland (1988).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "WEM": {
+  "name": "the weak law of excluded middle",
+  "also": ["WLEM", "De Morgan's law", "DML"],
+  "note": "Equivalent over intuitionistic logic to the third De Morgan law, that a negated conjunction splits into a disjunction of negations.",
+  "cite": [
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020).",
+   "Ishihara, Reverse mathematics in Bishop's constructive mathematics, Philosophia Scientiae CS 6 (2006), 43-59."
+  ]
+ },
+
+ "LPO": {
+  "name": "the limited principle of omniscience",
+  "cite": [
+   "Bishop, Foundations of Constructive Analysis, McGraw-Hill (1967).",
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "WLPO": {
+  "name": "the weak limited principle of omniscience",
+  "cite": [
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "LLPO": {
+  "name": "the lesser limited principle of omniscience",
+  "cite": [
+   "Bishop, Foundations of Constructive Analysis, McGraw-Hill (1967).",
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "SignDisjunction": {
+  "name": "the lesser limited principle of omniscience, in its analytic form",
+  "also": ["LLPO"],
+  "note": "That every real is non-positive or non-negative. This is the form LLPO takes over the reals rather than a separate principle.",
+  "cite": [
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "MP": {
+  "name": "Markov's principle",
+  "cite": [
+   "Troelstra and van Dalen, Constructivism in Mathematics: An Introduction, North-Holland (1988).",
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "FANΔ": {
+  "name": "the decidable fan theorem",
+  "also": ["FAN_D", "the fan theorem for detachable bars"],
+  "cite": [
+   "Troelstra and van Dalen, Constructivism in Mathematics: An Introduction, North-Holland (1988).",
+   "Ishihara, Constructive reverse mathematics: compactness properties, in From Sets and Types to Topology and Analysis, Oxford Logic Guides 48, Oxford University Press (2005), 245-267."
+  ]
+ },
+
+ "FANstable": {
+  "name": "the fan theorem for stable bars",
+  "cite": [
+   "Ishihara, Constructive reverse mathematics: compactness properties, in From Sets and Types to Topology and Analysis, Oxford Logic Guides 48, Oxford University Press (2005), 245-267."
+  ]
+ },
+
+ "WKL": {
+  "name": "weak Koenig's lemma",
+  "note": "The base system WKL_0 of classical reverse mathematics is named for it. Over a constructive base it is the contrapositive companion of the fan theorem rather than a consequence of it.",
+  "cite": [
+   "Simpson, Subsystems of Second Order Arithmetic, second edition, Cambridge University Press (2009).",
+   "Ishihara, Constructive reverse mathematics: compactness properties, in From Sets and Types to Topology and Analysis, Oxford Logic Guides 48, Oxford University Press (2005), 245-267."
+  ]
+ },
+
+ "WKLBool": {
+  "name": "weak Koenig's lemma, with the tree given by a decision procedure",
+  "also": ["WKL"],
+  "note": "Weak Koenig's lemma with membership presented as a Boolean-valued function rather than as a disjunction in Prop. The split is this development's, and it isolates the carrier upgrade the Prop form performs; the base system WKL_0 of classical reverse mathematics is named for the lemma itself.",
+  "cite": [
+   "Simpson, Subsystems of Second Order Arithmetic, second edition, Cambridge University Press (2009).",
+   "Ishihara, Constructive reverse mathematics: compactness properties, in From Sets and Types to Topology and Analysis, Oxford Logic Guides 48, Oxford University Press (2005), 245-267."
+  ]
+ },
+
+ "DC": {
+  "name": "the axiom of dependent choice",
+  "also": ["DC"],
+  "cite": [
+   "Jech, The Axiom of Choice, North-Holland (1973).",
+   "Howard and Rubin, Consequences of the Axiom of Choice, Mathematical Surveys and Monographs 59, American Mathematical Society (1998)."
+  ]
+ },
+
+ "DCOn": {
+  "name": "the axiom of dependent choice, on a single set",
+  "also": ["DC"],
+  "note": "Dependent choice with the set fixed rather than quantified. The restriction is this development's: every consumer here spends the hypothesis on a set it has already built, so the quantifier is never used.",
+  "cite": [
+   "Jech, The Axiom of Choice, North-Holland (1973).",
+   "Howard and Rubin, Consequences of the Axiom of Choice, Mathematical Surveys and Monographs 59, American Mathematical Society (1998)."
+  ]
+ },
+
+ "TreeDC": {
+  "name": "dependent choice along a binary tree",
+  "note": "That a predicate on finite binary strings which always extends by one bit admits an infinite string through it. A form of dependent choice specialised to the binary tree; the spelling is this development's.",
+  "cite": [
+   "Jech, The Axiom of Choice, North-Holland (1973).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ },
+
+ "BinaryDC": {
+  "name": "countable choice from two-element sets",
+  "also": ["countable binary choice"],
+  "note": "Proved here to be equivalent to countable Boolean choice: its whole content is turning a disjunction in Prop into a Bool along a recursion, which makes it a choice principle rather than an omniscience one.",
+  "cite": [
+   "Howard and Rubin, Consequences of the Axiom of Choice, Mathematical Surveys and Monographs 59, American Mathematical Society (1998).",
+   "Herrlich, Axiom of Choice, Lecture Notes in Mathematics 1876, Springer (2006)."
+  ]
+ },
+
+ "BinaryDCOn": {
+  "name": "countable choice from two-element sets, on a single set",
+  "also": ["countable binary choice"],
+  "note": "The binary choice principle with the carrier fixed rather than quantified, for the same reason `DCOn` fixes it.",
+  "cite": [
+   "Howard and Rubin, Consequences of the Axiom of Choice, Mathematical Surveys and Monographs 59, American Mathematical Society (1998)."
+  ]
+ },
+
+ "ACOmega": {
+  "name": "the axiom of countable choice",
+  "also": ["AC_omega", "CC"],
+  "cite": [
+   "Jech, The Axiom of Choice, North-Holland (1973).",
+   "Herrlich, Axiom of Choice, Lecture Notes in Mathematics 1876, Springer (2006)."
+  ]
+ },
+
+ "MonotoneConvergence": {
+  "name": "the monotone convergence theorem",
+  "note": "Classically a theorem, taken as a hypothesis here because its constructive strength is what is being measured.",
+  "cite": [
+   "Bridges and Richman, Varieties of Constructive Mathematics, London Mathematical Society Lecture Note Series 97, Cambridge University Press (1987).",
+   "Diener, Constructive Reverse Mathematics, arXiv:1804.05495 (2020)."
+  ]
+ }
+}
