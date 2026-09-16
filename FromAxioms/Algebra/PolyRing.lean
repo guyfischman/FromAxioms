@@ -1926,7 +1926,7 @@ theorem binomial_semi {R add mul zero one a b : ZFSet.{u}}
 /-! ### The binomial theorem over a LEAN TYPE
 
 `binomial_semi` above is over a `ZFSet` commutative semiring; mathlib's
-`add_pow` (`Data/Nat/Choose/Sum.lean`) is over `[CommSemiring R]` with
+`add_pow` (`Mathlib/Data/Nat/Choose/Sum.lean`) is over `[CommSemiring R]` with
 `Finset.sum`, so ours cannot be applied to mathlib's carriers at all.
 
 THE FINITE SUM OVER AN ARBITRARY CARRIER IS NEW HERE. Before it there was only

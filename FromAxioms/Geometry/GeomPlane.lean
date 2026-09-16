@@ -36,7 +36,6 @@ root real.
 import FromAxioms.Analysis.Deriv
 import FromAxioms.Analysis.Weier
 import FromAxioms.Geometry.GeomSqrt
-import FromAxioms.SetTheory.LeastSearch
 
 universe u
 

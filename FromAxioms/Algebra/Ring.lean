@@ -278,6 +278,45 @@ theorem ringAdd_assoc_nc {R add mul zero one a b c : ZFSet.{u}}
 #print axioms Algebra.ringOne_mul_nc
 #print axioms Algebra.ringRight_distrib_nc
 
+/-- A constructive field: a ring whose elements apart from zero are
+invertible.
+
+The departure from `IsField` is the hypothesis, not the conclusion. `IsField`
+asks for an inverse of every `a ≠ zero`, and `≠` is a negation -- it rules
+something out and supplies nothing to build with, so over the reals it names no
+witness and the inverse cannot be constructed from it. An apartness relation
+carries positive data: for the located reals, `realLApart` hands over a rational
+separating the two numbers, which is exactly what brackets the reciprocal.
+
+The relation is a Lean predicate rather than a `ZFSet`, because nothing here
+quantifies over apartness relations; it is a parameter to be instantiated once.
+
+Cotransitivity -- `apart a b → ∀ c, apart a c ∨ apart c b` -- is the axiom that
+makes an apartness more than a symmetric irreflexive relation, and it is not
+required here because no result below needs it. Adding it is queued rather than
+assumed.
+
+`translate` is here on that same rule, having become required: an inverse is
+supplied only from `apart zero a`, so any argument that inverts a DIFFERENCE
+needs apartness to move across addition, which no other clause relates it to.
+Written as invariance under a common shift rather than as *a apart b gives a -
+b apart zero*, because the shift form needs no negation and so states the same
+content one layer lower. -/
+structure IsConstructiveField (R add mul zero one : ZFSet.{u})
+    (apart : ZFSet.{u} → ZFSet.{u} → Prop) : Prop where
+  ring : IsRing R add mul zero one
+  irrefl : ∀ a, a ∈ R → ¬ apart a a
+  symm : ∀ a b, apart a b → apart b a
+  zero_apart_one : apart zero one
+  inverses : ∀ a, a ∈ R → apart zero a → ∃ b, b ∈ R ∧ opAt mul a b = one
+  translate : ∀ a b c, a ∈ R → b ∈ R → c ∈ R → apart a b →
+    apart (opAt add a c) (opAt add b c)
+
+theorem constructiveField_inverses {R add mul zero one a : ZFSet.{u}}
+    {apart : ZFSet.{u} → ZFSet.{u} → Prop}
+    (h : IsConstructiveField R add mul zero one apart) (ha : a ∈ R) (h0 : apart zero a) :
+    ∃ b, b ∈ R ∧ opAt mul a b = one := h.inverses a ha h0
+
 /-- A field: a ring where every element other than `zero` has an inverse. -/
 structure IsField (R add mul zero one : ZFSet.{u}) : Prop where
   ring : IsRing R add mul zero one
@@ -299,6 +338,7 @@ def IsIdeal (I R add mul zero : ZFSet.{u}) : Prop :=
     (∀ a, a ∈ I → ∃ b, b ∈ I ∧ opAt add a b = zero) ∧
     (∀ r, r ∈ R → ∀ a, a ∈ I → opAt mul r a ∈ I)
 
+#print axioms IsConstructiveField
 theorem ideal_subset {I R add mul zero : ZFSet.{u}} (hI : IsIdeal I R add mul zero) :
     I ⊆ R := hI.left
 
@@ -320,6 +360,12 @@ theorem mul_zero_of_isRing {R add mul zero one a : ZFSet.{u}}
   mul_zero_of_isRingNC hR.toNC ha
 
 def units (R mul zero : ZFSet.{u}) : ZFSet.{u} := R \ singleton zero
+
+theorem mem_units_iff (R mul zero w : ZFSet.{u}) :
+    w ∈ units R mul zero ↔ w ∈ R ∧ w ≠ zero :=
+  Iff.trans (mem_sdiff_iff w R _)
+    ⟨fun h => ⟨h.left, fun he => h.right ((mem_singleton_iff w zero).mpr he)⟩,
+     fun h => ⟨h.left, fun hmem => h.right ((mem_singleton_iff w zero).mp hmem)⟩⟩
 
 /-! ## Quotient rings
 
@@ -411,10 +457,32 @@ theorem ringOne_mul {R add mul zero one a : ZFSet.{u}} (h : IsRing R add mul zer
     (ha : a ∈ R) : opAt mul one a = a :=
   ringOne_mul_nc h.toNC ha
 
+theorem ringMul_left_comm {R add mul zero one a b c : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) :
+    opAt mul a (opAt mul b c) = opAt mul b (opAt mul a c) := by
+  rw [← h.mulAssoc a ha b hb c hc, h.mulComm a ha b hb, h.mulAssoc b hb a ha c hc]
+
 theorem ringRight_distrib {R add mul zero one a b c : ZFSet.{u}}
     (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) :
     opAt mul (opAt add a b) c = opAt add (opAt mul a c) (opAt mul b c) :=
   ringRight_distrib_nc h.toNC ha hb hc
+
+theorem ringAdd_shuffle {R add mul zero one p q r s t : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (hp : p ∈ R) (hq : q ∈ R) (hr : r ∈ R)
+    (hs : s ∈ R) (ht : t ∈ R) :
+    opAt add (opAt add (opAt add p q) r) (opAt add s t)
+      = opAt add (opAt add s (opAt add r p)) (opAt add q t) := by
+  have hqr := addAt_mem h hq hr
+  have hst := addAt_mem h hs ht
+  have hqt := addAt_mem h hq ht
+  have hrp := addAt_mem h hr hp
+  rw [ringAdd_assoc h hp hq hr, ringAdd_assoc h hp hqr hst,
+    ringAdd_assoc h hq hr hst, ringAdd_left_comm h hr hs ht,
+    ringAdd_left_comm h hq hs (addAt_mem h hr ht),
+    ringAdd_left_comm h hp hs (addAt_mem h hq (addAt_mem h hr ht)),
+    ringAdd_left_comm h hq hr ht,
+    ringAdd_left_comm h hp hr hqt,
+    ringAdd_assoc h hs hrp hqt, ringAdd_assoc h hr hp hqt]
 
 /-- Additive inverse. -/
 def ringNeg (R add zero a : ZFSet.{u}) : ZFSet.{u} := ginv R add zero a
@@ -678,6 +746,17 @@ theorem ringSub_addAt_nc {R add mul zero one a a' b b' : ZFSet.{u}}
 
 #print axioms Algebra.ringSub_addAt_nc
 
+/-- `(a - b) + (c - d) = (a + c) - (b + d)`. The shuffle with the negations
+already in place, which is the shape a difference of two sums arrives in. -/
+theorem ringAdd_pair_neg {R add mul zero one a b c d : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) (hd : d ∈ R) :
+    opAt add (opAt add a (ringNeg R add zero b))
+        (opAt add c (ringNeg R add zero d))
+      = opAt add (opAt add a c) (ringNeg R add zero (opAt add b d)) := by
+  rw [ringAdd_shuffle_pair h ha (ringNeg_mem h hb) hc (ringNeg_mem h hd),
+    ← ringNeg_addAt h hb hd]
+
+#print axioms ringAdd_pair_neg
 theorem ringSub_def (R add zero a b : ZFSet.{u}) :
     ringSub R add zero a b = opAt add a (ringNeg R add zero b) := rfl
 
@@ -807,6 +886,9 @@ theorem gpow_zero_eq_zero {R add mul zero one : ZFSet.{u}}
 
 #print axioms gpow_zero_eq_zero
 
+theorem ringNsmul_one_eq {R add mul zero one a : ZFSet.{u}} (hR : IsRing R add mul zero one)
+    (ha : a ∈ R) : gpow add zero a 1 = a :=
+  gpow_one hR.addGroup ha
 theorem ringNsmul_sum {R add mul zero one a : ZFSet.{u}} (h : IsRing R add mul zero one)
     (ha : a ∈ R) (j : Nat) :
     ∀ k : Nat, gpow add zero a (j + k)
@@ -924,6 +1006,13 @@ theorem ringNeg_eq_of_add_zero {R add mul zero one a b : ZFSet.{u}}
   (op_left_cancel h.addGroup ha hb (ringNeg_mem h ha)
     (hab.trans (ringAdd_neg h ha).symm)).symm
 
+/-- `(a - b) + b = a`. -/
+theorem ringSub_add_cancel {R add mul zero one a b : ZFSet.{u}} (h : IsRing R add mul zero one)
+    (ha : a ∈ R) (hb : b ∈ R) :
+    opAt add (opAt add a (ringNeg R add zero b)) b = a := by
+  rw [ringAdd_assoc h ha (ringNeg_mem h hb) hb,
+    ringAdd_comm h (ringNeg_mem h hb) hb, ringAdd_neg h hb, ringAdd_zero h ha]
+
 /-- `(a + b) - b = a`. -/
 theorem ringAdd_sub_cancel {R add mul zero one a b : ZFSet.{u}}
     (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) :
@@ -936,6 +1025,28 @@ theorem ringAdd_sub_cancel {R add mul zero one a b : ZFSet.{u}}
 `binomTerm` uses, so no characteristic map and no `NumberTheory.Int` embedding. -/
 noncomputable def natIn (R add zero one : ZFSet.{u}) (n : Nat) : ZFSet.{u} :=
   gpow add zero one n
+
+/-- A difference of zero means equality. -/
+theorem eq_of_ringSub_zero {R add mul zero one a b : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R)
+    (hz : ringSub R add zero a b = zero) : a = b := by
+  have hcancel := ringSub_add_cancel h ha hb
+  show a = b
+  rw [← hcancel]
+  show opAt add (ringSub R add zero a b) b = b
+  rw [hz, h.addGroup.left_id _ hb]
+
+/-- `(a+b)(c+d) = (ac+ad) + (bc+bd)`. Distributivity twice, with a commutation
+to reach the left factor. -/
+theorem ringMul_add_add {R add mul zero one a b c d : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) (hd : d ∈ R) :
+    opAt mul (opAt add a b) (opAt add c d)
+      = opAt add (opAt add (opAt mul a c) (opAt mul a d))
+          (opAt add (opAt mul b c) (opAt mul b d)) := by
+  rw [h.mulComm _ (addAt_mem h ha hb) _ (addAt_mem h hc hd),
+    h.distrib _ (addAt_mem h hc hd) _ ha _ hb,
+    h.mulComm _ (addAt_mem h hc hd) _ ha, h.mulComm _ (addAt_mem h hc hd) _ hb,
+    h.distrib _ ha _ hc _ hd, h.distrib _ hb _ hc _ hd]
 
 theorem ringMul_shuffle_pair {R add mul zero one a b c d : ZFSet.{u}}
     (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) (hd : d ∈ R) :
@@ -988,6 +1099,37 @@ theorem ringSub_mul {R add mul zero one a b c : ZFSet.{u}} (h : IsRing R add mul
 
 #print axioms ringSub_mul
 
+/-- A product of two differences, expanded: `(a - b)(c - d) = (ac + bd) -
+(ad + bc)`.
+
+Not `ringSub_mulAt`, which is the telescoping
+`ab - a'b' = a(b - b') + (a - a')b'` at two products. This is the four-term
+expansion, which a norm form needs: both factors are differences and the answer
+must be one. -/
+theorem ringSub_mul_ringSub {R add mul zero one a b c d : ZFSet.{u}}
+    (hR : IsRing R add mul zero one)
+    (ha : a ∈ R) (hb : b ∈ R) (hc : c ∈ R) (hd : d ∈ R) :
+    opAt mul (ringSub R add zero a b) (ringSub R add zero c d)
+      = ringSub R add zero
+          (opAt add (opAt mul a c) (opAt mul b d))
+          (opAt add (opAt mul a d) (opAt mul b c)) := by
+  have hab := ringSub_mem hR ha hb
+  have hac := mulAt_mem hR ha hc
+  have hbc := mulAt_mem hR hb hc
+  have had := mulAt_mem hR ha hd
+  have hbd := mulAt_mem hR hb hd
+  rw [ringMul_sub hR hab hc hd, ringSub_mul hR ha hb hc, ringSub_mul hR ha hb hd]
+  show opAt add (opAt add (opAt mul a c) (ringNeg R add zero (opAt mul b c)))
+      (ringNeg R add zero
+        (opAt add (opAt mul a d) (ringNeg R add zero (opAt mul b d))))
+    = opAt add (opAt add (opAt mul a c) (opAt mul b d))
+        (ringNeg R add zero (opAt add (opAt mul a d) (opAt mul b c)))
+  rw [ringNeg_addAt hR had (ringNeg_mem hR hbd), ringNeg_neg hR hbd,
+      ringAdd_comm hR (ringNeg_mem hR had) hbd,
+      ringAdd_pair_neg hR hac hbc hbd had,
+      ringAdd_comm hR hbc had]
+
+#print axioms ringSub_mul_ringSub
 /-! ## Homomorphisms -/
 
 /-- A ring homomorphism is a homomorphism of the additive groups that also
@@ -1099,7 +1241,22 @@ theorem hom_nsmul {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero�
     show app h (opAt add₁ (gpow add₁ zero₁ a k) a) = opAt add₂ (gpow add₂ zero₂ (app h a) k) _
     rw [hom_add' hh _ (ringNsmul_mem h₁ ha k) _ ha, hom_nsmul hh h₁ h₂ ha k]
 
+/-- A ring hom fixes `natIn n` --- `hom_nsmul` at `a = one`, then `hom_one`.
+
+Exact, not up to a unit, because `natIn` is `n`-fold repeated addition of `one`
+and a hom preserves both. -/
+theorem hom_natIn {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero₂ one₂ : ZFSet.{u}}
+    (hh : IsRingHom h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂)
+    (h₁ : IsRing R₁ add₁ mul₁ zero₁ one₁) (h₂ : IsRing R₂ add₂ mul₂ zero₂ one₂)
+    (n : Nat) :
+    app h (natIn R₁ add₁ zero₁ one₁ n) = natIn R₂ add₂ zero₂ one₂ n := by
+  -- `natIn` IS `gpow add zero one` by definition, and `rw` cannot unfold a def
+  show app h (gpow add₁ zero₁ one₁ n) = gpow add₂ zero₂ one₂ n
+  rw [hom_nsmul hh h₁ h₂ h₁.mem_one n, hom_one hh]
+
 #print axioms hom_nsmul
+#print axioms hom_natIn
+
 /-! ### The identity embedding
 
 A ring is an extension of itself, and saying so needs a homomorphism whose
@@ -1587,6 +1744,21 @@ theorem isField_quotient_of_prime {I R add mul zero one : ZFSet.{u}}
     · exact Or.inl ((cls_eq_zero_iff h hI ha).mpr hmem)
     · exact Or.inr ((cls_eq_zero_iff h hI hb).mpr hmem)
 
+/-! ## Units of a ring, and Euler's theorem
+
+The invertible elements of a commutative ring form a group. If the ring is
+finite the group is too -- invertibility is a bounded search -- so
+`gpow_card_eq_id` applies, and `u^(number of units) = 1`. Instantiated at
+`ℤ/nℤ` that is Euler's theorem, with the totient read as the size of the unit
+group rather than defined separately. -/
+
+def unitsOf (R mul one : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun x => ∃ y, y ∈ R ∧ opAt mul x y = one) R
+
+theorem mem_unitsOf_iff (R mul one x : ZFSet.{u}) :
+    x ∈ unitsOf R mul one ↔ x ∈ R ∧ ∃ y, y ∈ R ∧ opAt mul x y = one :=
+  mem_sep_iff _ _ _
+
 /-! ## Audit -/
 
 #print axioms ringNsmul_zero
@@ -1617,6 +1789,10 @@ otherwise. -/
 def pairwiseOp (R op I J : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun w => ∃ a, a ∈ I ∧ ∃ b, b ∈ J ∧ w = opAt op a b) R
 
+theorem mem_pairwiseOp_iff (R op I J w : ZFSet.{u}) :
+    w ∈ pairwiseOp R op I J ↔ w ∈ R ∧ ∃ a, a ∈ I ∧ ∃ b, b ∈ J ∧ w = opAt op a b :=
+  mem_sep_iff _ _ _
+
 /-- `I + J`, the pairwise sums. -/
 def idealSum (R add I J : ZFSet.{u}) : ZFSet.{u} := pairwiseOp R add I J
 
@@ -1632,24 +1808,540 @@ theorem mem_ringMultiples_self {R add mul zero one a : ZFSet.{u}}
 def genIdeal (R add mul zero S : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun x => ∀ I, I ∈ powerset R -> IsIdeal I R add mul zero -> S ⊆ I -> x ∈ I) R
 
+theorem mem_genIdeal_iff (R add mul zero S x : ZFSet.{u}) :
+    x ∈ genIdeal R add mul zero S ↔
+      x ∈ R ∧ ∀ I, I ∈ powerset R -> IsIdeal I R add mul zero -> S ⊆ I -> x ∈ I :=
+  mem_sep_iff _ _ _
+
+/-- The universal property, and the half that gets used: the generated
+ideal is inside any ideal containing `S`. -/
+theorem genIdeal_le {R add mul zero S I : ZFSet.{u}}
+    (hI : IsIdeal I R add mul zero) (hS : S ⊆ I) :
+    genIdeal R add mul zero S ⊆ I := by
+  intro x hx
+  exact ((mem_genIdeal_iff _ _ _ _ _ x).mp hx).right I
+    ((mem_powerset_iff _ _).mpr (ideal_subset hI)) hI hS
+
+/-- `S` itself lands inside what it generates, given that `S ⊆ R`. -/
+theorem subset_genIdeal {R add mul zero S : ZFSet.{u}} (hS : S ⊆ R) :
+    S ⊆ genIdeal R add mul zero S := by
+  intro s hs
+  exact (mem_genIdeal_iff _ _ _ _ _ s).mpr ⟨hS _ hs, fun I _ _ hSI => hSI _ hs⟩
+
+/-- The ideal generated by a set is an ideal, over the non-commutative
+base.
+
+Every clause is inherited from the ideals being intersected -- zero, sums,
+inverses and absorption each hold in each `I` containing `S`, so they hold in
+the intersection. Nothing multiplies two generators together, so no
+commutativity appears: the absorption clause is `ideal_absorbs` applied
+inside each `I`, on the left, exactly as `IsIdeal` states it.
+
+`isIdeal_idealProd` reduces to this. -/
+theorem isIdeal_genIdeal_nc {R add mul zero one S : ZFSet.{u}}
+    (h : IsRingNC R add mul zero one) :
+    IsIdeal (genIdeal R add mul zero S) R add mul zero := by
+  refine ⟨fun x hx => ((mem_genIdeal_iff _ _ _ _ _ x).mp hx).left, ?_, ?_, ?_, ?_⟩
+  · exact (mem_genIdeal_iff _ _ _ _ _ _).mpr
+      ⟨h.addGroup.mem_e, fun I _ hI _ => ideal_mem_zero hI⟩
+  · intro u hu v hv
+    obtain ⟨huR, hu'⟩ := (mem_genIdeal_iff _ _ _ _ _ u).mp hu
+    obtain ⟨hvR, hv'⟩ := (mem_genIdeal_iff _ _ _ _ _ v).mp hv
+    exact (mem_genIdeal_iff _ _ _ _ _ _).mpr
+      ⟨addAt_mem_nc h huR hvR,
+        fun I hIP hI hSI => ideal_add hI (hu' I hIP hI hSI) (hv' I hIP hI hSI)⟩
+  · intro u hu
+    obtain ⟨huR, hu'⟩ := (mem_genIdeal_iff _ _ _ _ _ u).mp hu
+    refine ⟨ringNeg R add zero u, (mem_genIdeal_iff _ _ _ _ _ _).mpr
+      ⟨ringNeg_mem_nc h huR,
+        fun I hIP hI hSI => ideal_neg_mem_nc h hI (hu' I hIP hI hSI)⟩,
+      ringAdd_neg_nc h huR⟩
+  · intro r hr u hu
+    obtain ⟨huR, hu'⟩ := (mem_genIdeal_iff _ _ _ _ _ u).mp hu
+    exact (mem_genIdeal_iff _ _ _ _ _ _).mpr
+      ⟨mulAt_mem_nc h hr huR,
+        fun I hIP hI hSI => ideal_absorbs hI hr (hu' I hIP hI hSI)⟩
+
+
+#print axioms Algebra.isIdeal_genIdeal_nc
+
 /-! ## The product of two ideals -/
 
 /-- The products `ab` with `a ∈ I` and `b ∈ J`, before any sums are taken --
 `pairwiseOp` at the multiplication. -/
 def idealProdGens (R mul I J : ZFSet.{u}) : ZFSet.{u} := pairwiseOp R mul I J
 
+theorem mem_idealProdGens_iff (R mul I J w : ZFSet.{u}) :
+    w ∈ idealProdGens R mul I J ↔
+      w ∈ R ∧ ∃ a, a ∈ I ∧ ∃ b, b ∈ J ∧ w = opAt mul a b :=
+  mem_pairwiseOp_iff _ _ _ _ _
+
 /-- `I · J`. -/
 def idealProd (R add mul zero I J : ZFSet.{u}) : ZFSet.{u} :=
   genIdeal R add mul zero (idealProdGens R mul I J)
+
+/-- A product of ideals is an ideal, over the non-commutative base --
+immediately, since it IS the ideal generated by the pairwise products. -/
+theorem isIdeal_idealProd_nc {R add mul zero one I J : ZFSet.{u}}
+    (h : IsRingNC R add mul zero one) :
+    IsIdeal (idealProd R add mul zero I J) R add mul zero :=
+  isIdeal_genIdeal_nc h
+
+#print axioms Algebra.isIdeal_idealProd_nc
+
+theorem isIdeal_idealProd {R add mul zero one I J : ZFSet.{u}}
+    (h : IsRing R add mul zero one) :
+    IsIdeal (idealProd R add mul zero I J) R add mul zero :=
+  isIdeal_idealProd_nc h.toNC
+
+/-- Commutativity of the product, which the class group needs to be a
+monoid. The generator sets are equal, so the generated ideals are. -/
+theorem idealProdGens_comm {R add mul zero one I J : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero) :
+    idealProdGens R mul I J = idealProdGens R mul J I := by
+  refine ext _ _ (fun w => ⟨fun hw => ?_, fun hw => ?_⟩)
+  · obtain ⟨hwR, a, ha, b, hb, rfl⟩ := (mem_idealProdGens_iff _ _ _ _ w).mp hw
+    exact (mem_idealProdGens_iff _ _ _ _ _).mpr
+      ⟨hwR, b, hb, a, ha, h.mulComm a (ideal_subset hI _ ha) b (ideal_subset hJ _ hb)⟩
+  · obtain ⟨hwR, b, hb, a, ha, rfl⟩ := (mem_idealProdGens_iff _ _ _ _ w).mp hw
+    exact (mem_idealProdGens_iff _ _ _ _ _).mpr
+      ⟨hwR, a, ha, b, hb, h.mulComm b (ideal_subset hJ _ hb) a (ideal_subset hI _ ha)⟩
+
+theorem idealProd_comm {R add mul zero one I J : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero) :
+    idealProd R add mul zero I J = idealProd R add mul zero J I := by
+  unfold idealProd
+  rw [idealProdGens_comm h hI hJ]
+
+/-! ## Principal ideals multiply the way their generators do
+
+`(a)·(b) = (ab)`, so the principal ideals are a SUBMONOID of the ideals under
+multiplication, which is the quotient the class group takes. The whole route
+turns on it, and it is two containments. -/
+
+theorem idealProd_ringMultiples {R add mul zero one a b : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) :
+    idealProd R add mul zero (ringMultiples R mul a) (ringMultiples R mul b)
+      = ringMultiples R mul (opAt mul a b) := by
+  have hab : opAt mul a b ∈ R := mulAt_mem h ha hb
+  refine ext _ _ (fun w => ⟨fun hw => ?_, fun hw => ?_⟩)
+  · -- every generator `(ay)(bz)` is `(ab)(yz)`, so the generated ideal is inside
+    refine genIdeal_le (isIdeal_ringMultiples h hab) ?_ w hw
+    intro g hg
+    obtain ⟨hgR, u, hu, v, hv, rfl⟩ := (mem_idealProdGens_iff _ _ _ _ g).mp hg
+    obtain ⟨huR, y, hy, rfl⟩ := (mem_ringMultiples_iff _ _ _ u).mp hu
+    obtain ⟨hvR, z, hz, rfl⟩ := (mem_ringMultiples_iff _ _ _ v).mp hv
+    refine (mem_ringMultiples_iff _ _ _ _).mpr ⟨hgR, opAt mul y z, mulAt_mem h hy hz, ?_⟩
+    -- `(a·y)·(b·z) = (a·b)·(y·z)`, by associativity and commutativity alone
+    rw [h.mulAssoc a ha y hy (opAt mul b z) (mulAt_mem h hb hz),
+      ← h.mulAssoc y hy b hb z hz, h.mulComm y hy b hb,
+      h.mulAssoc b hb y hy z hz,
+      ← h.mulAssoc a ha b hb (opAt mul y z) (mulAt_mem h hy hz)]
+  · -- and `ab` is a generator, so the ideal it generates is inside the product
+    obtain ⟨hwR, y, hy, rfl⟩ := (mem_ringMultiples_iff _ _ _ w).mp hw
+    rw [h.mulComm (opAt mul a b) hab y hy]
+    refine ideal_absorbs (isIdeal_idealProd (I := ringMultiples R mul a)
+      (J := ringMultiples R mul b) h) hy ?_
+    refine subset_genIdeal (fun g hg => ((mem_idealProdGens_iff _ _ _ _ g).mp hg).left)
+      _ ?_
+    exact (mem_idealProdGens_iff _ _ _ _ _).mpr
+      ⟨hab, a, mem_ringMultiples_self h ha, b, mem_ringMultiples_self h hb, rfl⟩
+
+/-! ## Associativity
+
+The last monoid clause, and the only one that needs a construction of its own.
+The generators of `(I·J)·K` are `u·c` with `u` in `I·J`, and `u` is not a
+product -- it is an arbitrary member of a GENERATED ideal, so there is nothing
+to take apart. -/
+
+/-- The `u` that multiply `c` into `T`. An ideal whenever `T` is. -/
+def idealTransport (R mul T c : ZFSet.{u}) : ZFSet.{u} :=
+  sep (fun u => opAt mul u c ∈ T) R
+
+theorem mem_idealTransport_iff (R mul T c u : ZFSet.{u}) :
+    u ∈ idealTransport R mul T c ↔ u ∈ R ∧ opAt mul u c ∈ T :=
+  mem_sep_iff _ _ _
+
+theorem isIdeal_idealTransport {R add mul zero one T c : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (hT : IsIdeal T R add mul zero) (hc : c ∈ R) :
+    IsIdeal (idealTransport R mul T c) R add mul zero := by
+  refine ⟨fun u hu => ((mem_idealTransport_iff _ _ _ _ u).mp hu).left, ?_, ?_, ?_, ?_⟩
+  · refine (mem_idealTransport_iff _ _ _ _ _).mpr ⟨h.addGroup.mem_e, ?_⟩
+    rw [h.mulComm zero h.addGroup.mem_e c hc, mul_zero_of_isRing h hc]
+    exact ideal_mem_zero hT
+  · intro u hu v hv
+    obtain ⟨huR, hu'⟩ := (mem_idealTransport_iff _ _ _ _ u).mp hu
+    obtain ⟨hvR, hv'⟩ := (mem_idealTransport_iff _ _ _ _ v).mp hv
+    refine (mem_idealTransport_iff _ _ _ _ _).mpr ⟨addAt_mem h huR hvR, ?_⟩
+    rw [h.mulComm (opAt add u v) (addAt_mem h huR hvR) c hc,
+      h.distrib c hc u huR v hvR, h.mulComm c hc u huR, h.mulComm c hc v hvR]
+    exact ideal_add hT hu' hv'
+  · intro u hu
+    obtain ⟨huR, hu'⟩ := (mem_idealTransport_iff _ _ _ _ u).mp hu
+    refine ⟨ringNeg R add zero u, (mem_idealTransport_iff _ _ _ _ _).mpr
+      ⟨ringNeg_mem h huR, ?_⟩, ringAdd_neg h huR⟩
+    rw [h.mulComm (ringNeg R add zero u) (ringNeg_mem h huR) c hc,
+      ringMul_neg h hc huR, h.mulComm c hc u huR]
+    exact ideal_neg_mem h hT hu'
+  · intro r hr u hu
+    obtain ⟨huR, hu'⟩ := (mem_idealTransport_iff _ _ _ _ u).mp hu
+    refine (mem_idealTransport_iff _ _ _ _ _).mpr ⟨mulAt_mem h hr huR, ?_⟩
+    rw [h.mulAssoc r hr u huR c hc]
+    exact ideal_absorbs hT hr hu'
+
+/-- One direction of associativity, for every triple. The other follows from
+it by commutativity, applied to the reversed triple. -/
+theorem idealProd_assoc_le {R add mul zero one I J K : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero)
+    (hK : IsIdeal K R add mul zero) :
+    idealProd R add mul zero (idealProd R add mul zero I J) K
+      ⊆ idealProd R add mul zero I (idealProd R add mul zero J K) := by
+  refine genIdeal_le (isIdeal_idealProd h) ?_
+  intro g hg
+  obtain ⟨hgR, u, hu, c, hc, rfl⟩ := (mem_idealProdGens_iff _ _ _ _ g).mp hg
+  have hcR : c ∈ R := ideal_subset hK _ hc
+  -- `u` lies in the transporter, because every generator of `I·J` does
+  have hstep : idealProd R add mul zero I J
+      ⊆ idealTransport R mul (idealProd R add mul zero I (idealProd R add mul zero J K)) c := by
+    refine genIdeal_le (isIdeal_idealTransport h (isIdeal_idealProd h) hcR) ?_
+    intro w hw
+    obtain ⟨hwR, a, ha, b, hb, rfl⟩ := (mem_idealProdGens_iff _ _ _ _ w).mp hw
+    have haR : a ∈ R := ideal_subset hI _ ha
+    have hbR : b ∈ R := ideal_subset hJ _ hb
+    refine (mem_idealTransport_iff _ _ _ _ _).mpr ⟨hwR, ?_⟩
+    rw [h.mulAssoc a haR b hbR c hcR]
+    -- `a·(bc)` is a generator of `I·(J·K)`, since `bc` is one of `J·K`
+    refine subset_genIdeal (fun q hq => ((mem_idealProdGens_iff _ _ _ _ q).mp hq).left)
+      _ ((mem_idealProdGens_iff _ _ _ _ _).mpr
+        ⟨mulAt_mem h haR (mulAt_mem h hbR hcR), a, ha, opAt mul b c, ?_, rfl⟩)
+    exact subset_genIdeal (fun q hq => ((mem_idealProdGens_iff _ _ _ _ q).mp hq).left)
+      _ ((mem_idealProdGens_iff _ _ _ _ _).mpr
+        ⟨mulAt_mem h hbR hcR, b, hb, c, hc, rfl⟩)
+  exact ((mem_idealTransport_iff _ _ _ _ u).mp (hstep _ hu)).right
+
+/-- Associativity. -/
+theorem idealProd_assoc {R add mul zero one I J K : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero)
+    (hK : IsIdeal K R add mul zero) :
+    idealProd R add mul zero (idealProd R add mul zero I J) K
+      = idealProd R add mul zero I (idealProd R add mul zero J K) := by
+  refine ext _ _ (fun w => ⟨fun hw => idealProd_assoc_le h hI hJ hK w hw, fun hw => ?_⟩)
+  -- the reversed triple, moved into place by three commutations
+  have hrev := idealProd_assoc_le h hK hJ hI
+  rw [idealProd_comm h hK hJ, idealProd_comm h (isIdeal_idealProd h) hI,
+    idealProd_comm h hJ hI, idealProd_comm h hK (isIdeal_idealProd h)] at hrev
+  exact hrev w hw
 
 /-! ## The uniformizer layer
 
 Lemmas about a uniformizer, general over `IsRing`. -/
 
+/-- `I ~ J`: some non-zero principal multiple of each agree. -/
+def IdealEquiv (R add mul zero I J : ZFSet.{u}) : Prop :=
+  ∃ a, a ∈ R ∧ a ≠ zero ∧ ∃ b, b ∈ R ∧ b ≠ zero ∧
+    idealProd R add mul zero (ringMultiples R mul a) I
+      = idealProd R add mul zero (ringMultiples R mul b) J
+
+/-- Transitive, and this is the only clause that needs the domain. The two
+scalings compose by multiplying their factors, so the composite factor is
+non-zero exactly when the ring has no zero divisors. -/
+theorem idealEquiv_trans {R add mul zero one I J K : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hdomNe : ∀ x, x ∈ R -> ∀ y, y ∈ R -> x ≠ zero -> y ≠ zero -> opAt mul x y ≠ zero)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero)
+    (hK : IsIdeal K R add mul zero)
+    (hIJ : IdealEquiv R add mul zero I J) (hJK : IdealEquiv R add mul zero J K) :
+    IdealEquiv R add mul zero I K := by
+  obtain ⟨a, haR, ha0, b, hbR, hb0, hab⟩ := hIJ
+  obtain ⟨c, hcR, hc0, d, hdR, hd0, hcd⟩ := hJK
+  refine ⟨opAt mul c a, mulAt_mem h hcR haR, hdomNe c hcR a haR hc0 ha0,
+    opAt mul b d, mulAt_mem h hbR hdR, hdomNe b hbR d hdR hb0 hd0, ?_⟩
+  -- `(ca)I = c(aI) = c(bJ) = b(cJ) = b(dK) = (bd)K`, all by the monoid laws
+  have hIa := isIdeal_ringMultiples h haR
+  have hIb := isIdeal_ringMultiples h hbR
+  have hIc := isIdeal_ringMultiples h hcR
+  have hId := isIdeal_ringMultiples h hdR
+  calc idealProd R add mul zero (ringMultiples R mul (opAt mul c a)) I
+      = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul c) (ringMultiples R mul a)) I := by
+        rw [idealProd_ringMultiples h hcR haR]
+    _ = idealProd R add mul zero (ringMultiples R mul c)
+          (idealProd R add mul zero (ringMultiples R mul a) I) :=
+        idealProd_assoc h hIc hIa hI
+    _ = idealProd R add mul zero (ringMultiples R mul c)
+          (idealProd R add mul zero (ringMultiples R mul b) J) := by rw [hab]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul c) (ringMultiples R mul b)) J :=
+        (idealProd_assoc h hIc hIb hJ).symm
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul c)) J := by
+        rw [idealProd_comm h hIc hIb]
+    _ = idealProd R add mul zero (ringMultiples R mul b)
+          (idealProd R add mul zero (ringMultiples R mul c) J) :=
+        idealProd_assoc h hIb hIc hJ
+    _ = idealProd R add mul zero (ringMultiples R mul b)
+          (idealProd R add mul zero (ringMultiples R mul d) K) := by rw [hcd]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul d)) K :=
+        (idealProd_assoc h hIb hId hK).symm
+    _ = idealProd R add mul zero (ringMultiples R mul (opAt mul b d)) K := by
+        rw [idealProd_ringMultiples h hbR hdR]
+
 /-- A regular element: one that kills nothing but zero. The per-element form
 of the domain condition, which `IsCancellative` states globally. -/
 def IsRegularElt (R mul zero a : ZFSet.{u}) : Prop :=
   ∀ x, x ∈ R → opAt mul a x = zero → x = zero
+
+/-- A product of regular elements is regular, with NO domain hypothesis.
+
+This is the whole content: the domain hypothesis is spent in `idealEquiv_trans` on exactly two
+obligations, `c·a ≠ zero` and `b·d ≠ zero`, and regularity composes where
+nonzeroness does not. -/
+theorem isRegularElt_mul {R add mul zero one a b : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R)
+    (hra : IsRegularElt R mul zero a) (hrb : IsRegularElt R mul zero b) :
+    IsRegularElt R mul zero (opAt mul a b) := by
+  intro x hx hzero
+  refine hrb x hx (hra _ (mulAt_mem h hb hx) ?_)
+  rwa [← h.mulAssoc _ ha _ hb _ hx]
+
+/-- `I ~ J` with the scaling factors REGULAR rather than merely nonzero. -/
+def IdealEquivReg (R add mul zero I J : ZFSet.{u}) : Prop :=
+  ∃ a, a ∈ R ∧ IsRegularElt R mul zero a ∧ ∃ b, b ∈ R ∧ IsRegularElt R mul zero b ∧
+    idealProd R add mul zero (ringMultiples R mul a) I
+      = idealProd R add mul zero (ringMultiples R mul b) J
+
+/-- TRANSITIVITY WITHOUT A DOMAIN HYPOTHESIS.
+
+`idealEquiv_trans` takes the domain hypothesis and spends it on exactly two obligations --
+`c·a ≠ zero` and `b·d ≠ zero` -- because a product of nonzero elements need not
+be nonzero. Regularity composes on its own (`isRegularElt_mul`), so the same
+calc chain goes through with no hypothesis on the ring beyond being a ring.
+
+The domain condition over the whole ideal-class layer is an artefact of how
+the equivalence is DEFINED, not of the mathematics. -/
+theorem idealEquivReg_trans {R add mul zero one I J K : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero)
+    (hK : IsIdeal K R add mul zero)
+    (hIJ : IdealEquivReg R add mul zero I J)
+    (hJK : IdealEquivReg R add mul zero J K) :
+    IdealEquivReg R add mul zero I K := by
+  obtain ⟨a, haR, ha0, b, hbR, hb0, hab⟩ := hIJ
+  obtain ⟨c, hcR, hc0, d, hdR, hd0, hcd⟩ := hJK
+  refine ⟨opAt mul c a, mulAt_mem h hcR haR, isRegularElt_mul h hcR haR hc0 ha0,
+    opAt mul b d, mulAt_mem h hbR hdR, isRegularElt_mul h hbR hdR hb0 hd0, ?_⟩
+  have hIa := isIdeal_ringMultiples h haR
+  have hIb := isIdeal_ringMultiples h hbR
+  have hIc := isIdeal_ringMultiples h hcR
+  have hId := isIdeal_ringMultiples h hdR
+  calc idealProd R add mul zero (ringMultiples R mul (opAt mul c a)) I
+      = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul c) (ringMultiples R mul a)) I := by
+        rw [idealProd_ringMultiples h hcR haR]
+    _ = idealProd R add mul zero (ringMultiples R mul c)
+          (idealProd R add mul zero (ringMultiples R mul a) I) :=
+        idealProd_assoc h hIc hIa hI
+    _ = idealProd R add mul zero (ringMultiples R mul c)
+          (idealProd R add mul zero (ringMultiples R mul b) J) := by rw [hab]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul c) (ringMultiples R mul b)) J :=
+        (idealProd_assoc h hIc hIb hJ).symm
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul c)) J := by
+        rw [idealProd_comm h hIc hIb]
+    _ = idealProd R add mul zero (ringMultiples R mul b)
+          (idealProd R add mul zero (ringMultiples R mul c) J) :=
+        idealProd_assoc h hIb hIc hJ
+    _ = idealProd R add mul zero (ringMultiples R mul b)
+          (idealProd R add mul zero (ringMultiples R mul d) K) := by rw [hcd]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul d)) K :=
+        (idealProd_assoc h hIb hId hK).symm
+    _ = idealProd R add mul zero (ringMultiples R mul (opAt mul b d)) K := by
+        rw [idealProd_ringMultiples h hbR hdR]
+
+/-- The converse costs a DECISION, and that is the measurement.
+
+the domain hypothesis is stated in the NEGATIVE form -- nonzero times nonzero is nonzero -- so
+from `a · x = zero` and `a ≠ zero` it yields `¬ ¬ (x = zero)` and stops there.
+Concluding `x = zero` is double-negation elimination at equality in `R`.
+
+So regularity is strictly STRONGER than the domain hypothesis plus nonzero, constructively,
+and the two coincide only where equality is decidable. Classically the
+distinction vanishes, so the domain form reads as the natural one. -/
+theorem isRegularElt_of_ne_zero {R mul zero a : ZFSet.{u}}
+    (hdomNe : ∀ x, x ∈ R -> ∀ y, y ∈ R -> x ≠ zero -> y ≠ zero -> opAt mul x y ≠ zero)
+    (hdec : DecidableVanishing R zero)
+    (ha : a ∈ R) (ha0 : a ≠ zero) : IsRegularElt R mul zero a := by
+  intro x hx hzero
+  rcases hdec x hx with h | h
+  · exact h
+  · exact absurd hzero (hdomNe a ha x hx ha0 h)
+
+/-- A LEFT inverse makes an element regular, over the non-commutative
+base.
+
+`isRegularElt_of_inverse` asks for `a·b = 1` and commutes it into `b·a = 1`.
+Without commutativity those are different hypotheses and only the second is
+usable: from `a·x = 0`, multiplying on the LEFT by `b` gives
+`(b·a)·x = b·0 = 0`, so `x = 0` needs `b·a = 1`. A right inverse alone says
+nothing, so the hypothesis here is the mirrored one rather than the
+original.
+
+That makes this a different theorem from its commutative ancestor, not a
+weakening of it -- the two coincide exactly when the sides do. -/
+theorem isRegularElt_of_leftInverse_nc {R add mul zero one a b : ZFSet.{u}}
+    (h : IsRingNC R add mul zero one) (ha : a ∈ R) (hb : b ∈ R)
+    (hinv : opAt mul b a = one) : IsRegularElt R mul zero a := by
+  intro x hx hzero
+  calc x = opAt mul one x := (h.one_mul _ hx).symm
+    _ = opAt mul (opAt mul b a) x := by rw [hinv]
+    _ = opAt mul b (opAt mul a x) := h.mulAssoc _ hb _ ha _ hx
+    _ = opAt mul b zero := by rw [hzero]
+    _ = zero := mul_zero_of_isRingNC h hb
+
+#print axioms Algebra.isRegularElt_of_leftInverse_nc
+
+/-- An invertible element is regular, with no hypothesis on the ring beyond
+being one: `a · x = zero` gives `x = (b·a)·x = b·(a·x) = zero`.
+
+This is how regularity is SUPPLIED rather than assumed. `IsConstructiveField`
+hands an inverse from `apart zero a`, so over such a ring every element apart
+from zero is regular and the class relation's multipliers cost nothing. -/
+theorem isRegularElt_of_inverse {R add mul zero one a b : ZFSet.{u}}
+    (h : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R)
+    (hinv : opAt mul a b = one) : IsRegularElt R mul zero a := by
+  -- commuting turns the right inverse into the left one the NC proof needs
+  refine isRegularElt_of_leftInverse_nc h.toNC ha hb ?_
+  rw [h.mulComm _ hb _ ha]; exact hinv
+
+/-- Over a constructive field, apartness from zero gives regularity. -/
+theorem isRegularElt_of_apart {R add mul zero one a : ZFSet.{u}}
+    {apart : ZFSet.{u} → ZFSet.{u} → Prop}
+    (hK : IsConstructiveField R add mul zero one apart)
+    (ha : a ∈ R) (hap : apart zero a) : IsRegularElt R mul zero a := by
+  obtain ⟨b, hb, hinv⟩ := hK.inverses a ha hap
+  exact isRegularElt_of_inverse hK.ring ha hb hinv
+
+
+
+/-! ## The product descends to classes
+
+`IdealEquiv` is a CONGRUENCE for `idealProd`, so the class set is a monoid
+rather than merely a set of classes. Everything is the four-way shuffle: the
+two scalings on the left and the two ideals on the right change places, by
+associativity and commutativity alone. -/
+
+/-- `(A·B)·(C·D) = (A·C)·(B·D)`, the ideal form of `ringAdd_shuffle_pair`. -/
+theorem idealProd_shuffle {R add mul zero one A B C D : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hA : IsIdeal A R add mul zero) (hB : IsIdeal B R add mul zero)
+    (hC : IsIdeal C R add mul zero) (hD : IsIdeal D R add mul zero) :
+    idealProd R add mul zero (idealProd R add mul zero A B)
+        (idealProd R add mul zero C D)
+      = idealProd R add mul zero (idealProd R add mul zero A C)
+          (idealProd R add mul zero B D) := by
+  rw [idealProd_assoc h hA hB (isIdeal_idealProd h),
+    ← idealProd_assoc h hB hC hD, idealProd_comm h hB hC,
+    idealProd_assoc h hC hB hD,
+    ← idealProd_assoc h hA hC (isIdeal_idealProd h)]
+
+/-- The product respects the class relation. Given `I ~ I'` and `J ~ J'`,
+the composite scalings are `ca` and `bd`, exactly as in transitivity -- so this
+needs the domain for the same reason and no other. -/
+theorem idealEquiv_prod {R add mul zero one I I' J J' : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hdomNe : ∀ x, x ∈ R -> ∀ y, y ∈ R -> x ≠ zero -> y ≠ zero -> opAt mul x y ≠ zero)
+    (hI : IsIdeal I R add mul zero) (hI' : IsIdeal I' R add mul zero)
+    (hJ : IsIdeal J R add mul zero) (hJ' : IsIdeal J' R add mul zero)
+    (hii : IdealEquiv R add mul zero I I') (hjj : IdealEquiv R add mul zero J J') :
+    IdealEquiv R add mul zero (idealProd R add mul zero I J)
+      (idealProd R add mul zero I' J') := by
+  obtain ⟨a, haR, ha0, b, hbR, hb0, hab⟩ := hii
+  obtain ⟨c, hcR, hc0, d, hdR, hd0, hcd⟩ := hjj
+  refine ⟨opAt mul a c, mulAt_mem h haR hcR, hdomNe a haR c hcR ha0 hc0,
+    opAt mul b d, mulAt_mem h hbR hdR, hdomNe b hbR d hdR hb0 hd0, ?_⟩
+  have hIa := isIdeal_ringMultiples h haR
+  have hIb := isIdeal_ringMultiples h hbR
+  have hIc := isIdeal_ringMultiples h hcR
+  have hId := isIdeal_ringMultiples h hdR
+  calc idealProd R add mul zero (ringMultiples R mul (opAt mul a c))
+          (idealProd R add mul zero I J)
+      = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul a) (ringMultiples R mul c))
+          (idealProd R add mul zero I J) := by rw [idealProd_ringMultiples h haR hcR]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul a) I)
+          (idealProd R add mul zero (ringMultiples R mul c) J) :=
+        idealProd_shuffle h hIa hIc hI hJ
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) I')
+          (idealProd R add mul zero (ringMultiples R mul d) J') := by rw [hab, hcd]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul d))
+          (idealProd R add mul zero I' J') :=
+        idealProd_shuffle h hIb hI' hId hJ'
+    _ = idealProd R add mul zero (ringMultiples R mul (opAt mul b d))
+          (idealProd R add mul zero I' J') := by rw [idealProd_ringMultiples h hbR hdR]
+
+
+
+
+
+/-! ## Cancellation: what the monoid laws give, and where they stop
+
+`(a)·I = (a)·J` does not yield `I = J` from the monoid laws alone.
+
+The general case needs `(a)` to have an INVERSE among the ideals, and a
+commutative monoid does not supply inverses. That is ideal invertibility, a
+Dedekind-domain property, and it is the missing step between *the identity class
+contains the principal ideals* and the identity class consists of them. -/
+
+/-- The product congruence, with no domain hypothesis.
+
+`idealEquiv_prod` takes the domain hypothesis and spends it in the same place `idealEquiv_trans`
+does -- on `a·c ≠ zero` and `b·d ≠ zero`, the composed multipliers. So the
+class MONOID, and not merely the class relation, is constructible over any
+commutative ring once the scaling factors are regular. -/
+theorem idealEquivReg_prod {R add mul zero one I I' J J' : ZFSet.{u}}
+    (h : IsRing R add mul zero one)
+    (hI : IsIdeal I R add mul zero) (hI' : IsIdeal I' R add mul zero)
+    (hJ : IsIdeal J R add mul zero) (hJ' : IsIdeal J' R add mul zero)
+    (hii : IdealEquivReg R add mul zero I I')
+    (hjj : IdealEquivReg R add mul zero J J') :
+    IdealEquivReg R add mul zero (idealProd R add mul zero I J)
+      (idealProd R add mul zero I' J') := by
+  obtain ⟨a, haR, ha0, b, hbR, hb0, hab⟩ := hii
+  obtain ⟨c, hcR, hc0, d, hdR, hd0, hcd⟩ := hjj
+  refine ⟨opAt mul a c, mulAt_mem h haR hcR, isRegularElt_mul h haR hcR ha0 hc0,
+    opAt mul b d, mulAt_mem h hbR hdR, isRegularElt_mul h hbR hdR hb0 hd0, ?_⟩
+  have hIa := isIdeal_ringMultiples h haR
+  have hIb := isIdeal_ringMultiples h hbR
+  have hIc := isIdeal_ringMultiples h hcR
+  have hId := isIdeal_ringMultiples h hdR
+  calc idealProd R add mul zero (ringMultiples R mul (opAt mul a c))
+          (idealProd R add mul zero I J)
+      = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul a) (ringMultiples R mul c))
+          (idealProd R add mul zero I J) := by rw [idealProd_ringMultiples h haR hcR]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul a) I)
+          (idealProd R add mul zero (ringMultiples R mul c) J) :=
+        idealProd_shuffle h hIa hIc hI hJ
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) I')
+          (idealProd R add mul zero (ringMultiples R mul d) J') := by rw [hab, hcd]
+    _ = idealProd R add mul zero
+          (idealProd R add mul zero (ringMultiples R mul b) (ringMultiples R mul d))
+          (idealProd R add mul zero I' J') :=
+        idealProd_shuffle h hIb hI' hId hJ'
+    _ = idealProd R add mul zero (ringMultiples R mul (opAt mul b d))
+          (idealProd R add mul zero I' J') := by rw [idealProd_ringMultiples h hbR hdR]
 
 /-! ## Invertibility, and the one hypothesis that makes the monoid a group
 
@@ -1682,10 +2374,48 @@ def IsInvertibleIdeal (R add mul zero I : ZFSet.{u}) : Prop :=
     idealProd R add mul zero I J = ringMultiples R mul c
 
 #print axioms pairwiseOp
+#print axioms mem_pairwiseOp_iff
 #print axioms idealSum
 #print axioms genIdeal
+#print axioms genIdeal_le
 #print axioms idealProd
+#print axioms isIdeal_idealProd
+#print axioms idealProd_assoc
+#print axioms idealProd_comm
+#print axioms idealProd_ringMultiples
+#print axioms idealTransport
+#print axioms isIdeal_idealTransport
+#print axioms IdealEquiv
+#print axioms idealEquiv_trans
+#print axioms idealEquiv_prod
 #print axioms IsInvertibleIdeal
+/-! ## Deciding equality, and a cofactor that blocks divisibility -/
+
+/-- Regularity survives negation, since `-1` is a unit. -/
+theorem isRegularElt_ringNeg {R add mul zero one a : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (ha : a ∈ R)
+    (hreg : IsRegularElt R mul zero a) :
+    IsRegularElt R mul zero (ringNeg R add zero a) := by
+  intro x hx hzero
+  refine hreg x hx ?_
+  rw [ringNeg_mul hR ha hx] at hzero
+  have hback := ringNeg_neg hR (mulAt_mem hR ha hx)
+  rw [hzero, ringNeg_zero hR] at hback
+  exact hback.symm
+
+/-- Regularity from non-vanishing, at stability rather than a decision.
+
+The decision here was the proof method's silhouette: one branch uses only the
+equality and the other is refuted, so nothing is found and nothing needs
+deciding. `IsRegularElt` is a universal over an implication ending in an
+equation, which is the shape stability survives. -/
+theorem isRegularElt_of_ne_zero_stable {R mul zero a : ZFSet.{u}}
+    (hdomNe : ∀ x, x ∈ R -> ∀ y, y ∈ R -> x ≠ zero -> y ≠ zero -> opAt mul x y ≠ zero)
+    (hst : StableVanishing R zero)
+    (ha : a ∈ R) (ha0 : a ≠ zero) : IsRegularElt R mul zero a := by
+  intro x hx hzero
+  exact hst x hx (fun h => absurd hzero (hdomNe a ha x hx ha0 h))
+
 /-! ### What a Bezout pair does to a vector
 
 Row 1870. The identity is a statement about matrices; the decomposition needs
@@ -1748,6 +2478,7 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 
 #print axioms powerList_subset_ring
 
+#print axioms constructiveField_inverses
 #print axioms mulAt_mem
 #print axioms ideal_subset
 #print axioms ideal_mem_zero
@@ -1755,6 +2486,7 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 #print axioms ideal_inverse
 #print axioms ideal_absorbs
 #print axioms mul_zero_of_isRing
+#print axioms mem_units_iff
 #print axioms addAt_mem
 #print axioms ringAdd_assoc
 #print axioms ringAdd_comm
@@ -1763,7 +2495,9 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 #print axioms ringAdd_left_comm
 #print axioms ringZero_mul
 #print axioms ringOne_mul
+#print axioms ringMul_left_comm
 #print axioms ringRight_distrib
+#print axioms ringAdd_shuffle
 #print axioms ringNeg_mem
 #print axioms ringNeg_add
 #print axioms ringAdd_neg
@@ -1784,13 +2518,17 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 #print axioms ringPow_def
 #print axioms ringNsmul_mem
 #print axioms ringNsmul_succ
+#print axioms ringNsmul_one_eq
 #print axioms ringNsmul_sum
 #print axioms ringPow_mem
 #print axioms ringPow_succ
 #print axioms ringPow_add
 #print axioms ringOne_pow
 #print axioms ringNeg_eq_of_add_zero
+#print axioms ringSub_add_cancel
 #print axioms ringAdd_sub_cancel
+#print axioms eq_of_ringSub_zero
+#print axioms ringMul_add_add
 #print axioms ringMul_shuffle_pair
 #print axioms ringPow_mul
 #print axioms ringMul_sub
@@ -1814,11 +2552,28 @@ theorem powerList_subset_ring {R add mul zero one x : ZFSet.{u}}
 #print axioms ringNeg_zero
 #print axioms ringSub_zero
 #print axioms cls_eq_zero_iff
+#print axioms mem_unitsOf_iff
 #print axioms mem_ringMultiples_self
+#print axioms mem_genIdeal_iff
+#print axioms subset_genIdeal
+#print axioms mem_idealProdGens_iff
+#print axioms idealProdGens_comm
+#print axioms mem_idealTransport_iff
+#print axioms idealProd_assoc_le
+#print axioms idealProd_shuffle
 #print axioms opAt_restrictLeft_bridge
 end Algebra
 #print axioms Algebra.IsRegularElt
+#print axioms Algebra.isRegularElt_mul
+#print axioms Algebra.isRegularElt_of_inverse
+#print axioms Algebra.isRegularElt_of_apart
+#print axioms Algebra.isRegularElt_of_ne_zero
+#print axioms Algebra.IdealEquivReg
+#print axioms Algebra.idealEquivReg_trans
+#print axioms Algebra.idealEquivReg_prod
+#print axioms Algebra.isRegularElt_ringNeg
 #print axioms Algebra.StableVanishing
+#print axioms Algebra.isRegularElt_of_ne_zero_stable
 namespace ZFSet
-export Algebra (DecidableVanishing IsCommSemiring IsEmbedding IsField IsIdeal IsInvertibleIdeal IsPrimeIdeal IsRegularElt IsRing IsRingHom IsRingNC IsSemiring IsSubring StableVanishing addAt_mem addAt_mem_nc addAt_mem_semi cls_eq_zero_iff decidableVanishing_imageIn_of_embedding field_mul_eq_zero genIdeal gpow_zero_eq_zero hom_add hom_add' hom_app_mem hom_mul hom_mul' hom_neg hom_nsmul hom_one hom_pow hom_zero idealProd idealProdGens idealRel idealSum ideal_absorbs ideal_add ideal_inverse ideal_mem_zero ideal_neg_mem ideal_neg_mem_nc ideal_subset imageIn_id isCommSemiring_of_isRing isCongruence_idealRel_add isCongruence_idealRel_add_nc isCongruence_idealRel_mul isEmbedding_id isField_imageIn_of_embedding isField_of_finite_domain isField_quotient_of_prime isIdeal_ringMultiples isRingHom_id isRing_congQuotient isRing_quotientByIdeal isRing_subring isSubring_imageIn isSubring_imageIn_of_subring mem_ringMultiples_iff mem_ringMultiples_self mulAt_mem mulAt_mem_nc mulAt_mem_semi mul_zero_of_isRing mul_zero_of_isRingNC natIn opAt_restrictLeft_of_isSubring opAt_subring_add opAt_subring_mul opair_mem_idealRel_iff pairwiseOp powerList_subset_ring ringAdd_assoc ringAdd_assoc_nc ringAdd_comm ringAdd_comm_nc ringAdd_left_comm ringAdd_neg ringAdd_neg_nc ringAdd_shuffle_pair ringAdd_shuffle_pair_nc ringAdd_sub_cancel ringAdd_zero ringAdd_zero_nc ringMul_neg ringMul_neg_nc ringMul_shuffle_pair ringMul_sub ringMultiples ringNeg ringNegOne_mul ringNegOne_mul_nc ringNegOne_pow ringNeg_add ringNeg_addAt ringNeg_addAt_nc ringNeg_add_nc ringNeg_eq_of_add_zero ringNeg_mem ringNeg_mem_nc ringNeg_mul ringNeg_mul_nc ringNeg_neg ringNeg_neg_nc ringNeg_zero ringNeg_zero_nc ringNsmul ringNsmul_add ringNsmul_def ringNsmul_mem ringNsmul_mem_semi ringNsmul_mul ringNsmul_mul_semi ringNsmul_succ ringNsmul_sum ringNsmul_sum_semi ringNsmul_zero ringOne_mul ringOne_mul_nc ringOne_pow ringPow ringPow_add ringPow_def ringPow_mem ringPow_mem_semi ringPow_mul ringPow_succ ringRight_distrib ringRight_distrib_nc ringSub ringSub_addAt_nc ringSub_def ringSub_eq_zero_iff ringSub_mem ringSub_mem_nc ringSub_mul ringSub_mulAt ringSub_self ringSub_self_nc ringSub_swap ringSub_swap_nc ringSub_trans ringSub_trans_nc ringSub_zero ringZero_add ringZero_add_nc ringZero_mul stableVanishing_of_decidableVanishing units zero_mul_of_isRingNC)
+export Algebra (DecidableVanishing IdealEquiv IdealEquivReg IsCommSemiring IsConstructiveField IsEmbedding IsField IsIdeal IsInvertibleIdeal IsPrimeIdeal IsRegularElt IsRing IsRingHom IsRingNC IsSemiring IsSubring StableVanishing addAt_mem addAt_mem_nc addAt_mem_semi cls_eq_zero_iff constructiveField_inverses decidableVanishing_imageIn_of_embedding eq_of_ringSub_zero field_mul_eq_zero genIdeal genIdeal_le gpow_zero_eq_zero hom_add hom_add' hom_app_mem hom_mul hom_mul' hom_natIn hom_neg hom_nsmul hom_one hom_pow hom_zero idealEquivReg_prod idealEquivReg_trans idealEquiv_prod idealEquiv_trans idealProd idealProdGens idealProdGens_comm idealProd_assoc idealProd_assoc_le idealProd_comm idealProd_ringMultiples idealProd_shuffle idealRel idealSum idealTransport ideal_absorbs ideal_add ideal_inverse ideal_mem_zero ideal_neg_mem ideal_neg_mem_nc ideal_subset imageIn_id isCommSemiring_of_isRing isCongruence_idealRel_add isCongruence_idealRel_add_nc isCongruence_idealRel_mul isEmbedding_id isField_imageIn_of_embedding isField_of_finite_domain isField_quotient_of_prime isIdeal_genIdeal_nc isIdeal_idealProd isIdeal_idealProd_nc isIdeal_idealTransport isIdeal_ringMultiples isRegularElt_mul isRegularElt_of_apart isRegularElt_of_inverse isRegularElt_of_leftInverse_nc isRegularElt_of_ne_zero isRegularElt_of_ne_zero_stable isRegularElt_ringNeg isRingHom_id isRing_congQuotient isRing_quotientByIdeal isRing_subring isSubring_imageIn isSubring_imageIn_of_subring mem_genIdeal_iff mem_idealProdGens_iff mem_idealTransport_iff mem_pairwiseOp_iff mem_ringMultiples_iff mem_ringMultiples_self mem_unitsOf_iff mem_units_iff mulAt_mem mulAt_mem_nc mulAt_mem_semi mul_zero_of_isRing mul_zero_of_isRingNC natIn opAt_restrictLeft_of_isSubring opAt_subring_add opAt_subring_mul opair_mem_idealRel_iff pairwiseOp powerList_subset_ring ringAdd_assoc ringAdd_assoc_nc ringAdd_comm ringAdd_comm_nc ringAdd_left_comm ringAdd_neg ringAdd_neg_nc ringAdd_pair_neg ringAdd_shuffle ringAdd_shuffle_pair ringAdd_shuffle_pair_nc ringAdd_sub_cancel ringAdd_zero ringAdd_zero_nc ringMul_add_add ringMul_left_comm ringMul_neg ringMul_neg_nc ringMul_shuffle_pair ringMul_sub ringMultiples ringNeg ringNegOne_mul ringNegOne_mul_nc ringNegOne_pow ringNeg_add ringNeg_addAt ringNeg_addAt_nc ringNeg_add_nc ringNeg_eq_of_add_zero ringNeg_mem ringNeg_mem_nc ringNeg_mul ringNeg_mul_nc ringNeg_neg ringNeg_neg_nc ringNeg_zero ringNeg_zero_nc ringNsmul ringNsmul_add ringNsmul_def ringNsmul_mem ringNsmul_mem_semi ringNsmul_mul ringNsmul_mul_semi ringNsmul_one_eq ringNsmul_succ ringNsmul_sum ringNsmul_sum_semi ringNsmul_zero ringOne_mul ringOne_mul_nc ringOne_pow ringPow ringPow_add ringPow_def ringPow_mem ringPow_mem_semi ringPow_mul ringPow_succ ringRight_distrib ringRight_distrib_nc ringSub ringSub_addAt_nc ringSub_add_cancel ringSub_def ringSub_eq_zero_iff ringSub_mem ringSub_mem_nc ringSub_mul ringSub_mulAt ringSub_mul_ringSub ringSub_self ringSub_self_nc ringSub_swap ringSub_swap_nc ringSub_trans ringSub_trans_nc ringSub_zero ringZero_add ringZero_add_nc ringZero_mul stableVanishing_of_decidableVanishing subset_genIdeal units unitsOf zero_mul_of_isRingNC)
 end ZFSet

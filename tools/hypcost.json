@@ -10,6 +10,9 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
+ "DyadicApprox": [
+  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+ ],
  "EM": [
   "FromAxioms/Constructive/Reverse.lean::dne_of_em",
   "FromAxioms/Constructive/Reverse.lean::familyLocated_of_em",

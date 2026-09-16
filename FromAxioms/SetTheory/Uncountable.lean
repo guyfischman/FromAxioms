@@ -1740,6 +1740,224 @@ theorem dyadicOf_bitsOf_value : ∀ (n k : Nat), k < 2 ^ n →
 #print axioms SetTheory.one_add_ratNat
 #print axioms SetTheory.dyadicOf_bitsOf_value
 
+/-- A grid point is rational.
+
+NO BOUND ON `i`, THOUGH EVERY OTHER GRID LEMMA HERE NEEDS ONE. `i < 2^n` is
+never consulted --- `dyadicOf` of ANY list is rational, `bitsOf` included --- and
+the linter is what says so rather than a reading. A MEMBERSHIP LEMMA CARRYING
+ITS NEIGHBOURS' RANGE BOUND WOULD FORCE EVERY CALLER TO SUPPLY ONE IT DOES NOT
+NEED. -/
+theorem dyadicOf_mem_Rat_bits (n i : Nat) :
+    dyadicOf.{u} (bitsOf i n) ∈ NumberTheory.Rat.{u} := dyadicOf_mem_Rat _
+
+#print axioms SetTheory.dyadicOf_mem_Rat_bits
+
+/-- The grid starts at zero. -/
+theorem grid_zero (n : Nat) : dyadicOf.{u} (bitsOf 0 n) = ratZero.{u} := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  rw [dyadicOf_bitsOf_value n 0 hp, Nat.mul_zero, ratNat_zero hp]
+
+/-- Consecutive grid points differ by exactly the window.
+
+    v (i+1)  =  v i  +  2/2^n
+
+and `2/2^n` is `2*(1/2)^n`, the depth-`n` window. This is the arithmetic the
+search reads: `lastTrue` hands back an INDEX, and this turns index arithmetic
+into the bracket `[v i, v i + 2*window]` the two-cell form asks for.
+
+BOTH ENDPOINTS NEED THE CLOSED FORM, so both need their index below `2^n`; the
+single hypothesis `i + 1 < 2^n` supplies both. -/
+theorem grid_succ (n i : Nat) (h : i + 1 < 2 ^ n) :
+    dyadicOf.{u} (bitsOf (i + 1) n)
+      = ratAdd (dyadicOf.{u} (bitsOf i n)) (ratNat.{u} 2 (2 ^ n)) := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  rw [dyadicOf_bitsOf_value n (i + 1) h,
+    dyadicOf_bitsOf_value n i (by omega),
+    ratNat_add_same_denom hp]
+  have : 2 * i + 2 = 2 * (i + 1) := by omega
+  rw [this]
+
+#print axioms SetTheory.grid_zero
+#print axioms SetTheory.grid_succ
+
+/-- The grid is strictly increasing, so a locator can be asked about
+consecutive points at all: `IsLocator` requires `p < q`. -/
+theorem grid_lt (n i : Nat) (h : i + 1 < 2 ^ n) :
+    ratLt (dyadicOf.{u} (bitsOf i n)) (dyadicOf.{u} (bitsOf (i + 1) n)) := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  have hv := dyadicOf_mem_Rat_bits n i
+  rw [grid_succ n i h]
+  refine ratLt_add_pos hv (ratNat_mem_Rat hp) ?_
+  rw [← ratNat_zero hp]
+  exact (ratNat_lt_iff hp hp).mpr (by omega)
+
+#print axioms SetTheory.grid_lt
+
+/-- `k * (1/2)^n = k/2^n`, for any `k`.
+
+`window_value` (`k = 4`, the two-cell window) and `oneCell_window_value`
+(`k = 2`, the one-cell window and the grid step) are this computation at two
+constants, written twice. The proof does not use the constant at all --- it is
+`ratPow_half` and one `ratNat_mul` --- so the pair collapses to instances.
+
+Worth doing because the two constants are exactly what the row's whole
+measurement turns on: `k = 2` tiles and costs `LLPO`, `k = 4` overlaps and is
+free. Having them as instances of one lemma puts the difference in the ARGUMENT
+rather than in two separate proofs that happen to differ by a numeral. -/
+theorem windowValue_gen (k n : Nat) :
+    ratMul (ratNat.{u} k 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} k (2 ^ n) := by
+  rw [ratPow_half n, ratNat_mul (by omega) (Nat.pow_pos (by omega)),
+    Nat.mul_one, Nat.one_mul]
+
+/-- A window of `m` cells advances exactly `m` grid points.
+
+`oneCell_tiles` (`m = 1`) and `window_step` (`m = 2`) are this at two values,
+and the two carried the row's whole distinction between tiling and overlap. As
+one theorem the distinction is the ARGUMENT `m`, not two proofs differing by a
+numeral:
+
+    m = 1   window = the step        cells MEET at a point   -> a decision
+    m = 2   window = twice the step  cells OVERLAP           -> nothing forced
+
+The proof is `dyadicOf_bitsOf_value` at both ends, `windowValue_gen` for the
+window, and `ratNat_add_same_denom`. The numerator arithmetic `2i + 2m = 2(i+m)`
+is the only place `m` appears at all. -/
+theorem grid_advance (n i m : Nat) (h : i + m < 2 ^ n) :
+    ratAdd (dyadicOf.{u} (bitsOf i n))
+        (ratMul (ratNat.{u} (2 * m) 1) (ratPow (ratNat.{u} 1 2) n))
+      = dyadicOf.{u} (bitsOf (i + m) n) := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  rw [dyadicOf_bitsOf_value n i (by omega), dyadicOf_bitsOf_value n (i + m) h,
+    windowValue_gen (2 * m) n, ratNat_add_same_denom hp,
+    show 2 * i + 2 * m = 2 * (i + m) from by omega]
+
+#print axioms SetTheory.windowValue_gen
+#print axioms SetTheory.grid_advance
+
+/-- The two-cell window at depth `n`, in closed form.
+
+`DyadicApprox2` states its bound as `4 * (1/2)^n` while every grid lemma here
+states values as `ratNat _ (2^n)`, so nothing composes until the two are the
+same rational.
+
+`ratPow_half` SUPPLIES THE POWER, AND IT WAS ALREADY THERE. I had started
+relocating `ratPow_ratNat_gen` down out of `TrigAdd` --- which `Uncountable`
+cannot reach --- before finding that `Rational.lean` states this very case, in
+the module where `ratPow` is defined. The general lemma being stranded high in
+`Analysis` is real and is somebody's work; it is not this row's, because nothing
+here needs a base other than one half. -/
+theorem window_value (n : Nat) :
+    ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} 4 (2 ^ n) := windowValue_gen 4 n
+
+/-- Two cells up is exactly the window's width away.
+
+The bridge between the two ways this development names the same rational: the
+grid states values as `ratNat _ (2^n)`, and `DyadicApprox2` states its bound as
+`4 * (1/2)^n` added to the left end. They agree, and nothing composes until
+that is written down. -/
+theorem window_step {i n : Nat} (_hi : i < 2 ^ n) (hi2 : i + 2 < 2 ^ n) :
+    ratAdd (dyadicOf.{u} (bitsOf i n))
+      (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n))
+      = dyadicOf.{u} (bitsOf (i + 2) n) :=
+  grid_advance n i 2 hi2
+
+/-- At the top cell the window's right end is exactly `2`.
+
+The case the interior argument cannot reach: when the search returns the last
+index the grid holds, `i + 2` is off the end, so there is no grid point to be
+below. There does not need to be --- the WINDOW's right end is `(2i + 4)/2^n`
+with `i + 2 = 2^n`, which is `2` on the nose, and the range hypothesis already
+says the real is at most that.
+
+So the top cell costs nothing, but it costs nothing for a reason that has to be
+computed rather than asserted: I claimed it in a docstring first and the
+unused-variable linter showed the claim was doing no work. -/
+theorem topcell_bound {i n : Nat} (hi : i < 2 ^ n) (htop : i + 2 = 2 ^ n) :
+    ratAdd (dyadicOf.{u} (bitsOf i n))
+      (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n)) = ratNat.{u} 2 1 := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  rw [dyadicOf_bitsOf_value n i hi, window_value n,
+    ratNat_add_same_denom hp]
+  exact (ratNat_eq_iff hp (by omega)).mpr (by omega)
+
+#print axioms SetTheory.window_value
+#print axioms SetTheory.window_step
+#print axioms SetTheory.topcell_bound
+
+/-- The ONE-cell window IS the grid step. -/
+theorem oneCell_window_value (n : Nat) :
+    ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} 2 (2 ^ n) := windowValue_gen 2 n
+
+/-- The one-cell brackets TILE: the next cell starts where this one ends.
+
+The mechanism behind the price, as a theorem rather than a description. At
+depth `n` the one-cell window is `2 * (1/2)^n`, which `grid_succ` gives as the
+distance to the next grid point --- so `[v i, v i + w]` ends where
+`[v (i+1), ...]` begins, the cells meet at a single rational, and a real
+sitting there has ONE valid answer. The answer is therefore a decision.
+
+CONTRAST, ALSO ALREADY A THEOREM: `window_step` says the TWO-cell window spans
+`v i` to `v (i+2)`, twice the step, so consecutive two-cell brackets overlap in
+a whole cell and a real at a grid point has two valid answers. Nothing is
+forced.
+
+THIS IS NOT A PROOF THAT THE TWO-CELL FORM AVOIDS `LLPO`. It states the
+structural difference exactly --- `k = 1` tiles, `k >= 2` overlaps --- and
+whether overlap suffices to keep the principle constructive is a separate
+question, open. -/
+theorem oneCell_tiles (n i : Nat) (h : i + 1 < 2 ^ n) :
+    ratAdd (dyadicOf.{u} (bitsOf i n))
+        (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) n))
+      = dyadicOf.{u} (bitsOf (i + 1) n) := grid_advance n i 1 h
+
+/-- At a grid point the two-cell readout admits TWO answers, exhibited.
+
+The witness the overlap claim needs. `window_step` says consecutive two-cell
+brackets overlap; this shows what that buys at the one place it matters --- a
+real sitting exactly on a grid point, the case in which the one-cell form is
+forced to choose. Take `x = v (i+1)`. Then BOTH `i` and `i+1` are valid
+answers:
+
+    v i     <= x <= v i     + w      because `x = v (i+1)` and `v i + w = v (i+2)`
+    v (i+1) <= x <= v (i+1) + w      because `x = v (i+1)` and `w` is non-negative
+
+So no construction that returns a two-cell bracket can be read as having decided
+anything about `x` relative to `v (i+1)`. That is the exact sense in which the
+two-cell form forces no decision, and it is a WITNESS rather than the absence of
+a proof that it does.
+
+IT DOES NOT SHOW `DyadicApprox2` AVOIDS `LLPO`. A principle can be expensive for
+reasons that have nothing to do with any single instance being ambiguous. What
+it rules out is the ONE argument that prices the one-cell form ---
+`dichotomy_of_depthOne` reads its answer as a decision at a point, and here
+there is no such reading. -/
+theorem twoCell_ambiguous {i n : Nat} (hi : i < 2 ^ n) (hi2 : i + 2 < 2 ^ n) :
+    ratLe (dyadicOf.{u} (bitsOf i n)) (dyadicOf.{u} (bitsOf (i + 1) n)) ∧
+      ratLe (dyadicOf.{u} (bitsOf (i + 1) n))
+        (ratAdd (dyadicOf.{u} (bitsOf i n))
+          (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n))) ∧
+      ratLe (dyadicOf.{u} (bitsOf (i + 1) n))
+        (ratAdd (dyadicOf.{u} (bitsOf (i + 1) n))
+          (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n))) := by
+  have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
+  have hwQ : ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n)
+      ∈ NumberTheory.Rat.{u} := by
+    rw [window_value n]; exact ratNat_mem_Rat hp
+  have hw0 : ratLe ratZero.{u} (ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n)) := by
+    rw [window_value n, ← ratNat_zero hp]
+    exact (ratNat_le_iff hp hp).mpr (by omega)
+  refine ⟨(grid_lt n i (by omega)).left, ?_, ?_⟩
+  · rw [window_step hi hi2]
+    exact (grid_lt n (i + 1) (by omega)).left
+  · have := (ratAdd_le_add_left_iff (dyadicOf_mem_Rat_bits n (i + 1))
+      ratZero_mem_Rat hwQ).mpr hw0
+    rwa [ratAdd_zero (dyadicOf_mem_Rat_bits n (i + 1))] at this
+
+#print axioms SetTheory.oneCell_window_value
+#print axioms SetTheory.oneCell_tiles
+#print axioms SetTheory.twoCell_ambiguous
+
+
 /-! ## The hole in the image -/
 
 /-- Every node's doubled point misses the open interval `(1,2)`. -/

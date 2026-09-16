@@ -31,7 +31,6 @@ disjunction, and turning one into a bit is defining data by cases.
 import FromAxioms.Algebra.Field
 import FromAxioms.Analysis.IVT
 import FromAxioms.SetTheory.Uncountable
-import FromAxioms.Topology.Metric
 
 set_option autoImplicit false
 
