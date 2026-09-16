@@ -23,3 +23,4 @@ import FromAxioms.Analysis.InnerSpace
 import FromAxioms.Analysis.DirichletChar
 import FromAxioms.Analysis.HahnBanach
 import FromAxioms.Analysis.Limit
+import FromAxioms.Analysis.Measure

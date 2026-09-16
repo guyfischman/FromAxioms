@@ -19,7 +19,6 @@
   "dcomega",
   "dcon",
   "decidablerealllt",
-  "dyadicapprox",
   "dyadicapprox2",
   "em",
   "exactivt01",
@@ -30,7 +29,6 @@
   "hasapprox",
   "isnoetherian",
   "llpo",
-  "locatordc",
   "lpo",
   "maxattainmenttop",
   "maxattainmenttoplocated",
@@ -113,13 +111,6 @@
   {
    "by": "Constructive.llpo_of_signDisjunction",
    "from": "signdisjunction",
-   "to": "llpo"
-  },
-  {
-   "by": "Constructive.llpo_of_ternary_llpo",
-   "from": [
-    "ternaryllpo"
-   ],
    "to": "llpo"
   },
   {

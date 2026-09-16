@@ -227,6 +227,14 @@
   "metric space",
   1906
  ],
+ "Analysis.isContentOn_dirac": [
+  "the axioms of probability",
+  1933
+ ],
+ "Analysis.exists_approx_root": [
+  "the intermediate value theorem, constructively",
+  1967
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

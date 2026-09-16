@@ -10,3 +10,4 @@ The CategoryTheory area. This file is generated; it imports every module in
 -/
 import FromAxioms.CategoryTheory.Action
 import FromAxioms.CategoryTheory.Category
+import FromAxioms.CategoryTheory.Functor

@@ -71,18 +71,6 @@
   "meaning": "the pair (d, X) is a metric space: d is a RealL-valued function on X x X, nonnegative, vanishing on the diagonal, symmetric, and satisfying the triangle inequality",
   "verdict": "never"
  },
- "LLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "n/a",
-   "shape": "omniscience"
-  },
-  "discharge": "same as LPO",
-  "kind": "principle",
-  "meaning": "of two sequences at most one of which fires, one can be named",
-  "verdict": "never"
- },
  "LPO": {
   "calibration": {
    "forward": "n/a",
@@ -151,17 +139,6 @@
   "discharge": "never: lives in _equivalences as a measured strength",
   "kind": "principle",
   "meaning": "the ternary digit stream of a real is decidable"
- },
- "TernaryLLPO": {
-  "calibration": {
-   "forward": "n/a",
-   "principle": "llpo",
-   "reverse": "Constructive.llpo_of_ternary_llpo",
-   "shape": "omniscience"
-  },
-  "discharge": "reversed to LLPO",
-  "kind": "principle",
-  "meaning": "the three-way form of LLPO over the ternary digits"
  },
  "TernaryZeroDecidable": {
   "calibration": {

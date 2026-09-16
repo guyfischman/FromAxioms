@@ -57,8 +57,8 @@ namespace Metamath
 
 Both are `Nat`-indexed, and the arity is not tracked -- a symbol applied to the
 wrong number of arguments is a legal term that no intended interpretation gives
-a useful value to. Tracking arities would mean indexing the type by a signature,
-which is the principled version and a much larger one. -/
+a useful value to. Tracking arities would mean indexing the type by a
+signature, which is the principled version and a much larger one. -/
 inductive Term where
   | var : Nat → Term
   | func : Nat → List Term → Term
@@ -150,6 +150,42 @@ def evalF (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
   | .disj φ ψ => evalF D F R env φ ∨ evalF D F R env ψ
   | .all φ => ∀ a, a ∈ D → evalF D F R (cons a env) φ
   | .ex φ => ∃ a, a ∈ D ∧ evalF D F R (cons a env) φ
+
+def evalCtxF (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    (R : Nat → List ZFSet.{u} → Prop) (env : Nat → ZFSet.{u}) :
+    List Formula → Prop
+  | [] => True
+  | φ :: Γ => evalF D F R env φ ∧ evalCtxF D F R env Γ
+
+/-- The pointwise relation between assignments, pushed under a binder. -/
+theorem cons_up {ρ : Nat → Nat} {env env' : Nat → ZFSet.{u}}
+    (h : ∀ n, env' n = env (ρ n)) (a : ZFSet.{u}) :
+    ∀ n, cons a env' n = cons a env (up ρ n)
+  | 0 => rfl
+  | n + 1 => h n
+
+mutual
+
+/-- Renaming a term and then reading it is reading the renamed assignment. The
+term-level half of `eval_rename`, and the only place the nested list shows up. -/
+theorem evalT_rename (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    {env env' : Nat → ZFSet.{u}} {ρ : Nat → Nat} (h : ∀ n, env' n = env (ρ n)) :
+    ∀ t : Term, evalT F env (termRename ρ t) = evalT F env' t
+  | .var n => (h n).symm
+  | .func f ts => by
+    show F f (evalTList F env (termRenameList ρ ts)) = F f (evalTList F env' ts)
+    rw [evalTList_rename F h ts]
+
+theorem evalTList_rename (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    {env env' : Nat → ZFSet.{u}} {ρ : Nat → Nat} (h : ∀ n, env' n = env (ρ n)) :
+    ∀ ts : List Term, evalTList F env (termRenameList ρ ts) = evalTList F env' ts
+  | [] => rfl
+  | t :: ts => by
+    show evalT F env (termRename ρ t) :: evalTList F env (termRenameList ρ ts)
+        = evalT F env' t :: evalTList F env' ts
+    rw [evalT_rename F h t, evalTList_rename F h ts]
+
+end
 
 /-! ## Substitution
 
@@ -332,8 +368,9 @@ def FreeBelow : Nat → Formula → Prop
 #print axioms weaken
 end Metamath
 
+#print axioms Metamath.cons_up
 #print axioms Metamath.evalF
 #print axioms Metamath.DerivesFO
 namespace ZFSet
-export Metamath (DerivesFO Formula FreeBelow Term cons cons_sub evalF fnot map_shift_sub mem_map_shift mem_map_shift_of_mem rename shift single subst substUp up weaken)
+export Metamath (DerivesFO Formula FreeBelow Term cons cons_sub cons_up evalCtxF evalF fnot map_shift_sub mem_map_shift mem_map_shift_of_mem rename shift single subst substUp up weaken)
 end ZFSet
