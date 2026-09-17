@@ -756,12 +756,13 @@ PAGE = """%(marker)s
  #side ul.lms { padding-left:16px; margin:4px 0 }
  #side .sec { margin:10px 0 2px; font-weight:600 }
  #side .row { margin:3px 0 }
- /* The statement, as it stands in the file. Lean is written to a column and
-    wraps badly when reflowed, so it scrolls sideways rather than folding. */
- #side pre.stmt { margin:6px 0 8px; padding:7px 8px; overflow-x:auto;
+ /* The statement, as it stands in the file. Its own line breaks are kept and
+    a line too long for the panel wraps, because a one-line definition that
+    scrolls sideways hides exactly the half a reader came for. */
+ #side pre.stmt { margin:6px 0 8px; padding:7px 8px;
    border:1px solid var(--line); border-radius:4px;
    font:11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
-   white-space:pre; color:var(--ink) }
+   white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ink) }
  #side ul.cite { padding-left:16px; margin:3px 0; color:var(--muted) }
  #side ul.cite li { margin:2px 0 }
 </style>
