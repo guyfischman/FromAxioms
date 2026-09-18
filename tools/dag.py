@@ -645,9 +645,14 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
         if rec["ml"] and not rec["mlu"]:
             out.append(f"pair `{rec['id']}` names `{rec['ml']}` with no pinned "
                        f"source to link")
-    # A registry landmark whose statement is published is drawn.
+    # A registry landmark whose statement is published is drawn. A form of a
+    # landmark (`X, exactly`) is drawn as X.
     for e in equivs:
-        if e.get("landmark") and e["statement"] in by and e["landmark"] not in drawn:
+        lm = e.get("landmark") or ""
+        head, _, form = lm.rpartition(",")
+        if form.strip() in ("constructively", "exactly"):
+            lm = head
+        if lm and e["statement"] in by and lm not in drawn:
             out.append(f"`{e['statement']}` is published and priced as "
                        f"`{e['landmark']}`, which is not drawn")
     # A priced statement is a result, never a principle on the rail.

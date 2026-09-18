@@ -231,10 +231,6 @@
   "the axioms of probability",
   1933
  ],
- "Analysis.exists_approx_root": [
-  "the intermediate value theorem, constructively",
-  1967
- ],
  "Analysis.hasDerivAt_comp": [
   "the derivative",
   1665
@@ -248,7 +244,7 @@
   1879
  ],
  "Metamath.ExactIVT01": [
-  "the intermediate value theorem, exactly",
-  1967
+  "the intermediate value theorem",
+  1817
  ]
 }
