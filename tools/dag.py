@@ -912,6 +912,12 @@ function bracketHtml(b){
     + (b.via ? ' ' + link('<code>'+esc(shortName(b.via))+'</code>', b.vu) : '')
     + ': ' + used + '</div>';
 }
+function axInBracket(n){
+  const b = n.br;
+  if(!b || b.used === null) return false;
+  const ax = (b.ax || []).slice().sort().join(' ');
+  return ax === n.a.slice().sort().join(' ');
+}
 function pairHtml(p){
   const ml = p.ml
     ? 'Matches ' + link('<code>'+esc(p.ml)+'</code>', p.mlu)
@@ -1202,7 +1208,9 @@ function draw(){
       const foc = inFocus(n);
       // A dependency with no landmark has no `lm` name, so it is labelled by
       // its declaration, which is what the reader clicked to find out.
-      const s = (n.lm || n.n || '').slice(0,44);
+      // A landmark name is drawn whole: the cap cut six of them mid-year, and
+      // the timeline lanes are already sized to the full name.
+      const s = n.lm || (n.n || '').slice(0,44);
       if(!s) continue;
       if(n.lm){ if(done.has(n.lm)) continue; }
       // A landmark is a named result; a helper is a step. Drawing both at one
@@ -1442,8 +1450,12 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     + (n.lm ? '<p><b>Landmark:</b> '+esc(n.lm)+'</p>' : '')
     + (n.br ? bracketHtml(n.br) : '')
     + (n.pr ? pairHtml(n.pr) : '')
-    + '<p>'+(n.a.length ? n.a.map(a=>tag(a, a==='Classical.choice'
-        ? css('--red') : css('--blue'))).join('') : '<b>no axioms</b>')+'</p>'
+    // Once only. A landmark's bracket already lists the axioms its proof
+    // used, beside the principles; the row below repeated them. It stays
+    // where the bracket names no proof, or a witness whose axioms differ.
+    + (axInBracket(n) ? '' :
+      '<p>'+(n.a.length ? n.a.map(a=>tag(a, a==='Classical.choice'
+        ? css('--red') : css('--blue'))).join('') : '<b>no axioms</b>')+'</p>')
     // Principles are a SEPARATE line and separately labelled, because they are
     // a different kind of cost: an axiom is what the kernel assumed under the
     // proof, a principle is what the STATEMENT takes as a hypothesis. Merging
