@@ -118,6 +118,19 @@
   "kind": "principle",
   "meaning": "a monotone sequence bounded above converges"
  },
+ "PointwiseModulus": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "modulus"
+  },
+  "discharge": "NOT a lattice strength in either direction: the gap over ContinuousAtOn is the UNIVERSE, not a principle. Its own docstring says it -- the modulus is a Lean FUNCTION on the point, so a proof may evaluate it, and no amount of improving ContinuousAtOn's proof would produce one. continuousAtOn_of_pointwiseModulus forgets it and recovers pointwise continuity, so the carrier is a strengthening rather than a change of subject. Same shape as BoundedLocated over exists_rat_bound; n/a follows FuncGraphs, the existing structural entry with no strength either way",
+  "kind": "structural",
+  "meaning": "a per-point modulus of continuity, supplied as a function rather than existentially",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Deriv.lean"
+ },
  "SubsetFinite": {
   "calibration": {
    "forward": "SetTheory.subsetFinite_of_em",
