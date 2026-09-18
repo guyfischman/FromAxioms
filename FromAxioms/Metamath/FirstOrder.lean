@@ -8,11 +8,7 @@ Authors: Guy Fischman
 # First-order logic as a formal system
 
 `Heyting.lean` writes down propositional derivation; this adds the quantifiers,
-which is where a formal system stops being a table of connectives and starts
-needing a treatment of binding.
-
-Two choices fix the shape of the file, and both were taken to keep binding
-cheap.
+and with them binding.
 
 De Bruijn indices, not names. A named presentation pays for `∀`-introduction
 with a freshness side condition, and then soundness needs a coincidence lemma
@@ -20,45 +16,30 @@ and a renaming lemma to discharge it. Indices move that cost into the syntax:
 `all φ` binds index `0`, contexts are lifted rather than checked, and capture
 cannot occur because there is nothing to capture.
 
-Equality is primitive, not a relation symbol. Without it the language
-cannot state the axioms of anything this library builds, which would leave the
-file with no consumer. With it, `zfExt` below is the extensionality axiom
-written in the object language and `zfExt_sound` reads it back through the
-semantics.
+Equality is primitive, not a relation symbol. With it the axioms of set
+theory can be written in the object language.
 
-A relational signature: terms are variables. Function symbols would make a
-term an inductive type of its own, substitution a recursion over it, and the
-substitution lemma a hierarchy of lifting lemmas at every cutoff. Dropping them
-loses no expressive power -- a function is a relation with a uniqueness axiom --
-and collapses the whole apparatus to renaming: instantiating `∀` at a variable
-is the renaming `0 ↦ x`, lifting a context is the renaming `succ`, and one lemma
-(`eval_rename`) proves both sound.
-
-What is not here, as in the propositional file: any claim of underivability, and
-completeness. Soundness maps derivations into `Prop`, and `Prop` is classical, so
-this direction is the only one such a semantics can support.
+Soundness is proved; completeness and underivability are not.
 
 The propositional soundness theorem depends on no axioms; this one depends on
 `propext`, and the difference is the domain, not the quantifiers. `evalF`
-mentions `a ∈ D` for a `ZFSet` `D`, and `SetTheory.Mem` is a `Quotient.lift₂` whose
-respect proof is a literal `propext` -- so every declaration naming `evalF`
-inherits it, down to `Iff.rfl`. Interpreting into a set rather than into `Prop`
-is what costs, and the binding apparatus itself (`termRename`, `cons_up`) stays
+mentions `a ∈ D` for a `ZFSet` `D`, and `SetTheory.Mem` is a `Quotient.lift₂`
+whose respect proof is a literal `propext`, so every declaration naming `evalF`
+inherits it, down to `Iff.rfl`. The cost is interpreting into a set rather than
+into `Prop`; the binding apparatus itself (`termRename`, `cons_up`) is
 axiom-free.
 -/
 
-import FromAxioms.SetTheory.Relation
+import FromAxioms.Analysis.Ternary
 
 universe u
 
+open SetTheory
 namespace Metamath
 
 /-- Terms: a variable, or a function symbol applied to arguments.
 
-Both are `Nat`-indexed, and the arity is not tracked -- a symbol applied to the
-wrong number of arguments is a legal term that no intended interpretation gives
-a useful value to. Tracking arities would mean indexing the type by a
-signature, which is the principled version and a much larger one. -/
+Both are `Nat`-indexed, and arities are not tracked. -/
 inductive Term where
   | var : Nat → Term
   | func : Nat → List Term → Term
@@ -187,14 +168,64 @@ theorem evalTList_rename (F : Nat → List ZFSet.{u} → ZFSet.{u})
 
 end
 
+/-- Renaming is a change of assignment. The one lemma the quantifier rules
+need: `shift` and instantiation are both renamings, so both are read off this.
+
+The two assignments are related pointwise rather than by composition, so
+`funext` is not needed. Under a binder the relation is re-established by cases
+on the index, by `up`. -/
+theorem eval_rename (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    (R : Nat → List ZFSet.{u} → Prop) :
+    ∀ (φ : Formula) (ρ : Nat → Nat) (env env' : Nat → ZFSet.{u}),
+      (∀ n, env' n = env (ρ n)) →
+      (evalF D F R env (rename ρ φ) ↔ evalF D F R env' φ)
+  | .rel r ts, ρ, env, env', h => by
+    show R r (evalTList F env (termRenameList ρ ts)) ↔ R r (evalTList F env' ts)
+    rw [evalTList_rename F h ts]
+  | .eq a b, ρ, env, env', h => by
+    show evalT F env (termRename ρ a) = evalT F env (termRename ρ b)
+        ↔ evalT F env' a = evalT F env' b
+    rw [evalT_rename F h a, evalT_rename F h b]
+  | .fls, _, _, _, _ => Iff.rfl
+  | .imp φ ψ, ρ, env, env', h =>
+    ⟨fun hd hφ => (eval_rename D F R ψ ρ env env' h).mp
+        (hd ((eval_rename D F R φ ρ env env' h).mpr hφ)),
+      fun hd hφ => (eval_rename D F R ψ ρ env env' h).mpr
+        (hd ((eval_rename D F R φ ρ env env' h).mp hφ))⟩
+  | .conj φ ψ, ρ, env, env', h =>
+    ⟨fun hd => ⟨(eval_rename D F R φ ρ env env' h).mp hd.left,
+        (eval_rename D F R ψ ρ env env' h).mp hd.right⟩,
+      fun hd => ⟨(eval_rename D F R φ ρ env env' h).mpr hd.left,
+        (eval_rename D F R ψ ρ env env' h).mpr hd.right⟩⟩
+  | .disj φ ψ, ρ, env, env', h =>
+    ⟨fun hd => hd.elim (fun hl => Or.inl ((eval_rename D F R φ ρ env env' h).mp hl))
+        (fun hr => Or.inr ((eval_rename D F R ψ ρ env env' h).mp hr)),
+      fun hd => hd.elim (fun hl => Or.inl ((eval_rename D F R φ ρ env env' h).mpr hl))
+        (fun hr => Or.inr ((eval_rename D F R ψ ρ env env' h).mpr hr))⟩
+  | .all φ, ρ, env, env', h =>
+    ⟨fun hd a ha => (eval_rename D F R φ (up ρ) (cons a env) (cons a env')
+        (cons_up h a)).mp (hd a ha),
+      fun hd a ha => (eval_rename D F R φ (up ρ) (cons a env) (cons a env')
+        (cons_up h a)).mpr (hd a ha)⟩
+  | .ex φ, ρ, env, env', h =>
+    ⟨fun hd => hd.elim fun a ha => ⟨a, ha.left,
+        (eval_rename D F R φ (up ρ) (cons a env) (cons a env') (cons_up h a)).mp ha.right⟩,
+      fun hd => hd.elim fun a ha => ⟨a, ha.left,
+        (eval_rename D F R φ (up ρ) (cons a env) (cons a env') (cons_up h a)).mpr ha.right⟩⟩
+
+theorem eval_shift (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    (R : Nat → List ZFSet.{u} → Prop)
+    (φ : Formula) (a : ZFSet.{u}) (env : Nat → ZFSet.{u}) :
+    evalF D F R (cons a env) (shift φ) ↔ evalF D F R env φ :=
+  eval_rename D F R φ Nat.succ (cons a env) env fun _ => rfl
+
 /-! ## Substitution
 
 Renaming sends a variable to a variable, which is all the quantifier rules need
-and strictly less than the diagonal lemma needs: instantiating at a numeral is
-substituting a closed term. The apparatus is the same shape one level up --
+and strictly less than the diagonal lemma needs: instantiating at a numeral
+is substituting a closed term. The apparatus is the same shape one level up --
 `substUp` plays the role of `up`, and the semantic lemma relates the two
-assignments pointwise rather than by composition, so this stays axiom-free
-too. -/
+assignments pointwise rather than by composition. -/
 
 mutual
 
@@ -230,16 +261,121 @@ def single (t : Term) : Nat → Term
   | 0 => t
   | n + 1 => .var n
 
-/-! ### Substitution composes
+mutual
 
-Two substitutions in sequence are one substitution, and the composite is
-computed pointwise. Without this every de Bruijn calculation is an unfolding of
-nested `subst`s that only the elaborator can follow; with it, a calculation
-about `subst σ (subst τ φ)` becomes a calculation about `n ↦ termSubst σ (τ n)`,
-which is a function on numbers and can be evaluated case by case.
+theorem evalT_subst (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    {env env' : Nat → ZFSet.{u}} {σ : Nat → Term}
+    (h : ∀ n, env' n = evalT F env (σ n)) :
+    ∀ t : Term, evalT F env (termSubst σ t) = evalT F env' t
+  | .var n => (h n).symm
+  | .func f ts => by
+    show F f (evalTList F env (termSubstList σ ts)) = F f (evalTList F env' ts)
+    rw [evalTList_subst F h ts]
 
-The binder case is the whole content, and it needs one commutation: substituting
-under a lift is lifting the substitution. -/
+theorem evalTList_subst (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    {env env' : Nat → ZFSet.{u}} {σ : Nat → Term}
+    (h : ∀ n, env' n = evalT F env (σ n)) :
+    ∀ ts : List Term, evalTList F env (termSubstList σ ts) = evalTList F env' ts
+  | [] => rfl
+  | t :: ts => by
+    show evalT F env (termSubst σ t) :: evalTList F env (termSubstList σ ts)
+        = evalT F env' t :: evalTList F env' ts
+    rw [evalT_subst F h t, evalTList_subst F h ts]
+
+end
+
+/-- The pointwise relation between assignments, pushed under a binder. The
+lifting in `substUp` is a renaming, read by `evalT_rename`. -/
+theorem cons_substUp (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    {σ : Nat → Term} {env env' : Nat → ZFSet.{u}}
+    (h : ∀ n, env' n = evalT F env (σ n)) (a : ZFSet.{u}) :
+    ∀ n, cons a env' n = evalT F (cons a env) (substUp σ n)
+  | 0 => rfl
+  | n + 1 =>
+    (h n).trans (evalT_rename F (env := cons a env) (env' := env)
+      (ρ := Nat.succ) (fun _ => rfl) (σ n)).symm
+
+
+/-- Substitution is a change of assignment. The counterpart of
+`eval_rename`. -/
+theorem eval_subst (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    (R : Nat → List ZFSet.{u} → Prop) :
+    ∀ (φ : Formula) (σ : Nat → Term) (env env' : Nat → ZFSet.{u}),
+      (∀ n, env' n = evalT F env (σ n)) →
+      (evalF D F R env (subst σ φ) ↔ evalF D F R env' φ)
+  | .rel r ts, σ, env, env', h => by
+    show R r (evalTList F env (termSubstList σ ts)) ↔ R r (evalTList F env' ts)
+    rw [evalTList_subst F h ts]
+  | .eq a b, σ, env, env', h => by
+    show evalT F env (termSubst σ a) = evalT F env (termSubst σ b)
+        ↔ evalT F env' a = evalT F env' b
+    rw [evalT_subst F h a, evalT_subst F h b]
+  | .fls, _, _, _, _ => Iff.rfl
+  | .imp φ ψ, σ, env, env', h =>
+    ⟨fun hd hφ => (eval_subst D F R ψ σ env env' h).mp
+        (hd ((eval_subst D F R φ σ env env' h).mpr hφ)),
+      fun hd hφ => (eval_subst D F R ψ σ env env' h).mpr
+        (hd ((eval_subst D F R φ σ env env' h).mp hφ))⟩
+  | .conj φ ψ, σ, env, env', h =>
+    ⟨fun hd => ⟨(eval_subst D F R φ σ env env' h).mp hd.left,
+        (eval_subst D F R ψ σ env env' h).mp hd.right⟩,
+      fun hd => ⟨(eval_subst D F R φ σ env env' h).mpr hd.left,
+        (eval_subst D F R ψ σ env env' h).mpr hd.right⟩⟩
+  | .disj φ ψ, σ, env, env', h =>
+    ⟨fun hd => hd.elim (fun hl => Or.inl ((eval_subst D F R φ σ env env' h).mp hl))
+        (fun hr => Or.inr ((eval_subst D F R ψ σ env env' h).mp hr)),
+      fun hd => hd.elim (fun hl => Or.inl ((eval_subst D F R φ σ env env' h).mpr hl))
+        (fun hr => Or.inr ((eval_subst D F R ψ σ env env' h).mpr hr))⟩
+  | .all φ, σ, env, env', h =>
+    ⟨fun hd a ha => (eval_subst D F R φ (substUp σ) (cons a env) (cons a env')
+        (cons_substUp F h a)).mp (hd a ha),
+      fun hd a ha => (eval_subst D F R φ (substUp σ) (cons a env) (cons a env')
+        (cons_substUp F h a)).mpr (hd a ha)⟩
+  | .ex φ, σ, env, env', h =>
+    ⟨fun hd => hd.elim fun a ha => ⟨a, ha.left,
+        (eval_subst D F R φ (substUp σ) (cons a env) (cons a env')
+          (cons_substUp F h a)).mp ha.right⟩,
+      fun hd => hd.elim fun a ha => ⟨a, ha.left,
+        (eval_subst D F R φ (substUp σ) (cons a env) (cons a env')
+          (cons_substUp F h a)).mpr ha.right⟩⟩
+
+/-- Instantiating at a term reads the term's value. The form every later use
+takes: `subst (single t) φ` holds exactly when `φ` holds of what `t` denotes. -/
+theorem eval_single (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
+    (R : Nat → List ZFSet.{u} → Prop)
+    (φ : Formula) (t : Term) (env : Nat → ZFSet.{u}) :
+    evalF D F R env (subst (single t) φ)
+      ↔ evalF D F R (cons (evalT F env t) env) φ :=
+  eval_subst D F R φ (single t) env (cons (evalT F env t) env) fun n => by
+    cases n with
+    | zero => rfl
+    | succ k => rfl
+
+/-- A domain closed under the interpretation of the function symbols. Vacuous
+for a relational language, and the defining condition of a structure once there
+are terms: `evalT` must land in `D` for the quantifier rules to instantiate
+at a term at all. -/
+def ClosedUnder (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u}) : Prop :=
+  ∀ f as, (∀ a, a ∈ as → a ∈ D) → F f as ∈ D
+
+mutual
+
+theorem evalT_mem {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
+    (hF : ClosedUnder D F) {env : Nat → ZFSet.{u}} (he : ∀ n, env n ∈ D) :
+    ∀ t : Term, evalT F env t ∈ D
+  | .var n => he n
+  | .func f ts => hF f _ (evalTList_mem hF he ts)
+
+theorem evalTList_mem {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
+    (hF : ClosedUnder D F) {env : Nat → ZFSet.{u}} (he : ∀ n, env n ∈ D) :
+    ∀ ts : List Term, ∀ a, a ∈ evalTList F env ts → a ∈ D
+  | [], _, h => absurd h (List.not_mem_nil)
+  | t :: ts, a, h => by
+    rcases List.mem_cons.mp h with rfl | h
+    · exact evalT_mem hF he t
+    · exact evalTList_mem hF he ts a h
+
+end
 
 /-- Intuitionistic natural deduction with quantifiers.
 
@@ -269,6 +405,23 @@ inductive DerivesFO : List Formula → Formula → Prop where
   | eq_refl {Γ} (t : Term) : DerivesFO Γ (Formula.eq t t)
   | eq_subst {Γ φ} (s t : Term) : DerivesFO Γ (Formula.eq s t) →
       DerivesFO Γ (subst (single s) φ) → DerivesFO Γ (subst (single t) φ)
+
+theorem evalCtxF_mem {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
+    {R : Nat → List ZFSet.{u} → Prop}
+    {env : Nat → ZFSet.{u}} : ∀ {Γ : List Formula} {φ : Formula},
+    φ ∈ Γ → evalCtxF D F R env Γ → evalF D F R env φ
+  | _ :: _, _, .head _, h => h.left
+  | _ :: Γ, φ, .tail _ hm, h => evalCtxF_mem (Γ := Γ) (φ := φ) hm h.right
+
+/-- A lifted context holds under an extended assignment exactly when the
+original held under the original. -/
+theorem evalCtxF_map_shift {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
+    {R : Nat → List ZFSet.{u} → Prop}
+    {env : Nat → ZFSet.{u}} {a : ZFSet.{u}} : ∀ {Γ : List Formula},
+    evalCtxF D F R env Γ → evalCtxF D F R (cons a env) (Γ.map shift)
+  | [], _ => trivial
+  | φ :: Γ, h =>
+    ⟨(eval_shift D F R φ a env).mpr h.left, evalCtxF_map_shift (Γ := Γ) h.right⟩
 
 /-! `List.Mem` is an inductive, and its `Iff` lemmas in core are not: both
 `List.mem_cons` and `List.mem_map` audit at `propext`, and `List.mem_map` at
@@ -305,9 +458,8 @@ assumptions.
 Every rule that changes the context changes it by the same operation on both
 sides -- `imp_intro` and the elimination rules push a formula on, `all_intro`
 and `ex_elim` lift the whole list -- so the induction hypothesis applies with
-the inclusion transported through that operation. `Γ.map shift` is the only
-case needing anything more than `List.mem_cons`, and `List.mem_map` supplies
-it. -/
+the inclusion transported through that operation, by `cons_sub` and
+`map_shift_sub`. -/
 theorem weaken {Γ Δ : List Formula} {φ : Formula} (h : ∀ ψ, ψ ∈ Γ → ψ ∈ Δ)
     (d : DerivesFO Γ φ) : DerivesFO Δ φ := by
   induction d generalizing Δ with
@@ -330,11 +482,64 @@ theorem weaken {Γ Δ : List Formula} {φ : Formula} (h : ∀ ψ, ψ ∈ Γ → 
   | eq_refl t => exact DerivesFO.eq_refl t
   | eq_subst a b _ _ ih₁ ih₂ => exact DerivesFO.eq_subst a b (ih₁ h) (ih₂ h)
 
+/-- Soundness. A derivation is a proof, in any domain, under any
+interpretation and any assignment taking its values there.
+
+The premise of `all_intro` is about a lifted context, which
+`evalCtxF_map_shift` supplies for the extended assignment; no freshness
+argument appears. `all_elim` needs the assignment to land in `D`, which is the
+only hypothesis the quantifiers add. -/
+theorem soundnessFO {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
+    {R : Nat → List ZFSet.{u} → Prop}
+    {Γ : List Formula} {φ : Formula} (hF : ClosedUnder D F) (d : DerivesFO Γ φ) :
+    ∀ env : Nat → ZFSet.{u}, (∀ n, env n ∈ D) → evalCtxF D F R env Γ →
+      evalF D F R env φ := by
+  induction d with
+  | assume hm => exact fun env _ hc => evalCtxF_mem hm hc
+  | imp_intro _ ih => exact fun env he hc hφ => ih env he ⟨hφ, hc⟩
+  | imp_elim _ _ ih₁ ih₂ => exact fun env he hc => ih₁ env he hc (ih₂ env he hc)
+  | conj_intro _ _ ih₁ ih₂ => exact fun env he hc => ⟨ih₁ env he hc, ih₂ env he hc⟩
+  | conj_left _ ih => exact fun env he hc => (ih env he hc).left
+  | conj_right _ ih => exact fun env he hc => (ih env he hc).right
+  | disj_left _ ih => exact fun env he hc => Or.inl (ih env he hc)
+  | disj_right _ ih => exact fun env he hc => Or.inr (ih env he hc)
+  | disj_elim _ _ _ ih ih₁ ih₂ =>
+    exact fun env he hc => (ih env he hc).elim
+      (fun h => ih₁ env he ⟨h, hc⟩) (fun h => ih₂ env he ⟨h, hc⟩)
+  | fls_elim _ ih => exact fun env he hc => (ih env he hc).elim
+  | all_intro _ ih =>
+    refine fun env he hc a ha => ih (cons a env) ?_ (evalCtxF_map_shift hc)
+    intro n
+    cases n with
+    | zero => exact ha
+    | succ k => exact he k
+  | all_elim t _ ih =>
+    exact fun env he hc => (eval_single D F R _ t env).mpr
+      (ih env he hc _ (evalT_mem hF he t))
+  | ex_intro t _ ih =>
+    exact fun env he hc => ⟨_, evalT_mem hF he t, (eval_single D F R _ t env).mp
+      (ih env he hc)⟩
+  | eq_refl t => exact fun _ _ _ => rfl
+  | eq_subst a b _ _ iheq ihφ =>
+    intro env he hc
+    refine (eval_single D F R _ b env).mpr ?_
+    have hab : evalT F env a = evalT F env b := iheq env he hc
+    have := (eval_single D F R _ a env).mp (ihφ env he hc)
+    rwa [hab] at this
+  | ex_elim _ _ ih ih₂ =>
+    intro env he hc
+    obtain ⟨a, ha, hφ⟩ := ih env he hc
+    refine (eval_shift D F R _ a env).mp (ih₂ (cons a env) ?_ ⟨hφ, evalCtxF_map_shift hc⟩)
+    intro n
+    cases n with
+    | zero => exact ha
+    | succ k => exact he k
+
 /-! ## Which indices a formula reads
 
-Separation's schema needs "φ mentions only its hole", and the honest form of
-that is syntactic: a bound on the free indices, checkable on the formula itself
-rather than assumed about its evaluation.
+Separation's schema needs "φ mentions only its hole", stated syntactically: a
+bound on the free indices, checked on the formula itself rather than assumed of
+its evaluation.
 -/
 
 mutual
@@ -361,6 +566,10 @@ def FreeBelow : Nat → Formula → Prop
   | d, .all φ => FreeBelow (d + 1) φ
   | d, .ex φ => FreeBelow (d + 1) φ
 
+#print axioms cons_substUp
+#print axioms eval_subst
+#print axioms eval_single
+#print axioms evalCtxF_mem
 #print axioms cons_sub
 #print axioms mem_map_shift
 #print axioms mem_map_shift_of_mem
@@ -370,7 +579,11 @@ end Metamath
 
 #print axioms Metamath.cons_up
 #print axioms Metamath.evalF
+#print axioms Metamath.eval_rename
+#print axioms Metamath.eval_shift
+#print axioms Metamath.evalCtxF_map_shift
+#print axioms Metamath.soundnessFO
 #print axioms Metamath.DerivesFO
 namespace ZFSet
-export Metamath (DerivesFO Formula FreeBelow Term cons cons_sub cons_up evalCtxF evalF fnot map_shift_sub mem_map_shift mem_map_shift_of_mem rename shift single subst substUp up weaken)
+export Metamath (ClosedUnder DerivesFO Formula FreeBelow Term cons cons_sub cons_substUp cons_up evalCtxF evalCtxF_map_shift evalCtxF_mem evalF eval_rename eval_shift eval_single eval_subst fnot map_shift_sub mem_map_shift mem_map_shift_of_mem rename shift single soundnessFO subst substUp up weaken)
 end ZFSet

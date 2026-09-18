@@ -5058,6 +5058,12 @@ theorem realLMul_le_left {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ 
 
 /-! ## Differentiability on an interval
 
+`HasDerivAt` is pointwise, and the mean value inequality needs more than that:
+it chains an estimate along a grid, so the modulus has to serve every base point
+at once. `HasDerivOn` is the same clause with the base point quantified inside
+the modulus -- the choice `UniformOn` makes for continuity, and for the same
+reason.
+
 Nothing about the slope function is asked for in the definition. Where a bound
 on it is needed the bound is a hypothesis, because a supremum over an interval
 is exactly the thing a constructive development cannot help itself to. -/

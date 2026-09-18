@@ -565,8 +565,8 @@ theorem prime_sq_irrational {n : Nat} (hn : IsPrime n) :
 
 Lists are core's; the product is not, so it is defined here. Existence is
 `minFac` plus strong induction. Uniqueness up to permutation is not proved --
-what is proved is its engine, that a prime dividing a product divides one of the
-factors, so any two factorizations line up. -/
+what is proved is its engine, that a prime dividing a product divides one of
+the factors, so any two factorizations line up. -/
 
 def prodList : List Nat → Nat
   | [] => 1
@@ -987,8 +987,8 @@ theorem prime_dvd_choose {p k : Nat} (hp : IsPrime p) (hk : 0 < k) (hkp : k < p)
 /-! ## Divisor sums, and a geometric bound
 
 The arithmetic half of counting irreducible polynomials: a sum over the proper
-divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, so the count
-of degree-`d` irreducibles is positive. -/
+divisors of `d`, and `∑_{e ∣ d, e < d} q^e < q^d`, so the count of degree-`d`
+irreducibles is positive. -/
 
 /-- `[m, m-1, …, 1]`. -/
 def upto : Nat → List Nat
@@ -1016,9 +1016,9 @@ three Eisenstein hypotheses are then binomial facts:
 * the constant term is `C(p,1) = p`, which `p²` does not divide.
 
 Stated over the coefficient FUNCTION rather than over a polynomial object,
-because the substitution `x → x+1` does not exist in this tree and is not
-needed to state the conditions -- only to transfer the resulting irreducibility
-back to `Φp` itself, which is a separate rung. -/
+because the substitution `x → x+1` does not exist in this tree and is not needed
+to state the conditions -- only to transfer the resulting irreducibility back to
+`Φp` itself, which is a separate rung. -/
 theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
     (∀ j, j < p - 1 -> Divides p (choose p (j + 1)))
       ∧ ¬ Divides p (choose p (p - 1 + 1))
@@ -1154,8 +1154,8 @@ private theorem int_sq_eq_zero {a : Int} (h : a * a = 0) : a = 0 := by
   rcases Int.mul_eq_zero.mp h with h' | h' <;> exact h'
 
 /-- `(a - b)² = a² - 2ab + b²`, expanded so that only products of the two
-variables appear -- no numeral is multiplied into a product, so
-`omega` finishes from here treating each product as an atom. -/
+variables appear -- no numeral is multiplied into a product, so `omega`
+finishes from here treating each product as an atom. -/
 private theorem sq_sub_expand (a b : Int) :
     (a - b) * (a - b) = a * a - (a * b + a * b) + b * b := by
   rw [Int.sub_mul, Int.mul_sub, Int.mul_sub]
@@ -1556,8 +1556,8 @@ theorem isUnit_of_norm_eq_one {x : Eis} (h : norm x = 1) : IsUnit x :=
 
 The `n = 3` descent turns on one congruence: a cube prime to `λ` is `±1` modulo
 `λ⁴`. That is the Eisenstein analogue of cubes are `0, ±1` mod `9` -- indeed
-`λ⁴` has norm `81` and `9` is `-ω²λ²` up to a unit -- and it rules out a
-sum of three such cubes.
+`λ⁴` has norm `81` and `9` is `-ω²λ²` up to a unit -- and it rules out a sum of
+three such cubes.
 
 The residues are recorded here as a divisibility statement rather than as a
 quotient ring, so nothing is constructed that a descent does not use. -/
@@ -1569,8 +1569,8 @@ divides are exactly the multiples of `3`. Both directions are computations:
 `λ·(c + dω) = (c + d) + (2d - c)ω`, whose coordinate sum is `3d`, and
 conversely `a + b = 3m` is solved by `c = a - m`, `d = m`.
 
-This makes `λ`-divisibility DECIDABLE by an integer test, turning
-the descent's case analysis into arithmetic rather than search. -/
+This makes `λ`-divisibility DECIDABLE by an integer test, turning the descent's
+case analysis into arithmetic rather than search. -/
 theorem lam_dvd_iff {x : Eis} :
     Dvd lam x ↔ ∃ m : Int, x.re + x.im = 3 * m := by
   obtain ⟨a, b⟩ := x

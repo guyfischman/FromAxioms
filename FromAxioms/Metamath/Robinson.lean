@@ -35,7 +35,6 @@ least witness, the β-function, and representability with them -- is
 it.
 -/
 
-import FromAxioms.Analysis.Ternary
 import FromAxioms.Metamath.FirstOrder
 import FromAxioms.NumberTheory.Prime
 

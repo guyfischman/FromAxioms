@@ -235,6 +235,18 @@
   "the intermediate value theorem, constructively",
   1967
  ],
+ "Analysis.hasDerivAt_comp": [
+  "the derivative",
+  1665
+ ],
+ "Analysis.close_of_close_close": [
+  "the triangle inequality",
+  1821
+ ],
+ "Metamath.soundnessFO": [
+  "quantifiers, formal predicate logic",
+  1879
+ ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem, exactly",
   1967

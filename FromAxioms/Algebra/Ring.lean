@@ -1326,7 +1326,10 @@ theorem isField_of_finite_domain {R add mul zero one : ZFSet.{u}}
   rw [h.mulComm a ha _ (ringPow_mem h ha (k - j - 1))]
   exact hunit
 
-/-! ## The quotient by an ideal -/
+/-! ## The quotient by an ideal
+
+`ℤ/nℤ` is built by hand from `multiplesOf` in `Field.lean`; this is the same
+construction for any commutative ring and any ideal. -/
 
 /-- The multiples of `a`. The generator is the FIRST factor: a member is
 `opAt mul a y`, never `opAt mul y a`.
