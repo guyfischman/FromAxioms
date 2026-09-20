@@ -1455,6 +1455,41 @@ for re-siting over per-pair bridges: a type-sited lemma has no carrier to be
 wrong about, so it composes across subjects sharing no mathematics.
 -/
 
+/-- The zero scalar annihilates, over a Lean type. -/
+theorem smulT_zero_scalar {α M : Type u}
+    (addM : M → M → M) (zeroM : M) (negM : M → M)
+    (smul : α → M → M) (addA : α → α → α) (zeroA : α)
+    (hassoc : ∀ a b c, addM (addM a b) c = addM a (addM b c))
+    (hzeroR : ∀ a, addM a zeroM = a)
+    (hneg : ∀ a, addM a (negM a) = zeroM)
+    (hdistrA : ∀ (c d : α) (x : M), smul (addA c d) x = addM (smul c x) (smul d x))
+    (hA : addA zeroA zeroA = zeroA)
+    (x : M) : smul zeroA x = zeroM := by
+  have h : addM (smul zeroA x) (smul zeroA x) = smul zeroA x := by
+    rw [← hdistrA, hA]
+  have h2 : addM (addM (smul zeroA x) (smul zeroA x)) (negM (smul zeroA x))
+      = addM (smul zeroA x) (negM (smul zeroA x)) := by rw [h]
+  rw [hassoc, hneg, hzeroR] at h2
+  exact h2
+
+/-- The zero vector absorbs, the same argument over `M`'s addition. -/
+theorem smulT_zero_vector {α M : Type u}
+    (addM : M → M → M) (zeroM : M) (negM : M → M)
+    (smul : α → M → M)
+    (hassoc : ∀ a b c, addM (addM a b) c = addM a (addM b c))
+    (hzeroR : ∀ a, addM a zeroM = a)
+    (hneg : ∀ a, addM a (negM a) = zeroM)
+    (hdistrM : ∀ (c : α) (x y : M), smul c (addM x y) = addM (smul c x) (smul c y))
+    (c : α) : smul c zeroM = zeroM := by
+  have h : addM (smul c zeroM) (smul c zeroM) = smul c zeroM := by
+    rw [← hdistrM, hzeroR]
+  have h2 : addM (addM (smul c zeroM) (smul c zeroM)) (negM (smul c zeroM))
+      = addM (smul c zeroM) (negM (smul c zeroM)) := by rw [h]
+  rw [hassoc, hneg, hzeroR] at h2
+  exact h2
+
+#print axioms smulT_zero_scalar
+#print axioms smulT_zero_vector
 #print axioms lincomb_add
 #print axioms exists_cons_of_length
 #print axioms lincomb_zipWith_add
@@ -2671,5 +2706,5 @@ end Algebra
 
 
 namespace ZFSet
-export Algebra (IsBasis IsIndep IsModule IsNoetherian IsSubmodule all_zero_or_exists_ne coordMat_mul_eq_id coord_uniq_family dim_unique dim_unique_of_detN dim_unique_of_exchange eq_map_below equinumerous_spanSet equinumerous_spanSet_card exchange_le exists_basis exists_coeffs_len_of_mem_spanSet exists_cons_of_length exists_coordColumn exists_coordMat_wide exists_coordPair_of_lt exists_matrix_of_forall_exists exists_span_pairs exists_tuple_of_list foldF_extend_monoid foldF_pad_to_short foldF_pad_truncate foldF_smul_left fst_mem_powSet_succ getD_append_of_lt_length getD_default_agree getD_mem_of_mem ginv_vzero isBasis_singleton_one isIndep_cons isIndep_nil isIndep_perm isModule_of_subring isModule_self isModule_submodule isSubmodule_spanSet lincomb lincombP lincombP_mem lincombP_perm lincomb_add lincomb_append lincomb_append_zeros lincomb_cons lincomb_eq_foldF lincomb_eq_foldF_module lincomb_eq_lincombP lincomb_ginv lincomb_injective lincomb_map_below lincomb_map_split lincomb_mem lincomb_mem_submodule lincomb_nil_left lincomb_nil_right lincomb_padTo lincomb_smul lincomb_smul_congr lincomb_take lincomb_zeros lincomb_zipWith_add lincomb_zipWith_sub map_below_congr map_below_getD mem_spanSet_cons_iff mem_spanSet_iff neg_one_smul one_eq_zero_of_basis_length_lt padTo padTo_length padTo_mem perm_zip_exists smulAt_mem smul_foldF smul_vzero spanCoeffs_of_isBasis spanSet spanSet_eq_or_exists_outside spanSet_exchange spanSet_subset spanSet_subset_spanSet subset_spanSet tupleCoeff_fst tupleCoeff_last tupleToList tupleToList_getElem tupleToList_inj tupleToList_length tupleToList_mem two_le_card_of_isField vaddAt_mem vadd_right_cancel vadd_shuffle_pair zero_smul zipWith_sub_mem)
+export Algebra (IsBasis IsIndep IsModule IsNoetherian IsSubmodule all_zero_or_exists_ne coordMat_mul_eq_id coord_uniq_family dim_unique dim_unique_of_detN dim_unique_of_exchange eq_map_below equinumerous_spanSet equinumerous_spanSet_card exchange_le exists_basis exists_coeffs_len_of_mem_spanSet exists_cons_of_length exists_coordColumn exists_coordMat_wide exists_coordPair_of_lt exists_matrix_of_forall_exists exists_span_pairs exists_tuple_of_list foldF_extend_monoid foldF_pad_to_short foldF_pad_truncate foldF_smul_left fst_mem_powSet_succ getD_append_of_lt_length getD_default_agree getD_mem_of_mem ginv_vzero isBasis_singleton_one isIndep_cons isIndep_nil isIndep_perm isModule_of_subring isModule_self isModule_submodule isSubmodule_spanSet lincomb lincombP lincombP_mem lincombP_perm lincomb_add lincomb_append lincomb_append_zeros lincomb_cons lincomb_eq_foldF lincomb_eq_foldF_module lincomb_eq_lincombP lincomb_ginv lincomb_injective lincomb_map_below lincomb_map_split lincomb_mem lincomb_mem_submodule lincomb_nil_left lincomb_nil_right lincomb_padTo lincomb_smul lincomb_smul_congr lincomb_take lincomb_zeros lincomb_zipWith_add lincomb_zipWith_sub map_below_congr map_below_getD mem_spanSet_cons_iff mem_spanSet_iff neg_one_smul one_eq_zero_of_basis_length_lt padTo padTo_length padTo_mem perm_zip_exists smulAt_mem smulT_zero_scalar smulT_zero_vector smul_foldF smul_vzero spanCoeffs_of_isBasis spanSet spanSet_eq_or_exists_outside spanSet_exchange spanSet_subset spanSet_subset_spanSet subset_spanSet tupleCoeff_fst tupleCoeff_last tupleToList tupleToList_getElem tupleToList_inj tupleToList_length tupleToList_mem two_le_card_of_isField vaddAt_mem vadd_right_cancel vadd_shuffle_pair zero_smul zipWith_sub_mem)
 end ZFSet

@@ -285,3 +285,18 @@ pairs:
       `mathlib_source` is omitted for the same reason: there is no
       declaration to cite, and a line number invented to fill the
       field would be worse than the blank.
+
+  - id: module-quotient
+    date: 1888
+    rows:
+      - "module over a ring"
+    mathlib: zero_smul
+    mathlib_source: Mathlib/Algebra/GroupWithZero/Action/Defs.lean:132
+    ours: Algebra.zero_smul
+    status: complete
+    note: >
+      Registered from the compiled proof terms rather than by hand:
+      `mathlib` is the first Mathlib proposition Lean reports the
+      challenge's witness depending on, and `ours` is the tower
+      theorem the Solution rests on. `Comparator/Audit.lean` is the
+      instrument and re-derives both.

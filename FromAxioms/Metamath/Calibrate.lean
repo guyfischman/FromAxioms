@@ -38,7 +38,6 @@ two principles rather than one.
 -/
 
 import FromAxioms.Analysis.Complete
-import FromAxioms.Analysis.Deriv
 import FromAxioms.NumberTheory.Halving
 
 set_option autoImplicit false

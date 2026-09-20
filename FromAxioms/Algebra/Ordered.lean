@@ -19,13 +19,13 @@ and is not, and this file is what lets that be said.
 -/
 
 import FromAxioms.Algebra.Ring
-import FromAxioms.SetTheory.Uncountable
+import FromAxioms.Constructive.Vanishing
 
 set_option autoImplicit false
 
 universe u
 
-open Analysis NumberTheory SetTheory
+open Analysis Constructive NumberTheory SetTheory
 namespace Algebra
 
 /-! ## The positive cone -/
@@ -72,7 +72,22 @@ to be this one, this definition should take its name. -/
 def NeApartZero : Prop :=
   ∀ x, x ∈ RealL.{u} → x ≠ realLZero.{u} → realLApart x realLZero.{u}
 
+/-- The cone's `total` clause for located reals reverses to `MP`. So the
+apartness hypothesis is not merely sufficient for the order, it is exactly
+`MP`, and `isPosCone_realL` is priced rather than bounded.
+
+The witness is the ternary walk. `¬ ∀ n, α n = false` makes it distinct from
+zero; the hypothesis makes it apart from zero; and apartness on this family
+hands a firing digit back with nothing spent, because `nestLower` is a
+separation over `∃ n ∈ ω` and the numerator's only source of size is a
+digit. -/
+theorem mp_of_neApartZero (h : NeApartZero.{u}) : MP := by
+  intro α hall
+  refine exists_true_of_ternary_apart (h _ (ternaryReal_mem α) (fun he => ?_))
+  exact hall ((ternary_eq_zero_iff α).mp ((ternaryReal_eq_zero_iff α).mp he))
+
 end Algebra
+#print axioms Algebra.mp_of_neApartZero
 namespace ZFSet
-export Algebra (IsPosCone NeApartZero)
+export Algebra (IsPosCone NeApartZero mp_of_neApartZero)
 end ZFSet

@@ -22,10 +22,11 @@ estimate has to fit inside.
 -/
 
 import FromAxioms.Analysis.IVT
+import FromAxioms.SetTheory.Cardinal
 
 universe u
 
-open NumberTheory SetTheory
+open Algebra NumberTheory SetTheory Topology
 namespace Analysis
 
 /-! ## Bounds by a rational
@@ -2694,6 +2695,55 @@ theorem posPart_sq_slack {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     hE, realLAdd_mul hQ hQ (realLAdd_mem hNx (realLNeg_mem hNy)),
     hQE]
 
+/-- An affine map has constant uniform derivative: the linear part plus a
+constant, with the zero summand cleaned away. -/
+theorem hasDerivOn_affine {p q B C : ZFSet.{u}} (hB : B ∈ RealL.{u})
+    (hC : C ∈ RealL.{u}) :
+    HasDerivOn (fun t => realLAdd (realLMul B t) C) (fun _ => B) p q := by
+  refine hasDerivOn_congr (fun z _ => rfl) (fun z _ => ?_)
+    (hasDerivOn_add
+      (fun x hx => realLMul_mem hB ((mem_realLIcc_iff p q x).mp hx).left)
+      (fun _ _ => hC) (fun _ _ => hB) (fun _ _ => realLZero_mem)
+      (hasDerivOn_linear hB) (hasDerivOn_const hC))
+  rw [realLAdd_zero hB]
+
+/-- The absolute value: the max against the negation. One-Lipschitz by
+`close_max`, so the max form is chosen over `x⁺ + x⁻`. -/
+def realLAbs (x : ZFSet.{u}) : ZFSet.{u} := realLMax x (realLNeg x)
+
+/-- The same affine map at real endpoints: `t ↦ (q-p)·t + p`, with the width
+a real rather than a rational.
+
+Unlike `Analysis.segUnit`, which takes rational endpoints so that its inverse
+is total, the inverse here needs `0 < q - p`; `Analysis.sub_pos_of_lt` supplies
+it from the `p < q` every consumer assumes. The rational restriction was the
+price of a total function, not of constructivity.
+-/
+def segUnitR (p q t : ZFSet.{u}) : ZFSet.{u} :=
+  realLAdd (realLMul (realLAdd q (realLNeg p)) t) p
+
+/-- The inverse of `Analysis.segUnitR`: `[p,q]` back to `[0,1]`.
+
+`unitOfR p q x = (x - p) * (q - p)⁻¹` with the inverse in `RealL`. Total as a
+formula; it is an inverse only under `p < q`, which is where `realLMul_inv` is
+spent --- see `Analysis.unitOfR_segUnitR`. -/
+def unitOfR (p q x : ZFSet.{u}) : ZFSet.{u} :=
+  realLMul (realLAdd x (realLNeg p)) (realLInv (realLAdd q (realLNeg p)))
+
+/-- Uniform continuity on a real-ended interval.
+
+Character for character `Analysis.UniformlyContinuousOn` with `realLIcc p q`
+replaced by `realLIccR p q`. The modulus stays rational: a rational modulus is
+what makes the definition constructive, while a rational endpoint is what makes
+it narrow, and only the second is being lifted.
+
+`Analysis.uniformlyContinuousOn_iff_R` says the old predicate is this one at
+embedded endpoints, by `Iff.rfl`. -/
+def UniformlyContinuousOnR (H : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) : Prop :=
+  ∀ n : Nat, ∃ m : Nat, ∀ w x y, w ∈ NumberTheory.Rat.{u} → ratLt ratZero.{u} w →
+    ratLe w (invWidth (ofNat.{u} m)) → x ∈ realLIccR p q → y ∈ realLIccR p q →
+    Close x y (realLOf w) → Close (H x) (H y) (realLOf (invWidth (ofNat.{u} n)))
+
 /-! ## Tagged partitions
 
 `tag_ge` and `tag_le` are the load-bearing fields. The per-cell error from
@@ -2717,6 +2767,8 @@ structure TaggedPartition (c d : ZFSet.{u}) : Type (u + 1) where
   mono : ∀ i, ratLe (pt i) (pt (i + 1))
   tag_ge : ∀ i, ratLe (pt i) (tag i)
   tag_le : ∀ i, ratLe (tag i) (pt (i + 1))
+
+/-! ## Audit -/
 
 #print axioms withinOf_realLOf_iff
 #print axioms withinOf_mono
@@ -2784,6 +2836,7 @@ structure TaggedPartition (c d : ZFSet.{u}) : Type (u + 1) where
 #print axioms posPart_mul_negPart_le_sq
 #print axioms close_symm
 #print axioms posPart_sq_slack
+#print axioms hasDerivOn_affine
 #print axioms withinOf_of_nonneg_le
 #print axioms uniformlyContinuousOn_max
 #print axioms realLMax_eq_posPart_add
@@ -2799,6 +2852,53 @@ structure TaggedPartition (c d : ZFSet.{u}) : Type (u + 1) where
 #print axioms uniformlyContinuousOn_const
 #print axioms uniformlyContinuousOn_add
 #print axioms exists_rat_near_in_Icc
+/-- Two points of an interval are within its width of each other. The
+bound is the width as a rational, so a piece of the subdivision bounds the
+separation of anything inside it. -/
+theorem close_of_mem_realLIcc {a b y z : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
+    (hb : b ∈ NumberTheory.Rat.{u}) (hy : y ∈ realLIcc a b) (hz : z ∈ realLIcc a b) :
+    Close y z (realLOf (ratAdd b (ratNeg a))) := by
+  obtain ⟨hym, hay, hyb⟩ := (mem_realLIcc_iff a b y).mp hy
+  obtain ⟨hzm, haz, hzb⟩ := (mem_realLIcc_iff a b z).mp hz
+  have haR := realLOf_mem ha
+  have hbR := realLOf_mem hb
+  have hw : realLAdd (realLOf b) (realLNeg (realLOf a))
+      = realLOf (ratAdd b (ratNeg a)) := by
+    rw [realLOf_neg ha, realLOf_add hb (ratNeg_mem_Rat ha)]
+  constructor
+  · have hstep : realLLe (realLAdd (realLOf a) (realLNeg (realLOf b)))
+        (realLAdd y (realLNeg z)) :=
+      realLLe_add haR hym (realLNeg_mem hbR) (realLNeg_mem hzm) hay
+        (realLNeg_le_neg hzm hbR hzb)
+    have hneg : realLNeg (realLOf (ratAdd b (ratNeg a)))
+        = realLAdd (realLOf a) (realLNeg (realLOf b)) := by
+      rw [← hw, realLNeg_realLAdd hbR (realLNeg_mem haR), realLNeg_realLNeg haR,
+        realLAdd_comm (realLNeg_mem hbR) haR]
+    rw [hneg]
+    exact hstep
+  · rw [← hw]
+    exact realLLe_add hym hbR (realLNeg_mem hzm) (realLNeg_mem haR) hyb
+      (realLNeg_le_neg haR hzm haz)
+
+/-- The same, for the open bracket.
+
+The `realLIoo` twin of `close_of_mem_realLIcc` above. -/
+theorem close_of_mem_realLIoo {c e y z : ZFSet.{u}}
+    (hc : c ∈ NumberTheory.Rat.{u}) (he : e ∈ NumberTheory.Rat.{u})
+    (hy : y ∈ realLIoo c e) (hz : z ∈ realLIoo c e) :
+    Close y z (realLOf (ratAdd e (ratNeg c))) := by
+  obtain ⟨hyR, hcy, hye⟩ := (mem_realLIoo_iff c e y).mp hy
+  obtain ⟨hzR, hcz, hze⟩ := (mem_realLIoo_iff c e z).mp hz
+  exact close_of_mem_realLIcc hc he
+    ((mem_realLIcc_iff c e y).mpr
+      ⟨hyR, realLLe_of_lt (realLOf_mem hc) hyR hcy,
+       realLLe_of_lt hyR (realLOf_mem he) hye⟩)
+    ((mem_realLIcc_iff c e z).mpr
+      ⟨hzR, realLLe_of_lt (realLOf_mem hc) hzR hcz,
+       realLLe_of_lt hzR (realLOf_mem he) hze⟩)
+
+#print axioms close_of_mem_realLIoo
+
 
 /-- From `Close A B e`: `A ≤ B + e`. `[propext, Quot.sound]`. -/
 theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
@@ -2811,6 +2911,238 @@ theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
 
 #print axioms le_add_radius_of_close
 
+/-- From `X - Y ≤ W`, shift `W` across: `X - W ≤ Y`. Pure rearrangement. -/
+private theorem realLLe_sub_of_sub_le {X Y W : ZFSet.{u}} (hX : X ∈ RealL.{u})
+    (hY : Y ∈ RealL.{u}) (hW : W ∈ RealL.{u})
+    (h : realLLe (realLAdd X (realLNeg Y)) W) :
+    realLLe (realLAdd X (realLNeg W)) Y := by
+  have hshift := realLLe_add_right (realLAdd_mem hX (realLNeg_mem hY)) hW
+    (realLAdd_mem hY (realLNeg_mem hW)) h
+  have hLc : realLAdd (realLAdd X (realLNeg Y)) (realLAdd Y (realLNeg W))
+      = realLAdd X (realLNeg W) := by
+    rw [realLAdd_assoc hX (realLNeg_mem hY) (realLAdd_mem hY (realLNeg_mem hW)),
+      ← realLAdd_assoc (realLNeg_mem hY) hY (realLNeg_mem hW),
+      realLAdd_comm (realLNeg_mem hY) hY, realLAdd_neg hY,
+      realLZero_add (realLNeg_mem hW)]
+  have hRc : realLAdd W (realLAdd Y (realLNeg W)) = Y := by
+    rw [← realLAdd_assoc hW hY (realLNeg_mem hW),
+      realLAdd_comm hW hY, realLAdd_assoc hY hW (realLNeg_mem hW),
+      realLAdd_neg hW, realLAdd_zero hY]
+  rw [hLc, hRc] at hshift
+  exact hshift
+
+/-- From `w < a' - a`, get `a < a' - w`. The rational half of the same shift. -/
+private theorem ratLt_sub_of_lt_sub {a a' w : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
+    (ha' : a' ∈ NumberTheory.Rat.{u}) (hw : w ∈ NumberTheory.Rat.{u})
+    (h : ratLt w (ratAdd a' (ratNeg a))) :
+    ratLt a (ratAdd a' (ratNeg w)) := by
+  have hnw := ratNeg_mem_Rat hw
+  have hna := ratNeg_mem_Rat ha
+  have hstep := (ratAdd_lt_add_right_iff (ratAdd_mem_Rat ha hnw) hw
+    (ratAdd_mem_Rat ha' hna)).mpr h
+  have hL : ratAdd w (ratAdd a (ratNeg w)) = a := by
+    rw [← ratAdd_assoc hw ha hnw, ratAdd_comm hw ha,
+      ratAdd_assoc ha hw hnw, ratAdd_neg hw, ratAdd_zero ha]
+  have hR : ratAdd (ratAdd a' (ratNeg a)) (ratAdd a (ratNeg w))
+      = ratAdd a' (ratNeg w) := by
+    rw [ratAdd_assoc ha' hna (ratAdd_mem_Rat ha hnw),
+      ← ratAdd_assoc hna ha hnw, ratAdd_comm hna ha, ratAdd_neg ha,
+      ratZero_add hnw]
+  rw [hL, hR] at hstep
+  exact hstep
+
+/-- From `w < b - b'`, get `b' + w < b`. The mirror of `ratLt_sub_of_lt_sub`. -/
+private theorem ratLt_add_of_lt_sub {b b' w : ZFSet.{u}} (hb : b ∈ NumberTheory.Rat.{u})
+    (hb' : b' ∈ NumberTheory.Rat.{u}) (hw : w ∈ NumberTheory.Rat.{u})
+    (h : ratLt w (ratAdd b (ratNeg b'))) :
+    ratLt (ratAdd b' w) b := by
+  have hnb' := ratNeg_mem_Rat hb'
+  have hst := (ratAdd_lt_add_right_iff hb' hw (ratAdd_mem_Rat hb hnb')).mpr h
+  have hcanc : ratAdd (ratAdd b (ratNeg b')) b' = b := by
+    rw [ratAdd_assoc hb hnb' hb', ratAdd_comm hnb' hb',
+      ratAdd_neg hb', ratAdd_zero hb]
+  rw [hcanc] at hst
+  -- `ratAdd_lt_add_right_iff` put `w` on the left; the goal wants `b'`.
+  rwa [ratAdd_comm hw hb'] at hst
+
+/-- The lower bracket survives a move of at most `w`, when `w` is strictly
+inside the slack `a' - a`. Stated over bare reals so the continuity bridge can
+use it twice, once per side, instead of chasing the same chain in both. -/
+private theorem realLOf_lt_of_slack {a a' w X Y : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
+    (ha' : a' ∈ NumberTheory.Rat.{u}) (hwQ : w ∈ NumberTheory.Rat.{u})
+    (hX : X ∈ RealL.{u}) (hY : Y ∈ RealL.{u})
+    (hslack : ratLt w (ratAdd a' (ratNeg a)))
+    (ha'lt : realLLt (realLOf a') X)
+    (hmove : realLLe (realLAdd X (realLNeg Y)) (realLOf w)) :
+    realLLt (realLOf a) Y := by
+  have hw := realLOf_mem hwQ
+  have hstep1 : realLLt (realLOf a)
+      (realLAdd (realLOf a') (realLNeg (realLOf w))) := by
+    rw [realLOf_neg hwQ, ← realLOf_add ha' (ratNeg_mem_Rat hwQ)]
+    refine (realLOf_lt_realLOf ha
+      (ratAdd_mem_Rat ha' (ratNeg_mem_Rat hwQ))).mpr ?_
+    exact ratLt_sub_of_lt_sub ha ha' hwQ hslack
+  have hstep2 := realLLt_add_right (realLOf_mem ha') hX (realLNeg_mem hw) ha'lt
+  have hstep3 := realLLe_sub_of_sub_le hX hY hw hmove
+  exact realLLt_of_lt_of_le (realLOf_mem ha)
+    (realLAdd_mem hX (realLNeg_mem hw)) hY
+    (realLLt_trans (realLOf_mem ha)
+      (realLAdd_mem (realLOf_mem ha') (realLNeg_mem hw))
+      (realLAdd_mem hX (realLNeg_mem hw)) hstep1 hstep2) hstep3
+
+/-- The mirror: the upper bracket survives the same move. -/
+private theorem lt_realLOf_of_slack {b b' w X Y : ZFSet.{u}} (hb : b ∈ NumberTheory.Rat.{u})
+    (hb' : b' ∈ NumberTheory.Rat.{u}) (hwQ : w ∈ NumberTheory.Rat.{u})
+    (hX : X ∈ RealL.{u}) (hY : Y ∈ RealL.{u})
+    (hslack : ratLt w (ratAdd b (ratNeg b')))
+    (hb'lt : realLLt X (realLOf b'))
+    (hmove : realLLe (realLNeg (realLOf w)) (realLAdd X (realLNeg Y))) :
+    realLLt Y (realLOf b) := by
+  have hw := realLOf_mem hwQ
+  have hu3 := le_add_of_neg_le_sub' hX hY hw hmove
+  have hu2 := realLLt_add_right hX (realLOf_mem hb') hw hb'lt
+  have hu1 : realLLt (realLAdd (realLOf b') (realLOf w)) (realLOf b) := by
+    rw [← realLOf_add hb' hwQ]
+    refine (realLOf_lt_realLOf (ratAdd_mem_Rat hb' hwQ) hb).mpr ?_
+    exact ratLt_add_of_lt_sub hb hb' hwQ hslack
+  exact realLLt_of_le_of_lt hY (realLAdd_mem hX hw) (realLOf_mem hb) hu3
+    (realLLt_trans (realLAdd_mem hX hw)
+      (realLAdd_mem (realLOf_mem hb') hw) (realLOf_mem hb) hu2 hu1)
+
+/-- Two points of a bracket narrower than the modulus are close at it. -/
+theorem close_of_narrow_bracket {c e x y : ZFSet.{u}}
+    (hcQ : c ∈ NumberTheory.Rat.{u}) (heQ : e ∈ NumberTheory.Rat.{u}) {m : Nat}
+    (hce : ratLt e (ratAdd c (invWidth (ofNat.{u} m))))
+    (hx : x ∈ realLIoo c e) (hy : y ∈ realLIoo c e) :
+    Close x y (realLOf (invWidth (ofNat.{u} m))) := by
+  have hxR : x ∈ RealL.{u} := ((mem_realLIoo_iff c e x).mp hx).left
+  have hyR : y ∈ RealL.{u} := ((mem_realLIoo_iff c e y).mp hy).left
+  refine withinOf_mono (realLAdd_mem hxR (realLNeg_mem hyR))
+    (ratAdd_mem_Rat heQ (ratNeg_mem_Rat hcQ))
+    (invWidth_mem_Rat (ofNat_mem_omega.{u} m)) ?_
+    (close_of_mem_realLIoo hcQ heQ hx hy)
+  exact ((ratLt_sub_iff_lt_add hcQ heQ
+    (invWidth_mem_Rat (ofNat_mem_omega.{u} m))).mpr hce).left
+
+#print axioms Analysis.close_of_narrow_bracket
+
+/-- Uniform continuity gives topological continuity, over the subspace
+topology on the interval.
+
+Uniform continuity carries a modulus, and the modulus is the neighbourhood the
+topological statement asks for.
+
+The converse is not proved here: extracting one modulus for the whole interval
+from a pointwise-continuous map is the classical compactness argument, priced
+against `LLPO` in `Calibrate.lean`. As a hypothesis it is a calibration; as a
+theorem it would be false.
+
+`IsContinuous` takes a set function while the maps here are Lean-level, so the
+subject is `graphOn`'s graph. -/
+theorem isContinuous_of_uniformlyContinuousOn {F : ZFSet.{u} → ZFSet.{u}}
+    {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hpq : ratLt p q)
+    (hFm : ∀ x, x ∈ realLIcc p q → F x ∈ RealL.{u})
+    (hUC : UniformlyContinuousOn F p q) :
+    IsContinuous (graphOn (realLIcc p q) RealL.{u} F) (realLIcc p q) RealL.{u}
+      (subspaceOpens realLOpens.{u} (realLIcc p q)) realLOpens.{u} := by
+  refine ⟨graphOn_isFunction _ _ _, graphOn_domain hFm, graphOn_range, ?_⟩
+  intro V hV
+  obtain ⟨hVsub, hVopen⟩ := (mem_realLOpens_iff V).mp hV
+  -- All opens whose interval points land in `V`. Separation, not selection:
+  -- one `W` per point of the preimage would be a choice, and this is the same
+  -- device `subspaceOpens.union_closed` uses for the same reason.
+  refine (mem_subspaceOpens_iff _ _ _).mpr
+    ⟨fun w hw => ((mem_preimageIn_iff _ _ _ w).mp hw).left,
+     sUnion (sep (fun W => ∀ y, y ∈ W → y ∈ realLIcc p q → F y ∈ V) realLOpens.{u}),
+     (isTopology_realLOpens.{u}).union_closed _
+       (fun W hW => ((mem_sep_iff _ _ _).mp hW).left), ?_⟩
+  refine ext _ _ (fun x => ⟨fun hx => ?_, fun hx => ?_⟩)
+  · -- forward: a point of the preimage sits in some good open
+    obtain ⟨hxIcc, hxV⟩ := (mem_preimageIn_iff _ _ _ x).mp hx
+    rw [app_graphOn hFm hxIcc] at hxV
+    have hxR : x ∈ RealL.{u} := ((mem_realLIcc_iff p q x).mp hxIcc).left
+    -- `V` brackets `F x` by rationals.
+    obtain ⟨a, ha, b, hb, haFx, hFxb, hab⟩ := hVopen _ hxV
+    -- Both gaps are witnessed by rationals, so their minimum is a positive
+    -- rational and bounds how far `F y` may move and stay inside the bracket.
+    -- `a` and `b` are already rational; the bracket in cut form is what the
+    -- located structure gives room inside.
+    have haL : a ∈ fst (F x) :=
+      (realLOf_lt_iff_mem_lower (hFm x hxIcc) ha).mp haFx
+    have hbU : b ∈ snd (F x) :=
+      (lt_realLOf_iff_mem_upper (hFm x hxIcc) hb).mp hFxb
+    -- Room strictly inside each cut, from `IsLocated`'s own openness fields:
+    -- the gaps are real and cannot be measured, but `a < a'` and `b' < b` are
+    -- rational facts.
+    obtain ⟨L, U, hFxeq, hloc⟩ := (mem_RealL_iff (F x)).mp (hFm x hxIcc)
+    rw [hFxeq, fst_opair] at haL
+    rw [hFxeq, snd_opair] at hbU
+    obtain ⟨a', ha'L, haa'⟩ := hloc.lower_open a haL
+    obtain ⟨b', hb'U, hb'b⟩ := hloc.upper_open b hbU
+    have ha'Q : a' ∈ NumberTheory.Rat.{u} := hloc.lower_subset a' ha'L
+    have hb'Q : b' ∈ NumberTheory.Rat.{u} := hloc.upper_subset b' hb'U
+    -- The two rational slacks, and a precision below both.
+    have hs₁Q : ratAdd a' (ratNeg a) ∈ NumberTheory.Rat.{u} :=
+      ratAdd_mem_Rat ha'Q (ratNeg_mem_Rat ha)
+    have hs₂Q : ratAdd b (ratNeg b') ∈ NumberTheory.Rat.{u} :=
+      ratAdd_mem_Rat hb (ratNeg_mem_Rat hb'Q)
+    have hs₁0 : ratLt ratZero.{u} (ratAdd a' (ratNeg a)) := ratSub_pos ha ha'Q haa'
+    have hs₂0 : ratLt ratZero.{u} (ratAdd b (ratNeg b')) := ratSub_pos hb'Q hb hb'b
+    obtain ⟨N, hNω, hNlt⟩ := exists_invWidth_lt
+      (ratMin_mem_Rat hs₁Q hs₂Q) (ratMin_pos hs₁Q hs₂Q hs₁0 hs₂0)
+    obtain ⟨n, rfl⟩ := (mem_omega_iff N).mp hNω
+    obtain ⟨m, hm⟩ := hUC n
+    -- A rational-endpoint interval around `x`, narrower than the modulus.
+    obtain ⟨c, e, hcQ, heQ, hcx, hxe, hce⟩ := exists_rat_bracket hxR
+      (invWidth_mem_Rat (ofNat_mem_omega.{u} m))
+      (invWidth_pos (ofNat_mem_omega.{u} m))
+    -- That interval is the witness: it is open, it contains `x`, and every
+    -- interval point of it that lies in `[p,q]` is sent into `V`.
+    refine (mem_inter_iff x _ _).mpr ⟨(mem_sUnion_iff x _).mpr
+      ⟨realLIoo c e, (mem_sep_iff _ _ _).mpr ⟨realLIoo_mem_realLOpens hcQ heQ, ?_⟩,
+       (mem_realLIoo_iff c e x).mpr ⟨hxR, hcx, hxe⟩⟩, hxIcc⟩
+    -- The remaining obligation: every point of `(c, e)` that lies in `[p,q]`
+    -- is sent into `V`. Both points sit inside a bracket narrower than the
+    -- modulus, so `hm` puts their images within `invScale n` of each other,
+    -- and `n` was chosen below both rational slacks -- so the image stays
+    -- inside `(a, b)`, which `hab` puts inside `V`.
+    intro y hyIoo hyIcc
+    -- Both points lie in the bracket `(c, e)`, whose width is under the
+    -- modulus, so they are `Close` at that scale.
+    have hclose : Close x y (realLOf (invWidth (ofNat.{u} m))) :=
+      close_of_narrow_bracket hcQ heQ hce
+        ((mem_realLIoo_iff c e x).mpr ⟨hxR, hcx, hxe⟩) hyIoo
+    have himg := hm (invWidth (ofNat.{u} m)) x y
+      (invWidth_mem_Rat (ofNat_mem_omega.{u} m))
+      (invWidth_pos (ofNat_mem_omega.{u} m))
+      (ratLe_refl (invWidth_mem_Rat (ofNat_mem_omega.{u} m)))
+      hxIcc hyIcc hclose
+    -- `F y` is within `invScale n` of `F x`, and `n` was chosen below both
+    -- rational slacks, so `F y` stays inside `(a, b)`, which `hab` puts in `V`.
+    refine hab _ ((mem_realLIoo_iff a b (F y)).mpr ⟨hFm y hyIcc, ?_, ?_⟩)
+    · -- `a < F y`: the bracket survives a move under the slack.
+      exact realLOf_lt_of_slack ha ha'Q
+        (invWidth_mem_Rat (ofNat_mem_omega.{u} n)) (hFm x hxIcc) (hFm y hyIcc)
+        (ratLt_of_lt_of_le (invWidth_mem_Rat (ofNat_mem_omega.{u} n))
+          (ratMin_mem_Rat hs₁Q hs₂Q) hs₁Q hNlt (ratMin_le_left hs₁Q hs₂Q))
+        ((realLOf_lt_iff_mem_lower (hFm x hxIcc) ha'Q).mpr
+          (by rw [hFxeq, fst_opair]; exact ha'L))
+        himg.right
+    · -- `F y < b`: the mirror, through `b'`.
+      exact lt_realLOf_of_slack hb hb'Q
+        (invWidth_mem_Rat (ofNat_mem_omega.{u} n)) (hFm x hxIcc) (hFm y hyIcc)
+        (ratLt_of_lt_of_le (invWidth_mem_Rat (ofNat_mem_omega.{u} n))
+          (ratMin_mem_Rat hs₁Q hs₂Q) hs₂Q hNlt (ratMin_le_right hs₁Q hs₂Q))
+        ((lt_realLOf_iff_mem_upper (hFm x hxIcc) hb'Q).mpr
+          (by rw [hFxeq, snd_opair]; exact hb'U))
+        himg.left
+  · -- backward: `good`'s defining property is the conclusion
+    obtain ⟨hxU, hxIcc⟩ := (mem_inter_iff x _ _).mp hx
+    obtain ⟨W, hWgood, hxW⟩ := (mem_sUnion_iff x _).mp hxU
+    refine (mem_preimageIn_iff _ _ _ x).mpr ⟨hxIcc, ?_⟩
+    rw [app_graphOn hFm hxIcc]
+    exact ((mem_sep_iff _ _ _).mp hWgood).right x hxW hxIcc
+
 #print axioms box_le
 #print axioms small_box
 #print axioms bracket_bounds
@@ -2818,12 +3150,19 @@ theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
 #print axioms mvi_step
 #print axioms mvi_grid
 #print axioms mono_grid
+#print axioms realLLe_sub_of_sub_le
+#print axioms ratLt_sub_of_lt_sub
+#print axioms ratLt_add_of_lt_sub
+#print axioms realLOf_lt_of_slack
+#print axioms lt_realLOf_of_slack
 #print axioms ratSub_add_sub
 #print axioms posPart_nonneg
 #print axioms le_posPart
 end Analysis
 
+#print axioms Analysis.isContinuous_of_uniformlyContinuousOn
+#print axioms Analysis.close_of_mem_realLIcc
 #print axioms Analysis.continuousAtOn_of_pointwiseModulus
 namespace ZFSet
-export Analysis (ContinuousAtOn HasDerivAt HasDerivOn LipschitzOn PointwiseModulus PointwiseModulusW TaggedPartition UniformlyContinuousOn VanishReadout close_add_lin close_max close_min close_of_close_close close_realLOf_sub_self close_self close_shift close_symm continuousAtOn_of_pointwiseModulus eq_of_hasDerivOn_zero exists_invWidth_add_self_lt exists_invWidth_mul_lt exists_rat_between exists_rat_bound exists_rat_near_in_Icc gridPoint_close_step gridPoint_succ_cases hasDerivAt_comp hasDerivAt_mul hasDerivOn_add hasDerivOn_comp hasDerivOn_congr hasDerivOn_const hasDerivOn_le_of_slope_le hasDerivOn_linear hasDerivOn_mono hasDerivOn_mul hasDerivOn_mvi hasDerivOn_neg hasDerivOn_step invWidth_le_one le_posPart meanSlope median_eq_clamp negPart negPart_mem posPart posPart_absorb posPart_add_le posPart_close posPart_eq_add_negPart posPart_mem posPart_mono posPart_mul_negPart posPart_mul_negPart_le_sq posPart_nonneg posPart_of_nonneg posPart_of_nonpos posPart_sq_slack product_slack ratLe_invWidth_of_le ratSub_add_sub realLClamp realLClamp_bracket realLClamp_mem realLClamp_nonneg_iff realLClamp_nonpos_iff realLIcc_mono realLLe_of_margins realLMax_eq_posPart_add realLMin_eq_sub_posPart realLNeg_one_le_zero realLNeg_one_lt_zero realLOf_mem_realLIcc segment segment_eq_convex segment_mem segment_mem_realLIcc segment_ratOne segment_ratZero tilt uniformlyContinuousOn_add uniformlyContinuousOn_const uniformlyContinuousOn_max uniformlyContinuousOn_median uniformlyContinuousOn_of_hasDerivOn uniformlyContinuousOn_posPart withinOf_add withinOf_diam withinOf_increment withinOf_increment_sharp withinOf_mono withinOf_mul withinOf_neg withinOf_of_margins withinOf_of_nonneg_le withinOf_of_withinOf_mul withinOf_realLOf_iff withinOf_self withinOf_zero)
+export Analysis (ContinuousAtOn HasDerivAt HasDerivOn LipschitzOn PointwiseModulus PointwiseModulusW TaggedPartition UniformlyContinuousOn VanishReadout close_add_lin close_max close_min close_of_close_close close_of_mem_realLIcc close_of_narrow_bracket close_realLOf_sub_self close_self close_shift close_symm continuousAtOn_of_pointwiseModulus eq_of_hasDerivOn_zero exists_invWidth_add_self_lt exists_invWidth_mul_lt exists_rat_between exists_rat_bound exists_rat_near_in_Icc gridPoint_close_step gridPoint_succ_cases hasDerivAt_comp hasDerivAt_mul hasDerivOn_add hasDerivOn_affine hasDerivOn_comp hasDerivOn_congr hasDerivOn_const hasDerivOn_le_of_slope_le hasDerivOn_linear hasDerivOn_mono hasDerivOn_mul hasDerivOn_mvi hasDerivOn_neg hasDerivOn_step invWidth_le_one isContinuous_of_uniformlyContinuousOn le_posPart meanSlope median_eq_clamp negPart negPart_mem posPart posPart_absorb posPart_add_le posPart_close posPart_eq_add_negPart posPart_mem posPart_mono posPart_mul_negPart posPart_mul_negPart_le_sq posPart_nonneg posPart_of_nonneg posPart_of_nonpos posPart_sq_slack product_slack ratLe_invWidth_of_le ratSub_add_sub realLAbs realLClamp realLClamp_bracket realLClamp_mem realLClamp_nonneg_iff realLClamp_nonpos_iff realLIcc_mono realLLe_of_margins realLMax_eq_posPart_add realLMin_eq_sub_posPart realLNeg_one_le_zero realLNeg_one_lt_zero realLOf_mem_realLIcc segment segment_eq_convex segment_mem segment_mem_realLIcc segment_ratOne segment_ratZero tilt uniformlyContinuousOn_add uniformlyContinuousOn_const uniformlyContinuousOn_max uniformlyContinuousOn_median uniformlyContinuousOn_of_hasDerivOn uniformlyContinuousOn_posPart withinOf_add withinOf_diam withinOf_increment withinOf_increment_sharp withinOf_mono withinOf_mul withinOf_neg withinOf_of_margins withinOf_of_nonneg_le withinOf_of_withinOf_mul withinOf_realLOf_iff withinOf_self withinOf_zero)
 end ZFSet

@@ -48,6 +48,9 @@
  "MonotoneConvergence": [
   "FromAxioms/Analysis/Limit.lean::lpo_of_monotoneConvergence"
  ],
+ "NeApartZero": [
+  "FromAxioms/Algebra/Ordered.lean::mp_of_neApartZero"
+ ],
  "PathSelection": [
   "FromAxioms/Constructive/Omniscience.lean::llpo_of_pathSelection"
  ],

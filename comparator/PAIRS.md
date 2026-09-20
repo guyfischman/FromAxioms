@@ -83,6 +83,16 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.Prime.irrational_sqrt`
 
+## `Comparator.ModuleQuotient.solution`
+
+- this pair costs: `[propext]`
+- rests on 2 tower proposition(s), costing `[]`
+    - `Algebra.smulT_zero_scalar`
+    - `Algebra.smulT_zero_vector`
+- Mathlib's own proof applies 2 theorem(s), among them
+    - `zero_smul`
+    - `smul_zero`
+
 ## `Comparator.NatAddSucc.solution`
 
 - this pair costs: `[Quot.sound, propext]`

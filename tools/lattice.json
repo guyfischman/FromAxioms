@@ -27,6 +27,7 @@
   "fanstable",
   "fanΔ",
   "hasapprox",
+  "haszerolocators",
   "isnoetherian",
   "llpo",
   "lpo",
@@ -147,6 +148,11 @@
    "by": "Topology.maxAttainmentTop_of_located",
    "from": "maxattainmenttoplocated",
    "to": "maxattainmenttop"
+  },
+  {
+   "by": "Algebra.mp_of_neApartZero",
+   "from": "neapartzero",
+   "to": "mp"
   },
   {
    "by": "Constructive.mp_of_lpo",

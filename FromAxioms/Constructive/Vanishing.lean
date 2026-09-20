@@ -124,8 +124,25 @@ theorem ternaryReal_lt_one_of_head_false {a : Nat → Bool} (h : a 0 = false) :
 
 #print axioms Constructive.ternaryReal_lt_one_of_head_false
 
+theorem toCut_ternaryReal (α : Nat → Bool) :
+    toCut (ternaryReal.{u} α) = nestLower (tlowSeq.{u} (boolDigit α)) :=
+  fst_opair _ _
+
 theorem toCut_realLZero : toCut realLZero.{u} = ratCut ratZero.{u} := by
   rw [realLZero, realLOf, toCut, fst_opair]
+
+/-- The walk names zero exactly when the located real it builds is zero. The
+forward direction is `toCut` applied to both sides; the reverse is its
+injectivity, which is where `located` is spent. -/
+theorem ternaryReal_eq_zero_iff (α : Nat → Bool) :
+    ternaryReal.{u} α = realLZero.{u}
+      ↔ nestLower (tlowSeq.{u} (boolDigit α)) = ratCut ratZero.{u} := by
+  constructor
+  · intro h
+    rw [← toCut_ternaryReal α, ← toCut_realLZero, h]
+  · intro h
+    refine toCut_injective (ternaryReal_mem α) (realLOf_mem ratZero_mem_Rat) ?_
+    rw [toCut_ternaryReal, toCut_realLZero, h]
 
 /-! ## Vanishing from a locator
 
@@ -153,6 +170,11 @@ def IsZeroLocator (L U : ZFSet.{u}) (β : Nat → Bool) : Prop :=
     (β n = true →
       invWidth (ofNat.{u} (n + 1)) ∈ L ∨ ratNeg (invWidth (ofNat.{u} (n + 1))) ∈ U) ∧
     (β n = false → ratNeg (invWidth (ofNat.{u} n)) ∈ L ∧ invWidth (ofNat.{u} n) ∈ U)
+
+/-- Every located real carries a locator. Named so the ceiling below can
+take this rather than a choice principle that only produces it. -/
+def HasZeroLocators : Prop :=
+  ∀ L U : ZFSet.{u}, IsLocated L U → ∃ β : Nat → Bool, IsZeroLocator L U β
 
 /-- A number bracketed inside every `±1/(n+1)` has the cut of zero. Forward is
 `no_greatest` -- a `q = 0` in `L` is beaten by a positive one, which no bracket
@@ -493,6 +515,78 @@ theorem llpo_of_signDisjunction (h : SignDisjunction.{u}) : LLPO :=
       have := realLLt_add_right hα hβ (realLNeg_mem hβ) hlt
       rwa [realLAdd_neg hβ] at this
 
+/-! ## Apartness from zero, and what it yields
+
+`eq_zero_or_apart_of_lpo` runs one way: `LPO` plus a supplied locator gives
+"zero or apart". This is the other direction and it takes no locator --
+being apart from zero already contains a witness, and the walk lets that
+witness be read back as a digit.
+
+The step that makes it work is that `nestLower` is a separation over
+`∃ n ∈ ω`, so a rational in the lower cut hands back a stage index
+rather than merely existing. From a positive rational below `tlow` at stage
+`n`, the numerator `tnum` is positive, and `tnum` is a `Nat` recursion whose
+only source of size is a fired digit. -/
+
+/-- A positive ternary numerator means some digit fired. Bounded, decidable,
+and the whole content of reading a witness back off the walk. -/
+theorem exists_true_of_tnum_pos {α : Nat → Bool} :
+    ∀ n : Nat, 0 < tnum (boolDigit α) n → ∃ k, α k = true
+  | 0, h => absurd h (Nat.lt_irrefl 0)
+  | n + 1, h => by
+    rcases Nat.eq_zero_or_pos (tnum (boolDigit α) n) with hz | hp
+    · refine ⟨n, ?_⟩
+      have h' : 0 < 3 * tnum (boolDigit α) n + 2 * boolDigit α n := h
+      rw [hz] at h'
+      cases hb : α n
+      · have hd : boolDigit α n = 0 := by rw [boolDigit, hb]; rfl
+        rw [hd] at h'
+        exact absurd h' (by omega)
+      · rfl
+    · exact exists_true_of_tnum_pos n hp
+
+/-- The walk's numerator is zero exactly when the lower endpoint is. -/
+theorem tlow_eq_zero_of_tnum_zero {α : Nat → Bool} {m : Nat}
+    (hz : tnum (boolDigit α) m = 0) : tlow.{u} (boolDigit α) m = ratZero.{u} := by
+  rw [tlow, hz, ratZero_eq_ratNat]
+  refine (ratNat_eq_iff (pow3_pos m) (by omega)).mpr ?_
+  omega
+
+/-- A ternary walk apart from zero has a firing digit, with no principle
+spent: the apartness carries a rational, the rational carries a stage, and
+the stage carries the digit. -/
+theorem exists_true_of_ternary_apart {α : Nat → Bool}
+    (h : realLApart (ternaryReal.{u} α) realLZero.{u}) : ∃ k, α k = true := by
+  rcases h with hlt | hlt
+  · obtain ⟨q, hqU, hqL⟩ := hlt
+    rw [realLZero, realLOf, fst_opair] at hqL
+    obtain ⟨hqQ, hq0⟩ := (mem_ratCut_iff _ _).mp hqL
+    rw [ternaryReal, snd_opair] at hqU
+    obtain ⟨-, n, hn, hhigh⟩ := (mem_nestUpper_iff _ _).mp hqU
+    obtain ⟨m, rfl⟩ := (mem_omega_iff n).mp hn
+    rw [app_thighSeq] at hhigh
+    have hpos : ratLt ratZero.{u} (thigh.{u} (boolDigit α) m) := by
+      rw [thigh, ratZero_eq_ratNat]
+      refine (ratNat_lt_iff (by omega) (pow3_pos m)).mpr ?_
+      omega
+    exact absurd (ratLt_trans ratZero_mem_Rat (thigh_mem_Rat _ m)
+      ratZero_mem_Rat hpos
+      (ratLt_trans (thigh_mem_Rat _ m) hqQ ratZero_mem_Rat hhigh hq0))
+      ratLt_irrefl
+  · obtain ⟨q, hqU, hqL⟩ := hlt
+    rw [realLZero, realLOf, snd_opair] at hqU
+    obtain ⟨hqQ, hq0⟩ := (mem_sep_iff _ _ _).mp hqU
+    rw [ternaryReal, fst_opair] at hqL
+    obtain ⟨-, n, hn, hlow⟩ := (mem_nestLower_iff _ _).mp hqL
+    obtain ⟨m, rfl⟩ := (mem_omega_iff n).mp hn
+    rw [app_tlowSeq] at hlow
+    rcases Nat.eq_zero_or_pos (tnum (boolDigit α) m) with hz | hp
+    · rw [tlow_eq_zero_of_tnum_zero hz] at hlow
+      exact absurd (ratLt_trans ratZero_mem_Rat hqQ ratZero_mem_Rat hq0 hlow)
+        ratLt_irrefl
+    · exact exists_true_of_tnum_pos m hp
+
+
 /-! ## The harmonic jump, and where a zero locator comes from -/
 
 /-- Dependent choice for relations on `ω`. -/
@@ -719,6 +813,7 @@ theorem ternary_dichotomy
 #print axioms le_of_sub_le_zero
 
 
+#print axioms toCut_ternaryReal
 #print axioms toCut_realLZero
 end Constructive
 
@@ -726,6 +821,10 @@ end Constructive
 #print axioms Constructive.DC
 #print axioms Constructive.ternaryReal_nonneg
 #print axioms Constructive.ternaryReal_le_one
+#print axioms Constructive.ternaryReal_eq_zero_iff
+#print axioms Constructive.exists_true_of_tnum_pos
+#print axioms Constructive.tlow_eq_zero_of_tnum_zero
+#print axioms Constructive.exists_true_of_ternary_apart
 #print axioms Constructive.apart_of_zeroLocator_fires
 #print axioms Constructive.apart_of_mp_of_ne_zero
 #print axioms Constructive.lower_eq_ratCut_zero_of_locator
@@ -740,5 +839,5 @@ end Constructive
 #print axioms Constructive.DCOmega
 
 namespace ZFSet
-export Constructive (DC DCOmega DCOn IsZeroLocator SignDisjunction acOmega_of_dc acOmega_of_dcOn apart_of_mp_of_ne_zero apart_of_zeroLocator_fires dcOn_of_dc eq_zero_iff_of_zeroLocator eq_zero_or_apart_of_lpo llpo_of_signDisjunction lower_eq_ratCut_zero_of_locator realLZero_lt_iff_mem_lower ternaryReal ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg toCut_realLZero)
+export Constructive (DC DCOmega DCOn HasZeroLocators IsZeroLocator SignDisjunction acOmega_of_dc acOmega_of_dcOn apart_of_mp_of_ne_zero apart_of_zeroLocator_fires dcOn_of_dc eq_zero_iff_of_zeroLocator eq_zero_or_apart_of_lpo exists_true_of_ternary_apart exists_true_of_tnum_pos llpo_of_signDisjunction lower_eq_ratCut_zero_of_locator realLZero_lt_iff_mem_lower ternaryReal ternaryReal_eq_zero_iff ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg tlow_eq_zero_of_tnum_zero toCut_realLZero toCut_ternaryReal)
 end ZFSet
