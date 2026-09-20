@@ -11,10 +11,10 @@ Mathlib's vocabulary only. `Mathlib/Data/Int/GCD.lean:126`:
 
     theorem Nat.gcd_eq_gcd_ab : (gcd x y : ℤ) = x * gcdA x y + y * gcdB x y
 
-MATHLIB NAMES ITS WITNESSES AND THIS CHALLENGE DOES NOT, which is a real
+Mathlib names its witnesses and this CHALLENGE does not, which is a real
 difference and is stated rather than papered over. `gcdA` and `gcdB` are computed
 by the extended Euclidean algorithm; the challenge asks only that coefficients
-EXIST. `challenge_is_mathlibs` below closes that gap in the direction that
+exist. `challenge_is_mathlibs` below closes that gap in the direction that
 matters here --- mathlib's named witnesses inhabit the existential --- so the
 challenge is a consequence of mathlib's theorem and not a weakening dressed up as
 one. The row's `at_parity` records that mathlib additionally provides the

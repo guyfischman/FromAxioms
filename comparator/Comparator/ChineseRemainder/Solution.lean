@@ -10,12 +10,12 @@ SOLUTION: `challenge` discharged from `FromAxioms`.
     NumberTheory.crt {m n : Nat} (hco : Nat.gcd m n = 1) (hn : 0 < n) (r s : Nat) :
       ∃ x, Cong m x r ∧ Cong n x s
 
-THE CONGRUENCE RELATIONS ARE THE SAME DEFINITION. Ours is
+The congruence relations are the same definition. Ours is
 `Cong n a b := a % n = b % n` (`Congruence.lean:31`) and mathlib's is
 `Nat.ModEq n a b := a % n = b % n`, so `k ≡ a [MOD n]` and `Cong n k a` are
 definitionally equal and no bridge lemma is needed at all.
 
-OURS CARRIES A HYPOTHESIS MATHLIB'S DOES NOT, and writing this file is what made
+Ours carries a hypothesis Mathlib's does not, and writing this file is what made
 that visible. `crt` demands `0 < n`; `Nat.chineseRemainder` demands only
 coprimality. The gap is exactly the degenerate case, and it is not vacuous:
 `Coprime n 0` says `gcd n 0 = n = 1`, so the missing case is real and has to be

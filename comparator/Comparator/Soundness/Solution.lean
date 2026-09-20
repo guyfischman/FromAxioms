@@ -7,28 +7,28 @@ Authors: Guy Fischman
 /-
 SOLUTION: `challenge` discharged from `FromAxioms`.
 
-THE MATHEMATICS IS `Algebra.soundness` --- the tower's own theorem, by induction
-on its derivation relation. This file re-proves nothing: it TRANSLATES the
+The mathematics is `Algebra.soundness` --- the tower's own theorem, by induction
+on its derivation relation. This file re-proves nothing: it translates the
 Challenge's syntax into the tower's, carries the derivation across, and reads the
 semantics back.
 
-`challenge_is_standard`'s ten-case induction is NOT reused; the Challenge proves
+`challenge_is_standard`'s ten-case induction is not reused; the Challenge proves
 soundness directly and this Solution proves it by transport, so the two really
 are independent derivations of the same statement.
 
-WHY A TRANSLATION AND NOT A BRIDGE. There is no encoding here at all --- both
+Why a translation and not a bridge. There is no encoding here at all --- both
 sides are Lean inductives over `Nat` and `Prop`. `toForm` is a structural
 recursion between two identically-shaped types, `toDerives` carries each of the
 ten rules to its namesake, and `eval_toForm` says the two semantics agree. That
 is the cheapest possible shape for a pair whose two sides do not share a type.
 
-AND IT IS ONLY POSSIBLE BECAUSE THE NAMESPACES DIFFER. The set-theory rows
-cannot be paired at all: both libraries declare `PSet` and `ZFSet` at the ROOT,
+And it is only possible because the namespaces differ. The set-theory rows
+cannot be paired at all: both libraries declare `PSet` and `ZFSet` at the root,
 so an environment holding both is rejected before elaboration. `Algebra.Form`
 and `Comparator.Soundness.Form` coexist because one is qualified --- the same
 situation, decided the other way by a naming choice.
 
-NO CIRCULARITY. `toDerives` maps derivations to derivations; it says nothing
+No circularity. `toDerives` maps derivations to derivations; it says nothing
 about truth. The semantic content is entirely in `Algebra.soundness`.
 -/
 import Comparator.Soundness.Challenge
@@ -36,7 +36,7 @@ import FromAxioms.Algebra.Heyting
 
 namespace Comparator.Soundness
 
-/-- The tower's theorem this rests on, named where a reader of THIS file
+/-- The tower's theorem this rests on, named where a reader of this file
 can see it. -/
 theorem rests_on_soundness : True := by
   have _ := @Algebra.soundness

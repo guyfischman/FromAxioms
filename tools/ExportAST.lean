@@ -34,7 +34,7 @@ private def kindOf : ConstantInfo → String
   | .ctorInfo _ => "constructor"
   | .recInfo _ => "recursor"
 
-/-- UNMANGLE, exactly as the `name` field does. A reference to a private
+/-- Unmangle, exactly as the `name` field does. A reference to a private
 declaration arrives as `_private.<module>.<hash>.<name>` while the row it points
 at is keyed on the user-facing name, so leaving these mangled made 461
 references dangle the moment private rows started being emitted -- reported by
@@ -48,15 +48,15 @@ every measurement. `isInternalDetail` is the compiler's own answer to the
 question; `isInternal` alone misses `.match_1` and friends, which is 401
 declarations here.
 
-**Ask it of the USER-FACING name.** Lean mangles a private declaration to
+**Ask it of the user-facing name.** Lean mangles a private declaration to
 `_private.<module>.<hash>.<name>`, and `isInternalDetail` is true of any name
 whose root component starts with `_` -- so an exclusion written for compiler
-detail took the ENTIRE private surface with it. 302 private declarations, zero
+detail took the entire private surface with it. 302 private declarations, zero
 private rows in 8304, and every row printing `"private": false`, which reads as
 *there are none* rather than *none were emitted*.
 
 Stripping the prefix first is what keeps both halves right: a private lemma
-`_private.M.h.foo` has base `foo` and is NOT internal, while a private matcher
+`_private.M.h.foo` has base `foo` and is not internal, while a private matcher
 `_private.M.h.foo.match_1` has base `foo.match_1` and still is. Testing
 `!isPrivateName n` instead would have readmitted the matchers. -/
 private def isInternal (n : Name) : Bool :=
@@ -76,7 +76,7 @@ the declaration form the parser cannot read is the form most likely to be
 excluded by hand as "generated". The list and the parser would share a blind
 spot by construction.
 
-**A declaration range is NOT the criterion, and that was measured rather than
+**A declaration range is not the criterion, and that was measured rather than
 assumed.** The appealing version asked `findDeclarationRanges?` -- did this come
 from source text? -- on the theory that a synthesised declaration has no
 position. It has one: generated declarations inherit the position of the syntax
@@ -146,15 +146,15 @@ private def usedBy (env : Environment) (self : Name) (ci : ConstantInfo) :
        | some j => (`FromAxioms).isPrefixOf env.header.moduleNames[j.toNat]!
        | none => false)
 
-/-- The constants a declaration invokes from OUTSIDE `FromAxioms`.
+/-- The constants a declaration invokes from outside `FromAxioms`.
 
 `usedBy` keeps only names whose module is prefixed `FromAxioms`, which is right
-for checking a parser against what the library WRITES. It makes the export
+for checking a parser against what the library writes. It makes the export
 unable to answer a different question: *which core
 lemmas does the tower actually invoke, and what do they cost*.
 
 That question has an answer worth having. Measured on a sample: `Nat.sub_lt`,
-`Nat.le_antisymm`, `Nat.strongRecOn` and `Decidable.byCases` depend on NO
+`Nat.le_antisymm`, `Nat.strongRecOn` and `Decidable.byCases` depend on no
 axioms; `Nat.div_le_self`, `Int.emod_emod_of_dvd` and `List.mem_append` cost
 `propext`. Three readings, none classical -- so the sweep distinguishes, and a
 roster of offenders alone could not tell *nobody looked* from *somebody looked
@@ -190,15 +190,15 @@ private def usedByType (env : Environment) (self : Name) (ci : ConstantInfo) :
 
 /-- The constants a declaration's *proof* mentions, without its statement.
 
-The complement of `usedByType`, and NOT derivable from the fields beside it:
-`refs` is the UNION, so a constant appearing in both the type and the value is
+The complement of `usedByType`, and not derivable from the fields beside it:
+`refs` is the union, so a constant appearing in both the type and the value is
 indistinguishable from one appearing only in the type. Recovering the term side
 needs the term side.
 
-What it buys is the question `refs` cannot ask -- a principle a theorem STATES
+What it buys is the question `refs` cannot ask -- a principle a theorem states
 and its proof never invokes. A hypothesis carried in the signature and unused by
 the argument has that shape, and compiler warnings cannot report it, since a
-REPLAYED build does not emit them. -/
+replayed build does not emit them. -/
 private def usedByValue (env : Environment) (self : Name) (ci : ConstantInfo) :
     Array Name :=
   userNames <| (match ci.value? with
@@ -228,7 +228,7 @@ private def isPropDef (ci : ConstantInfo) : Bool :=
     | _ => false
   | _ => false
 
-/-- A `Prop`-VALUED definition of any arity: `def Close (x y d : ...) : Prop`.
+/-- A `Prop`-valued definition of any arity: `def Close (x y d : ...) : Prop`.
 
 Wider than `isPropDef` by a whole population. `isPropDef` is the *principle*
 detector and excludes an argument-taking definition; a tool asking which definitions restate
@@ -242,17 +242,17 @@ private partial def propValuedType : Expr → Bool
   | .sort .zero => true
   | _ => false
 
-/-- Is every argument of the conclusion a FREE, UNRESTRICTED variable?
+/-- Is every argument of the conclusion a free, unrestricted variable?
 
-A witness of a FAMILY concludes `S z` for `z` a bound variable that no
+A witness of a family concludes `S z` for `z` a bound variable that no
 hypothesis mentions. Two things are not that, and only one is visible in the
 spine columns:
 
-* `S (f c)` applies the structure to a CONSTRUCTED argument, so it witnesses one
-  INSTANCE. The spine shows this -- the argument's head is a constant.
-* `∀ x, x ∈ K → S x` concludes on a bound variable that a hypothesis RESTRICTS,
+* `S (f c)` applies the structure to a constructed argument, so it witnesses one
+  instance. The spine shows this -- the argument's head is a constant.
+* `∀ x, x ∈ K → S x` concludes on a bound variable that a hypothesis restricts,
   which is the same restriction as applying a constructor to it. The spine does
-  NOT show it: the hypothesis binder's spine comes back empty, so a rule reading
+  not show it: the hypothesis binder's spine comes back empty, so a rule reading
   spines cannot tell it from a free index. The whole content of such a theorem
   is that the readout becomes free at `K`, so counting it as a family
   witness would be backwards.
@@ -294,12 +294,12 @@ private partial def conclusionHead : Expr → Name
   | .mdata _ e => conclusionHead e
   | e => (e.getAppFn.constName?).getD Name.anonymous
 
-/-- Every constant CONCLUDED, descending through the connectives.
+/-- Every constant concluded, descending through the connectives.
 
-`head` reads the ROOT of the conclusion, so a producer whose statement is an
+`head` reads the root of the conclusion, so a producer whose statement is an
 `↔` has head `Iff` and its subject is invisible -- `exists_deg_iff` produces
 `IsDegOf` and a reader of heads sees only `Iff`. Unwrapping `Iff` alone is not
-enough: `exists_critical_or_not` concludes a DISJUNCTION.
+enough: `exists_critical_or_not` concludes a disjunction.
 
 So this descends through `Iff`, `And`, `Or`, `Not` and `Exists`, and stops at
 anything else. It stops short of a full traversal of the conclusion: an
@@ -322,21 +322,21 @@ private partial def conclusionHeads : Expr → List Name
       else [n]
     | none => []
 
-/-- The ENVIRONMENT'S OWN KIND for each conclusion head.
+/-- The environment's own kind for each conclusion head.
 
-**Distinguishes a structure being CONSTRUCTED from a constant being
-REFERENCED**.
+**Distinguishes a structure being constructed from a constant being
+referenced**.
 
 A rule of the form *the conclusion mentions a
-constant the proof never touches, AND the conclusion is not a structure being
+constant the proof never touches, and the conclusion is not a structure being
 constructed* is unsatisfiable from names alone, because excluding conclusion
-heads that are defs, Prop-defs or structures returns ZERO -- conclusion heads
+heads that are defs, Prop-defs or structures returns zero -- conclusion heads
 are defs and structures essentially by definition.
 
 So the field reports the environment's classification rather than inventing
 one: `kindOf` already answers `constructor`, `inductive`, `def`, `theorem`,
 `axiom`, and a caller asking *is this head a value being built* now does a
-LOOKUP instead of a heuristic.
+lookup instead of a heuristic.
 
 Parallel to `heads` and deduped the same way, so index i of one names index i
 of the other. A head the environment does not know -- which `conclusionHeads`
@@ -344,13 +344,13 @@ can yield for a bound variable applied to arguments -- reports `unknown`
 rather than being dropped, because dropping it would silently misalign the two
 arrays.
 -/
-/-- A hash of the CONCLUSION alone, binders stripped.
+/-- A hash of the conclusion alone, binders stripped.
 
 **The key a meaning-keyed duplicate sweep needs.** Measured before adding it: clustering the 10953 public theorems by
 `conclSpine` puts 6958 of them in 1336 clusters, largest 155, because a spine is
-the head plus each argument's HEAD and drops the arguments themselves. The pair
+the head plus each argument's head and drops the arguments themselves. The pair
 that motivated the sweep -- `remainder_unique` and `remainder_unique_domain`,
-character-identical but for one argument -- lands in a cluster of TWELVE. So the
+character-identical but for one argument -- lands in a cluster of twelve. So the
 spine catches the case and buries it.
 
 `typeHash` is the opposite error: it covers the whole type, so two statements
@@ -378,7 +378,7 @@ private def rankOf (xs : List Nat) (n : Nat) : Nat :=
     | x :: tl, k => if x == n then k else go tl (k + 1)
   go xs 0
 
-/-- The LOOSE bound variables of `e`, as outer ids, in first-occurrence order.
+/-- The loose bound variables of `e`, as outer ids, in first-occurrence order.
 `d` is the number of binders entered since the conclusion began. -/
 private partial def looseIds : Expr → Nat → List Nat → List Nat
   | .bvar i,           d, acc =>
@@ -402,10 +402,10 @@ private partial def renumber (m : List Nat) : Expr → Nat → Expr
   | .proj s i x,       d => .proj s i (renumber m x d)
   | e,                 _ => e
 
-/-- A hash of the conclusion with its free variables abstracted POSITIONALLY.
+/-- A hash of the conclusion with its free variables abstracted positionally.
 
 The naive version -- hash the term left after stripping `forallE` -- is keyed
-on the NUMBER OF HYPOTHESES, which is the one thing a hypothesis-stripping key
+on the number of hypotheses, which is the one thing a hypothesis-stripping key
 must ignore. A loose de Bruijn index counts binders outward from where it
 stands, so `remainder_unique` and `remainder_unique_domain`, whose conclusions
 are both `r = polyZero R zero` character for character, hashed differently
@@ -429,12 +429,12 @@ private def conclusionHeadKinds (env : Environment) (t : Expr) : List String :=
     | some ci => kindOf ci
     | none    => "unknown"
 
-/-- The APPLICATION SPINE of a term: its head, then each argument's head, one
+/-- The application spine of a term: its head, then each argument's head, one
 level deep, with `_` for anything that is not a constant application.
 
 `head` and a flat `typeRefs` leave every consumer reading roots, which cannot
-answer the question the family exists for: *is this predicate ever concluded AT
-THE ARGUMENT SHAPE somebody assumes it at*. `close_invApart` took
+answer the question the family exists for: *is this predicate ever concluded at
+the argument shape somebody assumes it at*. `close_invApart` took
 `WithinOf (realLInvApart x) (realLOf c)` twice with nothing building one, while
 `WithinOf` is concluded constantly.
 
@@ -444,7 +444,7 @@ separating more cases -- subsumption (`P _ _` instantiates to `P _ (f _)`) is
 what the consumer must credit, and that is cheaper on short spines.
 
 **Elaborated rather than textual.** A reader of source signatures cannot tell a
-BOUND VARIABLE from a constant, and heads rows with binder names like `A` or
+bound variable from a constant, and heads rows with binder names like `A` or
 `F`. Here a local is not a `const` and renders as `_` by
 construction. Source text also hides implicit arguments, which this sees. -/
 private def spineOf (e : Expr) : List String :=
@@ -463,7 +463,7 @@ tower states that a structure is inhabited, and stopping at the head reports
 `Exists` -- which is true of every existential and says nothing about any of
 them. A witness sweep keyed on the head then reads *nothing concludes this
 structure* while the file beside it proves exactly that, and the error runs in
-the FALSE-ABSENCE direction, which is the one that does not announce itself.
+the false-absence direction, which is the one that does not announce itself.
 
 The descent is into the predicate's body, and `Exists` stores it as a lambda,
 so the binder is stripped the same way a `forallE` is. Nested existentials
@@ -478,14 +478,14 @@ private partial def conclusionSpine : Expr → List String
     | .const ``Exists _, #[_, .lam _ _ body _] => conclusionSpine body
     | _, _ => spineOf e
 
-/-- **The head of each binder whose type is itself QUANTIFIED**, in order:
+/-- **The head of each binder whose type is itself quantified**, in order:
 `(h : ∀ z, SideReadout z)` contributes `SideReadout`, `(h : SideReadout c)`
 contributes nothing.
 
 `binderSpines` cannot make this distinction --- a restricting hypothesis
-contributes an EMPTY spine, so an instance and a family look identical there.
-The difference matters because for a READOUT the quantified form is the priced
-principle and an instance proves nothing, while for a BUNDLE the quantified
+contributes an empty spine, so an instance and a family look identical there.
+The difference matters because for a readout the quantified form is the priced
+principle and an instance proves nothing, while for a bundle the quantified
 form is false and the instance is the only witness a structure can have. One
 column, read in opposite directions by two populations.
 
@@ -574,7 +574,7 @@ private partial def bodyOf (env : Environment) : Expr → String
     unless (`FromAxioms).isPrefixOf mod do continue
     let axs ← collectAxioms name
     let row := Json.mkObj [
-      -- The USER-FACING name: `_private.<module>.<hash>.<name>` matches
+      -- The user-facing name: `_private.<module>.<hash>.<name>` matches
       -- nothing the parser or the registries know, so a row under the
       -- mangled name would be present and unusable. `private` below
       -- carries the distinction that the prefix was doing.

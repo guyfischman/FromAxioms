@@ -26,7 +26,7 @@ a natural number, and does so as data rather than as an existential a
 construction cannot consume.
 -/
 
-import FromAxioms.Analysis.Cauchy
+import FromAxioms.NumberTheory.Rational
 import FromAxioms.SetTheory.LeastSearch
 -- Re-exported: four files reach `seekFrom` and `natFind` through this one and
 -- none imports `NatSearch.lean` directly.
@@ -76,7 +76,7 @@ theorem le_ratMin {a p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q 
   · rw [ratMin, condP_neg h]; exact h2
 
 /-- The larger of two rationals, as a term. The mirror of `ratMin`, and like it
-no decision is made: `condP` SEPARATES on the comparison rather than deciding
+no decision is made: `condP` separates on the comparison rather than deciding
 it, so the value is data at `[propext, Quot.sound]` even where the comparison
 is not known. -/
 def ratMax (p q : ZFSet.{u}) : ZFSet.{u} := condP (ratLt p q) q p
@@ -131,7 +131,7 @@ theorem ratMin_eq_right_of_le {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}
     exact ratLe_antisymm hp hq hlt.left h
   · rw [ratMin, condP_neg hlt]
 
-/-- A max is one of its two arguments. The decision is about RATIONALS,
+/-- A max is one of its two arguments. The decision is about rationals,
 where it is free; nothing about the reals a max bounds is decided by it. -/
 theorem ratMax_cases {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) :
     ratMax p q = p ∨ ratMax p q = q := by
@@ -173,8 +173,8 @@ theorem ratMax_absorb {a p q : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hp 
 lower one, so `clampLen lo hi` is `hi - lo` where that is nonnegative and zero
 otherwise.
 
-`MeasuredCover` requires a piece to satisfy BOTH `ordered` and `length_eq`, so
-a degenerate piece has to be emitted as a POINT rather than as an inverted
+`MeasuredCover` requires a piece to satisfy both `ordered` and `length_eq`, so
+a degenerate piece has to be emitted as a point rather than as an inverted
 interval. This is that clamp. -/
 def clampLen (lo hi : ZFSet.{u}) : ZFSet.{u} :=
   ratAdd (ratMax lo hi) (ratNeg lo)
@@ -274,8 +274,8 @@ theorem ratMin_pos {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q �
 
 /-! ### The minimum over an initial segment
 
-`ratMin` is BINARY and, before this, had no fold. A finite family of positive
-rationals has a POSITIVE minimum where an infinite one need not have a positive
+`ratMin` is binary and, before this, had no fold. A finite family of positive
+rationals has a positive minimum where an infinite one need not have a positive
 infimum, and that asymmetry is what lets a quantity be chosen after a finite
 object is in hand --- a partition's cells, say --- when no uniform choice over
 the whole interval exists.
@@ -434,7 +434,7 @@ theorem nodeWidth_mem (s : List Bool) : nodeWidth.{u} s ∈ NumberTheory.Rat.{u}
 same observation that the existential conclusion is what keeps it choice-free ---
 and the gate's typedupe check caught it.
 
-Search the file you are editing FIRST. It is the likeliest home for a lemma
+Search the file you are editing first. It is the likeliest home for a lemma
 about the definitions it owns, and it is the one file a concept-search of other
 modules will never cover. -/
 
@@ -449,7 +449,7 @@ theorem nodeWidth_append (s : List Bool) (c : Bool) :
 
 `nodeWidth s` is this with the node itself as the window; the generalisation is
 that the window is supplied. What it buys is that a node the interval misses
-contributes nothing WITHOUT anything being decided about it: `ratMax` and
+contributes nothing without anything being decided about it: `ratMax` and
 `ratMin` are `condP` on a rational comparison, and `condP` branches inside the
 set theory with no `Decidable` instance anywhere (`LeastSearch.lean`). A
 covered-or-zero summand is not writable, because deciding coverage is a `Prop`
@@ -480,7 +480,7 @@ theorem nodeIv_append_inside (s : List Bool) (c : Bool) :
 
 /-- A node of any prescribed depth containing a given point of `[0,1]`.
 
-Containment is CLOSED. At a midpoint the point is an endpoint of both halves,
+Containment is closed. At a midpoint the point is an endpoint of both halves,
 so demanding strict containment would make the step fail exactly there, and no
 choice of half repairs it. A caller wanting the node strictly inside an
 interval gets it from the width instead: a node narrower than the point's
@@ -533,7 +533,7 @@ theorem le_halveScale : ∀ n : Nat, n ≤ halveScale 0 n
 /-- The width at a given depth, in closed form. `halveScale 0 n` is
 `2^n - 1`, so this says the width is `1/2^n` -- written through the scale index
 the halving ladder uses, so the step is `invWidth_half` and no
-exponential appears. The recursion is from the END of the list, because the
+exponential appears. The recursion is from the end of the list, because the
 fold acts there. -/
 theorem nodeWidth_length : ∀ (n : Nat) (s : List Bool), s.length = n →
     nodeWidth.{u} s = invWidth (ofNat.{u} (halveScale 0 n))

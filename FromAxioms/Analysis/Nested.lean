@@ -176,13 +176,13 @@ theorem nest_mem_RealL {a b : ZFSet.{u}} (h : IsNested a b) :
 real.
 
 This is the completeness statement the landmark names, and it is not
-`isLocated_nest`: that says the nest determines a located CUT, while this says
-the cut is a POINT lying in every interval and the only one.
+`isLocated_nest`: that says the nest determines a located cut, while this says
+the cut is a point lying in every interval and the only one.
 
-UNIQUENESS COSTS NEITHER `shrink` NOR DENSITY. `realLLt x y` is a rational `p`
+Uniqueness costs neither `shrink` nor density. `realLLt x y` is a rational `p`
 above `x` and below `y`; if `y` lies under every `b m` and some `b m` lies under
 `p`, that same `p` witnesses `realLOf (b m) < y`, which the bracketing forbids.
-So any two points bracketed by one nest are equal on the ORDER alone --- the
+So any two points bracketed by one nest are equal on the order alone --- the
 widths shrinking is what makes the bracket non-trivial, not what makes it
 unique. -/
 theorem exists_unique_mem_nest {a b : ZFSet.{u}} (h : IsNested a b) :

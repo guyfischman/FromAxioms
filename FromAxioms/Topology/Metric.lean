@@ -28,7 +28,7 @@ suprema machinery for no gain. Meeting every ball is what the Baire argument
 uses.
 -/
 
-import FromAxioms.SetTheory.Search
+import FromAxioms.Analysis.Cauchy
 import FromAxioms.Topology.Topology
 
 universe u
@@ -158,13 +158,13 @@ existential, hence a `Prop`. Density is cotransitivity: two rationals strictly
 inside the interval, and `c` cannot be above the upper one and below the lower.
 -/
 
-/-- The order topology on the located reals, with RATIONAL endpoints.
+/-- The order topology on the located reals, with rational endpoints.
 
 `Topology.lean`'s `realOpens` is the same construction over `Real`, the Dedekind
 cuts, and cannot be reused: the analysis in this tree is over `RealL`, and the
 bridge `toCut` runs only one way --- a cut need not be located. So this is the
 same argument over a different carrier, so `isTopology_realOpens` is a
-TEMPLATE here rather than a component.
+template here rather than a component.
 
 Rational endpoints rather than located ones, and that is a strengthening, not a
 convenience: every located real is bracketed by rationals at every scale, so the
@@ -184,7 +184,7 @@ theorem mem_realLOpens_iff (U : ZFSet.{u}) :
     ⟨fun h => ⟨(mem_powerset_iff _ _).mp h.left, h.right⟩,
      fun h => ⟨(mem_powerset_iff _ _).mpr h.left, h.right⟩⟩
 
-/-- The located order as a SET of pairs.
+/-- The located order as a set of pairs.
 
 `IsOrderTopology` and `IsConditionallyComplete` take their order as a ZFSet
 relation, because a general carrier has no `realLLt` to call. `RealL` has one,
@@ -192,7 +192,7 @@ so the coincidence theorem needs the two spellings joined, and this is the
 join: the graph of `realLLt` cut out of `RealL × RealL`.
 
 Reifying the order rather than quantifying over a predicate is the same move
-`IsCompact` makes with its cover indices --- carry the DATA. It also keeps the
+`IsCompact` makes with its cover indices --- carry the data. It also keeps the
 order's undecidability where it belongs: membership in this set is exactly
 `realLLt`, so nothing is decided by forming it. -/
 def realLLtRel : ZFSet.{u} :=
@@ -249,7 +249,7 @@ theorem isTopology_realLOpens : IsTopology realLOpens.{u} RealL.{u} where
         ((mem_realLOpens_iff V).mp hV).right x hxV
       -- The tighter bracket on each side. Rational endpoints are exactly what
       -- makes this a decidable comparison rather than a decision about reals.
-      -- `realLIoo_mono` already exists here and takes the OUTER interval first.
+      -- `realLIoo_mono` already exists here and takes the outer interval first.
       rcases ratLe_total hp₁ hp₂ with hlo | hlo <;>
         rcases ratLe_total hq₁ hq₂ with hhi | hhi
       · exact ⟨p₂, hp₂, q₁, hq₁, hp₂x, hxq₁, fun w hw =>
@@ -295,13 +295,13 @@ def IsMetric (d X : ZFSet.{u}) : Prop :=
 carrier-free spelling of a metric space, so the statement is at the generality
 the definition already has.
 
-A PROJECTION rather than new mathematics: the inequality is the last clause of
+A projection rather than new mathematics: the inequality is the last clause of
 `IsMetric`, and every metric in this tree has satisfied it all along. What was
 missing was a name. `Analysis.close_of_close_close` is the `RealL` special
 case, and nothing stated the general form.
 
 Named rather than reached positionally, since `IsMetric` has seven clauses and
-`hd.right` six times is unreadable and breaks SILENTLY if a clause is ever
+`hd.right` six times is unreadable and breaks silently if a clause is ever
 inserted. The three companions below name the other substantive clauses for the
 same reason. -/
 theorem isMetric_triangle {d X : ZFSet.{u}} (hd : IsMetric d X)
@@ -320,7 +320,7 @@ theorem isMetric_symm {d X : ZFSet.{u}} (hd : IsMetric d X)
 
 #print axioms Topology.isMetric_triangle
 #print axioms Topology.isMetric_symm
-/-- The ball of RATIONAL radius. Rational for the same reason `realLOpens` uses
+/-- The ball of rational radius. Rational for the same reason `realLOpens` uses
 rational endpoints: a located real cannot be compared to a general real, and
 `ratMin` is what makes two balls intersect. -/
 def metricBall (d X c r : ZFSet.{u}) : ZFSet.{u} :=
@@ -352,7 +352,7 @@ theorem isMetric_app_mem {d X : ZFSet.{u}} (hd : IsMetric d X)
   obtain ⟨hfun, hdom, hran, -, -, -, -⟩ := hd
   exact hran _ (app_mem_range hfun (by rw [hdom]; exact opair_mem_prod hx hy))
 
-/-- Total boundedness, constructively: the net is DATA. -/
+/-- Total boundedness, constructively: the net is data. -/
 structure TotallyBoundedOn (d X : ZFSet.{u}) : Type (u + 1) where
   count : Nat → Nat
   net : Nat → Nat → ZFSet.{u}
@@ -367,7 +367,7 @@ def IsCauchyOn (d : ZFSet.{u}) (s : Nat → ZFSet.{u}) : Prop :=
   ∀ n : Nat, ∃ N : Nat, ∀ j k : Nat, N ≤ j → N ≤ k →
     realLLt (app d (opair (s j) (s k))) (realLOf (invWidth (ofNat.{u} n)))
 
-/-- Completeness, constructively: the limit is DATA.
+/-- Completeness, constructively: the limit is data.
 
 Same decision as `TotallyBoundedOn`'s net, for the same reason. A limit
 recovered from an existential is a choice, and every use of a complete space

@@ -26,8 +26,8 @@ modulus bound is exactly the hypothesis `isCauchyComplex_dirichlet_bounded`
 asks for, and it is the only thing the analytic side ever reads about a
 character.
 
-THE ROOT IS `cZeta`, WHICH THIS FILE DID NOT HAVE TO BUILD. Rooting `cOne`
-through `cUnitRootOf` produces only the PRINCIPAL character, because that
+The root is `cZeta`, which this file did not have to build. Rooting `cOne`
+through `cUnitRootOf` produces only the principal character, because that
 function follows the principal branch and returns `cOne`. `cZeta n` is the
 exponential of a proper fraction of a turn and `cZeta_primitive` shows its
 powers are apart from one below the order --- which is what orthogonality
@@ -41,11 +41,11 @@ namespace ZFSet
 
 open SetTheory NumberTheory
 
-/-- # FILTERING `upto N` BY DIVISIBILITY OF `N+1` GIVES THE PROPER DIVISORS.
+/-- # filtering `upto N` by divisibility of `N+1` gives the proper divisors.
 
     (upto N).filter (fun e => (N+1) % e == 0)  =  divisorsBelow (N + 1)
 
-An EQUALITY of lists, not a permutation: `upto` descends, `divisorsBelow (N+1)`
+An equality of lists, not a permutation: `upto` descends, `divisorsBelow (N+1)`
 filters `upto ((N+1)/2)` with the same predicate, and `upto ((N+1)/2)` is a
 suffix of `upto N`. The entries the longer list carries in front --- those
 strictly above `(N+1)/2` --- all fail the test, because a divisor of `N+1` other
@@ -53,7 +53,7 @@ than `N+1` itself is at most half of it. So the filter deletes exactly the
 prefix and the two results coincide entry for entry.
 
 At the cutoff step from `N` to `N+1`, the `d` whose inner range grows are the
-`d` in `upto N` dividing `N+1`, and this says that list IS the proper-divisor
+`d` in `upto N` dividing `N+1`, and this says that list is the proper-divisor
 list the convolution identity is stated over. So the Dirichlet rearrangement's
 increment is a divisor sum. -/
 theorem filter_upto_dvd_succ (N : Nat) :

@@ -40,8 +40,8 @@ EXPORTER = ROOT / "tools" / "ExportAST.lean"
 def source_key(root=None):
     """The digest a stored export must carry to count as current.
 
-    `root` names ANOTHER tree, for a consumer holding a peer's cache. Every
-    path is then taken from that tree, INCLUDING its `astexport.py`: the key
+    `root` names another tree, for a consumer holding a peer's cache. Every
+    path is then taken from that tree, including its `astexport.py`: the key
     covers the code that produced
     the answer, so keying a peer's cache on ours would call their export stale
     whenever this tree edited the exporter, and current whenever they did.
@@ -55,18 +55,18 @@ def source_key(root=None):
     return cache.cache_key(
         [r / "lean-toolchain", r / "lakefile.toml",
          r / "tools" / "ExportAST.lean",
-         # The AGGREGATOR, not just the directory below it. It is the file of
+         # The aggregator, not just the directory below it. It is the file of
          # `import` lines that decides what gets elaborated, so its content
-         # changes what the export CONTAINS -- and adding a file moves the key
+         # changes what the export contains -- and adding a file moves the key
          # via the glob while adding its import moved nothing. An export
          # generated between those two edits was then served under a matching
          # key, and the failure surfaces as *parsed from X, absent from the
          # environment*, which points at the parser and away from the cache.
          #
-         # The HUB is the most exposed seat, not the least: every batch that
+         # The hub is the most exposed seat, not the least: every batch that
          # brings a new file changes the aggregator, which is therefore a
          # conflict file on most batches.
-         # EVERY MODULE, by the tree's own layout. A key naming a path this
+         # Every module, by the tree's own layout. A key naming a path this
          # tree does not have covers nothing that changes, so the cache
          # answers every question with the first export ever taken. One served
          # 147 declarations against a tree holding 225, and the graph drew 7
@@ -125,7 +125,7 @@ def export(use_cache=True, cached_only=False):
         raise RuntimeError(
             "the exporter produced no declarations -- it failed to elaborate:\n"
             + (r.stdout + r.stderr)[-2000:])
-    # ATOMIC, because 22 tools read this file `cached_only` and a prefix is
+    # Atomic, because 22 tools read this file `cached_only` and a prefix is
     # indistinguishable to them from an absent cache: `json.loads` raises,
     # the raise is swallowed, and the consumer silently answers from a
     # source-only population instead of refusing. `os.replace` is atomic on
@@ -191,20 +191,20 @@ def cold_because():
     """The newest source postdating the cache, or None if the export is warm.
 
     **Beside the cache, because it reads the cache.** A generator run against
-    a cold export writes a table of UNMEASURED verdicts to a tracked file --
+    a cold export writes a table of unmeasured verdicts to a tracked file --
     every cost state collapsed to zero -- and the
-    gate then PASSED, because the file matched what the generator produces from
+    gate then passed, because the file matched what the generator produces from
     a cold export. A check comparing a generated file against its own generator
     verifies agreement with the generator rather than with the tree.
 
-    `_free_or_not` was already careful that UNMEASURED and FREE must not print
-    alike; the refusal has to reach the WRITER, because a generator does not
+    `_free_or_not` was already careful that unmeasured and free must not print
+    alike; the refusal has to reach the writer, because a generator does not
     inherit the caution its own logic makes.
 
-    **KEYED ON THE DIGEST, NOT ON MTIME.** This asked a
+    **Keyed on the digest, not on mtime.** This asked a
     different question from `export`, which admits a cache on `key == source_key()`,
     and a merge separates the two answers: git moves timestamps without moving
-    bytes, so a check keyed on mtime reads FRESH while this reads cold -- and
+    bytes, so a check keyed on mtime reads fresh while this reads cold -- and
     no re-run converges them, because `export` will not rewrite a cache it
     already considers current. The only exit is deleting the cache by hand. The
     rule is keys over
@@ -214,17 +214,17 @@ def cold_because():
     export cannot depend on Phase 1, since nothing imports both roots -- so a
     Phase 1 edit reported the Phase 2 export cold.
     """
-    # THE STORED KEY, NOT MTIME, and the two are not interchangeable.
+    # The stored key, not mtime, and the two are not interchangeable.
     # `source_key()` is this module's own definition of "what the cache was
-    # built from". Asking with MTIME instead lets a MERGE, which rewrites a
+    # built from". Asking with mtime instead lets a merge, which rewrites a
     # file's timestamp without changing a byte, make the two disagree
-    # permanently: one reads FRESH, this reads cold, and re-running cannot
+    # permanently: one reads fresh, this reads cold, and re-running cannot
     # clear it because the export correctly declines to rebuild a cache it
     # considers current. The only escape was deleting the cache by hand. It
     # failed gates in two trees from two different triggers before the cause
     # was one thing (structures, and algebra from the other side).
     #
-    # ONE SET COMPUTED TWICE is this repository's most expensive defect shape,
+    # One set computed twice is this repository's most expensive defect shape,
     # and two freshness keys for one cache is exactly it. The repair is one
     # definition called by both, not two spellings kept in step by hand.
     cache = ROOT / ".audit" / "ast-cache.json"
@@ -236,11 +236,11 @@ def cold_because():
         return "the export cache cannot be read"
     if stored == source_key():
         return None
-    # Naming a file is still the useful report, so say WHICH source is newest
+    # Naming a file is still the useful report, so say which source is newest
     # by mtime -- but only once the digest has already established staleness.
     # mtime picks the likely culprit; it no longer decides the verdict.
     #
-    # PHASE 2 ONLY, the population `source_key` digests. A Phase 1 edit
+    # Phase 2 only, the population `source_key` digests. A Phase 1 edit
     # cannot move this key -- nothing imports both roots -- so a `Logic/` file
     # can never be the culprit, and naming one would answer wrongly a question
     # the digest has already settled.

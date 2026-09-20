@@ -130,7 +130,7 @@ theorem mem_map_of_maps {α : Type v} {R : ZFSet.{u}} {F : α → ZFSet.{u}}
   obtain ⟨b, hb, rfl⟩ := List.mem_map.mp hw
   exact hF b hb
 
-/-- The same conclusion from a POINTWISE hypothesis, for the sites whose
+/-- The same conclusion from a pointwise hypothesis, for the sites whose
 discharge never consults the membership proof.
 
 Measured over the rewrite sites of the idiom above: 53 of them prove `F a ∈ R`
@@ -259,7 +259,7 @@ are `empty` and `singleton empty`; nothing about them matters except that they
 differ, which `tag_ne` proves from `not_mem_empty`.
 
 The point of tagging rather than taking `x ∪ y` is that the halves stay
-separable WITHOUT deciding membership: a map out of the union can be assembled
+separable without deciding membership: a map out of the union can be assembled
 as a union of two graphs on disjoint domains, where the alternative -- a case
 split on which side a member came from -- would be a case split on an equality
 of sets and is not available. -/

@@ -8,7 +8,7 @@ Authors: Guy Fischman
 # Rings, ideals, and their homomorphisms.
 
 A ring is an abelian group with a second set function on it. `IsRing` carries
-`mulComm`, so everything here is about COMMUTATIVE rings: calculating in one,
+`mulComm`, so everything here is about commutative rings: calculating in one,
 quotienting by an ideal, subrings, homomorphisms and the first isomorphism
 theorem. `Field.lean` builds on it with the fields themselves and with `ℚ` and
 `ℤ/nℤ` as the running examples.
@@ -18,21 +18,20 @@ into a mixin or kept as the scope of this development is open.
 -/
 
 import FromAxioms.Algebra.FinProd
-import FromAxioms.NumberTheory.Prime
 
 universe u
 
 open NumberTheory SetTheory
 namespace Algebra
 
-/-- A ring with unit, NOT assumed commutative. `IsRing` below is the
+/-- A ring with unit, not assumed commutative. `IsRing` below is the
 commutative one, so the base arrives beside it rather than replacing it.
 A theorem generalises by
 changing its hypothesis from `IsRing` to `IsRingNC`, and its callers by writing
 `hR.toNC` --- one theorem at a time, each move a real widening rather than a
 rename.
 
-TWO AXIOMS ARE NEW HERE, and they are exactly what commutativity was supplying
+Two axioms are new here, and they are exactly what commutativity was supplying
 for free: `one_mul` beside `mul_one`, and `distribRight` beside the left
 distributivity `IsRing` calls `distrib`. That is the whole content of the
 split. -/
@@ -106,7 +105,7 @@ theorem mulAt_mem_nc {R add mul zero one a b : ZFSet.{u}}
 
 /-- `a · 0 = 0` without commutativity.
 
-`a·0 = a·(0+0) = a·0 + a·0`, then cancel in the additive group. Only LEFT
+`a·0 = a·(0+0) = a·0 + a·0`, then cancel in the additive group. Only left
 distributivity is spent, which `IsRingNC` calls `distrib` exactly as `IsRing`
 does. -/
 theorem mul_zero_of_isRingNC {R add mul zero one a : ZFSet.{u}}
@@ -123,11 +122,11 @@ theorem mul_zero_of_isRingNC {R add mul zero one a : ZFSet.{u}}
     hba, h.addGroup.left_id _ (mulAt_mem_nc h ha hz)] at hcancel
   exact hcancel.symm
 
-/-- `0 · a = 0` without commutativity, and this one is a REAL widening
+/-- `0 · a = 0` without commutativity, and this one is a real widening
 rather than the same proof at a weaker hypothesis.
 
 `ringZero_mul` gets this from `mul_zero_of_isRing` by commuting the product,
-which is unavailable here. The mirror argument uses RIGHT distributivity:
+which is unavailable here. The mirror argument uses right distributivity:
 `0·a = (0+0)·a = 0·a + 0·a`, then the same cancellation. `distribRight` is one
 of the two axioms the split adds, and this is its use. -/
 theorem zero_mul_of_isRingNC {R add mul zero one a : ZFSet.{u}}
@@ -147,13 +146,13 @@ theorem zero_mul_of_isRingNC {R add mul zero one a : ZFSet.{u}}
 /-- A semiring, which is what a module's scalars are actually required
 to be.
 
-`IsRingNC` dropped `mulComm` from `IsRing`; this drops ADDITIVE INVERSES as
+`IsRingNC` dropped `mulComm` from `IsRing`; this drops additive inverses as
 well. The additive part is a commutative monoid rather than an abelian group,
 so `IsCommMonoid R add zero` replaces `addGroup` and `addComm` together.
 
-`zeroMul` AND `mulZero` ARE AXIOMS HERE, AND THAT IS NOT AN OVERSIGHT. In a
+`zeroMul` and `mulZero` are axioms here, and that is not an oversight. In a
 ring they are theorems -- `zero_mul_of_isRingNC` proves `0·a = 0` from
-`(0+0)·a = 0·a + 0·a` and CANCELLING, which needs the additive inverse. A
+`(0+0)·a = 0·a + 0·a` and cancelling, which needs the additive inverse. A
 semiring has no inverse to cancel with, so the absorption has to be assumed.
 Deriving it from the other fields is an error rather than a simplification.
 
@@ -176,7 +175,7 @@ structure IsSemiring (R add mul zero one : ZFSet.{u}) : Prop where
     opAt mul (opAt add a b) c = opAt add (opAt mul a c) (opAt mul b c)
 
 /-- Every non-commutative ring is a semiring, so `IsSemiring` is a
-WIDENING rather than a second notion standing beside the first.
+widening rather than a second notion standing beside the first.
 
 The additive group becomes a commutative monoid by `isCommMonoid_of_isGroup`,
 and the two absorption axioms -- which a semiring must assume -- are here the
@@ -210,7 +209,7 @@ theorem mulAt_mem_semi {R add mul zero one a b : ZFSet.{u}}
   h.mulRan _ (app_mem_range h.mulFun (by rw [h.mulDom]; exact opair_mem_prod ha hb))
 
 /-- Addition stays in the carrier, over a semiring -- closure of the
-additive COMMUTATIVE MONOID, which is all a semiring's addition is. -/
+additive commutative monoid, which is all a semiring's addition is. -/
 theorem addAt_mem_semi {R add mul zero one a b : ZFSet.{u}}
     (h : IsSemiring R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) :
     opAt add a b ∈ R :=
@@ -221,7 +220,7 @@ theorem addAt_mem_semi {R add mul zero one a b : ZFSet.{u}}
 #print axioms Algebra.addAt_mem_semi
 
 
-/-- `1 · a = a` without commutativity -- an AXIOM of `IsRingNC` rather
+/-- `1 · a = a` without commutativity -- an axiom of `IsRingNC` rather
 than a theorem. `ringOne_mul` derives it by commuting `mul_one`, which is
 exactly the derivation `IsRing.toNC` performs once so that everything past
 this point can simply ask for it. -/
@@ -244,7 +243,7 @@ theorem ringRight_distrib_nc {R add mul zero one a b c : ZFSet.{u}}
 /-! ### The additive helpers on the non-commutative base
 
 `IsRingNC` keeps `addGroup` and `addComm` verbatim -- the split drops
-MULTIPLICATIVE commutativity only -- so each of these is its commutative
+multiplicative commutativity only -- so each of these is its commutative
 twin's proof unchanged. They are migrated first because they block the most:
 `addAt_mem` alone stands under 31 further lemmas, and the additive family
 together under about ninety. -/
@@ -297,7 +296,7 @@ required here because no result below needs it. Adding it is queued rather than
 assumed.
 
 `translate` is here on that same rule, having become required: an inverse is
-supplied only from `apart zero a`, so any argument that inverts a DIFFERENCE
+supplied only from `apart zero a`, so any argument that inverts a difference
 needs apartness to move across addition, which no other clause relates it to.
 Written as invariance under a common shift rather than as *a apart b gives a -
 b apart zero*, because the shift form needs no negation and so states the same
@@ -498,8 +497,8 @@ theorem ringNeg_add_nc {R add mul zero one a : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) (ha : a ∈ R) :
     opAt add (ringNeg R add zero a) a = zero := opAt_ginv h.addGroup ha
 
-/-- `a + -a = 0`, over the non-commutative base. ADDITIVE commutativity is
-still available -- `IsRingNC` keeps `addComm`; it is only the MULTIPLICATIVE
+/-- `a + -a = 0`, over the non-commutative base. Additive commutativity is
+still available -- `IsRingNC` keeps `addComm`; it is only the multiplicative
 `mulComm` that the split drops. -/
 theorem ringAdd_neg_nc {R add mul zero one a : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) (ha : a ∈ R) :
@@ -509,7 +508,7 @@ theorem ringAdd_neg_nc {R add mul zero one a : ZFSet.{u}}
 
 /-- `a·(-b) = -(a·b)` without commutativity. The original proof already
 avoided `mulComm`: `a·b + a·(-b) = a·(b + -b) = a·0 = 0` identifies `a·(-b)`
-as the additive inverse. Only LEFT distributivity is spent. -/
+as the additive inverse. Only left distributivity is spent. -/
 theorem ringMul_neg_nc {R add mul zero one a b : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) :
     opAt mul a (ringNeg R add zero b) = ringNeg R add zero (opAt mul a b) := by
@@ -520,7 +519,7 @@ theorem ringMul_neg_nc {R add mul zero one a b : ZFSet.{u}}
   rw [← h.distrib a ha b hb _ (ringNeg_mem_nc h hb), ringAdd_neg_nc h hb,
     mul_zero_of_isRingNC h ha]
 
-/-- `(-a)·b = -(a·b)` without commutativity, and this is the REAL widening
+/-- `(-a)·b = -(a·b)` without commutativity, and this is the real widening
 of the four above.
 
 `ringNeg_mul` reaches this by commuting into `ringMul_neg`, which the
@@ -597,7 +596,7 @@ theorem field_mul_eq_zero {R add mul zero one u v : ZFSet.{u}}
 
 /-! ## Subtraction, and the identities a quotient needs
 
-`ringAdd_shuffle_pair` is the INTERCHANGE law -- `Located.lean` states
+`ringAdd_shuffle_pair` is the interchange law -- `Located.lean` states
 the same statement as `realLAdd_interchange`, and a reader who knows it
 by that word finds nothing here without this line. -/
 
@@ -632,7 +631,7 @@ theorem ringMul_neg {R add mul zero one a b : ZFSet.{u}} (h : IsRing R add mul z
 
 
 /-- `(-1) * a = -a`. The twin of `ringMul_neg` in the other direction: that
-moves a negation OUT of a product, this puts the unit's negation IN as a
+moves a negation out of a product, this puts the unit's negation in as a
 factor, so a negated element can be handled by a multiplicative law. -/
 theorem ringNegOne_mul {R add mul zero one a : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) :
@@ -701,7 +700,7 @@ theorem ringAdd_shuffle_pair_nc {R add mul zero one a b c d : ZFSet.{u}}
 
 /-- Negation distributes over a sum, over the non-commutative base:
 `-(a+b) = (-a) + (-b)`. The additive group is abelian here, so the sum of the
-inverses IS the inverse of the sum, identified by `inv_unique`. -/
+inverses is the inverse of the sum, identified by `inv_unique`. -/
 theorem ringNeg_addAt_nc {R add mul zero one a b : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) :
     ringNeg R add zero (opAt add a b)
@@ -780,8 +779,8 @@ theorem ringSub_trans {R add mul zero one a b c : ZFSet.{u}} (h : IsRing R add m
 
 /-- The difference of two products, split across both factors.
 
-NOT the `opAt` spelling of `ringSub_mul`, despite the suffix: `ringSub_mul` is
-right distributivity, `(a - b) * c = a*c - b*c`, at ONE product. This is the
+Not the `opAt` spelling of `ringSub_mul`, despite the suffix: `ringSub_mul` is
+right distributivity, `(a - b) * c = a*c - b*c`, at one product. This is the
 two-product identity, and the `At` here does not mean what it means in
 `addAt_mem` or `opAt_polyAddOp`. Named so a reader who found either can reach
 the other. -/
@@ -871,7 +870,7 @@ theorem ringNsmul_zero {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul z
     exact ringAdd_zero hR hR.addGroup.mem_e
 
 /-- Zero to any positive power is zero. The multiplicative twin of
-`ringNsmul_zero` above. The BASE is zero, not the exponent -- `gpow_zero` is
+`ringNsmul_zero` above. The base is zero, not the exponent -- `gpow_zero` is
 left free for the exponent-zero lemma, which is what that name means elsewhere. -/
 theorem gpow_zero_eq_zero {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) :
@@ -905,7 +904,7 @@ theorem ringNsmul_mul {R add mul zero one a b : ZFSet.{u}} (h : IsRing R add mul
 
 /-! ## The additive iterate over a semiring
 
-`IsRing` reaches these through its additive GROUP; a semiring has only a
+`IsRing` reaches these through its additive group; a semiring has only a
 commutative monoid, and each proof below routes through the `_bare` or
 `_of_commMonoid` form that already asks for no more than that. They exist
 because the binomial theorem is a semiring theorem --- `add_pow` holds in
@@ -927,7 +926,7 @@ theorem ringNsmul_sum_semi {R add mul zero one a : ZFSet.{u}}
 #print axioms Algebra.ringNsmul_sum_semi
 
 /-- `k·(ab) = (k·a)b` over a semiring. The ring proof reaches for
-`ringZero_mul` and `ringRight_distrib`, which are THEOREMS there and AXIOMS
+`ringZero_mul` and `ringRight_distrib`, which are theorems there and axioms
 here (`zeroMul`, `distribRight`) --- the inversion that makes dropping
 inverses cheap rather than costly. -/
 theorem ringNsmul_mul_semi {R add mul zero one a b : ZFSet.{u}}
@@ -958,7 +957,7 @@ structure IsCommSemiring (R add mul zero one : ZFSet.{u}) : Prop where
   mulComm : ∀ a, a ∈ R → ∀ b, b ∈ R → opAt mul a b = opAt mul b a
 
 /-- Every commutative ring is a commutative semiring, so the `_semi` forms
-are a WIDENING rather than a second theory standing beside the first --- the same relation `IsRingNC.toSemiring` gives one level down. -/
+are a widening rather than a second theory standing beside the first --- the same relation `IsRingNC.toSemiring` gives one level down. -/
 theorem isCommSemiring_of_isRing {R add mul zero one : ZFSet.{u}}
     (h : IsRing R add mul zero one) : IsCommSemiring R add mul zero one where
   semiring := h.toNC.toSemiring
@@ -1057,10 +1056,10 @@ theorem ringMul_shuffle_pair {R add mul zero one a b c d : ZFSet.{u}}
     ← h.mulAssoc _ ha _ hc _ (mulAt_mem h hb hd)]
 
 
-/-! ### The quadratic over a LEAN TYPE
+/-! ### The quadratic over a Lean type
 
-THE HYPOTHESES ARE WEAK ON PURPOSE. This asks for a commutative ring with no
-zero divisors, an `e` inverting THIS `a`, and a `u` with `u + u = B`: no other
+The hypotheses are weak: This asks for a commutative ring with no zero
+divisors, an `e` inverting this `a`, and a `u` with `u + u = B`: no other
 element need be invertible, and `a ≠ 0` is never assumed. That last omission is
 why the proof carries an extra branch: `a * E = 0` splits, and `a = 0` forces
 `one = a * e = 0`, making the ring trivial so `E = 0` regardless.
@@ -1083,7 +1082,7 @@ theorem ringMul_sub {R add mul zero one a b c : ZFSet.{u}} (h : IsRing R add mul
     = opAt add (opAt mul a b) (ringNeg R add zero (opAt mul a c))
   rw [h.distrib a ha b hb _ (ringNeg_mem h hc), ringMul_neg h ha hc]
 
-/-- And the left twin. `ringMul_sub` distributes a subtraction on the RIGHT
+/-- And the left twin. `ringMul_sub` distributes a subtraction on the right
 of a product; this is the same law on the left. They are different lemmas and
 neither follows from the other without commutativity, which a caller holding a
 one-sided distributive law does not necessarily have.
@@ -1174,17 +1173,17 @@ theorem hom_app_mem {h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂ a : Z
     (hh : IsRingHom h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂) (ha : a ∈ R₁) : app h a ∈ R₂ :=
   app_mem_of_isHom hh.left ha
 
-/-! A ring hom out of a FIELD kills nothing --- that is `hom_ne_zero`, in
-`SetTheory/Extension.lean`, and NOT here. -/
+/-! A ring hom out of a field kills nothing --- that is `hom_ne_zero`, in
+`SetTheory/Extension.lean`, and not here. -/
 
 /-- Vanishing is decidable: the hypothesis degree needs. -/
 def DecidableVanishing (R zero : ZFSet.{u}) : Prop :=
   ∀ a, a ∈ R → a = zero ∨ a ≠ zero
 
-/-- Vanishing is STABLE: a doubly negated vanishing is a vanishing.
+/-- Vanishing is stable: a doubly negated vanishing is a vanishing.
 
 Strictly weaker than `DecidableVanishing`, which hands over a disjunction, and
-an argument by REFUTATION needs it -- a proof that `a ≠ zero` is absurd gives
+an argument by refutation needs it -- a proof that `a ≠ zero` is absurd gives
 `¬ a ≠ zero` and nothing more, and stability is exactly the step from there to
 the equation.
 
@@ -1229,7 +1228,7 @@ theorem hom_pow {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ one₂ a
     show app h (opAt mul₁ (gpow mul₁ one₁ a k) a) = opAt mul₂ (gpow mul₂ one₂ (app h a) k) _
     rw [hom_mul hh (ringPow_mem h₁ ha k) ha, hom_pow hh h₁ ha k]
 
-/-- A ring hom respects repeated ADDITION, which is `hom_pow` above with the
+/-- A ring hom respects repeated addition, which is `hom_pow` above with the
 other operation and the same three lines. -/
 theorem hom_nsmul {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero₂ one₂ a : ZFSet.{u}}
     (hh : IsRingHom h R₁ add₁ mul₁ one₁ R₂ add₂ mul₂ one₂)
@@ -1250,7 +1249,7 @@ theorem hom_natIn {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero�
     (h₁ : IsRing R₁ add₁ mul₁ zero₁ one₁) (h₂ : IsRing R₂ add₂ mul₂ zero₂ one₂)
     (n : Nat) :
     app h (natIn R₁ add₁ zero₁ one₁ n) = natIn R₂ add₂ zero₂ one₂ n := by
-  -- `natIn` IS `gpow add zero one` by definition, and `rw` cannot unfold a def
+  -- `natIn` is `gpow add zero one` by definition, and `rw` cannot unfold a def
   show app h (gpow add₁ zero₁ one₁ n) = gpow add₂ zero₂ one₂ n
   rw [hom_nsmul hh h₁ h₂ h₁.mem_one n, hom_one hh]
 
@@ -1331,15 +1330,15 @@ theorem isField_of_finite_domain {R add mul zero one : ZFSet.{u}}
 `ℤ/nℤ` is built by hand from `multiplesOf` in `Field.lean`; this is the same
 construction for any commutative ring and any ideal. -/
 
-/-- The multiples of `a`. The generator is the FIRST factor: a member is
+/-- The multiples of `a`. The generator is the first factor: a member is
 `opAt mul a y`, never `opAt mul y a`.
 
-THAT ORDER DISAGREES WITH `IsIdeal.absorb`, AND THE DISAGREEMENT REPORTS AS A
-TIMEOUT RATHER THAN A MISMATCH. `absorb` concludes `opAt mul r a ∈ I` with
-the RING element first and the IDEAL element second, so showing a
+That order disagrees with `IsIdeal.absorb`, and the disagreement reports as a
+timeout rather than a mismatch. `absorb` concludes `opAt mul r a ∈ I` with
+the ring element first and the ideal element second, so showing a
 `ringMultiples` element lies in an ideal asks the elaborator to unify
 `opAt mul a y` against `opAt mul r ?x`. That does not match --- and it does not
-FAIL either, because the metavariable lets it SEARCH. A five-line
+fail either, because the metavariable lets it search. A five-line
 ideal-extensionality proof can burn 1600000 heartbeats this way when the
 missing step is one commutation.
 
@@ -1383,7 +1382,7 @@ theorem isIdeal_ringMultiples {R add mul zero one a : ZFSet.{u}}
 
 The proof never touched commutativity -- it identifies the additive inverse
 supplied by `ideal_inverse` with `ringNeg` and reads off membership. This is
-the first of the IDEAL lemmas to move, and it is representative: of 215
+the first of the ideal lemmas to move, and it is representative: of 215
 ideal-family results stated over `IsRing`, 188 carry commutativity without
 spending it, so they move by hypothesis change alone once the additive
 helpers exist on the weaker base. -/
@@ -1416,7 +1415,7 @@ theorem opair_mem_idealRel_iff {R add zero I a b : ZFSet.{u}} (ha : a ∈ R) (hb
     exact hmem
   · exact fun hmem => ⟨opair_mem_prod ha hb, a, ha, b, hb, rfl, hmem⟩
 
-/-- Congruence modulo an ideal, for ADDITION, over the non-commutative
+/-- Congruence modulo an ideal, for addition, over the non-commutative
 base.
 
 Reflexivity is `a - a = 0`, symmetry is `-(a-b) = b-a`, transitivity is
@@ -1425,7 +1424,7 @@ across both summands. Every one of those is a fact about the additive group,
 which `IsRingNC` keeps unchanged -- so the additive half of the quotient
 construction never needed a commutative ring.
 
-The MULTIPLICATIVE half is a different matter: `isCongruence_idealRel_mul`
+The multiplicative half is a different matter: `isCongruence_idealRel_mul`
 spends `mulComm` moving `(a-a')·b'` to the side `IsIdeal` absorbs on, and
 that is the left/right question rather than a rename. -/
 theorem isCongruence_idealRel_add_nc {I R add mul zero one : ZFSet.{u}}
@@ -1525,12 +1524,12 @@ theorem isSubring_imageIn {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul�
     rw [← hom_neg hh h₁ h₂ hx]
     exact hmem _ (ringNeg_mem h₁ hx)
 
-/-- The image of a SUBRING is a subring of the codomain.
+/-- The image of a subring is a subring of the codomain.
 
 `isSubring_imageIn` takes the image of the whole ring; a tower needs the image
 of a subring, and the closure conditions come from the subring's rather than
 the ring's. The negation clause is the one that is not symmetric: `ringNeg` is
-computed in the AMBIENT ring on each side, so it goes through `hom_neg` at the
+computed in the ambient ring on each side, so it goes through `hom_neg` at the
 source's ring and not at the subring. -/
 theorem isSubring_imageIn_of_subring
     {h R₁ add₁ mul₁ zero₁ one₁ R₂ add₂ mul₂ zero₂ one₂ K : ZFSet.{u}}
@@ -1785,7 +1784,7 @@ theorem mem_unitsOf_iff (R mul one x : ZFSet.{u}) :
 /-- The pairwise combinations of two subsets under one operation:
 `{ a op b : a ∈ I, b ∈ J }`, carved out of `R`.
 
-Named once because it IS one construction. `idealSum` and `idealProdGens` were
+Named once because it is one construction. `idealSum` and `idealProdGens` were
 written separately -- the same body with `add` in one and `mul` in the other.
 The operation was already a parameter in both; only the name suggested
 otherwise. -/
@@ -1884,7 +1883,7 @@ def idealProd (R add mul zero I J : ZFSet.{u}) : ZFSet.{u} :=
   genIdeal R add mul zero (idealProdGens R mul I J)
 
 /-- A product of ideals is an ideal, over the non-commutative base --
-immediately, since it IS the ideal generated by the pairwise products. -/
+immediately, since it is the ideal generated by the pairwise products. -/
 theorem isIdeal_idealProd_nc {R add mul zero one I J : ZFSet.{u}}
     (h : IsRingNC R add mul zero one) :
     IsIdeal (idealProd R add mul zero I J) R add mul zero :=
@@ -1920,7 +1919,7 @@ theorem idealProd_comm {R add mul zero one I J : ZFSet.{u}}
 
 /-! ## Principal ideals multiply the way their generators do
 
-`(a)·(b) = (ab)`, so the principal ideals are a SUBMONOID of the ideals under
+`(a)·(b) = (ab)`, so the principal ideals are a submonoid of the ideals under
 multiplication, which is the quotient the class group takes. The whole route
 turns on it, and it is two containments. -/
 
@@ -1956,7 +1955,7 @@ theorem idealProd_ringMultiples {R add mul zero one a b : ZFSet.{u}}
 
 The last monoid clause, and the only one that needs a construction of its own.
 The generators of `(I·J)·K` are `u·c` with `u` in `I·J`, and `u` is not a
-product -- it is an arbitrary member of a GENERATED ideal, so there is nothing
+product -- it is an arbitrary member of a generated ideal, so there is nothing
 to take apart. -/
 
 /-- The `u` that multiply `c` into `T`. An ideal whenever `T` is. -/
@@ -2099,7 +2098,7 @@ of the domain condition, which `IsCancellative` states globally. -/
 def IsRegularElt (R mul zero a : ZFSet.{u}) : Prop :=
   ∀ x, x ∈ R → opAt mul a x = zero → x = zero
 
-/-- A product of regular elements is regular, with NO domain hypothesis.
+/-- A product of regular elements is regular, with no domain hypothesis.
 
 This is the whole content: the domain hypothesis is spent in `idealEquiv_trans` on exactly two
 obligations, `c·a ≠ zero` and `b·d ≠ zero`, and regularity composes where
@@ -2112,13 +2111,13 @@ theorem isRegularElt_mul {R add mul zero one a b : ZFSet.{u}}
   refine hrb x hx (hra _ (mulAt_mem h hb hx) ?_)
   rwa [← h.mulAssoc _ ha _ hb _ hx]
 
-/-- `I ~ J` with the scaling factors REGULAR rather than merely nonzero. -/
+/-- `I ~ J` with the scaling factors regular rather than merely nonzero. -/
 def IdealEquivReg (R add mul zero I J : ZFSet.{u}) : Prop :=
   ∃ a, a ∈ R ∧ IsRegularElt R mul zero a ∧ ∃ b, b ∈ R ∧ IsRegularElt R mul zero b ∧
     idealProd R add mul zero (ringMultiples R mul a) I
       = idealProd R add mul zero (ringMultiples R mul b) J
 
-/-- TRANSITIVITY WITHOUT A DOMAIN HYPOTHESIS.
+/-- Transitivity without a domain hypothesis.
 
 `idealEquiv_trans` takes the domain hypothesis and spends it on exactly two obligations --
 `c·a ≠ zero` and `b·d ≠ zero` -- because a product of nonzero elements need not
@@ -2126,7 +2125,7 @@ be nonzero. Regularity composes on its own (`isRegularElt_mul`), so the same
 calc chain goes through with no hypothesis on the ring beyond being a ring.
 
 The domain condition over the whole ideal-class layer is an artefact of how
-the equivalence is DEFINED, not of the mathematics. -/
+the equivalence is defined, not of the mathematics. -/
 theorem idealEquivReg_trans {R add mul zero one I J K : ZFSet.{u}}
     (h : IsRing R add mul zero one)
     (hI : IsIdeal I R add mul zero) (hJ : IsIdeal J R add mul zero)
@@ -2168,13 +2167,13 @@ theorem idealEquivReg_trans {R add mul zero one I J K : ZFSet.{u}}
     _ = idealProd R add mul zero (ringMultiples R mul (opAt mul b d)) K := by
         rw [idealProd_ringMultiples h hbR hdR]
 
-/-- The converse costs a DECISION, and that is the measurement.
+/-- The converse costs a decision, and that is the measurement.
 
-the domain hypothesis is stated in the NEGATIVE form -- nonzero times nonzero is nonzero -- so
+the domain hypothesis is stated in the negative form -- nonzero times nonzero is nonzero -- so
 from `a · x = zero` and `a ≠ zero` it yields `¬ ¬ (x = zero)` and stops there.
 Concluding `x = zero` is double-negation elimination at equality in `R`.
 
-So regularity is strictly STRONGER than the domain hypothesis plus nonzero, constructively,
+So regularity is strictly stronger than the domain hypothesis plus nonzero, constructively,
 and the two coincide only where equality is decidable. Classically the
 distinction vanishes, so the domain form reads as the natural one. -/
 theorem isRegularElt_of_ne_zero {R mul zero a : ZFSet.{u}}
@@ -2186,12 +2185,12 @@ theorem isRegularElt_of_ne_zero {R mul zero a : ZFSet.{u}}
   · exact h
   · exact absurd hzero (hdomNe a ha x hx ha0 h)
 
-/-- A LEFT inverse makes an element regular, over the non-commutative
+/-- A left inverse makes an element regular, over the non-commutative
 base.
 
 `isRegularElt_of_inverse` asks for `a·b = 1` and commutes it into `b·a = 1`.
 Without commutativity those are different hypotheses and only the second is
-usable: from `a·x = 0`, multiplying on the LEFT by `b` gives
+usable: from `a·x = 0`, multiplying on the left by `b` gives
 `(b·a)·x = b·0 = 0`, so `x = 0` needs `b·a = 1`. A right inverse alone says
 nothing, so the hypothesis here is the mirrored one rather than the
 original.
@@ -2213,7 +2212,7 @@ theorem isRegularElt_of_leftInverse_nc {R add mul zero one a b : ZFSet.{u}}
 /-- An invertible element is regular, with no hypothesis on the ring beyond
 being one: `a · x = zero` gives `x = (b·a)·x = b·(a·x) = zero`.
 
-This is how regularity is SUPPLIED rather than assumed. `IsConstructiveField`
+This is how regularity is supplied rather than assumed. `IsConstructiveField`
 hands an inverse from `apart zero a`, so over such a ring every element apart
 from zero is regular and the class relation's multipliers cost nothing. -/
 theorem isRegularElt_of_inverse {R add mul zero one a b : ZFSet.{u}}
@@ -2235,7 +2234,7 @@ theorem isRegularElt_of_apart {R add mul zero one a : ZFSet.{u}}
 
 /-! ## The product descends to classes
 
-`IdealEquiv` is a CONGRUENCE for `idealProd`, so the class set is a monoid
+`IdealEquiv` is a congruence for `idealProd`, so the class set is a monoid
 rather than merely a set of classes. Everything is the four-way shuffle: the
 two scalings on the left and the two ideals on the right change places, by
 associativity and commutativity alone. -/
@@ -2300,7 +2299,7 @@ theorem idealEquiv_prod {R add mul zero one I I' J J' : ZFSet.{u}}
 
 `(a)·I = (a)·J` does not yield `I = J` from the monoid laws alone.
 
-The general case needs `(a)` to have an INVERSE among the ideals, and a
+The general case needs `(a)` to have an inverse among the ideals, and a
 commutative monoid does not supply inverses. That is ideal invertibility, a
 Dedekind-domain property, and it is the missing step between *the identity class
 contains the principal ideals* and the identity class consists of them. -/
@@ -2309,7 +2308,7 @@ contains the principal ideals* and the identity class consists of them. -/
 
 `idealEquiv_prod` takes the domain hypothesis and spends it in the same place `idealEquiv_trans`
 does -- on `a·c ≠ zero` and `b·d ≠ zero`, the composed multipliers. So the
-class MONOID, and not merely the class relation, is constructible over any
+class monoid, and not merely the class relation, is constructible over any
 commutative ring once the scaling factors are regular. -/
 theorem idealEquivReg_prod {R add mul zero one I I' J J' : ZFSet.{u}}
     (h : IsRing R add mul zero one)
@@ -2348,8 +2347,8 @@ theorem idealEquivReg_prod {R add mul zero one I I' J J' : ZFSet.{u}}
 
 /-! ## Invertibility, and the one hypothesis that makes the monoid a group
 
-Everything above is a commutative MONOID. What separates it from the class
-GROUP is inverses, and the hypothesis that supplies them has a name.
+Everything above is a commutative monoid. What separates it from the class
+group is inverses, and the hypothesis that supplies them has a name.
 
 An ideal is invertible when some ideal multiplies it into a non-zero principal
 ideal. That is weaker than the fractional-ideal definition and is all the class
@@ -2422,7 +2421,7 @@ theorem isRegularElt_of_ne_zero_stable {R mul zero a : ZFSet.{u}}
 /-! ### What a Bezout pair does to a vector
 
 Row 1870. The identity is a statement about matrices; the decomposition needs
-it as a statement about a VECTOR. Applying it to `v` writes `D^e v` as a sum of
+it as a statement about a vector. Applying it to `v` writes `D^e v` as a sum of
 two vectors, and the point of the whole construction is that each summand is
 killed by one of the two factors --- so the sum is a splitting into the two
 generalised eigenspaces, up to the accumulated power of `D`.
@@ -2454,7 +2453,7 @@ theorem opAt_restrictLeft_of_isSubring {S R add mul zero one : ZFSet.{u}}
 
 `opAt_restrictLeft_of_isSubring` at both arguments, which seven proofs in
 `CycIntegrallyClosed.lean` restate as a four-line `have` before using it. Eta
-expansion, no mathematics: the value of the name is that the STATEMENT stops
+expansion, no mathematics: the value of the name is that the statement stops
 being written out. -/
 theorem opAt_restrictLeft_bridge {S R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hSub : IsSubring S R add mul zero one) :

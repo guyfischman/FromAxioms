@@ -18,6 +18,7 @@ limits, and that is the next thing to build rather than something to assume.
 -/
 
 import FromAxioms.Analysis.Limit
+import FromAxioms.SetTheory.LeastSearch
 
 universe u
 
@@ -55,13 +56,13 @@ theorem content_app_mem {m A U : ZFSet.{u}} (hm : IsContent m A) (hU : U ∈ A) 
 
 /-- A finitely additive content, over an arbitrary carrier.
 
-`IsContent` names the CUT reals in three of its clauses, so the located content
+`IsContent` names the cut reals in three of its clauses, so the located content
 -- which is what this development actually has -- cannot instantiate it. This is
 the same structure with the value ring, its addition, its zero and its
-NON-NEGATIVES taken as parameters, exactly as `MeasuredCoverP` takes its
+non-negatives taken as parameters, exactly as `MeasuredCoverP` takes its
 parameter type.
 
-Positivity is a `nonneg` SET and there is no totality clause, following
+Positivity is a `nonneg` set and there is no totality clause, following
 `IsInnerProduct`: `IsPosCone`'s `total` is priced at `NeApartZero`, and a
 content never decides a sign, so inheriting it would charge this theory for a
 definition rather than for its mathematics. -/
@@ -82,15 +83,15 @@ theorem contentOn_app_mem {R add zero nonneg m A U : ZFSet.{u}}
 /-- The Dirac content at a point: mass one on the sets containing `x0`,
 zero on the rest.
 
-THE NON-DEGENERATE WITNESS the generalised interface was missing. `zeroContentOn`
+The non-degenerate witness the generalised interface was missing. `zeroContentOn`
 below is the only other one and its own docstring calls it knowingly degenerate
 --- it satisfies every clause vacuously, so a theorem over `IsContentOn` could
 demand anything and nothing would notice.
 
-Why Dirac and not the counting measure: `|U|` as a FUNCTION of `U` needs
-detachable membership at every point of the space, while this needs it at ONE.
+Why Dirac and not the counting measure: `|U|` as a function of `U` needs
+detachable membership at every point of the space, while this needs it at one.
 `condP` (LeastSearch.lean) builds the value with no decidability at all; only
-its EQUATIONS need the split, and only `additive` uses them. -/
+its equations need the split, and only `additive` uses them. -/
 def diracContent (A R zero one x0 : ZFSet.{u}) : ZFSet.{u} :=
   graphOn A R (fun U => condP (x0 ∈ U) one zero)
 
@@ -99,7 +100,7 @@ theorem app_diracContent {A R zero one x0 U : ZFSet.{u}}
     (hdet : ∀ V, V ∈ A → x0 ∈ V ∨ ¬ x0 ∈ V) (hU : U ∈ A) :
     app (diracContent A R zero one x0) U = condP (x0 ∈ U) one zero := by
   rw [diracContent, app_graphOn (fun V hV => ?_) hU]
-  -- `rcases` on the SUPPLIED decision, not `by_cases`: deciding `x0 ∈ V`
+  -- `rcases` on the supplied decision, not `by_cases`: deciding `x0 ∈ V`
   -- classically would put `Classical.choice` in every consumer, and
   -- `LeastSearch` says outright that a construction needing to know its branch
   -- must be handed the decision rather than recover it from the term.
@@ -107,10 +108,10 @@ theorem app_diracContent {A R zero one x0 U : ZFSet.{u}}
   · rw [condP_pos h]; exact hone
   · rw [condP_neg h]; exact hzero
 
-/-- The Dirac content IS a content, over any carrier with a zero and a one
+/-- The Dirac content is a content, over any carrier with a zero and a one
 in its non-negative part.
 
-The detachability hypothesis is the whole cost, and it is used ONCE --- in
+The detachability hypothesis is the whole cost, and it is used once --- in
 `additive`, to split on whether `x0` lies in `U`. Everything else goes through
 `condP`'s two equations. Disjointness is what makes the split total: `x0` cannot
 be in both, so the sum has exactly one non-zero term. -/
@@ -139,7 +140,7 @@ theorem isContentOn_dirac {R add zero one nonneg A X x0 : ZFSet.{u}}
     rw [app_diracContent hzero hone hdet (hA.union_closed U hU V hV),
       app_diracContent hzero hone hdet hU, app_diracContent hzero hone hdet hV]
     rcases hdet U hU with hu | hu
-    · -- `x0 ∈ U`, so it is in the union and NOT in `V` by disjointness
+    · -- `x0 ∈ U`, so it is in the union and not in `V` by disjointness
       have hnv : ¬ x0 ∈ V := by
         intro hv
         -- the ascription is what lets `hdisj` rewrite: `∩` elaborates through
@@ -155,12 +156,12 @@ theorem isContentOn_dirac {R add zero one nonneg A X x0 : ZFSet.{u}}
       · rw [condP_neg (fun h => (mem_union_iff x0 U V).mp h |>.elim hu hv),
           condP_neg hu, condP_neg hv, hzl]
 
-/-- The zero content over an ARBITRARY carrier -- `zeroContent` generalised
+/-- The zero content over an arbitrary carrier -- `zeroContent` generalised
 alongside the interface. -/
 def zeroContentOn (A R zero : ZFSet.{u}) : ZFSet.{u} :=
   graphOn A R (fun _ => zero)
 
-/-- A witness for the generalised interface. Knowingly the DEGENERATE one:
+/-- A witness for the generalised interface. Knowingly the degenerate one:
 it is the same instance `IsContent` already had, and by the finding above it is
 exactly the instance that fails to exercise the interface's existence demand. It
 is exhibited because a structure nobody instantiates makes every theorem over it
@@ -184,7 +185,7 @@ theorem isContentOn_zeroContentOn {A R add zero nonneg X : ZFSet.{u}}
 
 `realLSum` and its lemmas are over `RealL`; `IsContent` is over `Real`, so
 countable additivity needs partial sums here. They are built rather than
-transported: `real_lub` gives a supremum on the cuts CHOICE-FREE, where the
+transported: `real_lub` gives a supremum on the cuts choice-free, where the
 same statement for located reals reverses to `EM` (`em_of_sup_located`).
 
 Placed in this file rather than in `Real.lean` because every consumer is here and
@@ -224,7 +225,7 @@ theorem content_mono {m A X U V : ZFSet.{u}} (hA : IsAlgebra A X) (hm : IsConten
     (hU : U ∈ A) (hV : V ∈ A) (hsub : U ⊆ V) (hdet : ∀ w, w ∈ V → w ∈ U ∨ w ∉ U) :
     realLe (app m U) (app m V) := by
   have hdiff : sdiff V U ∈ A := hA.sdiff_closed V hV U hU
-  -- `union_sdiff_self` IS this, at `V` and `U`, and its two hypotheses are the ones
+  -- `union_sdiff_self` is this, at `V` and `U`, and its two hypotheses are the ones
   -- this lemma already takes. The ascribed type is what crosses `\` to `sdiff`:
   -- those are defeq through the `SDiff` instance and not syntactically equal.
   have hsplit : U ∪ sdiff V U = V := (union_sdiff_self hsub hdet).symm
@@ -285,11 +286,11 @@ theorem lpo_of_realLt_or_realLe
 /-- The zero content is countably additive, so `IsCountablyAdditive` has an
 object that meets it.
 
-What this does NOT do. The zero content is additive because every term is
-`0`, so it EXHIBITS the predicate without testing it -- a definition with one
+What this does not do. The zero content is additive because every term is
+`0`, so it exhibits the predicate without testing it -- a definition with one
 satisfying object is not thereby a definition anything interesting satisfies.
 The theorem that would test it is the Lebesgue outer measure being countably
-additive on measured sets, which needs the REVERSE Caratheodory inequality that
+additive on measured sets, which needs the reverse Caratheodory inequality that
 `lebesgueOuter_le_split` does not supply. -/
 theorem isCountablyAdditive_zeroContent {A : ZFSet.{u}} :
     IsCountablyAdditive (zeroContent A) A := by
@@ -315,7 +316,7 @@ theorem isCountablyAdditive_zeroContent {A : ZFSet.{u}} :
 #print axioms realLe_realAdd_of_nonneg
 
 /-- Every partial union of members of an algebra is a member -- `mem_empty` and
-`union_closed`, by induction. Finite closure only; a countable union is NOT
+`union_closed`, by induction. Finite closure only; a countable union is not
 claimed, and a sigma-algebra would add one. -/
 theorem unionUpto_mem_algebra {A X : ZFSet.{u}} (hA : IsAlgebra A X)
     {U : Nat → ZFSet.{u}} (hU : ∀ i : Nat, U i ∈ A) :
@@ -323,8 +324,8 @@ theorem unionUpto_mem_algebra {A X : ZFSet.{u}} (hA : IsAlgebra A X)
   | 0 => hA.mem_empty
   | k + 1 => hA.union_closed _ (unionUpto_mem_algebra hA hU k) _ (hU k)
 
-/-- The content of a partial union IS the partial sum of the contents, at NO
-COST.
+/-- The content of a partial union is the partial sum of the contents, at no
+cost.
 
 The algebra supplies membership, pairwise disjointness supplies exactly what
 `IsContent.additive` demands, and `unionUpto`'s recursion matches `realSum`'s -- so
@@ -408,7 +409,7 @@ theorem natWeightSum_union {w : Nat → ZFSet.{u}} {U V : ZFSet.{u}}
             (condP (ofNat.{u} k ∈ V) (w k) realLZero.{u}) := by
       rcases hU k with hu | hu
       · rcases hV k with hv | hv
-        · -- disjointness is spent HERE and nowhere else
+        · -- disjointness is spent here and nowhere else
           have hboth : ofNat.{u} k ∈ inter U V :=
             (mem_inter_iff (ofNat.{u} k) U V).mpr ⟨hu, hv⟩
           rw [hdisj] at hboth

@@ -225,10 +225,10 @@ theorem app_extendAt_of_mem {g k v a : ZFSet.{u}} (hg : IsFunction g)
 
 `natSeq` below internalises a recursion Lean has already performed, so it says
 what Lean's `Nat` can do and nothing about what `ω` can. This
-is the other thing: the approximations are built as SETS, from `a` and `f`
+is the other thing: the approximations are built as sets, from `a` and `f`
 alone.
 
-They are indexed from ONE. The step needs the previous value to apply `f` to,
+They are indexed from one. The step needs the previous value to apply `f` to,
 and at stage zero there is none -- so a zero-indexed statement forces a case
 split on empty-or-successor inside the step, while indexing from one makes the
 base `{(∅, a)}` and leaves the previous stage always in hand. -/
@@ -243,7 +243,7 @@ structure IsRecApprox (A a f n g : ZFSet.{u}) : Prop where
   step : ∀ k, succ k ∈ n → app g (succ k) = app f (app g k)
 
 /-- An approximation exists at every stage. The recursion is on the `Nat`
-that indexes the stage, but every step BUILDS a set and the statement is about
+that indexes the stage, but every step builds a set and the statement is about
 sets throughout -- so unlike `natSeq` nothing is transported in from outside. -/
 theorem exists_recApprox {A a f : ZFSet.{u}} (ha : a ∈ A)
     (hval : ∀ v, v ∈ A → app f v ∈ A) (n : Nat) :
@@ -306,7 +306,7 @@ on the stage, and both clauses are used exactly once: the base says both send
 `∅` to `a`, and the step says both send `k⁺` to `f` of their own value at `k`,
 which the inductive hypothesis has already equated.
 
-Stated over NUMERAL domains rather than arbitrary ones, because the step needs
+Stated over numeral domains rather than arbitrary ones, because the step needs
 `k⁺ ∈ n → k ∈ n` and that is `ofNat_transitive` -- true of a natural and not of
 a set in general. `exists_recApprox` only ever produces numeral domains, so
 nothing is lost. -/
@@ -453,7 +453,7 @@ theorem app_recFun_mem {A a f : ZFSet.{u}} (ha : a ∈ A)
 
 /-! ### Second-order Peano models, and categoricity
 
-A model is a set with a zero and a successor OPERATION -- the successor is a
+A model is a set with a zero and a successor operation -- the successor is a
 set function, not a Lean one, so the whole statement lives inside the theory.
 The induction clause quantifies over every subset of the carrier, which is what
 second-order means here and what categoricity rests on; the first-order schema
@@ -580,14 +580,14 @@ theorem app_graphOn {x y n : ZFSet.{u}} {F : ZFSet.{u} → ZFSet.{u}}
 
 /-! ### Unique choice
 
-`graphOn` needs `F` as a LEAN function, so it cannot turn a RELATION into one.
+`graphOn` needs `F` as a Lean function, so it cannot turn a relation into one.
 When a relation picks exactly one value per argument, the function exists anyway
 and costs nothing: the graph is a separation of the product, and single-valuedness
 is the uniqueness hypothesis.
 
-THIS IS THE DISCRIMINATOR THE Prop-TO-DATA WALL TURNS ON. An `∃` over functions
+This is the discriminator the Prop-to-data wall turns on. An `∃` over functions
 is unreachable in general, so `DerivModulusChoice`, `DCOn` and the selection
-principles cost something. It is FREE whenever the witness is unique, and
+principles cost something. It is free whenever the witness is unique, and
 `theOnly` (Algebra.lean) is only the pointwise case of it. -/
 
 #print axioms graphOn_isFunction

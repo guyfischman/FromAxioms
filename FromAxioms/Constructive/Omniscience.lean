@@ -31,7 +31,7 @@ it for a real produced by the ternary walk from a binary sequence is exactly
 
 import FromAxioms.Analysis.Ternary
 import FromAxioms.Constructive.Reverse
-import FromAxioms.SetTheory.Search
+import FromAxioms.Core.NatSearch
 
 set_option autoImplicit false
 
@@ -45,12 +45,12 @@ namespace Constructive
 /-- The limited principle of omniscience. -/
 def LPO : Prop := ∀ α : Nat → Bool, (∃ n, α n = true) ∨ (∀ n, α n = false)
 
-/-- `LPO`'s disjunction is NOT-NOT true at every sequence, so the principle
+/-- `LPO`'s disjunction is not-not true at every sequence, so the principle
 is precisely the gap between `¬¬P` and `P` -- and no argument whose conclusions
-are ¬¬-STABLE can ever reach it.
+are ¬¬-stable can ever reach it.
 
 That is a general bound rather than a remark. `withinOf_of_cases` and its
-family dispose of an arbitrary `Prop` for free, and ENTIRELY by stability: the
+family dispose of an arbitrary `Prop` for free, and entirely by stability: the
 proof is `withinOf_stable` applied to a double negation. So the technique is
 available exactly when the target is stable, `WLPO` and `LLPO` are disjunctions
 too, and any claim of the form this is free because the conclusion is stable
@@ -261,25 +261,25 @@ def TernaryZeroDecidable : Prop := ∀ α : Nat → Bool,
   nestLower (tlowSeq.{u} (boolDigit α)) = ratCut ratZero.{u} ∨
     nestLower (tlowSeq.{u} (boolDigit α)) ≠ ratCut ratZero.{u}
 
-/-- Deciding any predicate equivalent to `α` never fires IS `WLPO`.
+/-- Deciding any predicate equivalent to `α` never fires is `WLPO`.
 
-THIS IS THE LOCAL CONVENTION, NOT A NEW IDEA. `LLPO` is already factored
+This is the local convention, not a new idea. `LLPO` is already factored
 exactly this way one principle over: `llpo_of_signDisjunction`
 (`Vanishing.lean`) is the transport --- its own comment says the principle is
-spent in ONE place --- with fourteen `signDisjunction_of_*` bridges and eight
+spent in one place --- with fourteen `signDisjunction_of_*` bridges and eight
 one-line citations in `Calibrate.lean`, e.g.
 
     llpo_of_rolle01 h := llpo_of_signDisjunction (signDisjunction_of_rolle01 h)
 
-FOUR `WLPO` CARRIERS WERE NEVER BROUGHT INTO IT: `TernaryZeroDecidable` here,
+Four `WLPO` carriers were never brought into it: `TernaryZeroDecidable` here,
 `DiscIsoDecidable`, `SetCatIsoDecidable` and `EqualizerInitialDecidable`. Each
 already has its own bridge `S α ↔ ∀ n, α n = false` and then writes the same
 four-line `rcases` out again --- character-for-character identical but for the
 bridge cited, in both directions, so eight copies. The content of each row is
 its bridge; the reversal was boilerplate.
 
-A FIFTH IS NOT IN THIS CLASS and is easy to miscount as one:
-`wlpo_of_meet_coincidence_decidable` already CITES the ternary transport and
+A fifth is not in this class and is easy to miscount as one:
+`wlpo_of_meet_coincidence_decidable` already cites the ternary transport and
 composes three bridges inside a lambda. It was the one that had been factored
 before, which is exactly the member a grouping-by-appearance gets wrong. -/
 theorem wlpo_of_decidable_bridge {S : (Nat → Bool) → Prop}
@@ -290,7 +290,7 @@ theorem wlpo_of_decidable_bridge {S : (Nat → Bool) → Prop}
   · exact Or.inl ((hiff α).mp h)
   · exact Or.inr (fun hall => h ((hiff α).mpr hall))
 
-/-- And `WLPO` supplies it, so each carrier is an EQUIVALENCE rather than a
+/-- And `WLPO` supplies it, so each carrier is an equivalence rather than a
 lower bound --- the half that makes the five transports and not five prices. -/
 theorem decidable_bridge_of_wlpo {S : (Nat → Bool) → Prop}
     (hiff : ∀ α, S α ↔ ∀ n, α n = false)
@@ -360,14 +360,14 @@ theorem length_take (α : Nat → Bool) : ∀ n, (take α n).length = n
 
 /-- A `Π⁰₁` predicate is double-negation stable, and freely so.
 
-THIS NESTS THE TWO STABLE FAN THEOREMS. Diener (arXiv:1804.05495v3, Section
-3.6) defines a STABLE BAR by `u ∈ B ↔ ∀ n, (u, n) ∈ S` with `S` decidable,
+This nests the two stable FAN theorems. Diener (arXiv:1804.05495v3, Section
+3.6) defines a stable bar by `u ∈ B ↔ ∀ n, (u, n) ∈ S` with `S` decidable,
 adding that stable bars *are exactly bars that are the complement of a
 countable set*. That is `Π⁰₁`.
 
 This lemma does the work directly: every
 literature-stable bar is `Π⁰₁`, hence `¬¬`-stable, hence one of the bars our
-`FANstable` quantifies over. So the classes are ORDERED, not incomparable, and
+`FANstable` quantifies over. So the classes are ordered, not incomparable, and
 our principle is the stronger one:
 
     FANstable (this tree)  →  FANstable (Diener)
@@ -375,7 +375,7 @@ our principle is the stronger one:
 The consequence that mattered is unchanged and better founded: the published
 `WLPO → FANstable` lands on the smaller class, so it does not give ours.
 
-`mp_iff_sigma01_stable` below is a true statement about a DIFFERENT class and
+`mp_iff_sigma01_stable` below is a true statement about a different class and
 does not bear on this comparison; composing the two into an incomparability
 claim is the mistake this paragraph replaces. -/
 theorem nnStable_forall {D : Nat → Prop} (hdec : ∀ n, D n ∨ ¬ D n)
@@ -385,7 +385,7 @@ theorem nnStable_forall {D : Nat → Prop} (hdec : ∀ n, D n ∨ ¬ D n)
   · exact hd
   · exact absurd (fun hall => hd (hall n)) h
 
-/-- Markov's principle IS the double-negation stability of a `Σ⁰₁` statement,
+/-- Markov's principle is the double-negation stability of a `Σ⁰₁` statement,
 stated over the `Nat → Bool` shape `MP` uses.
 
 This is the other half: a `Σ⁰₁` bar is `¬¬`-stable exactly when `MP` holds, so
@@ -427,7 +427,7 @@ principle is stronger than Brouwer's and is inconsistent with the recursive
 interpretation; with it, this is exactly the compactness of `2^ω` read
 constructively.
 
-THE SUBSCRIPT IS THE LITERATURE'S AND THE UNQUALIFIED NAME IS TAKEN. Diener,
+The subscript is the literature's and the unqualified name is taken. Diener,
 Constructive Reverse Mathematics (arXiv:1804.05495), §3.0, states four:
 
     FAN_Δ    : Every decidable bar is uniform.
@@ -436,17 +436,17 @@ Constructive Reverse Mathematics (arXiv:1804.05495), §3.0, states four:
     FAN_full : Every bar is uniform.
 
 ordered `FAN_full ⟹ FAN_Π⁰₁ ⟹ FAN_c ⟹ FAN_Δ`. So an unqualified FAN is the
-TOP of that chain, three rungs above this, and naming this one `FAN` claimed a
+top of that chain, three rungs above this, and naming this one `FAN` claimed a
 principle the tree does not state.
 
-OF DIENER'S FOUR THIS TREE STATES EXACTLY ONE: only `FAN_Δ`. `FAN_c`,
+Of Diener's four this tree states exactly one: only `FAN_Δ`. `FAN_c`,
 `FAN_Π⁰₁` and `FAN_full` are all absent --- no `def` matching a fan shape
 anywhere in `FromAxioms` beyond the three below, and no `Prop` of the
 premise-free form `∀ B, IsBar B → IsUniformBar B`.
 
-What the tree has beside `FAN_Δ` is `FANstable` (Diener §3.6, NOT a rung of the
+What the tree has beside `FAN_Δ` is `FANstable` (Diener §3.6, not a rung of the
 four-chain) and `FANBool` (a carrier variant, not Diener's at all). So the
-chain's top is unstated, and `fanstable` consequently has NOTHING above it in
+chain's top is unstated, and `fanstable` consequently has nothing above it in
 `lattice.json` --- so a reversal to it would be the first of its kind. -/
 def FANΔ : Prop :=
   ∀ B : List Bool → Prop, (∀ s, B s ∨ ¬ B s) → IsBar B → IsUniformBar B
@@ -455,7 +455,7 @@ def FANΔ : Prop :=
 
 `FANΔ` asks the bar to be decidable, and the bars analysis actually meets are
 not: the oscillation of a function on a subinterval is a statement about
-located reals, so what `realLLe` delivers is a negation. A negation IS
+located reals, so what `realLLe` delivers is a negation. A negation is
 double-negation-stable, which is the premise here.
 
 Strictly between `FANΔ` and the premise-free form: dropping decidability to
@@ -463,9 +463,9 @@ stability is weaker than dropping it altogether. The gap matters because a
 theorem may reach one and not the other, and with only the endpoints named
 that question cannot be asked.
 
-THE NAME IS DIENER'S, AND HE LOCATES IT TWO RUNGS SHARPER THAN THE SENTENCE
-ABOVE. Constructive Reverse Mathematics (arXiv:1804.05495), §3.6, defines a
-STABLE bar as one satisfying only the first of the two conditions on a Π⁰₁-bar,
+The name is Diener's, and he locates it two rungs sharper than the sentence
+above. Constructive Reverse Mathematics (arXiv:1804.05495), §3.6, defines a
+stable bar as one satisfying only the first of the two conditions on a Π⁰₁-bar,
 states `FAN_stable : Every stable bar is uniform`, and places it
 
     FAN_full ⟹ FAN_stable ⟹ FAN_Π⁰₁     (⟹ FAN_c ⟹ FAN_Δ)
@@ -474,8 +474,8 @@ with the converses unlikely. So strictly between is true and coarse: two
 named rungs, `FAN_Π⁰₁` and `FAN_c`, sit between this and `FANΔ`, and neither is
 stated in this tree.
 
-WHAT IS NOT CLAIMED BY THE RENAME. Diener's stable bar is defined by
-COMPLEXITY; the premise here is that the bar PREDICATE is
+What is not claimed by the rename. Diener's stable bar is defined by
+complexity; the premise here is that the bar predicate is
 double-negation-stable. That the two classes coincide is an argument nobody
 here has made. The name is taken because it is the right rung's name, not
 because the identification is proved.
@@ -488,14 +488,14 @@ edge, `uniformlyContinuousOn_of_fanStable`, `pointwiseToUniform_of_fanStable`
 and `weierstrassApprox_of_fanStable` --- and `fanStable_of_decider` produces
 it.
 
-WHAT STILL HAS NO INCOMING EDGE FROM THE LITERATURE, and that is a
+What still has no incoming edge from the literature, and that is a
 measurement rather than unfinished reading. Sources stating *WLPO implies the
-stable fan theorem* mean a Σ⁰₁-DEFINABLE bar; the premise here is
+stable fan theorem* mean a Σ⁰₁-definable bar; the premise here is
 double-negation stability, and the two are incomparable in this tree.
-`mp_iff_sigma01_stable` shows Σ⁰₁-to-stable is EXACTLY Markov's principle, and
+`mp_iff_sigma01_stable` shows Σ⁰₁-to-stable is exactly Markov's principle, and
 `nnStable_forall` exhibits a Π⁰₁ family that is stable and not Σ⁰₁; both print no
 axioms at all. So `wlpo -> fanstable` must not be minted from that reading ---
-`lattice.json`'s README records the decline. -/
+`lattice.json`'s Readme records the decline. -/
 def FANstable : Prop :=
   ∀ B : List Bool → Prop, (∀ s, ¬ ¬ B s → B s) → IsBar B → IsUniformBar B
 
@@ -613,13 +613,13 @@ theorem not_ubar_fanWalk {B : List Bool → Prop} {dec : ∀ s : List Bool, Deci
   | 0 => h
   | k + 1 => not_ubar_fanBit (not_ubar_fanWalk h k)
 
-/-- The fan theorem for STABLE bars, from a decider. The bar's own premise
+/-- The fan theorem for stable bars, from a decider. The bar's own premise
 is not what the proof spends: it needs to decide `Ubar`, which is an existential
 over sequences and not a property of the bar at a node. That is why the
 hypothesis is a universal `Decider` and why this is not `fan_of_em` -- see the
 section note above, and `em_of_decider` for the direction that is free.
 
-Because that premise is never read, it can be the WEAKER one: double-negation
+Because that premise is never read, it can be the weaker one: double-negation
 stability rather than decidability. `fanΔ_of_decider` below is this statement
 followed by `fanΔ_of_fanStable`, so the two are a generalisation and its
 instance rather than one argument written out twice.
@@ -640,7 +640,7 @@ theorem fanStable_of_ubarDecider
 
 #print axioms Constructive.fanStable_of_ubarDecider
 
-/-- The fan theorem for STABLE bars, from a decider, now an instance of
+/-- The fan theorem for stable bars, from a decider, now an instance of
 `fanStable_of_ubarDecider` at `fun s => dec (Ubar B s)`. The statement is
 unchanged, so `fanΔ_of_decider` and every other consumer is untouched; what has
 moved is that the proof no longer asks for more than it spends. -/
@@ -695,17 +695,17 @@ theorem take_extend (s : List Bool) : ∀ k, k ≤ s.length →
       List.getElem?_eq_getElem hlt]
     simp [extend, List.getElem?_eq_getElem hlt]
 
-/-- A uniform bar closed under EXTENSION holds on every string at its depth.
+/-- A uniform bar closed under extension holds on every string at its depth.
 
 `IsUniformBar` says every path meets the bar by depth `N`; this says every
-string OF length `N` is in it, which is the form a covering argument consumes.
+string of length `N` is in it, which is the form a covering argument consumes.
 `extend` turns a string into a path, `take_extend` identifies that path's
 prefix, and the monotonicity hypothesis carries the bar up from whichever
 prefix the path happened to meet.
 
 Nothing here is about any particular bar. `Analysis.wideOsc_at_depth` was this
 proof with `WideOsc` inlined, and its `wideOsc_mono` discharges the hypothesis
-as it stands --- the hypothesis is in the APPEND form the tree's `_mono` lemmas
+as it stands --- the hypothesis is in the append form the tree's `_mono` lemmas
 already use. -/
 theorem forall_length_of_isUniformBar {B : List Bool → Prop}
     (hmono : ∀ s t : List Bool, B s → B (s ++ t))
@@ -1228,7 +1228,7 @@ theorem mem_allStrings_of_length :
 /-! ## The other half of the contraposition, and what it costs
 
 Constructively the contraposition is not free, and the whole cost is one step.
-"No path" gives the NEGATION of `IsInfiniteTree`, which is the negation of a
+"No path" gives the negation of `IsInfiniteTree`, which is the negation of a
 universal statement, while the fan theorem needs a witnessing depth. Turning
 the first into the second over a decidable matrix is precisely Markov's
 principle -- and the matrix is decidable, because `levelHit` already computes
@@ -1324,7 +1324,7 @@ theorem isBounded_of_children {T : List Bool → Prop} (hT : IsTree T)
 
 /-! ### Boundedness as a bit
 
-`LLPO` consumes `Nat → Bool`, so the boundedness of a subtree has to BE a bit
+`LLPO` consumes `Nat → Bool`, so the boundedness of a subtree has to be a bit
 rather than merely be decidable. `allStrings` is what makes that possible: the
 quantifier every string of length `n` has left the tree ranges over a finite
 list, so `List.all` decides it with no principle and no `Decidable` instance --
@@ -1362,7 +1362,7 @@ theorem isBounded_iff_exists_boundedBit (T : List Bool → Bool) (s : List Bool)
     · exact absurd hb (hN u hu)
   · intro ⟨n, hn⟩
     refine ⟨n, fun u hu hmem => ?_⟩
-    -- `hmem : subTree _ s u` is only DEFEQ to the equation; the rewrite needs
+    -- `hmem : subTree _ s u` is only defeq to the equation; the rewrite needs
     -- it stated, since `rw` matches syntactically through no definitions.
     have hmem' : T (s ++ u) = true := hmem
     rw [(boundedBit_eq_true_iff T s n).mp hn u hu] at hmem'
@@ -1374,7 +1374,7 @@ theorem isBounded_iff_exists_boundedBit (T : List Bool → Bool) (s : List Bool)
 an unbounded node cannot have both bounded -- and cannot have both is exactly
 the hypothesis `LLPO` takes, once boundedness is the bit `boundedBit` makes it.
 
-This is the half of the open converse that is NOT open: the step costs `LLPO`
+This is the half of the open converse that is not open: the step costs `LLPO`
 and nothing more. What remains is iterating it `omega` times, which is the
 `BinaryDC` half. -/
 theorem exists_unbounded_child_of_llpo (hllpo : LLPO) {T : List Bool → Bool}
@@ -1401,14 +1401,14 @@ theorem exists_unbounded_child_of_llpo (hllpo : LLPO) {T : List Bool → Bool}
 /-! ### Iterating the step into a path
 
 `BinaryDC` is dependent choice down a binary tree, but it indexes its
-predicates by `tnum c n` -- the TERNARY numeral of `Ternary.lean`'s walk -- and
+predicates by `tnum c n` -- the ternary numeral of `Ternary.lean`'s walk -- and
 nothing decodes that back to a node. `TreeDC` below is the same
 principle with the path itself as the index, which is a change of coordinates
 and not of strength: no new lattice node is claimed, and showing the two
 forms interderivable is what a base-three decoder would be for.
 
 Restricted to the nodes a predicate holds at, as `DCOn` is to a set: the step
-`exists_unbounded_child_of_llpo` is total on the UNBOUNDED nodes and nowhere
+`exists_unbounded_child_of_llpo` is total on the unbounded nodes and nowhere
 else, so a principle demanding totality everywhere could not consume it.
 -/
 
@@ -1429,7 +1429,7 @@ Guides 48 (2005) 245--267, §16.5.
 
 Take `Aᵢ u := P (u ++ [i])`. Their `A_{α(n)}(ᾱn)` is then `P (ᾱn ++ [α n])`,
 which is `P (ᾱ(n+1))`, and `P []` supplies the base --- so the conclusions
-coincide. TWO DIFFERENCES REMAIN, and both make this the stronger statement:
+coincide. Two differences remain, and both make this the stronger statement:
 
     CLASS        theirs is used at `Γ = Π⁰₁`, the simply universal assertions.
                  `P : List Bool → Prop` here carries no restriction at all,
@@ -1464,8 +1464,8 @@ theorem mem_of_not_isBounded_subTree {T : List Bool → Bool} {s : List Bool}
 /-- Weak König's lemma over a `Bool`-given tree, from `LLPO` and a tree-shaped
 dependent choice.
 
-The two halves are exactly two gaps: `LLPO` supplies the STEP -- an unbounded
-node has an unbounded child -- and `TreeDC` supplies the ITERATION. Neither is
+The two halves are exactly two gaps: `LLPO` supplies the step -- an unbounded
+node has an unbounded child -- and `TreeDC` supplies the iteration. Neither is
 about trees; the step needs the tree given as bits and the choice needs the
 branch given as data. -/
 theorem wklBool_of_llpo_treeDC (hllpo : LLPO) (htdc : TreeDC) : WKLBool := by
@@ -1480,7 +1480,7 @@ theorem wklBool_of_llpo_treeDC (hllpo : LLPO) (htdc : TreeDC) : WKLBool := by
 
 `LPO` above is exactly `Nat` is omniscient: every `Bool` predicate on it
 either fires somewhere or never does. That is a taboo. Pradic and Brown
-(arXiv:1904.09193, §3) observe that a DIFFERENT infinite set is omniscient
+(arXiv:1904.09193, §3) observe that a different infinite set is omniscient
 outright, with no principle --- the non-increasing binary sequences --- and
 that `CantorBernstein → EM` follows from it without smuggling `LPO` in. Their
 §3 is reproduced here; the construction is Escardó's.
@@ -1491,12 +1491,12 @@ that `CantorBernstein → EM` follows from it without smuggling `LPO` in. Their
 The separation lemma is stated at a differing index; this produces the index,
 along with the shared prefix and the two heads.
 
-THE SIMP TACTICS ARE AVOIDED HERE. They close the head comparison and the
+The simp tactics are avoided here. They close the head comparison and the
 length contradictions, and the axiom print then comes back with
 `Classical.choice`. Splitting on the two bits directly is choice-free, and it
 keeps the recursion visibly decidable.
 
-The conclusion is a DISJUNCTION over which side carries the true bit, because
+The conclusion is a disjunction over which side carries the true bit, because
 the separation is directional: it bounds the false-headed value below the
 true-headed one, and the hypotheses do not say which is which. -/
 theorem exists_first_diff : ∀ u v : List Bool, u.length = v.length → u ≠ v →
@@ -1532,7 +1532,7 @@ theorem exists_first_diff : ∀ u v : List Bool, u.length = v.length → u ≠ v
 
 /-! ### The row is collection minus a bound
 
-NOT REGISTERED AS LATTICE NODES. `CollectionNat` is a `Prop` and could be one;
+Not registered as lattice nodes. `CollectionNat` is a `Prop` and could be one;
 it would carry one outgoing edge and nothing incoming, so what implies this
 would move rather than close. `UnitLowerBound`'s registry entry names that
 failure in its own words. -/

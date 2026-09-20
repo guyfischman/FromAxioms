@@ -26,7 +26,6 @@ so `setFold` is a definition rather than a choice.
 -/
 
 import FromAxioms.Algebra.Group
-import FromAxioms.SetTheory.Cantor
 
 universe u
 
@@ -49,7 +48,7 @@ structure IsCommMonoid (M op e : ZFSet.{u}) : Prop where
   comm : ∀ a, a ∈ M → ∀ b, b ∈ M → opAt op a b = opAt op b a
 
 /-- A commutative monoid is a monoid. `right_id` is `comm` then
-`left_id`, and that is the ONLY use of
+`left_id`, and that is the only use of
 commutativity in the order-arithmetic family `Group.lean` states over
 `IsMonoid`. A hypothesis whose entire contribution is one derivation of a weaker
 field is a hypothesis that development did not need.
@@ -64,7 +63,7 @@ theorem IsCommMonoid.toMonoid {M op e : ZFSet.{u}} (h : IsCommMonoid M op e) :
     right_id := fun a ha => by rw [h.comm a ha e h.mem_e, h.left_id a ha] }
 
 /-- One conclusion, reached through both structures: the group and commutative
-monoid families are INSTANCES of the monoid one rather than cousins of each
+monoid families are instances of the monoid one rather than cousins of each
 other. -/
 theorem gpow_add_of_commMonoid {M op e a : ZFSet.{u}} (h : IsCommMonoid M op e)
     (ha : a ∈ M) (j k : Nat) :
@@ -184,10 +183,10 @@ theorem origAt_lt {n j i : Nat} (hi : i < n) : origAt j i < n + 1 := by
 
 /-- A fold stays inside a set closed under the operation. No ring, no
 monoid, no commutativity -- the zero and the two-argument closure are the whole
-hypothesis, so a SUBRING uses it without first exhibiting its restricted ring
+hypothesis, so a subring uses it without first exhibiting its restricted ring
 structure.
 
-Stated over the AMBIENT operation rather than a restricted one: a subring's
+Stated over the ambient operation rather than a restricted one: a subring's
 `IsRing` instance carries `restrictOp add S`, and bridging that back to `add`
 at every step is work this avoids by never leaving the ambient operation. -/
 theorem foldF_mem_closed {S add zero : ZFSet.{u}} (hz : zero ∈ S)
@@ -459,7 +458,7 @@ second; nothing joined them.
 
 They accumulate from opposite ends --- `foldF` from the left, `List.foldr` from
 the right --- so they agree only up to commutativity, hence `IsCommMonoid`. The
-induction uses `List.range_succ`, which appends at the END and so matches
+induction uses `List.range_succ`, which appends at the end and so matches
 `foldF`'s own recursion; `List.range_succ_eq_map` conses at the front and
 fights it. -/
 theorem foldr_range_eq_foldF {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
@@ -523,9 +522,9 @@ theorem foldF_reverse {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F : Nat �
 The two fold layers had no lemma joining them. `foldF` carries the
 commutative-monoid machinery --- reversal, permutation, termwise addition ---
 while the polynomial layer emits `List.foldr`, because a product over roots is a
-fold over a LIST. Everything proved about either was unavailable to the other.
+fold over a list. Everything proved about either was unavailable to the other.
 
-Stated over `List.range n` with `F` applied INSIDE the fold rather than over a
+Stated over `List.range n` with `F` applied inside the fold rather than over a
 mapped list: `List.foldr_map` turns any `l.map g` into that form, so the
 un-mapped statement covers both and the induction stays on `n`. -/
 theorem foldr_range_eq_foldF_below {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
@@ -774,7 +773,7 @@ theorem foldF_unit {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
 
 `hom_foldF` and `hom_foldF_mul` are this at a ring's two operations. Neither
 proof touches distributivity or negation -- they project `hom_add'`/`hom_mul`
-and `hom_zero`/`hom_one`, which is multiplicativity over ONE operation and its
+and `hom_zero`/`hom_one`, which is multiplicativity over one operation and its
 unit. So the two `IsRing`s are the ambient structure rather than the
 requirement.
 
@@ -841,9 +840,9 @@ and the value is extracted from a singleton. -/
 #print axioms foldF_triangle
 #print axioms foldF_swap
 
-/-- A fold of zeros is zero, over a COMMUTATIVE MONOID.
+/-- A fold of zeros is zero, over a commutative monoid.
 
-`foldF_zeros` (`PolyRing` 961) says this over a RING -- and a module sum has
+`foldF_zeros` (`PolyRing` 961) says this over a ring -- and a module sum has
 no multiplication -- `(V, vadd, vzero)` is a group -- so the ring hypothesis was
 never doing work. Named `_monoid` rather than shadowing, following
 `NumberTheory.matTrace_mem_closed_below`: the family name plus the mark saying which
@@ -859,11 +858,11 @@ theorem foldF_zeros_monoid {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
 
 #print axioms foldF_zeros_monoid
 
-/-- A fold supported at ONE index is that index's value, over a commutative
+/-- A fold supported at one index is that index's value, over a commutative
 monoid -- `foldF_single_below` (`PolyRing` 1121) without the ring. This turns the
 identity matrix's column into the basis vector it selects.
 
-`IsCommMonoid` carries `left_id` only; the RIGHT identity is that plus
+`IsCommMonoid` carries `left_id` only; the right identity is that plus
 `comm`. -/
 theorem foldF_single_below_monoid {M op e : ZFSet.{u}}
     (hM : IsCommMonoid M op e) {T : Nat → ZFSet.{u}} {k : Nat} (hTk : T k ∈ M) :
@@ -873,14 +872,14 @@ theorem foldF_single_below_monoid {M op e : ZFSet.{u}}
   | n + 1, hk, hz => by
     show opAt op (foldF op e T n) (T n) = T k
     rcases Nat.eq_or_lt_of_le (show k + 1 ≤ n + 1 from hk) with heq | hlt
-    · -- `obtain rfl` ELIMINATES one of the two names, so the bound is left to
+    · -- `obtain rfl` eliminates one of the two names, so the bound is left to
       -- inference rather than written out
       obtain rfl : k = n := by omega
       rw [foldF_zeros_monoid hM _ (fun i hi => hz i (by omega) (by omega)),
         hM.left_id _ hTk]
     · have hfold : foldF op e T n ∈ M :=
         foldF_mem hM n (fun i hi => by
-          -- `Nat` equality is DECIDABLE, so this `by_cases` is choice-free
+          -- `Nat` equality is decidable, so this `by_cases` is choice-free
           by_cases hik : i = k
           · rw [hik]; exact hTk
           · rw [hz i (by omega) hik]; exact hM.mem_e)
@@ -1175,7 +1174,7 @@ theorem foldF_involution {G op e : ZFSet.{u}} (hG : IsGroup G op e)
 #print axioms foldF_involution
 
 /-- The bounded twin of `foldF_mem_closed`. A fold over `0..n-1` only ever
-evaluates `F` below `n`, so requiring membership at EVERY index is stronger than
+evaluates `F` below `n`, so requiring membership at every index is stronger than
 the fold needs -- and the difference bites whenever `F` is defined by cases that
 fail at the boundary. -/
 theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
@@ -1199,7 +1198,7 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 which is constant because the summand ignores `t / f`.
 
 This is the shape the character-family product takes once `mul_mod_of_split`
-has shown the exponent depends only on the residue: the product FIBRES over the
+has shown the exponent depends only on the residue: the product fibres over the
 inner index `g` times, so `foldF_permOn` --- a permutation lemma ---
 cannot be applied at the top level. -/
 theorem foldF_flatten_const {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
@@ -1209,14 +1208,14 @@ theorem foldF_flatten_const {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
   rw [← foldF_flatten hM (G := fun _ a => H a) (fun _ a => hmem a) f g,
     foldF_const]
 
-/-- Any TWO distinct factors move to the outside of a fold.
+/-- Any two distinct factors move to the outside of a fold.
 
     foldF F (n+2)
       = opAt (opAt (foldF (skipAt (survAt j p) (skipAt j F)) n) (F p)) (F j)
 
 `foldF_peel_pair` already does this when one of the two is index `0`, which is
-where `app_charFamily_zero` puts the TRIVIAL character. The conjugate pair row
-1837's non-real case needs is two NON-zero indices, so the peel runs `foldF_skip`
+where `app_charFamily_zero` puts the trivial character. The conjugate pair row
+1837's non-real case needs is two non-zero indices, so the peel runs `foldF_skip`
 twice and `survAt j p` is where `p` has moved after `j` is removed.
 
 `skipAt_origAt` and `origAt_survAt` are what put `F p` back at the end: skipping
@@ -1249,10 +1248,10 @@ theorem foldF_peel_two {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     foldF_skip hM n (survAt j p) hq hskipmem, hval]
 
 /-- An inverse in a commutative monoid is unique.
-`inv_unique` says this for a GROUP; the proof never uses invertibility of `z`,
+`inv_unique` says this for a group; the proof never uses invertibility of `z`,
 so it holds wherever `opAt` is associative, commutative and unital. That
-matters because `Complex` under `cMul` is NOT a group --- zero has no inverse
---- but it IS a commutative monoid, via `isCommMonoid_ringMul`. -/
+matters because `Complex` under `cMul` is not a group --- zero has no inverse
+--- but it is a commutative monoid, via `isCommMonoid_ringMul`. -/
 theorem inv_unique_monoid {M op e z w w' : ZFSet.{u}} (hM : IsCommMonoid M op e)
     (hz : z ∈ M) (hw : w ∈ M) (hw' : w' ∈ M)
     (h1 : opAt op z w = e) (h2 : opAt op z w' = e) : w = w' := by

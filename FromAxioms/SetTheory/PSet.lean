@@ -122,7 +122,7 @@ instance : Membership PSet.{u} PSet.{u} := ⟨fun x w => PSet.Mem w x⟩
 
 instance : HasSubset PSet.{u} := ⟨fun x y => ∀ w : PSet.{u}, w ∈ x → w ∈ y⟩
 
-/-! ## EXTENSIONALITY
+/-! ## extensionality
 
 The first ZFC axiom, and here a theorem: equivalent pre-sets are exactly those
 with the same members. This is the bridge between the recursive `Equiv` and the
@@ -149,7 +149,7 @@ theorem mem_congr_left {w v : PSet.{u}} (h : Equiv w v) (x : PSet.{u}) :
     w ∈ x ↔ v ∈ x :=
   ⟨fun ⟨a, ha⟩ => ⟨a, h.symm.trans ha⟩, fun ⟨a, ha⟩ => ⟨a, h.trans ha⟩⟩
 
-/-! ## EMPTY SET
+/-! ## empty set
 
 Indexed by the empty type, so there is nothing to be a member. -/
 
@@ -160,7 +160,7 @@ theorem not_mem_empty (w : PSet.{u}) : w ∉ empty.{u} := fun ⟨e, _⟩ => e.el
 @[simp] theorem mem_empty_iff (w : PSet.{u}) : w ∈ empty.{u} ↔ False :=
   ⟨not_mem_empty w, False.elim⟩
 
-/-! ## PAIRING
+/-! ## pairing
 
 Adjoining one element is indexed by `Option`: one extra index for the new
 member, and the old indices for the old ones. Unordered pairs follow. -/
@@ -197,7 +197,7 @@ theorem insert_congr {y y' x x' : PSet.{u}} (hy : Equiv y y') (hx : Equiv x x') 
     · exact Or.inl (h.trans hy.symm)
     · exact Or.inr ((mem_congr_right hx w).mpr h)
 
-/-! ## UNION
+/-! ## union
 
 The members of the members. Indexed by a dependent pair: pick a branch of `x`,
 then a branch of that. -/
@@ -215,7 +215,7 @@ theorem mem_sUnion_iff (w x : PSet.{u}) :
     obtain ⟨i, hi⟩ := (mem_congr_right hza w).mp hwz
     exact ⟨⟨a, i⟩, hi⟩
 
-/-! ## POWER SET
+/-! ## power set
 
 Indexed by predicates on the index type. This is the step that makes the
 model's strength visible: `Idx x → Prop` is an impredicative function type, and
@@ -239,7 +239,7 @@ theorem mem_powerset_iff (w x : PSet.{u}) : w ∈ powerset x ↔ w ⊆ x := by
     · rintro ⟨s, hs⟩
       exact (mem_congr_left hs w).mpr s.2
 
-/-! ## SEPARATION
+/-! ## separation
 
 Carving out a sub-pre-set by a predicate. The predicate must respect `Equiv` --
 otherwise it could distinguish two trees denoting the same set, and the result
@@ -259,7 +259,7 @@ theorem mem_sep_iff {p : PSet.{u} → Prop}
   · rintro ⟨⟨a, ha⟩, hpw⟩
     exact ⟨⟨a, hp ha hpw⟩, ha⟩
 
-/-! ## INFINITY
+/-! ## infinity
 
 The von Neumann naturals: `0 = ∅` and `n+1 = n ∪ {n}`. Note that the recursion
 is ordinary structural recursion on Lean's `Nat` -- the infinite set exists here
@@ -326,12 +326,12 @@ theorem sep_congr {p : PSet.{u} → Prop}
   · rintro ⟨hwy, hpw⟩
     exact ⟨(mem_congr_right h w).mpr hwy, hpw⟩
 
-#print axioms equiv_iff_ext      -- EXTENSIONALITY
-#print axioms mem_empty_iff      -- EMPTY SET
-#print axioms mem_sUnion_iff     -- UNION
-#print axioms mem_powerset_iff   -- POWER SET
-#print axioms mem_sep_iff        -- SEPARATION
-#print axioms succ_mem_omega     -- INFINITY
+#print axioms equiv_iff_ext      -- Extensionality
+#print axioms mem_empty_iff      -- Empty set
+#print axioms mem_sUnion_iff     -- Union
+#print axioms mem_powerset_iff   -- Power set
+#print axioms mem_sep_iff        -- Separation
+#print axioms succ_mem_omega     -- Infinity
 
 
 #print axioms idx_mk

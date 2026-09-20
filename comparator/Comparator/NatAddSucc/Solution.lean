@@ -7,11 +7,11 @@ Authors: Guy Fischman
 /-
 SOLUTION: `challenge` discharged from `FromAxioms`, without citing Lean's `rfl`.
 
-THE STATEMENT IS FREE IN LEAN, SO THE ROUTE IS WHAT IS BEING CHECKED.
+The statement is free in Lean, so the route is what is being checked.
 `Nat.add_succ` holds by `rfl` on an inductive type; this Solution instead:
 
   * embeds both naturals as von Neumann ordinals with `ofNat`;
-  * uses `Arith.add_succ` --- `add x (succ y) = succ (add x y)` for ARBITRARY
+  * uses `Arith.add_succ` --- `add x (succ y) = succ (add x y)` for arbitrary
     `ZFSet`s, proved by extensionality over the ordinals, not by computation;
   * comes back with `add_ofNat`, which says the tower's addition agrees with
     Lean's through the embedding;

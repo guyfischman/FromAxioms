@@ -23,6 +23,7 @@ two order facts. (`realLAbs` now exists case-free in `Deriv.lean`, as
 
 import FromAxioms.Analysis.Ternary
 import FromAxioms.NumberTheory.SqrtTwo
+import FromAxioms.SetTheory.Search
 import FromAxioms.Topology.Metric
 
 universe u
@@ -39,9 +40,9 @@ theorem mem_realLIcc_iff (p q x : ZFSet.{u}) :
     x ∈ realLIcc p q ↔ x ∈ RealL.{u} ∧ realLLe (realLOf p) x ∧ realLLe x (realLOf q) :=
   mem_sep_iff _ _ _
 
-/-- The closed interval with REAL endpoints.
+/-- The closed interval with real endpoints.
 
-`realLIcc` above applies `realLOf` to both endpoints, so the NOTION takes
+`realLIcc` above applies `realLOf` to both endpoints, so the notion takes
 rationals and every consumer of it --- `UniformlyContinuousOn`, `bernOp`, the
 whole Weierstrass chain --- inherits that restriction. It is not a constructive
 obstruction: `p < q` gives the apartness, and `realLInv_mem` takes exactly a
@@ -49,7 +50,7 @@ positivity hypothesis. The restriction comes from the interval rather than from
 the analysis.
 
 The compatibility is `rfl`, so this is a widening rather than a fork:
-`realLIcc p q` IS `realLIccR (realLOf p) (realLOf q)` by definition, so every
+`realLIcc p q` is `realLIccR (realLOf p) (realLOf q)` by definition, so every
 existing consumer is a consumer of this at the embedded endpoints and nothing
 has to move.
 -/
@@ -61,7 +62,7 @@ theorem mem_realLIccR_iff (p q x : ZFSet.{u}) :
     x ∈ realLIccR p q ↔ x ∈ RealL.{u} ∧ realLLe p x ∧ realLLe x q :=
   mem_sep_iff _ _ _
 
-/-- The rational-ended interval IS this one at `realLOf` of its endpoints. -/
+/-- The rational-ended interval is this one at `realLOf` of its endpoints. -/
 theorem realLIcc_eq_realLIccR (p q : ZFSet.{u}) :
     realLIcc p q = realLIccR (realLOf p) (realLOf q) := rfl
 
@@ -76,19 +77,19 @@ theorem realLIccR_bounds {p q x : ZFSet.{u}} (hx : x ∈ realLIccR p q) :
 #print axioms realLIcc_eq_realLIccR
 #print axioms realLIccR_bounds
 
-/-- AT TWO NON-RATIONAL ENDPOINTS THE CLOSED INTERVAL IS THE WHOLE LINE.
+/-- At two non-rational endpoints the closed interval is the whole line.
 
 `realLIcc` is total in its endpoints and every consumer of it quantifies over
 all of them, so what it means off the rationals is what those quantifiers are
 actually saying. `realLOf empty` is `opair empty empty` by `ratCut_empty` and
 `ratUpper_empty`, and `realLLe a b` is `¬ realLLt b a` with `realLLt x y` an
-existential over `snd x ∩ fst y` --- so both order clauses hold VACUOUSLY of
+existential over `snd x ∩ fst y` --- so both order clauses hold vacuously of
 every real and the separation keeps everything.
 
-WHY IT IS WORTH A NAME. `CutAt p q r` quantifies over `realLIcc p r`, and its
+Why it is worth a name. `CutAt p q r` quantifies over `realLIcc p r`, and its
 docstring contrasts it with `UniversalCutAt` as *the form that can be
-BRACKETED*, the interval being what bounds it. At junk endpoints there is no
-bound: `CutAtRat` instantiated here is the cut of the WHOLE line at a rational,
+bracketed*, the interval being what bounds it. At junk endpoints there is no
+bound: `CutAtRat` instantiated here is the cut of the whole line at a rational,
 which `forall_cut_of_cutAtRat` (Caratheodory.lean) states outright. The
 restriction that is really doing work is the rationality of `q`, not the
 interval. -/
@@ -120,7 +121,7 @@ theorem refl_mem_Icc01 {z : ZFSet.{u}}
       realLZero_mem (realLLe_refl realLOne_mem) hnz0
     rwa [realLAdd_zero realLOne_mem] at this
 
-/-- Every located real sits in SOME rational interval: its cuts are inhabited,
+/-- Every located real sits in some rational interval: its cuts are inhabited,
 which is a field of `IsLocated` and not a search. -/
 theorem mem_some_realLIcc {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     ∃ p r : ZFSet.{u}, p ∈ NumberTheory.Rat.{u} ∧ r ∈ NumberTheory.Rat.{u} ∧ x ∈ realLIcc p r := by
@@ -581,14 +582,14 @@ theorem bisectPair_spec {F : ZFSet.{u} → ZFSet.{u}} (σ : SignReadout F)
 
 /-! ### The same recursion, driven by a bare bit
 
-`bisectPair` above takes a `SignReadout`, but it READS only `sigma.bit` --- the
+`bisectPair` above takes a `SignReadout`, but it reads only `sigma.bit` --- the
 sign clauses appear nowhere in the recursion, only in `bisectPair_spec`'s
 invariant. So the tower generalises for free, and rung 16 needs it to: the
-interval-preconnectedness bisection branches on a COVER bit, not a sign bit,
+interval-preconnectedness bisection branches on a cover bit, not a sign bit,
 and rebuilding a second nested-interval tower for it would be the same
 machinery twice.
 
-Added ALONGSIDE rather than in place of the sign version. `bisectPair` and its
+Added alongside rather than in place of the sign version. `bisectPair` and its
 19 consumers are untouched, and `bisectPair_eq_bisectPairB` says the two agree,
 so anything proved of the generic form transfers to the sign tower without
 re-deriving it. -/
@@ -608,7 +609,7 @@ def bisectPairB (bit : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) :
 /-- The invariant that needs no payload: rational endpoints, strictly
 ordered. This is `bisectPair_spec` with its two sign clauses removed, and
 removing them is exactly what makes it reusable --- the halving structure never
-depended on what the bit MEANT. -/
+depended on what the bit meant. -/
 theorem bisectPairB_spec (bit : ZFSet.{u} → ZFSet.{u})
     {p q : ZFSet.{u}}
     (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hpq : ratLt p q)
@@ -624,13 +625,13 @@ theorem bisectPairB_spec (bit : ZFSet.{u} → ZFSet.{u})
   | n + 1 => by
     obtain ⟨ha, hb, hab, hpa, hbq⟩ := bisectPairB_spec bit hp hq hpq hbit n
     have hmid := ratMid_mem_Rat ha hb
-    -- the midpoint is inside `[p, q]`, so the RESTRICTED bit hypothesis fires:
+    -- the midpoint is inside `[p, q]`, so the restricted bit hypothesis fires:
     -- `p ≤ a < mid < b ≤ q`.
     have hpmid : ratLe p (ratMid (fst (bisectPairB bit p q n)) (snd (bisectPairB bit p q n))) :=
       ratLe_trans hp ha hmid hpa (lt_ratMid ha hb hab).left
     have hmidq : ratLe (ratMid (fst (bisectPairB bit p q n)) (snd (bisectPairB bit p q n))) q :=
       ratLe_trans hmid hb hq (ratMid_lt ha hb hab).left hbq
-    -- `mem_two_cases`, NOT `by_cases`: the bit lands in `ofNat 2`, so the split
+    -- `mem_two_cases`, not `by_cases`: the bit lands in `ofNat 2`, so the split
     -- is the two-element case analysis this tree already has. `by_cases` here
     -- compiles and quietly pulls in `Classical.choice`.
     rcases mem_two_cases (hbit _ hmid hpmid hmidq) with he | he
@@ -697,18 +698,18 @@ theorem bisectWidth_scaled {F : ZFSet.{u} → ZFSet.{u}} (σ : SignReadout F)
         (ratNat_mem_Rat (show 0 < 1 by omega)), hhalf]
     exact hw
 
-/-- The CARRIED half of the invariant: the endpoints keep their bits.
+/-- The carried half of the invariant: the endpoints keep their bits.
 
 `Analysis.bisectPairB_spec` is the half that needs no payload. This is the other
 half, and it is the one every application supplies for itself: start with the
 low end reading `empty` and the high end reading `1`, and the recursion
-preserves it --- because `Analysis.bisectPairB` sends the midpoint to the HIGH slot
+preserves it --- because `Analysis.bisectPairB` sends the midpoint to the high slot
 exactly when its bit is `1`.
 
 For `Analysis.SignReadout` this is `bisectPair_spec`'s two sign clauses read
 through `Analysis.sign_decided`. For a cover readout it says the low endpoint
 stays in one open and the high endpoint in the other, so the limit's own bit
-produces a point in BOTH. -/
+produces a point in both. -/
 theorem bisectPairB_bits (bit : ZFSet.{u} → ZFSet.{u}) {p q : ZFSet.{u}}
     (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hpq : ratLt p q)
     (hbit : ∀ c, c ∈ NumberTheory.Rat.{u} → ratLe p c → ratLe c q → bit c ∈ ofNat.{u} 2)
@@ -727,11 +728,11 @@ theorem bisectPairB_bits (bit : ZFSet.{u} → ZFSet.{u}) {p q : ZFSet.{u}}
     have hmidq : ratLe (ratMid (fst (bisectPairB bit p q n)) (snd (bisectPairB bit p q n))) q :=
       ratLe_trans hmid hb hq (ratMid_lt ha hb hab).left hbq
     rcases mem_two_cases (hbit _ hmid hpmid hmidq) with he | he
-    · -- the midpoint reads `empty`, so it becomes the new LOW end
+    · -- the midpoint reads `empty`, so it becomes the new low end
       rw [bisectPairB, condP_neg (fun hone => empty_ne_one (he.symm.trans hone)),
         fst_opair, snd_opair]
       exact ⟨he, hhi⟩
-    · -- it reads `1`, so it becomes the new HIGH end
+    · -- it reads `1`, so it becomes the new high end
       rw [bisectPairB, condP_pos he, fst_opair, snd_opair]
       exact ⟨hlo, he⟩
 
@@ -740,7 +741,7 @@ def bisectWidthB (bit : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) (n : Nat) :
     ZFSet.{u} :=
   ratAdd (snd (bisectPairB bit p q n)) (ratNeg (fst (bisectPairB bit p q n)))
 
-/-- The widths halve for ANY two-valued bit, stated as `wₙ · 2ⁿ = w₀` so
+/-- The widths halve for any two-valued bit, stated as `wₙ · 2ⁿ = w₀` so
 that nothing is divided --- the same device `Analysis.bisectWidth_scaled` uses, and
 the same proof with the sign hypotheses dropped. They were never used: halving
 is a fact about `ratMid`, not about what the bit decides. -/
@@ -854,7 +855,7 @@ theorem exists_bisectWidth_lt {F : ZFSet.{u} → ZFSet.{u}} (σ : SignReadout F)
 `Analysis.exists_bisectWidth_lt` with the sign hypotheses dropped. The Archimedean
 step is the same one the mesh selection uses elsewhere on this track: an index
 whose width falls below `ε / w₀`, then `n + 1 ≤ 2ⁿ` to trade the halving for
-it. Nothing divides a real --- `ratInv` is taken of the RATIONAL `w₀`, which is
+it. Nothing divides a real --- `ratInv` is taken of the rational `w₀`, which is
 positive by hypothesis. -/
 theorem exists_bisectWidthB_lt (bit : ZFSet.{u} → ZFSet.{u})
     {p q : ZFSet.{u}}
@@ -1062,7 +1063,7 @@ def bisectHiSeqB (bit : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) : ZFSet.{u} :
 /-- The generic bisection intervals are nested. `Analysis.isNested_bisect` with
 the sign hypotheses dropped --- and with them go the last of the sign tower's
 assumptions, so from here the nested-interval principle applies to a bisection
-driven by ANY two-valued bit: a cover bit is not a sign bit, and nothing below
+driven by any two-valued bit: a cover bit is not a sign bit, and nothing below
 this line cares. -/
 theorem isNested_bisectB (bit : ZFSet.{u} → ZFSet.{u})
     {p q : ZFSet.{u}}
@@ -1146,7 +1147,7 @@ private theorem sub_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ 
   have := realLLe_add_right hb ha (realLNeg_mem hb) h
   rwa [realLAdd_neg hb] at this
 
-/-- FROM `a <= b + e`, SUBTRACT `b`. `[propext, Quot.sound]`.
+/-- From `a <= b + e`, subtract `b`. `[propext, Quot.sound]`.
 
 `Analysis/RangeSup.lean` needs this to turn `exists_rat_pos_above`'s overshoot
 into the shape `width_bound` consumes. `Metamath.close_upper_of_le_add` has the
@@ -1335,12 +1336,12 @@ theorem realLHalf_add_half :
 /-! ## Bisecting without choosing: the interpolated weight
 
 The walk above avoids the choice problem by never forming a sequence. A
-BISECTION forms one, and that is a second cost on top of the sign disjunction
+bisection forms one, and that is a second cost on top of the sign disjunction
 and quite separate from it: even granted `F c ≤ 0 ∨ 0 ≤ F c` at every point, the
 sequence of left-or-right decisions is a countable family of choices, and
 picking one disjunct at each step is `ACC`, not the disjunction.
 
-MATTHEW FRANK SHOWS THAT SECOND COST IS AVOIDABLE, and the trick is small
+Matthew Frank shows that second cost is avoidable, and the trick is small
 enough to state in one line. *Interpolating Between Choices for the Approximate
 Intermediate Value Theorem*, Logical Methods in Computer Science 16(3:5), 2020,
 DOI 10.23638/LMCS-16(3:5)2020, arXiv:1701.02227. His third constraint, in his
@@ -1350,22 +1351,22 @@ words:
 > in the proof below to let dn = 0 if f(cn) < e or dn = 1 if f(cn) > -e, but
 > without countable choice, such a sequence is ill-defined.
 
-His replacement for the bit is an ARITHMETIC FORMULA,
-`dn = max(0, min(1/2 + f(cn)/e, 1))`, which is a REAL in `[0, 1]` rather than a
+His replacement for the bit is an arithmetic formula,
+`dn = max(0, min(1/2 + f(cn)/e, 1))`, which is a real in `[0, 1]` rather than a
 choice between two of them. Feeding it to `a' = c - d(b-a)/2`, `b' = b - d(b-a)/2`
 halves the interval whatever `d` is, so the sequence is definable outright and
 the whole `ACC` cost disappears.
 
-WHAT IT DOES NOT BUY IS EXACTNESS, and the two collapse lemmas below show why
+What it does not buy is exactness, and the two collapse lemmas below show why
 rather than argue it: the weight is `1` only once the value reaches `1/2` and
 `0` only once it reaches `-1/2`, so between those it slides, and a sliding
-weight leaves BOTH endpoints of the next interval with an undecided sign. That
-is the trade: the interpolation is definable BECAUSE it is allowed to take
+weight leaves both endpoints of the next interval with an undecided sign. That
+is the trade: the interpolation is definable because it is allowed to take
 intermediate values, and an exact root needs it not to. Frank concludes the
 approximate theorem and says the exact one is out of reach [BR87, chapter 6.2].
 
 So this section is not a route to `ExactIVT01`. It is the measurement that
-SEPARATES the two costs the exact statement was being charged for, and it
+separates the two costs the exact statement was being charged for, and it
 localises the residue in the window where the weight is strictly between `0` and
 `1`. -/
 
@@ -1386,7 +1387,7 @@ theorem interpWeight_mem {v : ZFSet.{u}} (hv : v ∈ RealL.{u}) :
 
 /-- `0 ≤ interpWeight v ≤ 1`, with no hypothesis on `v` at all. This alone is
 what makes the interpolated step a bisection: the next interval is
-`[c - d(b-a)/2, b - d(b-a)/2]`, whose width is `(b-a)/2` for EVERY `d`, and
+`[c - d(b-a)/2, b - d(b-a)/2]`, whose width is `(b-a)/2` for every `d`, and
 which is nested inside `[a, b]` exactly when `d` lies in `[0, 1]`. -/
 theorem interpWeight_bracket {v : ZFSet.{u}} :
     And (realLLe realLZero.{u} (interpWeight v))
@@ -1402,7 +1403,7 @@ theorem interpWeight_bracket {v : ZFSet.{u}} :
 
 /-- The weight collapses to `1` once the value reaches `1/2`. This is the
 half of the interpolation that makes it a bisection in the ordinary sense: where
-the sign is known with a margin, Frank's step IS the classical step, and `1`
+the sign is known with a margin, Frank's step is the classical step, and `1`
 sends the next interval to `[a, c]`. -/
 theorem interpWeight_eq_one_of_half_le {v : ZFSet.{u}} (hv : v ∈ RealL.{u})
     (h : realLLe (realLOf (ratNat.{u} 1 2)) v) : interpWeight v = realLOne.{u} := by
@@ -1430,7 +1431,7 @@ theorem interpWeight_eq_one_of_half_le {v : ZFSet.{u}} (hv : v ∈ RealL.{u})
 #print axioms interpWeight_eq_one_of_half_le
 
 /-- And to `0` once the value reaches `-1/2`, sending the next interval to
-`[c, b]`. BETWEEN THE TWO THE WEIGHT SLIDES, and that gap is the whole residue:
+`[c, b]`. Between the two the weight slides, and that gap is the whole residue:
 the interpolation buys with it, and an exact root cannot afford it. -/
 theorem interpWeight_eq_zero_of_le_neg_half {v : ZFSet.{u}} (hv : v ∈ RealL.{u})
     (h : realLLe v (realLNeg (realLOf (ratNat.{u} 1 2)))) :
@@ -1498,7 +1499,7 @@ theorem gridPoint_between {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (h
    ratMin_le_right (ladder_mem hp m i) hq⟩
 
 /-- `exists_gridPoint_near` with the stage supplied rather than obtained, so
-the index comes back BOUNDED. The bound is what a net's size needs. -/
+the index comes back bounded. The bound is what a net's size needs. -/
 theorem exists_gridPoint_near_le {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u})
     (hq : q ∈ NumberTheory.Rat.{u}) (hpq : ratLt p q) (m N : Nat)
     (hN : ¬ ratLt (ladder p m N) q)
@@ -1542,11 +1543,11 @@ theorem exists_gridPoint_near_le {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.
 
 /-! ## The `invScale` scaling cluster, at every universe
 
-NOTHING IN ANY OF THEM IS ABOUT UNIVERSE `0` or about characters. They name
+Nothing in any of them is about universe `0` or about characters. They name
 `realLMul`, `invScale` and `realLOf`, all universe-polymorphic, and cite only
 rational arithmetic and `Located` lemmas that are too.
 
-THE NARROWNESS BITES BECAUSE OF WHERE THEY SIT. `Analysis.Fubini` is upstream
+The narrowness bites because of where they sit. `Analysis.Fubini` is upstream
 of `Analysis.DirichletChar` and a sibling of `ComplexRoot`, so the integration
 layer can cite none of it --- and an estimate wanting "scale a constant below a
 modulus" is exactly what a Cauchy stage bound needs. Hosted here because `IVT`
@@ -1556,7 +1557,7 @@ already lower.
 The `{0}` copies are left standing: retiring them is a move, and a move is
 master's. -/
 
-/-- `invScale j` IS `1/(j+1)` as a rational, at every universe. `rfl`.
+/-- `invScale j` is `1/(j+1)` as a rational, at every universe. `rfl`.
 
 Worth a name because nothing about `invScale`'s spelling says which rational it
 is, and a search for one form does not find the other. With it,
@@ -1586,14 +1587,14 @@ theorem realLOf_natMul_invScale_le_gen (p n : Nat) :
   exact (ratNat_le_iff (by omega : 0 < 1 * (j + 1)) hn1).mpr
     (by simp only [Nat.mul_one, Nat.one_mul]; omega)
 
-/-- A REAL constant under a natural bound gets the same modulus.
+/-- A real constant under a natural bound gets the same modulus.
 
     C ≤ p,  p * (n + 1) ≤ j   ⟹   C * invScale j ≤ invScale n
 
 The form every consumer has: the constant is a real and what is known about it is
 a natural upper bound.
 
-NO NON-NEGATIVITY. `DirichletChar`'s `{0}` copy binds `hC0 : 0 ≤ C` and its
+No non-negativity. `DirichletChar`'s `{0}` copy binds `hC0 : 0 ≤ C` and its
 proof never mentions it. The bound `C ≤ p` and the positivity of `invScale`
 carry the argument, so a caller who knows `C ≤ p` but not `0 ≤ C` is refused
 there for no reason. Dropped. -/

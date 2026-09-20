@@ -16,7 +16,7 @@ Mathlib's `Nat.factors` family is now `primeFactorsList`; the only
 `theorem factors_unique` in the checkout is `UniqueFactorizationMonoid`'s, over
 a general monoid.
 
-MATHLIB'S STATEMENT IS RELATIVE TO A CANONICAL LIST. Ours is symmetric --- any
+Mathlib's statement is relative to a canonical list. Ours is symmetric --- any
 two prime lists with equal products are permutations --- so mathlib's is the
 specialisation at `primeFactorsList n`, and that is the direction the solution
 takes.

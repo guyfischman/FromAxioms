@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Where each principle is SPENT, as opposed to merely carried.
+"""Where each principle is spent, as opposed to merely carried.
 
 A principle taken as a hypothesis never reaches a `#print axioms` line, so the
 axiom surface cannot see the project's own preferred technique.  This reports,
-per principle, the declarations that USE their hypothesis rather than passing it
-to another declaration that takes one -- the ROOT SET.
+per principle, the declarations that use their hypothesis rather than passing it
+to another declaration that takes one -- the root set.
 
 The root set is the object.  A count of declarations mentioning a principle is
 not: three instruments gave 40, 47 and 57 for `FAN` and none of them counted
@@ -18,41 +18,41 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-# WHAT IT CANNOT SEE, stated because the root set reads as exhaustive and is
-# not: it matches an EXPLICIT binder `(h : FAN)`. An implicit `{h : FAN}`, an
+# What it cannot see, stated because the root set reads as exhaustive and is
+# not: it matches an explicit binder `(h : FAN)`. An implicit `{h : FAN}`, an
 # instance binder, or a principle reached through a structure field is invisible.
 # On this tree that currently costs nothing -- every principle is an explicit
 # binder -- and "currently" is why it is written down.
 #
-# AND ONE ENTRY WAS MISSING FROM THAT LIST WHILE COSTING 31 ROOTS. A binder
-# spelled with a NAMESPACE PREFIX -- `(hdc : Constructive.DCOn.{u} ...)` --
+# And one entry was missing from that list while costing 31 roots. A binder
+# spelled with a namespace prefix -- `(hdc : Constructive.DCOn.{u} ...)` --
 # matched nothing, so a principle read as spent in the files that happen to
 # write it bare and nowhere else. Fixed in `scan()`; recorded here because the
-# defect was not that the list was wrong but that it was SHORT, and a reader
+# defect was not that the list was wrong but that it was short, and a reader
 # checking whether their case is covered gets a definite "not listed" either
 # way. 13 principles gained roots, `EM`, `ApartStable` and `FANstable` among
 # them, so this was never one principle's problem.
 #
-# A DECLARATION IS ATTRIBUTED TO ONE PRINCIPLE: `binder.search` takes the FIRST
+# A declaration is attributed to one principle: `binder.search` takes the first
 # match in the signature. `triadicPlacement_of_locatorMap_of_em` takes both
 # `HasLocatorMap` and `EM` and is reported under whichever is written first.
-# Pre-existing and unchanged here, but the prefix fix can MOVE such a
+# Pre-existing and unchanged here, but the prefix fix can move such a
 # declaration between principles by making an earlier binder visible, which is
 # what it did to that one. A root leaving a principle is therefore not
 # automatically a shrink -- check the other principles and the forwarders
 # before reading it as one.
 #
-# WHAT THIS TOOL STILL CANNOT ANSWER, and the distinction cost `reversal` a
-# measurement: a principle that is NOT A LATTICE NODE is not in the alternation
-# at all, so it is reported NOWHERE rather than incompletely. `DCOn` is that
+# What this tool still cannot answer, and the distinction cost `reversal` a
+# measurement: a principle that is not a lattice node is not in the alternation
+# at all, so it is reported nowhere rather than incompletely. `DCOn` is that
 # case today. Silence here means "not a registered principle" as readily as it
 # means "never spent", and only `lattice.json` separates the two.
 
-# PRIVATE INCLUDED, which is the opposite of a surface count. A count of what
-# the library OFFERS excludes private lemmas. This one asks where a principle is
-# SPENT, and a private consumer spends it exactly as a public one does. Omitting
+# Private included, which is the opposite of a surface count. A count of what
+# the library offers excludes private lemmas. This one asks where a principle is
+# spent, and a private consumer spends it exactly as a public one does. Omitting
 # them does not merely miss roots: a public declaration forwarding to a private
-# taker is reported as a ROOT, which is a false positive, and analysis measured
+# taker is reported as a root, which is a false positive, and analysis measured
 # the totals agreeing while four entries were wrong in two directions.
 import lean  # noqa: E402  -- the shared parser; a fresh regex reads a docstring
               # line beginning "theorem at all: ..." as a declaration named `at`
@@ -61,12 +61,12 @@ import lean  # noqa: E402  -- the shared parser; a fresh regex reads a docstring
 def principles(root):
     """Names of the lattice's nodes that are actually declared as `def`s.
 
-    **CASEFOLD ON BOTH SIDES.** This compared `decl.lower()` against the RAW
+    **Casefold on both sides.** This compared `decl.lower()` against the raw
     keys, which works for every node whose key is already lowercase and fails
     for the one that is not: `fanΔ`. `'FANΔ'.lower()` is `'fanδ'`, because
     Python maps the Greek capital delta to a small delta the registry does not
     use, so `def FANΔ` at Omniscience.lean:483 was never recognised as a
-    principle definition. It is the ONLY node in the lattice whose key differs
+    principle definition. It is the only node in the lattice whose key differs
     from its own lowercase, checked across all 86, so the loss was exactly one
     node and it was silent.
 
@@ -101,23 +101,23 @@ def scan(root):
     if not princ:
         return {}, {}
     alt = "|".join(sorted(map(re.escape, princ), key=len, reverse=True))
-    # A NAMESPACE PREFIX IS PART OF THE SPELLING, NOT PART OF THE NAME.
-    # `(hdc : Constructive.DCOn.{u} (baireStateOn X))` was INVISIBLE while the
+    # A namespace prefix is part of the spelling, not part of the name.
+    # `(hdc : Constructive.DCOn.{u} (baireStateOn X))` was invisible while the
     # bare `(hdc : DCOn.{u} ...)` twenty lines up matched, so one principle read
     # as spent in half the places it is spent -- and the tool's own list of what
     # it cannot see did not mention it. `(?:\w+\.)*` cannot widen the match to a
     # different name: the prefix must end in a dot, so `(h : XFAN)` still fails
     # exactly as before, and the principle must still be a whole component.
     #
-    # THE APPLICATION FORM WAS NEVER THE PROBLEM, and this comment records that
+    # The application form was never the problem, and this comment records that
     # because a correct-sounding diagnosis was already acted on once. `reversal`
-    # reported that a binder type which is an APPLICATION rather than a name is
+    # reported that a binder type which is an application rather than a name is
     # invisible here; measured, all three of `(h : DCOn)`, `(h : DCOn.{u} s)`
     # and `(h : DCOn.{u} (f X))` match, because `\b` closes the name before the
     # dot. The silence they saw had a different cause -- see `principles()`.
     binder = re.compile(r"\(\s*(\w+)\s*:\s*(?:\w+\.)*(" + alt + r")\b")
 
-    # pass 1: who TAKES a principle, and under which binder name
+    # pass 1: who takes a principle, and under which binder name
     takers = {}
     for path in sorted(lean.phase2_files(root)):
         for decl, sig, body in spans(path):
@@ -125,7 +125,7 @@ def scan(root):
             if m:
                 takers[decl["name"]] = (decl, m.group(1), m.group(2), body)
 
-    # pass 2: a taker FORWARDS if it applies its binder to another taker
+    # pass 2: a taker forwards if it applies its binder to another taker
     roots, forwarders = {}, {}
     for name, (decl, var, principle, body) in takers.items():
         # `foo hfan` and `foo.{u} hfan` both count as an application
@@ -149,12 +149,12 @@ RECORD = pathlib.Path(__file__).resolve().parent / "hypcost.json"
 
 
 def _rootkey(roots):
-    """The recorded shape: principle -> sorted `file::decl`, NO LINE NUMBERS.
+    """The recorded shape: principle -> sorted `file::decl`, no line numbers.
 
-    A line-keyed record re-fires on every edit ABOVE a declaration, which is
+    A line-keyed record re-fires on every edit above a declaration, which is
     ordinary growth -- so the check would report a new root whenever anything
     moved, and a check that fires on the normal case gets ignored. The same
-    reason a citation names a DECLARATION rather than a line.
+    reason a citation names a declaration rather than a line.
     """
     return {p: sorted(f"{f}::{n}" for f, _ln, n in rows)
             for p, rows in roots.items()}
@@ -163,11 +163,11 @@ def _rootkey(roots):
 def compare(roots, recorded):
     """New roots, and recorded roots that have gone.
 
-    A NEW ROOT is the event nothing else reports: a principle spent where it
+    A new root is the event nothing else reports: a principle spent where it
     was not spent before moves no audit line, trips no ratchet and touches no
     allow list, because a hypothesis-carried principle never reaches a
     `#print axioms` line at all. This tool exists for that silence, so the new
-    root is the FAILURE and the vanished one is a NOTE --
+    root is the failure and the vanished one is a note --
     spending a principle in one fewer place needs no permission.
     """
     now = _rootkey(roots)
@@ -246,7 +246,7 @@ def main():
                   % carried)
         print()
     print("%d root(s) across %d principle(s)" % (total, len(roots)))
-    # THE EXTENT, in the OUTPUT rather than a docstring, because a comment is
+    # The extent, in the output rather than a docstring, because a comment is
     # not saying (extent.py's own rule, narrowed after a match anywhere in the
     # source granted the tier to a tool that named no extent at all).
     print("  population: the declarations of this tree. A peer branch may spend")

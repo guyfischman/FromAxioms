@@ -863,13 +863,13 @@ theorem intOne_eq_intOfNat_one : intOne.{u} = intOfNat.{u} 1 := rfl
 /-! ### The `ofNat` face of the pairing
 
 `intAdd_intOf` and `intMul_intOf` are stated over `omega` members, which is the
-right generality for `Integer.lean` itself and the wrong one for any map OUT of
+right generality for `Integer.lean` itself and the wrong one for any map out of
 `Int` that is indexed by `Nat` --- such a map's graph quantifies over
 `intOf (ofNat a) (ofNat b)`, and every ring law it has to satisfy must be put
 back into that form before the `Nat`-level law can be handed over. The three
 below are that translation, done once.
 
-`intMul_intOf`'s PAIRING IS `(ac + bd, ad + bc)`. `(a - b)(c - d) =
+`intMul_intOf`'s pairing is `(ac + bd, ad + bc)`. `(a - b)(c - d) =
 (ac + bd) - (ad + bc)`, and with everything a natural that is the only way to
 state it: both components are sums and the sign lives in which pair goes where.
 A wrong pairing still typechecks and still names an integer, so the
@@ -1114,7 +1114,7 @@ theorem intOfNat_mem_intPositive {n : Nat} (h : 0 < n) : intOfNat.{u} n ∈ intP
 reads as `ofNat n ⊆ ∅`. So the only numeral whose negation could be positive is
 zero, and that one is not `≠ 0`.
 
-Stated because the SIGN STEP of any descent from `Rat` needs it: a positive `r`
+Stated because the sign step of any descent from `Rat` needs it: a positive `r`
 with `r * z` a numeral forces `z` to be one, and the negative case is refuted
 here. `intPositive_or_neg` gives the trichotomy and nothing closed this branch
 of it. -/
@@ -1147,7 +1147,7 @@ theorem intOfNat_injective {m n : Nat} (h : intOfNat.{u} m = intOfNat.{u} n) :
 
 /-- Adding one to a negative numeral: `-(m+1) + 1 = -m`.
 
-Mixed signs are not reachable by `intOfNat_add`, so this goes through the PAIR
+Mixed signs are not reachable by `intOfNat_add`, so this goes through the pair
 representation directly. -/
 theorem intNeg_succ_add_one (m : Nat) :
     intAdd (intNeg (intOfNat.{u} (m + 1))) (intOfNat.{u} 1)
@@ -1169,7 +1169,7 @@ theorem intNeg_succ_add_one (m : Nat) :
 
 
 
-/-- A positive integer IS a positive numeral.
+/-- A positive integer is a positive numeral.
 
 `intPositive_ofNat` reads the inequality off a representative someone already
 holds; this produces the representative, which is what a proof descending from
@@ -1187,9 +1187,9 @@ theorem exists_intOfNat_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{
   have h : na + 0 = na - nb + nb := by omega
   rw [h]
 
-/-- A non-negative integer IS a numeral.
+/-- A non-negative integer is a numeral.
 
-`exists_intOfNat_of_intPositive` produces the representative for a POSITIVE
+`exists_intOfNat_of_intPositive` produces the representative for a positive
 integer, and the bounded-coordinate argument Floor 2 waits on needs the
 non-strict version: a coordinate may be zero, and excluding it would make the
 count off by the origin. Nothing is decided -- the representative's own
@@ -1275,7 +1275,7 @@ theorem boundedInts_subset (B : Nat) : boundedInts.{u} B ⊆ Int.{u} :=
 
 /-- And every shifted numeral below `2B + 1` is bounded.
 
-The other half, so the two together say the set IS the image. -/
+The other half, so the two together say the set is the image. -/
 theorem shift_mem_boundedInts {B k : Nat} (hk : k < 2 * B + 1) :
     intAdd (intOfNat.{u} k) (intNeg (intOfNat.{u} B)) ∈ boundedInts.{u} B := by
   have hB := intOfNat_mem_Int.{u} B

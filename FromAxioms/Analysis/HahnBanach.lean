@@ -7,24 +7,24 @@ Authors: Guy Fischman
 /-
 # Hahn-Banach: the extension step, and where its cost sits
 
-The one-dimensional extension step of the Hahn-Banach theorem, over an ABSTRACT
+The one-dimensional extension step of the Hahn-Banach theorem, over an abstract
 norm and vector addition rather than a particular carrier, together with the
 supremum machinery it needs.
 
 Every step here is choice-free: the gap inequality, that every lower candidate
 sits below every upper one, the finite supremum as a fold, and -- given
 `FamilyLocated` -- that the extension value exists and respects its bound.
-`familyLocated_listToSet` then discharges `FamilyLocated` for a FINITE family,
+`familyLocated_listToSet` then discharges `FamilyLocated` for a finite family,
 so the finite-dimensional case costs nothing at all.
 
 What remains unpriced is the step from a finite index set to an arbitrary one,
 and the proof says exactly why: the left disjunct of `FamilyLocated` is found by
-walking the list, so the induction IS the search and a list is what makes it
+walking the list, so the induction is the search and a list is what makes it
 terminate.
 
 `rangeSet_familyLocated` (`Extreme.lean`) supplies the same condition for free
 from uniform continuity on a bounded interval, so the extreme value theorem and
-this one need the SAME constructive ingredient -- and only one of them has a
+this one need the same constructive ingredient -- and only one of them has a
 source for it.
 -/
 import FromAxioms.SetTheory.Cardinal
@@ -38,7 +38,7 @@ namespace Analysis
 
 /-- A finite family of located reals is `FamilyLocated`, free.
 
-Each member's own `located` clause decides `p ∈ L` or `q ∈ U`, and over a LIST
+Each member's own `located` clause decides `p ∈ L` or `q ∈ U`, and over a list
 those finitely many decisions combine by induction: the first member landing on
 the left settles the left disjunct, and if none does then every member is on the
 right.

@@ -29,7 +29,7 @@ Everything here is `[propext, Quot.sound]`. The clauses are stated over
 composable arrows, and composability is a hypothesis rather than a decision.
 What a decision would cost is measured in `CategoryStrength.lean`, and the
 answer is not where the definition's shape suggests: partiality is free, and it
-is deciding ISOMORPHISM that reverses to `WLPO`.
+is deciding isomorphism that reverses to `WLPO`.
 -/
 
 import FromAxioms.SetTheory.Relation
@@ -53,7 +53,7 @@ def homSet (Ar src tgt a b : ZFSet.{u}) : ZFSet.{u} :=
 
 An object with two projections through which every competing pair factors,
 uniquely. Like `IsTerminal` the definition takes no `ids` -- the identity is
-what the CONSEQUENCES need, not what the statement says. Unlike `IsTerminal` it
+what the consequences need, not what the statement says. Unlike `IsTerminal` it
 does take `comp`, because the factoring equations are about composition. -/
 
 def IsProduct (Ob Ar src tgt comp x y p p1 p2 : ZFSet.{u}) : Prop :=
@@ -63,15 +63,15 @@ def IsProduct (Ob Ar src tgt comp x y p p1 p2 : ZFSet.{u}) : Prop :=
         ∀ k, k ∈ homSet Ar src tgt q p →
           opAt comp p1 k = f → opAt comp p2 k = g → k = h
 
-/-- THE PRODUCT'S UNIVERSAL PROPERTY OVER LEAN TYPES.
+/-- The product's universal property over Lean types.
 
 `IsProduct` above is the categorical statement, stated over a ZFSet category
 --- objects, arrows, `homSet` membership and `opAt`. This is the same universal
-property where the objects are Lean TYPES and the arrows are Lean functions, so
+property where the objects are Lean types and the arrows are Lean functions, so
 every `homSet` binder disappears and `opAt comp p1 h` becomes `p₁ ∘ h`.
 
-THE PRODUCT IS NOT `Prod`; IT IS ANY `P` WITH TWO PROJECTIONS, A PAIRING AND
-THE THREE EQUATIONS. So this is a universal property rather than a fact about
+The product is not `Prod`; It is any `P` with two projections, a pairing and
+the three equations. So this is a universal property rather than a fact about
 one inductive type --- proved about `Prod` alone, the uniqueness half is just
 `Prod.ext`, which is the constructor fact and not the theorem.
 
@@ -82,9 +82,9 @@ one inductive type --- proved about `Prod` alone, the uniqueness half is just
 Existence is `fun z => pr (f z) (g z)`, and uniqueness is `heta` read once: a
 `k` with the right projections satisfies `k z = pr (p₁ (k z)) (p₂ (k z))`.
 
-UNIQUENESS IS POINTWISE, `∀ z, k z = h z`, AND THAT IS DELIBERATE. The
-equality-of-FUNCTIONS form needs `funext`, which is `Quot.sound`-priced here.
-Pointwise is the same content at NO AXIOMS, and a consumer that wants the
+Uniqueness is pointwise, `∀ z, k z = h z`, and that is deliberate. The
+equality-of-functions form needs `funext`, which is `Quot.sound`-priced here.
+Pointwise is the same content at no axioms, and a consumer that wants the
 function equality applies `funext` itself --- putting the cost at the call site
 rather than in this tower, which is where it belongs.
 -/

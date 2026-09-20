@@ -14,6 +14,7 @@ that rational contradicts both convergence statements at once.
 -/
 
 import FromAxioms.Constructive.Omniscience
+import FromAxioms.SetTheory.Cardinal
 import FromAxioms.Topology.Topology
 
 universe u
@@ -200,10 +201,10 @@ so a point lies in `sUnion (range E)` exactly when it lies in some term; that
 is `mem_seqUnion_iff`, and `IsCountablyAdditive` below needs exactly that of
 this definition.
 
-Do not interpose an `imageIn` layer. `imageIn f S y` SEPARATES `y`, so
+Do not interpose an `imageIn` layer. `imageIn f S y` separates `y`, so
 `sUnion (imageIn E omega (sUnion (range E)))` keeps only those points of the
 union that are themselves a term of the sequence. For a sequence of sets of
-points there are none unless one term is an ELEMENT of another, so that
+points there are none unless one term is an element of another, so that
 expression is `empty` for every sequence a content is asked about, and
 `IsCountablyAdditive` built on it constrains the series alone. -/
 def seqUnion (E : ZFSet.{u}) : ZFSet.{u} := sUnion (range E)

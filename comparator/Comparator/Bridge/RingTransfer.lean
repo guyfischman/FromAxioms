@@ -5,29 +5,29 @@ Authors: Guy Fischman
 -/
 
 /-
-A LEAN COMMUTATIVE RING, TRANSPORTED ONTO ITS ENCODED CARRIER --- with NO
+A Lean commutative ring, transported onto its encoded carrier --- with no
 finiteness anywhere.
 
 `TypeTransfer` answers can the carrier be encoded --- `encodeSet α` is a ZFSet
 whose members are exactly the encodings of `α`'s elements. This answers the
-question after it: can a STRUCTURE be carried across, the way `natOpSet` carries
+question after it: can a structure be carried across, the way `natOpSet` carries
 one onto a finite carrier?
 
-IT CAN, AND IT IS ONE INGREDIENT SHORTER THAN THE FINITE CASE. `natOpSet` had to
+It can, and it is one ingredient shorter than the finite case. `natOpSet` had to
 do its arithmetic inside a `Prop`, because reading a natural back out of `omega`
 is an existential in the tower and so not a function there. Here `decode` is an
 honest Lean function --- the inverse of `encode` on the carrier, junk off it ---
 because choice is available on this side of the pair. So an operation is a plain
 `graphOn`, and its computation rule `opAt_opSet` is one rewrite.
 
-WHAT IT REPLACES. Before this, an algebraic row whose carrier was not finite had
+What it replaces. Before this, an algebraic row whose carrier was not finite had
 no route at all, and three were blocked on that reading. The pair for such a row
 is now: encode the carrier, transport the ring, apply the tower's theorem, read
-the conclusion back. The remaining cost per row is whatever structure sits ABOVE
+the conclusion back. The remaining cost per row is whatever structure sits above
 the ring --- polynomials, an automorphism group, a family of intermediate fields
 --- not the ring itself.
 
-CHOICE, ON THE RIGHT SIDE. `decode` uses `Exists.choose` and the encoding uses
+Choice, on the right side. `decode` uses `Exists.choose` and the encoding uses
 mathlib's `WellOrderingRel`. This is the mathlib half of a comparator pair,
 where choice is a theorem; nothing here is re-exported into `FromAxioms` and no
 tower declaration changes.
@@ -62,7 +62,7 @@ theorem opSet_maps (op : α → α → α) :
       encode (op (decode (fst z)) (decode (snd z))) ∈ encodeSet α :=
   fun _ _ => encode_mem _
 
-/-- THE COMPUTATION RULE. Every ring axiom reduces through this to `α`'s own. -/
+/-- The computation rule. Every ring axiom reduces through this to `α`'s own. -/
 theorem opAt_opSet (op : α → α → α) (a b : α) :
     opAt (opSet op) (encode a) (encode b) = encode (op a b) := by
   rw [opSet, opAt,

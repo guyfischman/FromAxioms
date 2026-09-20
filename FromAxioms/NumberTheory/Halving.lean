@@ -20,7 +20,7 @@ The integral-sign bisection, the exact IVT and the extreme value climb
 are all instantiations.
 -/
 
-import FromAxioms.Analysis.Complete
+import FromAxioms.Analysis.IVT
 import FromAxioms.Constructive.Vanishing
 
 universe u
@@ -92,28 +92,28 @@ theorem halve_total {P : ZFSet.{u} → ZFSet.{u} → Prop}
 
 /-! ## What the machine actually spends
 
-`DC` takes a relation that is merely TOTAL, so at each state the successor is
+`DC` takes a relation that is merely total, so at each state the successor is
 only known to exist. The halving machine has far more than that: the two
-candidate successors are NAMED, and are computable functions of the state. What
+candidate successors are named, and are computable functions of the state. What
 it needs is the choice between two named moves, iterated -- not choice from an
 arbitrary non-empty set of successors. -/
 
 /-- Binary dependent choice on a set. `DC` with the totality hypothesis
-replaced by a disjunction between two NAMED successors.
+replaced by a disjunction between two named successors.
 
 Weaker than `DC` by inspection -- the hypothesis is strictly stronger, since a
 disjunction between two named moves yields totality while totality names
-nothing -- and `binaryDCOn_of_dc` proves that direction. Whether it is STRICTLY
+nothing -- and `binaryDCOn_of_dc` proves that direction. Whether it is strictly
 weaker is a question about models and is not settled here.
 
-The successors are SET functions, not Lean functions. `DC` quantifies over
+The successors are set functions, not Lean functions. `DC` quantifies over
 `S R : ZFSet`, so a Lean-level `f₀ : ZFSet → ZFSet` would make the two
-principles comparable in Lean and NOT comparable inside the theory -- a Lean
+principles comparable in Lean and not comparable inside the theory -- a Lean
 function cannot be a bound
 variable of the object language, so *there is a model where this holds and `DC`
 fails* would be unsayable about it.
 
-`f₀` and `f₁` are named IN ADVANCE, and a construction must supply them to be
+`f₀` and `f₁` are named in advance, and a construction must supply them to be
 covered here. Bisecting a step into two options is not enough: Baire's walk
 can be rewritten so each step picks between two halves and still does not come
 down, because a relation loose enough to be total admits a chain that never
@@ -141,61 +141,61 @@ theorem binaryDCOn_of_dc (hdc : DC.{u}) : BinaryDCOn.{u} := by
 
 /-! ### What `BinaryDCOn` costs, at an arbitrary state set
 
-TWO PRODUCERS CONCLUDE `BinaryDCOn` AND BOTH ARE PRINCIPLES --- the join
+Two producers conclude `BinaryDCOn` and both are principles --- the join
 projecting, and `binaryDCOn_of_dc` above. No landmark yields it, so the seven
 theorems spending this pair cannot be repointed at `BisectionSearch`: a
 reversal would then have to conclude the join, and this half has no producer
 that is not already a principle.
 
-THE ARGUMENT BELOW IS NOT NEW AND ITS GENERALITY IS. This tree runs the same
-`natSeq` recursion THREE times, each hard-wired to one state set:
+The argument below is not new and its generality is. This tree runs the same
+`natSeq` recursion three times, each hard-wired to one state set:
 `halveIter`/`halve_limit_of_selector` and `halveStepD`/`halveIterD` further
 down this file, and `Topology.exists_baire_walk_of_selector` at `baireState`.
 The insight is already in this file's own prose, one section below --- *`condP`
 is total on any `Prop` ... the step is definable with no principle whatever ...
 a set-level branch is free where a `Bool` is not*. What was missing is the
-statement at an ARBITRARY `S` and `R`.
+statement at an arbitrary `S` and `R`.
 
-THE RECURSION IS SHARED AND THE INPUT IS NOT, so the general form is worth
+The recursion is shared and the input is not, so the general form is worth
 having. `HalveSelector.bit` is a Lean `ZFSet → Bool` and `halveStep` a Lean
 function; `Topology.IsBaireSelector` carries a ZFSet `sel`. So
-`IsChainSelector` generalises the SECOND exactly and is the set-level SIBLING
-of the first. That matters because a reversal argues about the PRINCIPLE: a
+`IsChainSelector` generalises the second exactly and is the set-level sibling
+of the first. That matters because a reversal argues about the principle: a
 `Prop` cannot quantify over Lean-level data here, so the halving machine's
 selector and decider cannot appear inside one, and the ZFSet forms can.
 
-AND THE SET FORM COSTS NOTHING, at `[propext, Quot.sound]`: `sep` takes an
+And the set form costs nothing, at `[propext, Quot.sound]`: `sep` takes an
 arbitrary formula, so `sep goLeft S` turns any predicate branch into a set one
 and detachability transfers both ways. `HalveDecider.decided`'s obligation and
 `isChainSelector_of_detachable`'s `hdet` are interchangeable on `S`.
 
-NOR IS `hdet` EXCLUDED MIDDLE IN DISGUISE. It is at a FIXED `S` and `T`. The
-QUANTIFIED form is the principle --- `Analysis.DecidableMemSet` is EM by
+Nor is `hdet` excluded middle in disguise. It is at a fixed `S` and `T`. The
+quantified form is the principle --- `Analysis.DecidableMemSet` is EM by
 `em_of_decidableMemSet`, and `IdealDetachableInt` reverses to `LPO` --- and this
 is the hypothesis form, as `HalveDecider.decided` is.
 
     BinaryDCOn  =  a free chain  +  a decision of the branch at each state
 
-NOT CLAIMED: that the bisection's branch is detachable. It is not --- choosing the
+Not claimed: that the bisection's branch is detachable. It is not --- choosing the
 half is exactly what `Constructive.SignDisjunction` buys, so the two
 are spent together, and the section below says the same thing about `ratLt_or_not`. -/
 
-/-- `BinaryDCOn` at ONE carrier and relation.
+/-- `BinaryDCOn` at one carrier and relation.
 
-THE QUANTIFIED FORM IS MORE THAN ANY CONSUMER USES.
+The quantified form is more than any consumer uses.
 `halve_limit_of_binaryDCOn` below takes `BinaryDCOn` and its proof opens
-`hbdc (halveS P) (halveR P) ...` --- a SINGLE instance, at a set of coded
+`hbdc (halveS P) (halveR P) ...` --- a single instance, at a set of coded
 rational intervals. Seventeen theorems across `Analysis/Extreme.lean` and
 `Metamath/Calibrate.lean` inherit that hypothesis, so seven registry rows spend a
-principle about EVERY carrier in order to use it at one.
+principle about every carrier in order to use it at one.
 
-WHY THAT MATTERS RATHER THAN BEING TIDINESS. Those rows' reversal is blocked, and
-the blocked target reads `<landmark> -> BinaryDCOn`: a chain in an ARBITRARY `S`,
+Why that matters rather than being tidiness. Those rows' reversal is blocked, and
+the blocked target reads `<landmark> -> BinaryDCOn`: a chain in an arbitrary `S`,
 `powerset RealL` included, from a landmark that speaks only of `RealL`. At the
-instance the objection is gone --- `halveS P` is pairs of RATIONALS, which is the
+instance the objection is gone --- `halveS P` is pairs of rationals, which is the
 landmarks' own subject.
 
-THIS IS THE MOVE `the category theorem` MADE FOR `DCOn`. That row records a
+This is the move `the category theorem` made for `DCOn`. That row records a
 parameterised principle giving a reversal nothing to aim at, and the repair was
 naming the instance as `DCOmega`. -/
 def BinaryDCOnAt (S R : ZFSet.{u}) : Prop :=
@@ -222,10 +222,10 @@ def halveLeft (s : ZFSet.{u}) : ZFSet.{u} := opair (fst s) (ratMid (fst s) (snd 
 
 def halveRight (s : ZFSet.{u}) : ZFSet.{u} := opair (ratMid (fst s) (snd s)) (snd s)
 
-/-- A move's GRAPH: the same function as an object of the theory. Generic in the
+/-- A move's graph: the same function as an object of the theory. Generic in the
 move, so one construction serves both halves.
 
-The codomain is `prod Rat Rat` rather than `halveS P`: only ONE of the two moves
+The codomain is `prod Rat Rat` rather than `halveS P`: only one of the two moves
 keeps the payload at any state, so neither graph lands in the state set, and
 requiring it would be false. -/
 def halveMove (P : ZFSet.{u} → ZFSet.{u} → Prop) (f : ZFSet.{u} → ZFSet.{u}) :
@@ -275,7 +275,7 @@ theorem halveRight_mem_prod {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u
   rw [fst_opair, snd_opair]
   exact opair_mem_prod hmQ hbQ
 
-/-- The halving step is binary with NAMED successors, which is `halve_total`
+/-- The halving step is binary with named successors, which is `halve_total`
 stated without the existential. The proof is that one, with the witness read off
 rather than produced. -/
 theorem halve_binary {P : ZFSet.{u} → ZFSet.{u} → Prop}
@@ -430,9 +430,9 @@ theorem halveR_step {P : ZFSet.{u} → ZFSet.{u} → Prop} {s s' : ZFSet.{u}}
 
 /-! ### The endpoint sequences
 
-`halveA` and `halveB` are REUSED, not re-defined. Both are
+`halveA` and `halveB` are reused, not re-defined. Both are
 `graphOn omega Rat (fun n => fst (app g n))` and its `snd` twin -- functions of
-the CHAIN alone. The step relation enters only through the hypotheses of the
+the chain alone. The step relation enters only through the hypotheses of the
 lemmas below, and only to establish `app g n ∈ halveS P`, which
 `split_chain_mem` supplies for a split chain exactly as `halve_chain_mem` does
 for a halving one. A split-specific pair of endpoint sequences would therefore
@@ -763,24 +763,24 @@ theorem halve_limit_of_binaryDCOn {P : ZFSet.{u} → ZFSet.{u} → Prop}
   exact halve_limit_core hgstep hg0 hs₀S
 
 set_option maxHeartbeats 1000000 in
-/-- The machine's limit from the INSTANCE, which is all the proof above
+/-- The machine's limit from the instance, which is all the proof above
 actually uses.
 
 `halve_limit_of_binaryDCOn` takes the quantified `BinaryDCOn` and applies it once,
 at `halveS P` and `halveR P`. This is the same proof with the carrier fixed, so
-the hypothesis is a statement about CODED RATIONAL INTERVALS rather than about
+the hypothesis is a statement about coded rational intervals rather than about
 every set.
 
-WHY THAT IS WORTH A SEPARATE THEOREM. Seven registry rows spend
+Why that is worth a separate theorem. Seven registry rows spend
 `SignDisjunction + BinaryDCOn` and their reversal is blocked on
-`<landmark> -> BinaryDCOn` --- a chain in an ARBITRARY `S`, `powerset RealL`
+`<landmark> -> BinaryDCOn` --- a chain in an arbitrary `S`, `powerset RealL`
 included, from landmarks that conclude only about `RealL`. At the instance that
 objection is gone: `halveS P` is pairs of rationals, which is the landmarks' own
 subject. The blocked target shrinks even if it does not open.
 
-ADDITIVE ON PURPOSE. `halve_limit_of_binaryDCOn` keeps its signature and its
-seventeen consumers are untouched; `binaryDCOnAt_of_binaryDCOn` bridges the two
-whenever the quantified form is what a caller holds. -/
+ADDITIVE: `halve_limit_of_binaryDCOn` keeps its signature and its seventeen
+consumers are untouched; `binaryDCOnAt_of_binaryDCOn` bridges the two whenever
+the quantified form is what a caller holds. -/
 theorem halve_limit_of_binaryDCOnAt {P : ZFSet.{u} → ZFSet.{u} → Prop}
     (hbdc : BinaryDCOnAt.{u} (halveS P) (halveR P))
     (hP : ∀ a b, a ∈ Rat.{u} → b ∈ Rat.{u} → ratLe ratZero.{u} a →

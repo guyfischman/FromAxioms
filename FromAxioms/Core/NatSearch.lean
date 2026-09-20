@@ -8,7 +8,7 @@ Authors: Guy Fischman
 # Decidable search over `Nat`, bounded and unbounded.
 
 Pure arithmetic: no `ZFSet` and nothing imported. A predicate on
-`Nat` whose truth is decided by a HYPOTHESIS rather than by a principle can be
+`Nat` whose truth is decided by a hypothesis rather than by a principle can be
 searched, and the two halves terminate for different reasons -- the bounded
 search because the bound counts down, the unbounded one because accessibility
 of the step relation is supplied as an argument.
@@ -22,7 +22,7 @@ The Prop-to-Bool crossing is here for the same reason and arrived last: it is
 not pairs, not sets, not Ramsey, and not ideals. Three towers instantiate it
 (Ramsey, ideals of `Z`, formal power series) and two of them cannot see
 `RamseySet.lean`, which is the subject-bound home for it. It is the one thing here carrying a
-UNIVERSE, since the crossing at an arbitrary type is what makes the `Nat` carry
+universe, since the crossing at an arbitrary type is what makes the `Nat` carry
 no content either; nothing else in the file needs one.
 
 The unbounded half is `seekFrom` and `natFind`, and it is here for the same
@@ -295,7 +295,7 @@ theorem minOf_le (a : Nat) : ∀ (l : List Nat) (e : Nat), e ∈ l → minOf a l
       omega
 
 /-- The seeded minimum is a member, or the seed. The rational step needs
-it: the window's lower end must BE a selected position, or the strict
+it: the window's lower end must be a selected position, or the strict
 inequality it has to supply has nothing to come from. -/
 theorem minOf_mem (a : Nat) : ∀ l : List Nat, minOf a l = a ∨ minOf a l ∈ l
   | [] => Or.inl rfl
@@ -342,7 +342,7 @@ theorem bounded_forall_dec {P : Nat → Prop} :
         · exact Or.inr (fun hc => hn (hc n (by omega)))
       · exact Or.inr (fun hc => hno (fun i hi => hc i (by omega)))
 
-/-- The bounded search over TWO POSITIVE alternatives.
+/-- The bounded search over two positive alternatives.
 
 `bounded_forall_or_witness` below takes `P j ∨ ¬ P j`. Cotransitivity of the
 real order hands back `A j ∨ B j` where neither side is the negation of the
@@ -350,12 +350,12 @@ other, so that hypothesis cannot express it and the two predicates have to be
 separate.
 
 Returns `∀ j < i, A j` alongside the witness: a caller locating a point against
-a grid needs the alternatives on BOTH sides of `i`, and the bare existential
+a grid needs the alternatives on both sides of `i`, and the bare existential
 loses exactly that.
 
 Structurally recursive on the numeral, so nothing is selected and no principle
-is spent. NOT to be confused with `BinaryDC`, whose hypothesis has this shape
-and whose CONCLUSION is a sequence: the dependence of each stage on the numeral
+is spent. Not to be confused with `BinaryDC`, whose hypothesis has this shape
+and whose conclusion is a sequence: the dependence of each stage on the numeral
 built from the earlier ones is what costs choice there, and here the bound is
 fixed and the answer is one index. -/
 theorem bounded_forall_or_witness_of_or {A B : Nat → Prop} :
@@ -370,7 +370,7 @@ theorem bounded_forall_or_witness_of_or {A B : Nat → Prop} :
         · exact Or.inr ⟨n, by omega, hB, hall⟩
       · exact Or.inr ⟨i, by omega, hB, hlt⟩
 
-/-- The bounded decision that HANDS BACK A WITNESS.
+/-- The bounded decision that hands back a witness.
 
 `bounded_forall_dec` returns `not (forall ...)`, and a negated universal yields
 no witness constructively -- so it cannot drive a search for the largest failing
@@ -418,8 +418,8 @@ Vafeiadou, A comparison of minimal systems for constructive analysis
 with `β` not free in `B(x)`. Her `β(x) ≤ 1` is `Bool`, and `β(x) = 0 ↔ B(x)`
 is `K i = true ↔ P i` with the polarity written the other way round.
 
-This is STATED AS a Prop rather than being the schema, because CF_d ranges over
-FORMULAS `B` of a two-sorted arithmetic, where this quantifies over
+This is stated as a Prop rather than being the schema, because CF_d ranges over
+formulas `B` of a two-sorted arithmetic, where this quantifies over
 `P : Nat → Prop`, an object of the theory. A statement is at least as strong as
 its schema, so this bounds CF_d from above and the converse is a question about
 the language rather than about the principle.

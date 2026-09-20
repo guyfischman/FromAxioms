@@ -33,8 +33,7 @@ twice their squared distance, and the overlap condition, which makes the one
 root real.
 -/
 
-import FromAxioms.Analysis.Deriv
-import FromAxioms.Analysis.Weier
+import FromAxioms.Analysis.Ternary
 import FromAxioms.Geometry.GeomSqrt
 
 universe u

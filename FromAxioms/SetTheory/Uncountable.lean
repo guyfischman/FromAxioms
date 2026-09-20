@@ -107,7 +107,7 @@ theorem dyadicOf_nonneg (s : List Bool) :
       ratZero_le_mul (ratNat_mem_Rat (by omega)) (dyadicOf_mem_Rat t) hhalf ih
     cases b with
     | true =>
-      -- the type is ASCRIBED rather than inferred: `ratNat_mem_Rat` has no
+      -- the type is ascribed rather than inferred: `ratNat_mem_Rat` has no
       -- named `u` binder (universes are not named arguments), so pinning the
       -- universe has to be done on the `have` itself
       have hmul : ratMul (ratNat.{u} 1 2) (dyadicOf.{u} t)
@@ -152,8 +152,8 @@ theorem dyadicOf_le_two (s : List Bool) :
     have hd : dyadicOf.{u} t ∈ NumberTheory.Rat.{u} := dyadicOf_mem_Rat t
     have hmul : ratMul (ratNat.{u} 1 2) (dyadicOf.{u} t)
         ∈ NumberTheory.Rat.{u} := ratMul_mem_Rat hh hd
-    -- `ratMul_le_mul_right` scales on the RIGHT and `dyadicOf` puts the half
-    -- on the LEFT, so the commutation is needed
+    -- `ratMul_le_mul_right` scales on the right and `dyadicOf` puts the half
+    -- on the left, so the commutation is needed
     have hstep : ratLe (ratMul (ratNat.{u} 1 2) (dyadicOf.{u} t)) ratOne.{u} := by
       have := ratMul_le_mul_right hd h2 hh ih hh0
       rw [ratMul_comm hd hh, ratMul_comm h2 hh] at this
@@ -283,7 +283,7 @@ This is the version that lives inside the theory. -/
 
 /-- Dependent choice restricted to located pairs.
 
-`BinaryDC` chooses a path through a binary tree over ARBITRARY predicates. The
+`BinaryDC` chooses a path through a binary tree over arbitrary predicates. The
 uncountability argument uses it at exactly one instance: the left and right
 halves of a located pair. This is that instance, named as a Prop so the cost
 the landmark actually pays can be recorded rather than approximated by the
@@ -315,13 +315,13 @@ slack form of.
     dyadicOf s <= 2 - 2 * (1/2)^|s|
 
 At length 0 both sides are 0; at length 1 both are 1; at length 2 both are 3/2.
-The bound is ATTAINED by the all-true string at every length, which is exactly
+The bound is attained by the all-true string at every length, which is exactly
 why the slack version cannot replace it: separation needs to know that a finite
 string never reaches 2, and by how much it misses.
 
-WHY IT IS THE MISSING INGREDIENT. Two same-length strings differing in the head
+Why it is the missing ingredient. Two same-length strings differing in the head
 have values in `[1, 2)` and `[0, 1]`; both can approach 1, and only a bound that
-says HOW FAR a finite tail stays below 2 keeps them apart. With this,
+says how far a finite tail stays below 2 keeps them apart. With this,
 `dyadicOf (true :: u)` is at least 1 and `dyadicOf (false :: v)` is at most
 `1 - (1/2)^|v|`, so the gap is at least `(1/2)^|v|`. -/
 theorem dyadicOf_le_sharp : ∀ s : List Bool,
@@ -382,13 +382,13 @@ theorem dyadicOf_le_sharp : ∀ s : List Bool,
 #print axioms SetTheory.dyadicOf_le_sharp
 
 
--- NO EQUAL-DEPTH HYPOTHESIS, though separation reads as a claim about nodes at
--- the same DEPTH. None is needed: `dyadicOf (false :: v) + (1/2)^|v| <= 1` and
--- `1 <= dyadicOf (true :: u)` for ANY tails, so the gap is measured by v's
+-- No equal-depth hypothesis, though separation reads as a claim about nodes at
+-- the same depth. None is needed: `dyadicOf (false :: v) + (1/2)^|v| <= 1` and
+-- `1 <= dyadicOf (true :: u)` for any tails, so the gap is measured by v's
 -- length alone and u is unconstrained.
 --
--- THE SHARP BOUND IS SPENT ON THE `false` SIDE and only there.
--- `dyadicOf_le_two` would give `dyadicOf (false :: v) <= 1`, which leaves NO
+-- The sharp bound is spent on the `false` side and only there.
+-- `dyadicOf_le_two` would give `dyadicOf (false :: v) <= 1`, which leaves no
 -- gap against `1 <= dyadicOf (true :: u)`, so the sharp version is proved
 -- first.
 
@@ -453,13 +453,13 @@ theorem dyadicOf_head_separation (u v : List Bool) :
 #print axioms SetTheory.dyadicOf_head_separation
 
 
--- `dyadicOf_split` DOES THE WORK AN INTEGRALITY ARGUMENT WOULD HAVE DONE. It
+-- `dyadicOf_split` does the work an integrality argument would have done. It
 -- says the shared prefix contributes a common summand and the tail is scaled by
 -- a fixed half-power --- exactly the decomposition separation needs. That is why
 -- the subtower I priced does not exist: the recursion was already there, and
--- only the SHARP tail bound was missing.
+-- only the sharp tail bound was missing.
 --
--- ONE REWRITE ORDER MATTERS: the two `dyadicOf_split` rewrites are separated by
+-- One rewrite order matters: the two `dyadicOf_split` rewrites are separated by
 -- `hpre`. After folding s back up, the right side still names
 -- `List.take k s`, and `dyadicOf_split k t` cannot fire until that is rewritten
 -- to `List.take k t`. Folding both at once fails with a pattern-not-found that
@@ -555,14 +555,14 @@ point sits within `(b/(b-1)) * b^-k` of its own node, so the slack is
 which is zero at `b = 2` and positive for `b > 2`. Base three is the smallest
 with any slack, so Julian and Richman chose it.
 
-WHAT THE SLACK IS AND IS NOT FOR. IT DOES NOT MEAN BASE TWO FAILS TO
-SEPARATE, which is the natural misreading: `dyadicOf_distinct_separated`,
+What the slack is and is not for. It does not mean base two fails to
+separate, which is the natural misreading: `dyadicOf_distinct_separated`,
 thirty lines above, separates finite strings in base two with the positive gap
-`(1/2)^k * (1/2)^m`. BOTH BASES SEPARATE FINITE STRINGS.
+`(1/2)^k * (1/2)^m`. Both bases separate finite strings.
 
-The slack governs the LIMITS. Extending a prefix by a set bit contributes
+The slack governs the limits. Extending a prefix by a set bit contributes
 `(1/2)^k` in base two against a depth-`k+1` window of `(1/2)^k` --- equal, so the
-nested intervals meet and no STRICT inequality is available --- and `2*(1/3)^k`
+nested intervals meet and no strict inequality is available --- and `2*(1/3)^k`
 in base three against a window of `(1/3)^k`, twice it, leaving one window of
 margin. `takeBits_strict_sep` spends exactly that margin, and `realLLt` needs a
 strict inequality. -/
@@ -603,14 +603,14 @@ theorem triadicOf_nonneg : ∀ s : List Bool,
 #print axioms SetTheory.triadicOf_nonneg
 
 
--- INTEGER COEFFICIENTS ON PURPOSE. The natural form is
+-- Integer coefficients: The natural form is
 -- `triadicOf s <= 3/2 - (3/2)(1/3)^|s|`, and every step of that needs
 -- `ratNat 3 6 = ratNat 1 2` --- a numeral normalisation this tree has no lemma
 -- for. Clearing denominators to `2*t + 3*(1/3)^|s| <= 3` removes all of them
 -- except `3 * (1/3) = 1`, which is one `ratNat_eq_iff`. Same trick as writing
 -- the telescoping bound `c n + c n` instead of `6 * (1/2)^n`.
 --
--- ATTAINED at every length by the all-true string: 0+3, then 2*1+3*(1/3), then
+-- Attained at every length by the all-true string: 0+3, then 2*1+3*(1/3), then
 -- 2*(4/3)+3*(1/9), all exactly 3. A slack bound is useless here --- that is
 -- precisely how the base-two version failed.
 
@@ -619,11 +619,11 @@ theorem triadicOf_nonneg : ∀ s : List Bool,
     2 * triadicOf s  +  3 * (1/3)^|s|   <=   3
 
 which is `triadicOf s <= 3/2 - (3/2)(1/3)^|s|` cleared of denominators. Stated
-this way ON PURPOSE: the fractional form needs `ratNat 3 6 = ratNat 1 2` at
-every step, and this tree has no numeral-normalisation lemma --- the same reason
-the telescoping bound is written `c n + c n` rather than `6 * (1/2)^n`.
+this way because the fractional form needs `ratNat 3 6 = ratNat 1 2` at every
+step, and this tree has no numeral-normalisation lemma --- the same reason the
+telescoping bound is written `c n + c n` rather than `6 * (1/2)^n`.
 
-ATTAINED by the all-true string at every length: 0 + 3 = 3, then 2*1 + 3*(1/3)
+Attained by the all-true string at every length: 0 + 3 = 3, then 2*1 + 3*(1/3)
 = 3, then 2*(4/3) + 3*(1/9) = 3. A slack bound would leave the gap unprovable,
 as the base-two version did. -/
 theorem triadicOf_sharp : ∀ s : List Bool,
@@ -758,7 +758,7 @@ theorem triadicOf_split (k : Nat) : ∀ s : List Bool,
 -- and sharp and still cannot carry this half of the reversal.
 --
 -- `triadicOf_le_three` is the sharp bound with its power term dropped. Stated
--- separately because the tail estimate wants the WEAKEST consequence, and
+-- separately because the tail estimate wants the weakest consequence, and
 -- passing the sharp form would carry an irrelevant `(1/3)^|s|` through the
 -- multiplication.
 
@@ -789,7 +789,7 @@ def takeBits (b : Nat → Bool) : Nat → List Bool
 
 /-- A longer prefix restricts to the shorter one.
 
-`n + 1 + m` is NOT definitionally `(n + m) + 1` in the form the recursion needs:
+`n + 1 + m` is not definitionally `(n + m) + 1` in the form the recursion needs:
 `Nat.add` recurses on its second argument, so `n + 1 + m` is `m` successors of
 `n + 1`, while `takeBits` splits on the outermost successor of its own index.
 The `omega` step supplies the reassociation the `show` cannot do by itself. -/
@@ -812,11 +812,11 @@ extension contributes `(1/3)^n` times the value of the tail added, and
 is confined to a window of width `3 * (1/3)^n` above the prefix, shrinking
 geometrically.
 
-MONOTONE is the other half and is free: the added term is a product of
+Monotone is the other half and is free: the added term is a product of
 non-negatives, so a longer prefix never decreases the value. Together they say
 the prefixes climb and are trapped, which is the shape a limit argument wants.
 
-Everything is DOUBLED, as throughout the base-three family, to keep the
+Everything is doubled, as throughout the base-three family, to keep the
 coefficients integral. -/
 theorem takeBits_bracket (b : Nat → Bool) (n m : Nat) :
     ratLe (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b n)))
@@ -884,17 +884,17 @@ theorem takeBits_length : ∀ (n : Nat) (b : Nat → Bool),
       rw [takeBits_length n (fun i => b (i + 1))]
 
 #print axioms SetTheory.takeBits_length
-/-- The upper ends DECREASE: the intervals are genuinely nested.
+/-- The upper ends decrease: the intervals are genuinely nested.
 
     v(n+m) + 3*(1/3)^(n+m)   <=   v n + 3*(1/3)^n
 
-`takeBits_bracket` gives `v(n+m) <= v n + 3*(1/3)^n`, which is NOT enough ---
+`takeBits_bracket` gives `v(n+m) <= v n + 3*(1/3)^n`, which is not enough ---
 add `3*(1/3)^(n+m)` on the left and it could spill past the right. Nesting
 needs the tail bounded by `w n - w (n+m)`, not by `w n`, which is the
 difference between `triadicOf_le_three` and `triadicOf_sharp`.
 
-THE SHARP BOUND IS SPENT HERE. It was proved with integer coefficients for the
-separation argument and is ATTAINED by the all-true string; the same attainment
+The sharp bound is spent here. It was proved with integer coefficients for the
+separation argument and is attained by the all-true string; the same attainment
 makes the interval ends meet instead of overlap. A slack bound yields a
 shrinking window but not a nested one, and `IsNested` asks for nested. -/
 theorem takeBits_upper_anti (b : Nat → Bool) (n m : Nat) :
@@ -953,7 +953,7 @@ theorem takeBits_upper_anti (b : Nat → Bool) (n m : Nat) :
 /-- Prefix values are monotone in the depth, in `i <= j` form.
 
 `takeBits_bracket` is stated on an explicit extension `n, m`, which is the shape
-its proof wants; every consumer instead has an ORDER hypothesis. Converting once
+its proof wants; every consumer instead has an order hypothesis. Converting once
 here keeps `Nat.le.dest` out of each caller --- and the `IsNested` fields, which
 arrive with `omega` subset hypotheses, need exactly this form. -/
 theorem takeBits_mono (b : Nat → Bool) {i j : Nat} (hij : i ≤ j) :
@@ -1032,13 +1032,13 @@ theorem app_triHighSeq (b : Nat → Bool) (n : Nat) :
         (ratMul (ratPow (ratNat.{u} 1 3) n) (ratNat.{u} 3 1)) :=
   app_natSeq (triHigh_mem b) n
 
-/-- The prefix intervals of a bit sequence are NESTED.
+/-- The prefix intervals of a bit sequence are nested.
 
 Every field discharged from the base-three bracket, and no choice anywhere.
 
-`shrink` IS THE FIELD THAT DOES NOT COME FROM THE NEIGHBOURING CONSTRUCTION.
+`shrink` is the field that does not come from the neighbouring construction.
 `isNested_ternary` discharges it with `shrink_of_invWidth`, which matches the
-width at index `n` against `invWidth (ofNat n)` --- and that FAILS here, since
+width at index `n` against `invWidth (ofNat n)` --- and that fails here, since
 the window is `3` at `n = 0` while `invWidth (ofNat 0)` is `1`. The field's own
 form is an existential over depths, so `exists_ratPow_mul_lt` answers it
 directly. Copying the neighbour would have been a false start. -/
@@ -1092,9 +1092,9 @@ Every ingredient is choice-free, so the map itself is: `#print axioms` reports
 `[propext, Quot.sound]` and no locator, no countable choice and no `EM` appears
 anywhere in its construction.
 
-WHAT IT DOES AND DOES NOT SETTLE FOR THE ROW. It settles the EASY DIRECTION:
-Cantor space embeds in the located reals, constructively. It does NOT give
-uncountability of `RealL`, because that needs the INVERSE --- from an arbitrary
+What it does and does not settle for the row. It settles the easy direction:
+Cantor space embeds in the located reals, constructively. It does not give
+uncountability of `RealL`, because that needs the inverse --- from an arbitrary
 real, read off a bit --- and reading a bit is a locatedness decision. The row's
 price `LocatorDC` is entirely on that side, and this construction, by costing
 nothing, is what makes the asymmetry visible rather than asserted. -/
@@ -1109,9 +1109,9 @@ theorem triadicReal_mem (b : Nat → Bool) : triadicReal.{u} b ∈ RealL.{u} :=
 
 /-- A prefix is the previous prefix with the next bit appended.
 
-`takeBits` is built from the FRONT --- `takeBits b (n+1) = b 0 :: takeBits (shift
+`takeBits` is built from the front --- `takeBits b (n+1) = b 0 :: takeBits (shift
 b) n` --- so the last bit is not syntactically available, and every argument
-about what one more level CONTRIBUTES needs this snoc form instead. -/
+about what one more level contributes needs this snoc form instead. -/
 theorem takeBits_succ : ∀ (n : Nat) (b : Nat → Bool),
     takeBits b (n + 1) = takeBits b n ++ [b n]
   | 0, _ => rfl
@@ -1123,7 +1123,7 @@ theorem takeBits_succ : ∀ (n : Nat) (b : Nat → Bool),
 
 #print axioms SetTheory.takeBits_succ
 
-/-- A one-bit string is worth its bit, as TWO lemmas rather than an `if`.
+/-- A one-bit string is worth its bit, as two lemmas rather than an `if`.
 
 An `if` on a `Bool` needs a `Decidable` instance, and an inline one elaborates
 before unification and can pick `Classical`. Two lemmas cost nothing and cannot. -/
@@ -1139,7 +1139,7 @@ theorem triadicOf_false : triadicOf.{u} [false] = ratZero.{u} := by
 theorem drop_takeBits_succ (b : Nat → Bool) (k : Nat) :
     List.drop k (takeBits b (k + 1)) = [b k] := by
   rw [takeBits_succ k b]
-  -- `rw [<- takeBits_length]` LOOPS: `k` also occurs inside `takeBits b k`, so
+  -- `rw [<- takeBits_length]` loops: `k` also occurs inside `takeBits b k`, so
   -- rewriting it to that list's own length rewrites the list too. A `calc`
   -- pins which side moves.
   calc List.drop k (takeBits b k ++ [b k])
@@ -1153,7 +1153,7 @@ theorem drop_takeBits_succ (b : Nat → Bool) (k : Nat) :
 
 The exact step, where `takeBits_bracket` gives only an inequality. Strict
 separation needs it: for two sequences agreeing before `k` and differing at
-`k`, the doubled values differ by exactly `2 * (1/3)^k`, which is TWICE the
+`k`, the doubled values differ by exactly `2 * (1/3)^k`, which is twice the
 interval window `3 * (1/3)^(k+1) = (1/3)^k`. The general separation bound gives
 exactly the window and so cannot be strict; this gives twice it, with the
 difference to spare. -/
@@ -1185,7 +1185,7 @@ theorem takeBits_step (b : Nat → Bool) (k : Nat) :
     3 * (1/3)^(k+1)  =  (1/3)^k
 
 The interval width one level down is exactly the scale of the level above. It is
-also why the general separation bound cannot be strict: that bound IS this
+also why the general separation bound cannot be strict: that bound is this
 quantity. -/
 theorem window_succ (k : Nat) :
     ratMul (ratPow (ratNat.{u} 1 3) (k + 1)) (ratNat.{u} 3 1)
@@ -1198,7 +1198,7 @@ theorem window_succ (k : Nat) :
     exact (ratNat_eq_iff (by omega) (by omega)).mpr (by omega)
   rw [ratPow_succ, ratMul_assoc hk hth h3, h31, ratMul_one hk]
 
-/-- Sequences agreeing before `k` and differing there are STRICTLY separated
+/-- Sequences agreeing before `k` and differing there are strictly separated
 at depth `k+1`.
 
     v_b(k+1) + 3*(1/3)^(k+1)   <   v_c(k+1)
@@ -1207,7 +1207,7 @@ at depth `k+1`.
 come apart rather than touching. The margin is `(1/3)^k`: the differing bit
 contributes `2*(1/3)^k` by `takeBits_step`, and the window is only `(1/3)^k`.
 
-THE GENERAL SEPARATION LEMMA CANNOT DO THIS. Its gap at this depth equals the
+The general separation lemma cannot do this. Its gap at this depth equals the
 window exactly, giving `<=` and never `<`. Only the exact step, which knows the
 bit is worth twice the window, leaves room. -/
 theorem takeBits_strict_sep (b c : Nat → Bool) (k : Nat)
@@ -1227,7 +1227,7 @@ theorem takeBits_strict_sep (b c : Nat → Bool) (k : Nat)
   rw [hb, triadicOf_false, ratMul_zero h2, ratMul_zero hk,
     ratAdd_zero (triLow_mem b k)] at hstepb
   rw [hc, triadicOf_true, ratMul_one h2] at hstepc
-  -- `rw [<- hone_one]` on the GOAL would rewrite EVERY `ratNat 2 1`, including
+  -- `rw [<- hone_one]` on the goal would rewrite every `ratNat 2 1`, including
   -- the coefficient of `v` itself. Prove the doubling as its own equation, where
   -- only one occurrence exists, and rewrite with that.
   have hdouble : ratMul (ratPow (ratNat.{u} 1 3) k) (ratNat.{u} 2 1)
@@ -1246,12 +1246,12 @@ theorem takeBits_strict_sep (b c : Nat → Bool) (k : Nat)
 --
 --
 
-/-- The embedded reals of sequences differing at a known index are APART.
+/-- The embedded reals of sequences differing at a known index are apart.
 
 The capstone of the base-three construction: `(Nat -> Bool) -> RealL` is not
-merely injective but APARTNESS-reflecting, and choice-free.
+merely injective but apartness-reflecting, and choice-free.
 
-HOW THE STRICT INEQUALITY BECOMES AN APARTNESS. `realLLt x y` unfolds to
+How the strict inequality becomes an apartness. `realLLt x y` unfolds to
 `exists r, r in snd x and r in fst y`, and for these nested reals that is a
 rational strictly above one of `b`'s upper ends and strictly below one of `c`'s
 lower ends. `takeBits_strict_sep` puts `b`'s upper end at depth `k+1` strictly
@@ -1259,9 +1259,9 @@ below `c`'s lower end there, and `rat_dense` produces the witness between them.
 A non-strict separation would leave no room for `r` --- which is exactly why the
 general separation lemma could not be used here.
 
-THE HYPOTHESIS IS THE FIRST DIFFERENCE, GIVEN. Locating it inside an arbitrary
+The hypothesis is the first difference, given. Locating it inside an arbitrary
 pair of distinct sequences is a bounded search on `Bool` and is separate; this lemma
-is about what the difference BUYS, not about finding it. -/
+is about what the difference buys, not about finding it. -/
 theorem triadicReal_apart_at (b c : Nat → Bool) (k : Nat)
     (hpre : takeBits b k = takeBits c k) (hne : b k ≠ c k) :
     realLApart (triadicReal.{u} b) (triadicReal.{u} c) := by
@@ -1302,13 +1302,13 @@ theorem triadicReal_apart_at (b c : Nat → Bool) (k : Nat)
 --
 --
 
-/-- Sequences whose prefixes differ have a FIRST differing index.
+/-- Sequences whose prefixes differ have a first differing index.
 
 The bounded search that turns a bare disagreement into the hypothesis
 `triadicReal_apart_at` wants: an index where the prefixes still agree and the
 bits do not.
 
-THE CASE SPLIT USES THE `Bool` DECIDABILITY INSTANCE, VIA `decide`, and that is
+The case split uses the `Bool` decidability instance, via `decide`, and that is
 deliberate. `by_cases` on `takeBits b n = takeBits c n` would take whatever
 `Decidable` instance elaboration finds, and if it falls back to
 `Classical.propDecidable` the whole development silently acquires
@@ -1316,7 +1316,7 @@ deliberate. `by_cases` on `takeBits b n = takeBits c n` would take whatever
 `decide` and `of_decide_eq_true`/`of_decide_eq_false` names it and cannot fall
 back. The axiom print is the only thing that would have caught the difference.
 
-INDUCTION ON THE LENGTH, with `takeBits_succ` to expose the last bit: if the
+Induction on the length, with `takeBits_succ` to expose the last bit: if the
 shorter prefixes already agree the difference is that bit; otherwise it is
 strictly earlier and the hypothesis applies. -/
 theorem first_diff_seq : ∀ (n : Nat) (b c : Nat → Bool),
@@ -1335,7 +1335,7 @@ theorem first_diff_seq : ∀ (n : Nat) (b c : Nat → Bool),
           obtain ⟨k, hk, hpre, hbit⟩ := first_diff_seq n b c hne
           exact ⟨k, Nat.lt_succ_of_lt hk, hpre, hbit⟩
 
-/-- Distinct bit sequences name APART reals, with no index supplied.
+/-- Distinct bit sequences name apart reals, with no index supplied.
 
 `triadicReal_apart_at` needs the first difference; this finds it. Together they
 say the base-three embedding reflects apartness from a bare disagreement. -/
@@ -1353,7 +1353,7 @@ theorem triadicReal_apart (b c : Nat → Bool) (n : Nat)
 /-- The embedding is injective, as the weaker corollary of apartness.
 
 Stated because a consumer wanting only distinctness should not have to know
-about `realLApart`, and because the DERIVATION DIRECTION matters: apartness
+about `realLApart`, and because the derivation direction matters: apartness
 gives `≠` by irreflexivity, for free, while the converse needs a stability
 principle this tree does not have. Anything that can be phrased with the
 apartness should be. -/
@@ -1371,27 +1371,27 @@ theorem triadicReal_ne (b c : Nat → Bool) (n : Nat)
 --
 --
 
-/-- The dyadic readout, as APPROXIMATION rather than naming.
+/-- The dyadic readout, as approximation rather than naming.
 
 The expensive direction of `set, uncountability`, stated over the base where it
 can be true. At every depth a real in range is bracketed by some bit string's
 value and that value plus the window.
 
-WHY BASE TWO AND NOT BASE THREE. AN EXACT NAMING OVER `triadicOf` IS
-REFUTED --- every real in range IS `triadicReal` of some sequence is false by
+Why base two and not base three. An exact naming over `triadicOf` is
+refuted --- every real in range is `triadicReal` of some sequence is false by
 `triadicOf_gap`, since the base-three image is a Cantor set with a hole and most
 reals are named by nothing. Base two has no hole: `dyadicOf`'s two
-branches meet, which is exactly the property that makes its SEPARATION fail and
-its SURJECTION work. The two bases are for different halves of this row.
+branches meet, which is exactly the property that makes its separation fail and
+its surjection work. The two bases are for different halves of this row.
 
-WHY APPROXIMATION AND NOT NAMING, even here. Asking for an `s` with
+Why approximation and not naming, even here. Asking for an `s` with
 `realLOf (dyadicOf s) = x` demands the real be a dyadic rational. Asking for a
-BRACKET at every depth is what a constructive readout can deliver and what a
+bracket at every depth is what a constructive readout can deliver and what a
 locator supplies, and it is the shape `IsCauchyReal` and `IsNested` both take.
 
-NOT PROVED. Naming it is the first half; deriving it from a locator, or the
+Not proved. Naming it is the first half; deriving it from a locator, or the
 landmark from it, is the second and is not done. Stated so a future attempt has
-a TRUE target --- which the withdrawn `TriadicReadout` was not. -/
+a true target --- which the withdrawn `TriadicReadout` was not. -/
 def DyadicApprox : Prop :=
   ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
     realLLe (realLOf ratZero.{u}) x →
@@ -1411,7 +1411,7 @@ depth-`n` values are the multiples of `(1/2)^(n-1)`, spaced by exactly the
 window `2 * (1/2)^n`, so the brackets abut with no hole and no overlap.
 
 `dyadicOf_split` at `k = |s|` does the work; `List.take_left` and
-`List.drop_left` supply the two halves, both taking their lists IMPLICITLY. -/
+`List.drop_left` supply the two halves, both taking their lists implicitly. -/
 theorem dyadicOf_snoc (s : List Bool) (b : Bool) :
     dyadicOf.{u} (s ++ [b])
       = ratAdd (dyadicOf.{u} s)
@@ -1438,17 +1438,17 @@ theorem dyadicOf_false : dyadicOf.{u} [false] = ratZero.{u} := by
 --
 --
 
-/-- The TWO-CELL readout, which is the shape a locator's bounded search
+/-- The two-cell readout, which is the shape a locator's bounded search
 actually delivers.
 
 Same statement as `DyadicApprox` with the window doubled: `4 * (1/2)^n` rather
 than `2 * (1/2)^n`, i.e. two abutting cells rather than one.
 
-WHY IT IS SEPARATELY NAMED. A locator decides at PAIRS `p < q` and never at a
-point, while the two halves of a dyadic cell MEET at a single rational --- so
+Why it is separately named. A locator decides at PAIRS `p < q` and never at a
+point, while the two halves of a dyadic cell meet at a single rational --- so
 "is x left or right of the midpoint" is not a question a locator answers. What a
 search over its `Bool` outputs on the pairs `(v i, v (i+1))` yields is the
-largest `i` with `x > v i`, hence `v i < x < v (i+2)`: TWO cells. Naming that
+largest `i` with `x > v i`, hence `v i < x < v (i+2)`: Two cells. Naming that
 shape separately means a reversal can target what the construction produces
 instead of what one would prefer it produced. -/
 def DyadicApprox2 : Prop :=
@@ -1470,11 +1470,11 @@ The invariant a depth-by-depth readout maintains: extending the string by one
 bit refines the bracket without leaving the previous one, so a descending search
 never needs to backtrack.
 
-THE ARITHMETIC IS TIGHT AND IT IS WHY THE FORM IS TWO-CELL. The child's offset
+The arithmetic is tight and it is why the form is two-cell. The child's offset
 is `(1/2)^n * dyadicOf [b]`, at most `(1/2)^n`, and its window is
 `4*(1/2)^(n+1) = 2*(1/2)^n`; together at most `3*(1/2)^n`, against the parent's
-`4*(1/2)^n`. A ONE-cell parent would offer only `2*(1/2)^n` against the same
-required `3*(1/2)^n` and the containment would FAIL. That is the same arithmetic
+`4*(1/2)^n`. A one-cell parent would offer only `2*(1/2)^n` against the same
+required `3*(1/2)^n` and the containment would fail. That is the same arithmetic
 that forces the two-cell shape on the locator construction, seen from the other
 side. -/
 theorem dyadic_child_inside (s : List Bool) (b : Bool) :
@@ -1516,7 +1516,7 @@ theorem dyadic_child_inside (s : List Bool) (b : Bool) :
         rw [ratNat_mul (by omega) (by omega)]
         exact (ratNat_eq_iff (by omega) (by omega)).mpr (by omega)
       rw [h42, ratMul_comm hk h2]
-    -- offset plus child window, with every scalar on the LEFT so they combine
+    -- offset plus child window, with every scalar on the left so they combine
     have hoff : ratMul (ratPow (ratNat.{u} 1 2) s.length) (dyadicOf.{u} [b])
         = ratMul (dyadicOf.{u} [b]) (ratPow (ratNat.{u} 1 2) s.length) :=
       ratMul_comm hk hb
@@ -1543,21 +1543,21 @@ theorem dyadic_child_inside (s : List Bool) (b : Bool) :
 --
 --
 
-/-- The two children do NOT cover the parent bracket.
+/-- The two children do not cover the parent bracket.
 
 Both child brackets end at or before `v + 3*(1/2)^n`, while the parent's ends at
 `v + 4*(1/2)^n`. So the strip `(v + 3K, v + 4K]` lies in the parent and in
 neither child.
 
-THIS RETRACTS A CLAIM MADE ONE STEP EARLIER. `dyadic_child_inside`'s note said
+This retracts a claim made one step earlier. `dyadic_child_inside`'s note said
 containment means "a descending search never backtracks". Containment is true;
-that consequence is NOT. A search that has committed to `s` and finds `x` in the
-uncovered strip must move to a SIBLING subtree, because the grid point that
-brackets `x` at depth `n+1` --- namely `v + 2K` --- is a descendant of the NEXT
+that consequence is not. A search that has committed to `s` and finds `x` in the
+uncovered strip must move to a sibling subtree, because the grid point that
+brackets `x` at depth `n+1` --- namely `v + 2K` --- is a descendant of the next
 depth-`n` string, not of `s`.
 
-WHAT IT MEANS FOR THE READOUT. The construction cannot be a simple top-down
-refinement of one string. It has to search the depth-`(n+1)` GRID, which is what
+What it means for the readout. The construction cannot be a simple top-down
+refinement of one string. It has to search the depth-`(n+1)` grid, which is what
 the locator-based argument already indicated by producing an index rather than a
 path. Two independent routes now say the same thing: the readout is a search
 over a grid, not a descent through a tree. -/
@@ -1608,7 +1608,7 @@ theorem children_do_not_cover (s : List Bool) (b : Bool) :
     rw [h12]
     exact ratLe_refl h3
   · refine (ratAdd_lt_add_left_iff hd (ratMul_mem_Rat h3 hk) (ratMul_mem_Rat h4 hk)).mpr ?_
-    -- `ratMul_lt_mul_right` takes `t != 0` and `0 <= t`, NOT `0 < t`
+    -- `ratMul_lt_mul_right` takes `t != 0` and `0 <= t`, not `0 < t`
     exact ratMul_lt_mul_right h3 h4 hk (ratNe_zero_of_pos hk0)
       (ratLe_of_lt ratZero_mem_Rat hk hk0)
       ((ratNat_lt_iff (by omega) (by omega)).mpr (by omega))
@@ -1624,10 +1624,10 @@ theorem children_do_not_cover (s : List Bool) (b : Bool) :
 
 `k` in binary, most significant bit first, padded to length `n`. These enumerate
 the depth-`n` dyadic grid, which is what a readout has to search: the brackets
-are indexed by VALUE, and `children_do_not_cover` showed the search cannot be a
+are indexed by value, and `children_do_not_cover` showed the search cannot be a
 descent through the prefix tree.
 
-THE COMPARISON IS `Nat`'s OWN DECIDABLE INSTANCE, via `decide`. `2^n <= k` is
+The comparison is `Nat`'s own decidable instance, via `decide`. `2^n <= k` is
 decidable arithmetic; writing it as an `if` with an inferred instance would risk
 `Classical.propDecidable`, which is how a development acquires
 `Classical.choice` while every proof still compiles. -/
@@ -1653,7 +1653,7 @@ theorem dyadicOf_bitsOf_high {k n : Nat} (h : 2 ^ n ≤ k) :
 
 /-- And the low branch.
 
-TWO LEMMAS RATHER THAN ONE WITH AN `if`. The `if` version compiled and printed
+Two lemmas rather than one with an `if`. The `if` version compiled and printed
 clean --- its condition is a `Bool` equality with a real instance --- but every
 consumer has to case-split anyway, and an inline `if` is the shape that risks
 `Classical.propDecidable` when the condition is not so obviously decidable. The
@@ -1680,7 +1680,7 @@ theorem dyadicOf_bitsOf_low {k n : Nat} (h : ¬ (2 ^ n ≤ k)) :
 
 /-- Halving a `ratNat` doubles its denominator.
 
-`ratNat_eq_iff` CROSS-MULTIPLIES, which hands `omega` a product of atoms it
+`ratNat_eq_iff` cross-multiplies, which hands `omega` a product of atoms it
 cannot reason about. When the two sides already agree after `Nat` simplification,
 close by `rfl` instead. -/
 theorem half_ratNat (a b : Nat) (hb : 0 < b) :
@@ -1699,14 +1699,14 @@ theorem one_add_ratNat (a b : Nat) (hb : 0 < b) :
     k < 2^n   ->   dyadicOf (bitsOf k n)  =  2k / 2^n
 
 so the depth-`n` values are exactly the multiples of `2/2^n = 2*(1/2)^n`, which
-IS the window --- the brackets abut, and this is that statement.
+is the window --- the brackets abut, and this is that statement.
 
-THE HYPOTHESIS IS NOT DECORATION. `bitsOf k 0 = []` for EVERY `k`, discarding the
+The hypothesis is not decoration. `bitsOf k 0 = []` for every `k`, discarding the
 index, so without `k < 2^n` the claim is false at `n = 0` for any positive `k`.
 The bound is what makes the padding faithful.
 
-TWO ARITHMETIC TRAPS, both from handing `omega` the wrong shape:
-  * `ratNat_eq_iff` cross-multiplies. Here both sides end with the SAME
+Two arithmetic traps, both from handing `omega` the wrong shape:
+  * `ratNat_eq_iff` cross-multiplies. Here both sides end with the same
     denominator, so proving the NUMERATORS equal as `Nat` and rewriting is
     linear, where the cross-multiplied form is a product of atoms and `omega`
     refuses it.
@@ -1729,7 +1729,7 @@ theorem dyadicOf_bitsOf_value : ∀ (n k : Nat), k < 2 ^ n →
       · have hk' : k % 2 ^ n = k - 2 ^ n := by
           rw [Nat.mod_eq_sub_mod hb, Nat.mod_eq_of_lt (by rw [hpow] at hk; omega)]
         -- the numerator is `2*2^n + ...`, not `2^n + ...`: the denominator was
-        -- already doubled by the halving, and `one_add_ratNat` adds THAT
+        -- already doubled by the halving, and `one_add_ratNat` adds that
         have hnum : 2 * 2 ^ n + 2 * (k - 2 ^ n) = 2 * k := by omega
         rw [dyadicOf_bitsOf_high hb, hih, half_ratNat _ _ hp,
           one_add_ratNat _ _ (by omega), hk', hnum, hpow]
@@ -1742,11 +1742,11 @@ theorem dyadicOf_bitsOf_value : ∀ (n k : Nat), k < 2 ^ n →
 
 /-- A grid point is rational.
 
-NO BOUND ON `i`, THOUGH EVERY OTHER GRID LEMMA HERE NEEDS ONE. `i < 2^n` is
-never consulted --- `dyadicOf` of ANY list is rational, `bitsOf` included --- and
-the linter is what says so rather than a reading. A MEMBERSHIP LEMMA CARRYING
-ITS NEIGHBOURS' RANGE BOUND WOULD FORCE EVERY CALLER TO SUPPLY ONE IT DOES NOT
-NEED. -/
+No bound on `i`, though every other grid lemma here needs one. `i < 2^n` is
+never consulted --- `dyadicOf` of any list is rational, `bitsOf` included --- and
+the linter is what says so rather than a reading. A membership lemma carrying
+its neighbours' range bound would force every caller to supply one it does not
+need. -/
 theorem dyadicOf_mem_Rat_bits (n i : Nat) :
     dyadicOf.{u} (bitsOf i n) ∈ NumberTheory.Rat.{u} := dyadicOf_mem_Rat _
 
@@ -1762,10 +1762,10 @@ theorem grid_zero (n : Nat) : dyadicOf.{u} (bitsOf 0 n) = ratZero.{u} := by
     v (i+1)  =  v i  +  2/2^n
 
 and `2/2^n` is `2*(1/2)^n`, the depth-`n` window. This is the arithmetic the
-search reads: `lastTrue` hands back an INDEX, and this turns index arithmetic
+search reads: `lastTrue` hands back an index, and this turns index arithmetic
 into the bracket `[v i, v i + 2*window]` the two-cell form asks for.
 
-BOTH ENDPOINTS NEED THE CLOSED FORM, so both need their index below `2^n`; the
+Both endpoints need the closed form, so both need their index below `2^n`; the
 single hypothesis `i + 1 < 2^n` supplies both. -/
 theorem grid_succ (n i : Nat) (h : i + 1 < 2 ^ n) :
     dyadicOf.{u} (bitsOf (i + 1) n)
@@ -1802,7 +1802,7 @@ constants, written twice. The proof does not use the constant at all --- it is
 
 Worth doing because the two constants are exactly what the row's whole
 measurement turns on: `k = 2` tiles and costs `LLPO`, `k = 4` overlaps and is
-free. Having them as instances of one lemma puts the difference in the ARGUMENT
+free. Having them as instances of one lemma puts the difference in the argument
 rather than in two separate proofs that happen to differ by a numeral. -/
 theorem windowValue_gen (k n : Nat) :
     ratMul (ratNat.{u} k 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} k (2 ^ n) := by
@@ -1813,7 +1813,7 @@ theorem windowValue_gen (k n : Nat) :
 
 `oneCell_tiles` (`m = 1`) and `window_step` (`m = 2`) are this at two values,
 and the two carried the row's whole distinction between tiling and overlap. As
-one theorem the distinction is the ARGUMENT `m`, not two proofs differing by a
+one theorem the distinction is the argument `m`, not two proofs differing by a
 numeral:
 
     m = 1   window = the step        cells MEET at a point   -> a decision
@@ -1840,7 +1840,7 @@ theorem grid_advance (n i m : Nat) (h : i + m < 2 ^ n) :
 states values as `ratNat _ (2^n)`, so nothing composes until the two are the
 same rational.
 
-`ratPow_half` SUPPLIES THE POWER, AND IT WAS ALREADY THERE. I had started
+`ratPow_half` supplies the power, and it was already there. I had started
 relocating `ratPow_ratNat_gen` down out of `TrigAdd` --- which `Uncountable`
 cannot reach --- before finding that `Rational.lean` states this very case, in
 the module where `ratPow` is defined. The general lemma being stranded high in
@@ -1865,7 +1865,7 @@ theorem window_step {i n : Nat} (_hi : i < 2 ^ n) (hi2 : i + 2 < 2 ^ n) :
 
 The case the interior argument cannot reach: when the search returns the last
 index the grid holds, `i + 2` is off the end, so there is no grid point to be
-below. There does not need to be --- the WINDOW's right end is `(2i + 4)/2^n`
+below. There does not need to be --- the window's right end is `(2i + 4)/2^n`
 with `i + 2 = 2^n`, which is `2` on the nose, and the range hypothesis already
 says the real is at most that.
 
@@ -1884,24 +1884,24 @@ theorem topcell_bound {i n : Nat} (hi : i < 2 ^ n) (htop : i + 2 = 2 ^ n) :
 #print axioms SetTheory.window_step
 #print axioms SetTheory.topcell_bound
 
-/-- The ONE-cell window IS the grid step. -/
+/-- The one-cell window is the grid step. -/
 theorem oneCell_window_value (n : Nat) :
     ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} 2 (2 ^ n) := windowValue_gen 2 n
 
-/-- The one-cell brackets TILE: the next cell starts where this one ends.
+/-- The one-cell brackets tile: the next cell starts where this one ends.
 
 The mechanism behind the price, as a theorem rather than a description. At
 depth `n` the one-cell window is `2 * (1/2)^n`, which `grid_succ` gives as the
 distance to the next grid point --- so `[v i, v i + w]` ends where
 `[v (i+1), ...]` begins, the cells meet at a single rational, and a real
-sitting there has ONE valid answer. The answer is therefore a decision.
+sitting there has one valid answer. The answer is therefore a decision.
 
-CONTRAST, ALSO ALREADY A THEOREM: `window_step` says the TWO-cell window spans
+Contrast, also already a theorem: `window_step` says the two-cell window spans
 `v i` to `v (i+2)`, twice the step, so consecutive two-cell brackets overlap in
 a whole cell and a real at a grid point has two valid answers. Nothing is
 forced.
 
-THIS IS NOT A PROOF THAT THE TWO-CELL FORM AVOIDS `LLPO`. It states the
+This is not a proof that the two-cell form avoids `LLPO`. It states the
 structural difference exactly --- `k = 1` tiles, `k >= 2` overlaps --- and
 whether overlap suffices to keep the principle constructive is a separate
 question, open. -/
@@ -1910,12 +1910,12 @@ theorem oneCell_tiles (n i : Nat) (h : i + 1 < 2 ^ n) :
         (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) n))
       = dyadicOf.{u} (bitsOf (i + 1) n) := grid_advance n i 1 h
 
-/-- At a grid point the two-cell readout admits TWO answers, exhibited.
+/-- At a grid point the two-cell readout admits two answers, exhibited.
 
 The witness the overlap claim needs. `window_step` says consecutive two-cell
 brackets overlap; this shows what that buys at the one place it matters --- a
 real sitting exactly on a grid point, the case in which the one-cell form is
-forced to choose. Take `x = v (i+1)`. Then BOTH `i` and `i+1` are valid
+forced to choose. Take `x = v (i+1)`. Then both `i` and `i+1` are valid
 answers:
 
     v i     <= x <= v i     + w      because `x = v (i+1)` and `v i + w = v (i+2)`
@@ -1923,12 +1923,12 @@ answers:
 
 So no construction that returns a two-cell bracket can be read as having decided
 anything about `x` relative to `v (i+1)`. That is the exact sense in which the
-two-cell form forces no decision, and it is a WITNESS rather than the absence of
+two-cell form forces no decision, and it is a witness rather than the absence of
 a proof that it does.
 
-IT DOES NOT SHOW `DyadicApprox2` AVOIDS `LLPO`. A principle can be expensive for
+It does not show `DyadicApprox2` avoids `LLPO`. A principle can be expensive for
 reasons that have nothing to do with any single instance being ambiguous. What
-it rules out is the ONE argument that prices the one-cell form ---
+it rules out is the one argument that prices the one-cell form ---
 `dichotomy_of_depthOne` reads its answer as a decision at a point, and here
 there is no such reading. -/
 theorem twoCell_ambiguous {i n : Nat} (hi : i < 2 ^ n) (hi2 : i + 2 < 2 ^ n) :

@@ -23,7 +23,7 @@ Everything is `[propext, Quot.sound]`. Nothing about groups needs a decision:
 the operation is given, not chosen.
 -/
 
-import FromAxioms.Core.CoreShim
+import FromAxioms.Core.NatSearch
 import FromAxioms.SetTheory.Cardinal
 
 universe u
@@ -33,7 +33,7 @@ namespace Algebra
 
 /-- A monoid: associative, with a two-sided identity. No inverses.
 
-`IsGroup` extends this, so a group IS a monoid with inverses and the order
+`IsGroup` extends this, so a group is a monoid with inverses and the order
 arithmetic below is stated where it belongs. Every proof in that family uses
 `assoc`, `left_id` and `right_id` only, which the kernel checks. -/
 structure IsMonoid (M op e : ZFSet.{u}) : Prop where
@@ -543,7 +543,7 @@ def gpow (op e a : ZFSet.{u}) : Nat → ZFSet.{u}
 Every proof below uses `assoc`, `left_id` and `right_id`. The group forms that
 follow are one-liners through `IsGroup.toMonoid`.
 
-`gpow_inj_below` is NOT here, because it is proved by CANCELLATION, which is
+`gpow_inj_below` is not here, because it is proved by cancellation, which is
 where inverses are genuinely used. It weakens to a monoid only with the extra
 hypothesis that some power is the identity, which is a different theorem rather
 than the same one at lower cost. -/
@@ -645,16 +645,16 @@ theorem gpow_id {G op e : ZFSet.{u}} (hG : IsGroup G op e) :
 theorem gpow_mul {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) (j : Nat) :
     ∀ k : Nat, gpow op e a (j * k) = gpow op e (gpow op e a j) k :=
   gpow_mul_bare hG.toMonoid ha j
-/-- Pigeonhole for a sequence in a finite set, WITH THE BOUND. Two of the
+/-- Pigeonhole for a sequence in a finite set, with the bound. Two of the
 first `n+1` values coincide, and the later index is one of those `n+1`.
 
-THE BOUND WAS PROVED HERE AND DISCARDED, AND THE DOCSTRING KNEW. The old
+The bound was proved here and discarded, and the docstring knew. The old
 statement returned `∃ j k, j < k ∧ F j = F k` while the sentence above it said
 two of the first `n+1` values --- the prose was right and the type was weaker.
 `exists_pair_or_inj` hands back `hj : j < n + 1` and `hk : k < n + 1`, and both
 branches of the final `rcases` dropped them.
 
-IT IS NOT A COSMETIC STRENGTHENING. Dirichlet's theorem is this lemma with
+It is not a cosmetic strengthening. Dirichlet's theorem is this lemma with
 the bound: the difference of the two indices is the approximation's denominator,
 so `k <= n` is the whole quantitative content, and an unbounded collision carries
 none of it. `exists_dirichlet_collision` (`PolyRing`) was rewritten onto the weak
@@ -1112,7 +1112,7 @@ theorem cyclic_eq_of_order_card {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha
 
 /-- The first `n` powers of `a`, top first: `a^(n-1) … a^0`.
 
-`(below n).map` rather than its own recursion -- the recursion IS `below`'s, and
+`(below n).map` rather than its own recursion -- the recursion is `below`'s, and
 writing it twice is what stranded the generic in `Lebesgue.lean`.
 The cons shape survives: `below (n+1)` reduces to
 `n :: below n` and `List.map` reduces on a cons, so anything matching on the

@@ -378,11 +378,11 @@ theorem realLSqrt_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
 lower cut of `realLSqrt z` admits no positive rational by construction, so this
 holds even where `z` is negative and the root means nothing.
 
-IT IS THEREFORE NOT `realLSqrt_mem`'s HYPOTHESIS, and the two read alike
+It is therefore not `realLSqrt_mem`'s hypothesis, and the two read alike
 enough to be swapped. `realLSqrt_mem` asks for `realLLe realLZero z` --- the
-ARGUMENT nonnegative --- while this concludes `realLLe realLZero (realLSqrt z)`,
-the ROOT. Passing this one there is ill-typed, and the elaborator reports it as a
-`whnf` TIMEOUT rather than a type error, so the message names no mismatch and
+argument nonnegative --- while this concludes `realLLe realLZero (realLSqrt z)`,
+the root. Passing this one there is ill-typed, and the elaborator reports it as a
+`whnf` timeout rather than a type error, so the message names no mismatch and
 sends the reader to look for a performance problem. Supply the argument's
 nonnegativity from wherever the value came from. -/
 theorem realLSqrt_nonneg {z : ZFSet.{u}} :

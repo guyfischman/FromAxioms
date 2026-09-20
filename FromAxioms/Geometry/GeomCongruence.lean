@@ -23,7 +23,6 @@ exactly an equality of dot products, with no root and no ratio. That is enough
 for SAS, which is the axiom the group exists to support.
 -/
 
-import FromAxioms.Analysis.Complex
 import FromAxioms.Geometry.GeomPlane
 import FromAxioms.SetTheory.Uncountable
 

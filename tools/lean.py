@@ -31,10 +31,10 @@ call than to rewrite, which is a documentation defect with a proof attached.
 `private`, and docstring prose are all handled. Use it rather than a regex: the
 tools that wrote their own each omitted something different.
 
-`name` AND `full` ARE DIFFERENT SPELLINGS OF THE SAME DECLARATION, AND SETS
-BUILT FROM THEM DO NOT MEET. This is the one thing above that a caller can
+`name` and `full` are different spellings of the same declaration, and sets
+built from them do not meet. This is the one thing above that a caller can
 read correctly and still get wrong. Comparing a set of `full` names against a
-set of bare ones over one file gives an INTERSECTION OF ONE -- so every
+set of bare ones over one file gives an intersection of one -- so every
 declaration read
 as both present and absent, a check failed every merge, and its advisory arm
 reported 11,173 deletions that had not happened.
@@ -62,15 +62,15 @@ _STRIP_COUNTS = {}
 # lookup fails while the tool reports a declaration confidently.
 ATOM = r"[A-Za-z_][\w'!?₀-₉]*"
 IDENT = ATOM + r"(?:\." + ATOM + r")*"
-# `ATOM` is one dotted SEGMENT, exported for the same reason `IDENT` is: a
+# `ATOM` is one dotted segment, exported for the same reason `IDENT` is: a
 # reader wanting unqualified tokens wrote its own class and lost the trailing
 # prime. Never wrap either in a trailing `\b` -- see the note below.
-# A Lean name is dotted SEGMENTS, each opening with a letter or underscore.
+# A Lean name is dotted segments, each opening with a letter or underscore.
 # Admitting the dot inside the class let `def Foo.{u}` -- legal, since a `def`
 # does not auto-bind universes -- parse as `Foo.`, a name no declaration has.
 #
-# A TRAILING `\b` ON EITHER OF THESE SILENTLY STRIPS A TRAILING PRIME, and the
-# corrupted name RESOLVES. After `realLSum_add'` the next character is a space;
+# A trailing `\b` on either of these silently strips a trailing prime, and the
+# corrupted name resolves. After `realLSum_add'` the next character is a space;
 # `'` and ` ` are both non-word, so the boundary fails there and the engine
 # backtracks to end at `d` -- where `'` does supply one. Internal primes
 # survive, so it is specifically Lean's own prime convention that breaks, which
@@ -94,7 +94,7 @@ DECL = re.compile(
 )
 
 # The same shape with `private` allowed, and captured. `DECL` omits `private`,
-# because a denominator counting what the library OFFERS does not include a
+# because a denominator counting what the library offers does not include a
 # file-internal lemma.
 #
 # But that population is wrong for the tools that answer *has this been proved
@@ -116,9 +116,9 @@ NS_END = re.compile(r"^[ \t]*end[ \t]+([A-Za-z_][A-Za-z0-9_.']*)[ \t]*$")
 
 
 def _report_repeats():
-    """One NOTE on stderr when a run re-parsed the same text many times.
+    """One note on stderr when a run re-parsed the same text many times.
 
-    ON STDERR, because several tools emit JSON or a name list on stdout that
+    On stderr, because several tools emit JSON or a name list on stdout that
     other tools parse, and a diagnostic line there would corrupt them. A gate
     scanning both streams for `NOTE:` still shows it.
 
@@ -162,7 +162,7 @@ def strip_comments(lines):
     without stripping, the declaration regex matches English. "the axiom budget" parsed
     as `axiom budget`, "the structure we" as `structure we`, and "Phase 1" as
     `axiom Phase` -- four phantom declarations in one file, inflating our counts
-    and polluting SURPLUS.
+    and polluting surplus.
 
     Lean block comments nest, so this tracks depth rather than matching pairs.
     `/-- doc -/` and `/-! section -/` are ordinary block comments for our
@@ -171,14 +171,14 @@ def strip_comments(lines):
     key = (len(lines), hash(lines[0]) if lines else 0,
            hash(lines[-1]) if lines else 0)
     _STRIP_COUNTS[key] = _STRIP_COUNTS.get(key, 0) + 1
-    # SPANS, not characters. The obvious loop appends one character at a time
+    # Spans, not characters. The obvious loop appends one character at a time
     # and re-slices `line[i:i+2]` at every step, which dominates the runtime of
     # every tool that reads the tree. The markers are
     # sparse, so `str.find` jumps between them and whole runs of text are copied
     # in one slice.
     #
     # The scan order below is the original's and must stay: `/-` is tested
-    # before `-/`, which is before `--`. `/--` therefore OPENS a block rather
+    # before `-/`, which is before `--`. `/--` therefore opens a block rather
     # than being a line comment, and `---/` closes one from inside.
     out = []
     depth = 0
@@ -217,21 +217,21 @@ def strip_comments(lines):
 def parse_lines(lines, include_private=False, source="<lines>"):
     """The same walk, over lines already read and stripped.
 
-    Split out so a tool holding a STRING can use the shared reader. Seven
+    Split out so a tool holding a string can use the shared reader. Seven
     tools read `git show <rev>:<file>` and carry a private declaration regex --
     `crossref`, `ledgercheck`, `lost`, `mergedel`, `names`, `precompile`,
-    `similar` -- and FIVE of them import this module and rolled their own
+    `similar` -- and five of them import this module and rolled their own
     anyway. That is the shape of a rule that could not be followed rather than
-    one being ignored: the only entry point took a PATH, so the shared reader
+    one being ignored: the only entry point took a path, so the shared reader
     charged a filesystem round-trip per blob, and a caller reading hundreds of
     blobs per run pays it hundreds of times.
 
     `source` is what the records report as their file; a revision reader passes
     `"<rev>:<relpath>"`, which is more informative than a temp file's name.
 
-    STRIPPED IS A PRECONDITION AND ITS FAILURE IS SILENT. `parse_file` is
-    `parse_lines(stripped_lines(path))`; calling this one on RAW text does not
-    error, it returns MORE declarations -- prose words from `/-- ... -/`
+    Stripped is a precondition and its failure is silent. `parse_file` is
+    `parse_lines(stripped_lines(path))`; calling this one on raw text does not
+    error, it returns more declarations -- prose words from `/-- ... -/`
     docstrings parse as names. Geometry got `ZFSet.the`, `ZFSet.was` and
     `ZFSet.rather` that way, out of a tree that exists only in git:
 
@@ -239,7 +239,7 @@ def parse_lines(lines, include_private=False, source="<lines>"):
 
     The summary line above said already read and stripped and that was not
     enough, because the reader who needs this entry point is reading the
-    paragraph about holding a STRING. A caller who has text rather than a path
+    paragraph about holding a string. A caller who has text rather than a path
     has, by construction, not been through the stripper.
     """
     out = []
@@ -299,25 +299,25 @@ def parse_file(path, include_private=False, fresh=False):
 # Declaration spans
 # --------------------------------------------------------------------------
 
-# TRAILERS: lines that sit after a declaration's text and belong to the FILE
+# Trailers: lines that sit after a declaration's text and belong to the file
 # rather than to it. A span computed as "this declaration's line up to the next
 # one's" collects all of them, because the parser cannot see them and so cannot
 # stop at them.
 #
 # This has cost three separate defects in one session, in two tools:
 #
-#   the file's `end ZFSet`   rode into the LAST declaration of every module, so
+#   the file's `end ZFSet`   rode into the last declaration of every module, so
 #                            a generated probe carried a stray namespace close
 #                            in its middle and 637 signatures elaborated outside
 #                            the namespace
 #   `#print axioms` blocks   rode into whichever declaration preceded them
-#   the NEXT declaration's   rode into the previous one, so a generated header
+#   the next declaration's   rode into the previous one, so a generated header
 #   docstring                printed each audit line under someone else's prose
 #
-# All three are one shape: a line RANGE ends where the parser's next known thing
+# All three are one shape: a line range ends where the parser's next known thing
 # starts, and everything the parser does not model rides along. Centralised here
 # so a fourth tool gets it right without rediscovering it.
-# `@[...]` IS THE NEXT DECLARATION'S ATTRIBUTE rather than a trailer. Listing
+# `@[...]` is the next declaration's attribute rather than a trailer. Listing
 # it here would delete every `@[csimp]` in the tree from whichever span happened
 # to precede it. An attribute line is
 # carried forward with the docstring, for the same reason and by the same code.
@@ -328,8 +328,8 @@ LEADER = re.compile(r"^\s*(?:@\[|/--|/-!)")
 def decl_span(raw, decls, i, strip_trailing_doc=True):
     """The `i`-th declaration's own lines, with the file's tail removed.
 
-    Returns `(body, carried)`. `carried` is a doc comment that OPENED after this
-    declaration's text and therefore belongs to the NEXT one -- the caller
+    Returns `(body, carried)`. `carried` is a doc comment that opened after this
+    declaration's text and therefore belongs to the next one -- the caller
     should prepend it there rather than drop it, since dropping is how a
     generated file loses every docstring in a module.
     """
@@ -385,7 +385,7 @@ def _lead_start(raw, start, floor):
 
 
 def doc_span(raw, decls, i):
-    """`(start, end)` covering the i-th declaration WITH its docstring.
+    """`(start, end)` covering the i-th declaration with its docstring.
 
     `decl_span` starts at the declaration, so a caller that moves or deletes by
     that span strands the `/-- ... -/` above it -- which then attaches to
@@ -393,7 +393,7 @@ def doc_span(raw, decls, i):
     undocumented and its new neighbour acquires a docstring about something
     else. Every caller was writing that walk-back itself.
 
-    THE END IS CLAMPED to the next declaration's lead start, so two spans
+    The end is clamped to the next declaration's lead start, so two spans
     cannot overlap. The clamp is not belt-and-braces: `decl_span`'s carried-doc
     walk-back is otherwise the only guard, and it is not always right --
     `weaveBits` in `Baire.lean` keeps two lines of `weaveBits_append`'s
@@ -421,10 +421,10 @@ def source_files(root):
 def phase2_files(root):
     """Every module above Phase 1, wherever it lives.
 
-    Anchored on EXCLUSION rather than on a directory list, so an area added
+    Anchored on exclusion rather than on a directory list, so an area added
     later is included without anyone remembering to add it here.
 
-    THE RULE IS DEPTH. A root module is a SIBLING of its directory --
+    The rule is depth. A root module is a sibling of its directory --
     `FromAxioms/Logic.lean` sits beside `FromAxioms/Logic/` -- so its
     relative parts are `("Logic.lean",)` and a test for `"Logic"` among the
     parts misses it. Phase 2 modules live in a subdirectory; the root modules
@@ -489,10 +489,10 @@ def split_signature(text):
             elif depth < 0:
                 return None
         elif depth == 0:
-            # THE EARLIEST OF THREE BOUNDARIES, not `:=` with `|` as a fallback.
+            # The earliest of three boundaries, not `:=` with `|` as a fallback.
             # A structure-style declaration ends its signature at `where` and
             # its field bodies carry their own depth-zero `:=`, so a scanner
-            # without this case files a fragment of the PROOF as part of the
+            # without this case files a fragment of the proof as part of the
             # conclusion. `split_at_assignment` below already takes the earliest
             # of the same three.
             _where = (c in " \n" and text.startswith("where", i + 1)
@@ -513,7 +513,7 @@ def split_at_assignment(src):
     """Split a whole declaration into `(signature, proof)` at its `:=`.
 
     The `:=` must be at bracket depth zero, and a splitter that searches for a
-    literal instead gets it wrong in BOTH directions. Measured over
+    literal instead gets it wrong in both directions. Measured over
     `FromAxioms/Foundations/*.lean`, 14200 declarations carrying a `:=`:
 
         13479   agree
@@ -532,9 +532,9 @@ def split_at_assignment(src):
     bracketed", the shape the defect was reported as, overstates that half by
     twenty-four times while missing the other half entirely.
 
-    A declaration given by EQUATIONS ends its signature at the first `| ` line,
-    and that boundary can come BEFORE any depth-zero `:=` -- so the two
-    candidates are computed and the EARLIER one wins. Taking the `:=` first and
+    A declaration given by equations ends its signature at the first `| ` line,
+    and that boundary can come before any depth-zero `:=` -- so the two
+    candidates are computed and the earlier one wins. Taking the `:=` first and
     the `| ` only as a fallback is wrong on exactly these: `pb_gcd_family`
     (PolyRing.lean) is `| 0 => ..` / `| D + 1 => by obtain ..` and does have a
     depth-zero `:=`, 1451 characters in, inside the second equation's proof.
@@ -545,13 +545,13 @@ def split_at_assignment(src):
     Returns `(src, '')` when there is neither, which is the honest answer for a
     `structure` or an `inductive`.
     """
-    # THE EARLIER OF THE TWO BOUNDARIES, not `:=` with `|` as a fallback.
-    # An equation-style declaration has NO `:=` ending its signature -- the
+    # The earlier of the two boundaries, not `:=` with `|` as a fallback.
+    # An equation-style declaration has no `:=` ending its signature -- the
     # boundary is `| 0 => ...` -- so a `:=` found later is inside an
     # alternative's proof. Reaching the `|` only when no `:=` exists anywhere
     # meant `pb_gcd_family` filed 395 characters of proof, `obtain` included,
     # as signature. Measured: 523 of 16147 declarations move, every one
-    # SHORTENING the signature; none lengthens.
+    # shortening the signature; none lengthens.
     depth = 0
     bar = -1
     whr = -1
@@ -567,8 +567,8 @@ def split_at_assignment(src):
         elif depth == 0 and bar < 0 and src.startswith('\n  | ', i):
             bar = i
         elif depth == 0 and whr < 0 and src.startswith(' where\n', i):
-            # STRUCTURE STYLE. The `where` stays in the signature -- it is part
-            # of the statement -- and the FIELDS are the proof half.
+            # Structure style. The `where` stays in the signature -- it is part
+            # of the statement -- and the fields are the proof half.
             whr = i + len(' where')
     seen = [x for x in (bar, whr) if x >= 0]
     return (src, '') if not seen else (src[:min(seen)], src[min(seen):])
@@ -577,7 +577,7 @@ def split_at_assignment(src):
 def invalidate(path=None):
     """Drop the cached strip for `path`, or for everything when `path` is None.
 
-    PUBLIC, because a caller that WRITES a `.lean` file and then re-reads it
+    Public, because a caller that writes a `.lean` file and then re-reads it
     needs it; the previous answer was to clear a private dict, which only a
     reader of this source could discover.
     """
@@ -590,12 +590,12 @@ def invalidate(path=None):
 def stripped_lines(path, fresh=False):
     """The file's lines with comments removed, computed once per path.
 
-    `signature()` re-read the file and re-stripped it FOR EVERY DECLARATION
+    `signature()` re-read the file and re-stripped it for every declaration
     it was asked about, so a file with two hundred theorems parsed itself two
     hundred times. One call to `redundant.candidates()` on a single file cost
     10.3 seconds; with this it costs 0.4.
 
-    Keyed on the path, and INVALIDATION IS PUBLIC: `fresh=True` here, or
+    Keyed on the path, and invalidation is public: `fresh=True` here, or
     `lean.invalidate(path)` for a caller that has just written the file.
 
     A private attribute is not an API. The paragraph above used to end *a
@@ -604,11 +604,11 @@ def stripped_lines(path, fresh=False):
     needed it had to read this source. A hazard whose only remedy is
     undocumented is a hazard with no remedy, and three callers hit it: the
     third was a port applier that edits `.lean` files and re-parses to verify
-    its own work, which read the PRE-EDIT parse on every verification after the
+    its own work, which read the pre-edit parse on every verification after the
     first. A rollback appeared not to take, one real duplicate looked permanent,
     and 33 of 36 patches were skipped as though each would duplicate it.
 
-    The warning was correct, adjacent to the code, and MORE specific than most
+    The warning was correct, adjacent to the code, and more specific than most
     -- and prose adjacent to the violation is not an instrument, because the
     person it is addressed to is the person who breaks it.
     """
@@ -624,7 +624,7 @@ def stripped_lines(path, fresh=False):
     return got
 
 
-# A principle is a `Prop`-valued `def` taking NO PARAMETERS. That single
+# A principle is a `Prop`-valued `def` taking no parameters. That single
 # distinction separates a strength (`LPO`, `WKL`, `FAN`) from a predicate
 # (`IsBar`, `IsTree`, `HasPath`), with no judgement call -- which is what
 # makes a check over it mechanical rather than a curated list that drifts.
@@ -635,7 +635,7 @@ PRINCIPLE_DEF = re.compile(r"^def\s+([A-Za-z_][\w'])\s(.*?):\s*Prop\s*:=",
 def nullary_prop_defs(path):
     """Principle names defined in one file, by the arity rule.
 
-    The CRITERION is here and the CORPUS is the caller's: one reader asks about
+    The criterion is here and the corpus is the caller's: one reader asks about
     `Omniscience.lean` alone, another about every Foundations file, and both are
     right for their question. What must not differ is what
     counts as a principle -- the rule was written twice, independently,
@@ -665,10 +665,10 @@ def signature(path, name):
 import atexit  # noqa: E402
 atexit.register(_report_repeats)
 
-# THEOREM STEMS THAT OTHER THEOREMS EXTEND.
+# Theorem stems that other theorems extend.
 #
-# Read at SEARCH time. It lives beside the parser because it is a fact about
-# the NAME SET the parser produces, and because its readers already import this
+# Read at search time. It lives beside the parser because it is a fact about
+# the name set the parser produces, and because its readers already import this
 # module -- a copy would be a
 # thing to import and to forget.
 import functools as _functools
@@ -677,25 +677,25 @@ import functools as _functools
 def sibling_note(name):
     """A warning that an exact hit on `name` may be the wrong member, or None.
 
-    THE TRAP IS AN EXACT HIT, NOT A NULL. A declaration that is also a
-    PREFIX of others answers a name search successfully and returns a member the
+    The trap is an exact hit, not a null. A declaration that is also a
+    prefix of others answers a name search successfully and returns a member the
     reader did not want. Ranked by how much each outcome prompts a second look:
     a null sends you by another route; several prefix hits prompt a decision,
     which might be got right; an exact hit prompts nothing at all. So a
-    plausible count of ONE, on the name you typed, is the worst of the three and
+    plausible count of one, on the name you typed, is the worst of the three and
     the only one no tool remarks on.
 
-    THE POPULATION IS THEOREMS PREFIXING THEOREMS, and the narrowing is why
+    The population is theorems prefixing theorems, and the narrowing is why
     this is worth printing. Any-name-prefixes-any-name is 2163 here and is
-    noise: a definition and its lemmas share a stem BY DESIGN. Restricted to
+    noise: a definition and its lemmas share a stem by design. Restricted to
     theorems it is 893, about 8% of public theorems, so fewer than one exact hit
     in ten carries a note -- rare enough to keep its force.
 
-    A BARE PREFIX, with no word-boundary condition, and that was measured.
+    A bare prefix, with no word-boundary condition, and that was measured.
     Requiring the sibling to continue with `_` looks like the tidy refinement
     and brings 893 down to 674 -- removing exactly the dangerous half:
     `arityOK_Q` against `arityOK_QCtx`, `app_conjAct` against `app_conjActSub`.
-    A name continuing WITHOUT a separator is MORE confusable at a glance, not
+    A name continuing without a separator is more confusable at a glance, not
     less, because it reads as a different word rather than a longer form of this
     one.
     """

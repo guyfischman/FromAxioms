@@ -175,7 +175,7 @@ theorem sdiff_union (x y z : ZFSet.{u}) : x \ (y ∪ z) = (x \ y) ∩ (x \ z) :=
 Detachability decides `y` and double negation does not, and the refined forms
 below differ in that. -/
 
-/-- The cancellation at a DETACHABILITY hypothesis.
+/-- The cancellation at a detachability hypothesis.
 
 The version a caller who can already decide `y` pays nothing for.
 
@@ -196,11 +196,11 @@ theorem sdiff_sdiff_cancel_of_detachable {x y : ZFSet.{u}}
 
 /-- Meeting a subset with a carrier-complement is just removing.
 
-The `sdiff_sdiff_cancel` forms above both take the OUTER set and the inner base
+The `sdiff_sdiff_cancel` forms above both take the outer set and the inner base
 to be the same `x`. A caller working inside a carrier has neither: it holds
 `a ⊆ x` and asks about `a ∩ (x \ y)`. This is that shape.
 
-NO DECISION ANYWHERE. `hsub` is spent in the BACKWARD direction only, supplying
+No decision anywhere. `hsub` is spent in the backward direction only, supplying
 the ambient membership the right side does not carry; forwards, `w ∈ x` is
 discarded and `y` is never asked about. That asymmetry is the whole difference
 between this and `sdiff_sdiff_of_subset_of_detachable` below, which must decide.
@@ -226,7 +226,7 @@ theorem inter_sdiff_of_subset {a x y : ZFSet.{u}}
 `sdiff_sdiff_cancel_of_subset_is_cancel` below is that equation rather than a
 claim about it.
 
-WHERE THE DECISION GOES, and it is the same single step the unrelativised form
+Where the decision goes, and it is the same single step the unrelativised form
 charges for: turning `¬ (w ∈ x ∧ w ∉ y)` into `w ∈ y`. `hsub` supplies the
 `w ∈ x` that step consumes and is used nowhere else; backwards is free in both
 hypotheses. So relativising costs nothing more. -/
@@ -348,7 +348,7 @@ theorem unionUpto_inter_eq_empty {F : Nat → ZFSet.{u}}
   rw [hdisj i k (by omega)] at hboth
   exact absurd hboth (not_mem_empty w)
 
-/-- The same disjointness, POINTWISE -- which is the form a consumer wants.
+/-- The same disjointness, pointwise -- which is the form a consumer wants.
 
 `unionUpto_inter_eq_empty` states it as an equation because that is the algebra's own
 idiom, and every consumer of disjointness in the measure development asks instead for
@@ -370,9 +370,9 @@ a caller cannot supply.
 `unionUpto F k` mentions only indices below `k` and the argument cites
 `hdisj i k` only for `i < k`, so demanding disjointness at every pair asks for
 what is never used. An `IntegralOn` bundle's `disjoint` field is stated only
-BELOW its count, because a piece at an index past the count is unconstrained
+below its count, because a piece at an index past the count is unconstrained
 and says nothing --- so the families these lemmas exist to serve satisfy the
-bounded hypothesis and NOT the unbounded one. -/
+bounded hypothesis and not the unbounded one. -/
 theorem unionUpto_inter_eq_empty_below {F : Nat → ZFSet.{u}} {k : Nat}
     (hdisj : ∀ i j : Nat, i < k + 1 → j < k + 1 → i ≠ j →
       inter (F i) (F j) = empty.{u}) :
@@ -385,7 +385,7 @@ theorem unionUpto_inter_eq_empty_below {F : Nat → ZFSet.{u}} {k : Nat}
   exact absurd hboth (not_mem_empty w)
 
 /-- Pointwise disjointness gives the equation -- the other direction, and the one a
-SUPPLIER of disjointness needs.
+supplier of disjointness needs.
 
 Every proof that two sets are disjoint naturally produces the implication (it
 takes a point of one and derives a contradiction), while the algebra's lemmas
@@ -413,7 +413,7 @@ theorem inter_union_left {X Y : ZFSet.{u}} : inter (X ∪ Y) X = X :=
     fun hz => (mem_inter_iff z (X ∪ Y) X).mpr
       ⟨(mem_union_iff z X Y).mpr (Or.inl hz), hz⟩⟩)
 
-/-- A union less its left part is the right part, GIVEN disjointness.
+/-- A union less its left part is the right part, given disjointness.
 
 Stated pointwise rather than as `inter X Y = empty`, because the measure
 development's splitting lemmas consume disjointness in this form. With
@@ -449,7 +449,7 @@ theorem unionUpto_subset {amb : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 /-- The union of a whole `Nat`-indexed family, bounded by a set holding
 every member.
 
-`unionUpto` gives the FINITE partial unions, and every subadditivity statement
+`unionUpto` gives the finite partial unions, and every subadditivity statement
 in this tower is phrased over those. The countable union is available too: a
 `sep` collects the family and `sUnion` unions it, exactly the two steps
 `natFun` uses to turn a Lean-indexed family into a ZFSet function. No
@@ -482,7 +482,7 @@ theorem mem_unionAll_iff {B : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 /-- The unique element carved out of `S` by `P`, as a definite description.
 
 `sep` collects the elements with the property and `sUnion` opens the singleton,
-so when the property holds of exactly one element this NAMES it. Nothing is
+so when the property holds of exactly one element this names it. Nothing is
 chosen: uniqueness makes the separation a singleton, and `sUnion_singleton` is
 an equation rather than a selection, so no `Classical.choice` and no representative-picking operator
 enter. That is the difference between a definite description and a choice
@@ -535,7 +535,7 @@ definitionally. This tree's laws are about `ZFSet` and are
 proved by extensionality, which is a different theorem about a different object
 even though the two coincide.
 
-Writing the predicate carrier down lets the ZFSet laws be DERIVED from the
+Writing the predicate carrier down lets the ZFSet laws be derived from the
 propositional ones rather than restated beside them. Nothing here costs
 anything: `And` and `Or` are associative and commutative constructively. -/
 def PSet (α : Type u) : Type u := α → Prop

@@ -5,20 +5,20 @@ Authors: Guy Fischman
 -/
 
 /-
-A FINITE SUM, AS A FOLD ON THE ENCODED CARRIER.
+A finite sum, as a fold on the encoded carrier.
 
 The bottom rung under the Eisenstein Solution's last obligation. To use
 `eisenstein_irreducibleI` on a factorisation, the transport has to be
-MULTIPLICATIVE --- `polyOf (p * q)` must be the tower's `polyMul` of the two
+multiplicative --- `polyOf (p * q)` must be the tower's `polyMul` of the two
 transports --- and the tower computes a product coefficient as
 
     convCoeff R add mul zero f g k
       = foldF add zero (fun i => f_i · g_{k-i}) (k + 1)
 
 while mathlib computes it as a `Finset` sum. So before any polynomial statement
-there is an arithmetic one: an encoded finite sum IS a fold.
+there is an arithmetic one: an encoded finite sum is a fold.
 
-IT IS THE SAME RECURSION ON BOTH SIDES, so this is short:
+It is the same recursion on both sides, so this is short:
 
     foldF op e F 0        = e                     Finset.sum_range_zero
     foldF op e F (k + 1)  = opAt op (fold k) (F k) Finset.sum_range_succ
@@ -28,7 +28,7 @@ into `α`'s own. Nothing here mentions polynomials, ideals or Eisenstein --- it 
 a fact about `encode` and addition, and it is stated for an arbitrary
 `F : Nat → α` so that the product case is an instance rather than a repetition.
 
-WHY THE GENERAL FORM RATHER THAN THE ONE USE. The convolution needs it at
+Why the general form rather than the one use. The convolution needs it at
 `fun i => p.coeff i * q.coeff (k - i)`, but the same lemma is what any future
 row transporting a sum will want, and specialising it to the convolution would
 hide that behind a name mentioning polynomials.
@@ -67,7 +67,7 @@ theorem foldF_eq_encode_sum (F : Nat → α) (n : Nat) :
       = encode (∑ i ∈ Finset.range n, F i) :=
   (encode_sum_eq_foldF F n).symm
 
-/-- An encoded finite PRODUCT is a fold on the encoded carrier.
+/-- An encoded finite product is a fold on the encoded carrier.
 
 Word-for-word the additive proof with `(· * ·)` and `1` --- `foldF` and
 `opAt_opSet` are stated for an arbitrary operation, so nothing about the
@@ -75,7 +75,7 @@ additive one was specific to addition. It is here rather than in a `ProdFold`
 file for exactly that reason: one mechanism, and splitting it would hide that
 the second is free.
 
-`permProdOn mul one A g n` IS this fold at `F i = A i (g i)`, which is what the
+`permProdOn mul one A g n` is this fold at `F i = A i (g i)`, which is what the
 Leibniz row needs to cross the encoding. -/
 theorem encode_prod_eq_foldF (F : Nat → α) :
     ∀ n : Nat,

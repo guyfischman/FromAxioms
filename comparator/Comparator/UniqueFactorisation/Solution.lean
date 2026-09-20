@@ -11,16 +11,16 @@ SOLUTION: `challenge` discharged from `FromAxioms`.
       (∀ p ∈ l₁, IsPrime p) → (∀ p ∈ l₂, IsPrime p) →
       prodList l₁ = prodList l₂ → l₁.Perm l₂
 
-OURS IS THE SYMMETRIC FORM AND THE STRONGER OF THE TWO. mathlib's statement is
+Ours is the symmetric form and the stronger of the two. mathlib's statement is
 relative to the canonical `primeFactorsList n`; ours mentions no canonical list
 at all, so mathlib's is the instance at `l₂ := primeFactorsList n`. Nothing has
 to be transferred --- both sides are over Lean's `Nat`.
 
-TWO BRIDGING STEPS.
+Two bridging steps.
 
   * `prodList` versus `List.prod`: the same fold under two names, bridged by
     `prodList_eq_prod`, which takes no axioms.
-  * THE ZERO CASE. `primeFactorsList 0` is empty, so `prod_primeFactorsList`
+  * the zero case. `primeFactorsList 0` is empty, so `prod_primeFactorsList`
     carries a positivity hypothesis. It is discharged rather than assumed:
     `l.prod = 0` puts `0` in `l`, and `0` is not prime.
 

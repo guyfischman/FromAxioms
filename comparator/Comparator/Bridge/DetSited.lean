@@ -5,18 +5,18 @@ Authors: Guy Fischman
 -/
 
 /-
-THE DETERMINANT BRIDGE WITHOUT AN ENCODING --- `detT` against `Matrix.det`, over
+The determinant bridge without an encoding --- `detT` against `Matrix.det`, over
 the same Lean type.
 
 `DetTransfer.detN_encMat` reaches `Matrix.det` from the tower's `detN` by
 putting `α` into a `ZFSet` first, and that step --- `TypeTransfer.encode_injective`
 --- costs `Classical.choice`. The tower does not: `detN_mul` and `detT_mul` are
 both `[propext, Quot.sound]`. So the published pair's axiom line has carried a
-cost that is the BRIDGE's rather than the mathematics', which is what
+cost that is the bridge's rather than the mathematics', which is what
 `Comparator/Audit.lean`'s `surcharge` reports.
 
 `Algebra.detT` is the re-sited Laplace determinant: the same recursion with the
-entry type a PARAMETER and the ring operations as function arguments. This file
+entry type a parameter and the ring operations as function arguments. This file
 matches it against `Matrix.det` directly, and the proof is `detN_encMat`'s with
 the encode/decode removed --- lemma for lemma:
 
@@ -27,12 +27,12 @@ the encode/decode removed --- lemma for lemma:
     SumFold.foldF_eq_encode_sum     sumUptoT_eq_sum_range
     detN_congr_lt                   detT_congr_lt   (cited unchanged)
 
-WHAT THIS DOES NOT DO. It does not make a Solution choice-free.
+What this does not do. It does not make a Solution choice-free.
 `Matrix.det_fin_zero` --- the statement that the empty determinant is `1` ---
 itself prints `Classical.choice`, as do `Matrix.det_succ_row_zero`,
 `Fin.sum_univ_eq_sum_range` and `Finset.sum_range_succ`. Any theorem stated
-ABOUT `Matrix.det` carries it, whatever the tower under it costs. What this
-file removes is the SURCHARGE: the choice a pair pays over and above what
+about `Matrix.det` carries it, whatever the tower under it costs. What this
+file removes is the surcharge: the choice a pair pays over and above what
 mathlib's own statement of the same theorem already costs.
 -/
 import Comparator.Bridge.MatrixTransfer
@@ -60,20 +60,20 @@ theorem sign_eq_neg_one_pow (j : Nat) (t : α) :
   · rw [if_neg (by omega), Odd.neg_one_pow ⟨j / 2, by omega⟩, neg_one_mul]
 
 omit [CommRing α] in
-/-- The tower's minor is mathlib's submatrix ON THE SQUARE.
+/-- The tower's minor is mathlib's submatrix on the square.
 
-`Fin.succAbove j k` IS `if k < j then k else k + 1`, which is `matMinorT`'s
-reindexing, so the recursions line up with no bookkeeping step. They differ OFF
+`Fin.succAbove j k` is `if k < j then k else k + 1`, which is `matMinorT`'s
+reindexing, so the recursions line up with no bookkeeping step. They differ off
 the square, so the caller needs `detT_congr_lt` and not an equation of entry
 functions.
 
-THE RING IS NOT USED HERE AND THE LINTER SAID SO. This lemma is index
+The ring is not used here and the linter said so. This lemma is index
 arithmetic: it moves between `matMinorT`'s `if k < j then k else k + 1` and
 `Fin.succAbove`, and touches no operation on `α`. That is also why it is the one
 declaration in this file printing `[propext, Quot.sound]` --- everything else
 touches Mathlib's `Finset.sum` or parity API, which carries `Classical.choice`.
 
-The `omit` goes ABOVE the docstring, not between it and the `theorem`: a
+The `omit` goes above the docstring, not between it and the `theorem`: a
 docstring must attach directly to the declaration, so `omit … in` there is
 `unexpected token 'omit'`. Same placement rule as `set_option … in`. -/
 theorem matMinorT_submatrix {m : Nat} (M : Matrix (Fin (m + 1)) (Fin (m + 1)) α)
@@ -92,7 +92,7 @@ theorem matMinorT_submatrix {m : Nat} (M : Matrix (Fin (m + 1)) (Fin (m + 1)) α
     (j.succAbove ⟨k, hk⟩).isLt]
   rfl
 
-/-- THE TWO DETERMINANTS AGREE, WITH NO ENCODING.
+/-- The two determinants agree, with no encoding.
 
 `E` agrees with `M` on the square and is arbitrary off it, which is the shape a
 caller has: `detT` reads a `Nat`-indexed function and `Matrix.det` a
@@ -117,7 +117,7 @@ theorem detT_eq_det : ∀ (m : Nat) (M : Matrix (Fin m) (Fin m) α)
     show (if j % 2 = 0 then _ else -_) = g j
     rw [sign_eq_neg_one_pow, hg]
     simp only [dif_pos hj]
-    -- THE TARGET FUNCTION HAS TO BE NAMED. `detT_congr_lt`'s second matrix is
+    -- The target function has to be named. `detT_congr_lt`'s second matrix is
     -- implicit, and a `Fin`-indexed right-hand side leaves it a metavariable the
     -- unifier cannot solve -- the error reads as a mismatch on the minor and is
     -- a missing `F`.
@@ -137,7 +137,7 @@ theorem detT_eq_det : ∀ (m : Nat) (M : Matrix (Fin m) (Fin m) α)
       _root_.mul_assoc]
     congr 2
 
-/-- The tower's matrix product is mathlib's, ON THE SQUARE.
+/-- The tower's matrix product is mathlib's, on the square.
 
 `matMulOnT` is a bounded fold over the shared index; `Matrix.mul_apply` is a
 `Fin` sum. Same summand, and `Fin.sum_univ_eq_sum_range` moves between the two
@@ -150,9 +150,9 @@ theorem matMulOnT_mul {m : Nat} (M N : Matrix (Fin m) (Fin m) α)
     matMulOnT (· + ·) (· * ·) (0 : α) A B m i k = (M * N) ⟨i, hi⟩ ⟨k, hk⟩ := by
   set g : Nat → α := fun j =>
     if h : j < m then M ⟨i, hi⟩ ⟨j, h⟩ * N ⟨j, h⟩ ⟨k, hk⟩ else 0 with hg
-  -- THE `Fin` SUM HAS TO BE MOVED IN ITS OWN `have`, not inside the goal's
-  -- rewrite chain: `Matrix.mul_apply` leaves `∑ j : Fin m, …` on the RIGHT, and
-  -- `← Fin.sum_univ_eq_sum_range` looks for a RANGE sum, so the pattern is
+  -- The `Fin` sum has to be moved in its own `have`, not inside the goal's
+  -- rewrite chain: `Matrix.mul_apply` leaves `∑ j : Fin m, …` on the right, and
+  -- `← Fin.sum_univ_eq_sum_range` looks for a range sum, so the pattern is
   -- reported missing against a goal that visibly contains the sum. Same shape
   -- as `hdet` below.
   have hsum : (M * N) ⟨i, hi⟩ ⟨k, hk⟩ = ∑ j ∈ Finset.range m, g j := by

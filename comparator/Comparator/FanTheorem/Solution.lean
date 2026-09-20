@@ -7,21 +7,21 @@ Authors: Guy Fischman
 /-
 SOLUTION: `challenge` discharged from `FromAxioms`.
 
-THE TWO SIDES ARE ASYMMETRIC. `Challenge.lean` writes König's lemma for the
+The two sides are asymmetric. `Challenge.lean` writes König's lemma for the
 binary tree out in full, because the pinned Mathlib has König's theorem on
-CARDINALS and nothing about binary trees. This file is a translation and one
+cardinals and nothing about binary trees. This file is a translation and one
 citation, because the tower states the fan theorem as a named principle:
 
     Constructive.FANΔ : ∀ B, (∀ s, B s ∨ ¬ B s) → IsBar B → IsUniformBar B
     Constructive.fanΔ_of_decider (dec : ∀ q, Decider q) : FANΔ
 
-WHAT THE TWO SIDES SPEND, WHICH IS WHAT THE ROW WANTS MEASURED. Mathlib's proof
-DISCARDS the decidability hypothesis --- excluded middle in the foundation
+What the two sides spend, which is what the row wants measured. Mathlib's proof
+discards the decidability hypothesis --- excluded middle in the foundation
 decides every bar --- and spends the classical compactness argument instead.
 The tower's `fanΔ_of_decider` spends a decider for every proposition, which is
 `Constructive.em_of_decider`'s hypothesis and strictly more than the bar's own
 decidability; supplying it here from `Classical.propDecidable` is what makes
-`solution` audit with `Classical.choice`. NEITHER SIDE IS FREE, and that is the
+`solution` audit with `Classical.choice`. Neither side is free, and that is the
 honest reading of the row: the fan theorem is a principle in both libraries,
 and they differ in where the price is paid rather than in whether it is paid.
 

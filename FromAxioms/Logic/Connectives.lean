@@ -125,7 +125,7 @@ theorem not_not_intro {a : Prop} (ha : a) : Not (Not a) :=
 
 /-- Triple negation collapses, and constructively -- which is not in
 tension with the note above. Eliminating `Not (Not a)` for an arbitrary `a` is
-excluded middle (`Reverse.lean`); eliminating it for a NEGATION is a theorem,
+excluded middle (`Reverse.lean`); eliminating it for a negation is a theorem,
 because `not_not_intro` supplies the missing direction inside the proof.
 
 The converse is `not_not_intro` at `Not a`, so the two together say a negation

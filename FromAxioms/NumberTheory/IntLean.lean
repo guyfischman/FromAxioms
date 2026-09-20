@@ -18,7 +18,7 @@ bijection from Lean's `Int` onto `ZFSet.Int` carrying `+` to `intAdd`, `*` to
 `intMul`, and negation to `intNeg`. So the two are the same object, checked
 rather than read.
 
-THE MAP NEEDS NO CASE SPLIT, because `intOf a b` already denotes `a - b`:
+The map needs no case split, because `intOf a b` already denotes `a - b`:
 sending `k` to `intOf k.toNat (-k).toNat` is uniform in the sign, and one of
 the two components is `0` in either case.
 -/
@@ -65,7 +65,7 @@ theorem intOfLean_mul (k l : _root_.Int) :
     (ofNat_mem_omega _) (ofNat_mem_omega _), mul_ofNat, mul_ofNat, mul_ofNat,
     mul_ofNat, add_ofNat, add_ofNat]
   refine (intOfLean_eq_intOf ?_).symm
-  -- `(a - b)·(c - d) = (a·c + b·d) - (a·d + b·c)`, over NATURALS. `omega`
+  -- `(a - b)·(c - d) = (a·c + b·d) - (a·d + b·c)`, over naturals. `omega`
   -- cannot multiply, but it treats a product it cannot expand as an atom, and
   -- with `a b c d` plain variables the four products are exactly four atoms.
   -- Phrased directly about `k.toNat` the same proof fails: rewriting `k` into

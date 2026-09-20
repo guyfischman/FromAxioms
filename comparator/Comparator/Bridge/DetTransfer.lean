@@ -5,10 +5,10 @@ Authors: Guy Fischman
 -/
 
 /-
-THE TWO DETERMINANTS AGREE, and that is the theorem here; the rest is a change
+The two determinants agree, and that is the theorem here; the rest is a change
 of carrier.
 
-They are NOT the same definition:
+They are not the same definition:
 
     tower     `detN` (`PolyRing.lean:10307`) --- Laplace along row 0, with the
               sign as `Nat` PARITY: `if j % 2 = 0 then t else -t`
@@ -16,16 +16,16 @@ They are NOT the same definition:
               as `Equiv.Perm.sign`
 
 Reconstructing permutation parity in a constructive setting would be a serious
-piece of work. It is not needed: mathlib proves its OWN Laplace expansion,
+piece of work. It is not needed: mathlib proves its own Laplace expansion,
 `Matrix.det_succ_row_zero`, so the two meet by induction on the size and the
 permutation sign never has to be transported.
 
-THE MINORS ALREADY MATCH. The tower's `matMinor E j = fun i k => E (i+1) (if k < j
+The minors already match. The tower's `matMinor E j = fun i k => E (i+1) (if k < j
 then k else k+1)` and mathlib's `A.submatrix Fin.succ j.succAbove` are the same
-reindexing, because `Fin.succAbove j k` IS `if k < j then k else k+1`. So the
+reindexing, because `Fin.succAbove j k` is `if k < j then k else k+1`. So the
 recursions line up term by term and the induction has no bookkeeping step.
 
-TWO LEMMAS THIS TREE ALREADY HAD, and finding them is most of why this is short:
+Two lemmas this tree already had, and finding them is most of why this is short:
 `detN_congr_lt` (`PolyRing.lean:13301`) says a determinant reads only the
 entries inside its own square --- needed because `matMinor (encMat M) j` and
 `encMat (M.submatrix ...)` agree on the square and differ on the junk outside
@@ -44,14 +44,14 @@ namespace Comparator.DetTransfer
 
 variable {α : Type} [CommRing α]
 
-/-- The tower's minor of a transported matrix agrees, ON ITS OWN SQUARE, with
+/-- The tower's minor of a transported matrix agrees, on its own square, with
 the transport of mathlib's submatrix. They differ off it, so `detN_congr_lt`
 rather than an equation of entry functions. -/
 theorem matMinor_encMat {m : Nat} (M : Matrix (Fin (m + 1)) (Fin (m + 1)) α)
     (j : Fin (m + 1)) (i k : Nat) (hi : i < m) (hk : k < m) :
     matMinor (encMat M) j.val i k
       = encMat (M.submatrix Fin.succ j.succAbove) i k := by
-  -- The two reindexings agree as NATURALS first; everything else is `encMat`'s
+  -- The two reindexings agree as naturals first; everything else is `encMat`'s
   -- computation rule at the corresponding `Fin`s.
   have hidx : (if k < j.val then k else k + 1) = (j.succAbove ⟨k, hk⟩).val := by
     rw [Fin.succAbove]
@@ -64,11 +64,11 @@ theorem matMinor_encMat {m : Nat} (M : Matrix (Fin (m + 1)) (Fin (m + 1)) α)
   rw [hidx,
     show i + 1 = ((⟨i, hi⟩ : Fin m).succ : Fin (m + 1)).val from rfl,
     encMat_apply M ((⟨i, hi⟩ : Fin m).succ) (j.succAbove ⟨k, hk⟩)]
-  -- The remaining side is closed by `encMat`'s rule read BACKWARDS: rewriting
+  -- The remaining side is closed by `encMat`'s rule read backwards: rewriting
   -- `i` to `(⟨i, hi⟩ : Fin m).val` fails its motive, since `hi` mentions `i`.
   exact (encMat_apply (M.submatrix Fin.succ j.succAbove) ⟨i, hi⟩ ⟨k, hk⟩).symm
 
-/-- The encoded negation is the encoding of the negation. `ringNeg` is THE
+/-- The encoded negation is the encoding of the negation. `ringNeg` is the
 additive inverse, so uniqueness settles it: `encode a + encode (-a)` is
 `encode 0` by `opAt_opSet`, and `ringNeg_eq_of_add_zero` reads off the rest. -/
 theorem ringNeg_encode (a : α) :
@@ -89,7 +89,7 @@ theorem ringSign_encode (j : Nat) (a : α) :
   · rw [if_neg (by omega), ringNeg_encode,
       Odd.neg_one_pow ⟨j / 2, by omega⟩, neg_one_mul]
 
-/-- THE TWO DETERMINANTS AGREE. Induction on the size: mathlib's
+/-- The two determinants agree. Induction on the size: mathlib's
 `det_succ_row_zero` is its own Laplace expansion along row 0, which is how
 `detN` is defined, so the step is term-by-term. `detN_congr_lt` handles the junk
 outside the square, `matMinor_encMat` matches the minors, and `SumFold` turns

@@ -7,25 +7,25 @@ Authors: Guy Fischman
 import Mathlib.Data.Prod.Basic
 
 /-!
-# The challenge: an ordered pair is determined by its coordinates, in MATHLIB's words
+# The challenge: an ordered pair is determined by its coordinates, in Mathlib's words
 
 `Prod` and its `(a, b)` notation are Mathlib's. `Prod.mk.injEq` and `Prod.ext`
-are NOT named, and the Solution may not close this by `simp` --- which would
+are not named, and the Solution may not close this by `simp` --- which would
 discharge it from the inductive's own injectivity and use nothing else.
 
 ## Which statement, and why it is the right one to ask for
 
 This is the row `the ⟨a,b⟩ = {{a},{a,b}} encoding`, whose whole content is that
-the KURATOWSKI encoding reproduces the defining property of an ordered pair.
+the Kuratowski encoding reproduces the defining property of an ordered pair.
 Mathlib gets that property for free: `Prod` is an inductive with two fields, so
 injectivity is a constructor fact and there is nothing to prove. The tower has no
-primitive product --- it has sets --- so it must DERIVE the same property for
+primitive product --- it has sets --- so it must derive the same property for
 `opair a b = {{a}, {a,b}}`, which is `CategoryTheory`-free set theory and takes a
 genuine argument (`opair_injective`, four cases through
 `pair_eq_singleton_iff`).
 
-So the comparison is exactly the interesting one: mathlib ASSUMES what the tower
-PROVES, and this pair checks that what the tower proves really is what mathlib
+So the comparison is exactly the interesting one: mathlib assumes what the tower
+proves, and this pair checks that what the tower proves really is what mathlib
 assumes.
 
 ## Why the Solution is not circular

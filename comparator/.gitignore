@@ -1,5 +1,5 @@
 # Lake's build and dependency tree. `comparator/.lake/packages/mathlib` is a
-# full Mathlib checkout --- it is a DEPENDENCY, resolved by
+# full Mathlib checkout --- it is a dependency, resolved by
 # `lake update` from the pinned tag in `lakefile.toml`, and must never enter
 # this repository's history.
 #

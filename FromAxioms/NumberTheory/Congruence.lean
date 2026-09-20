@@ -8,7 +8,7 @@ Authors: Guy Fischman
 # Congruences, and the Chinese remainder theorem
 
 The first step of the arithmetic that discharges the incompleteness hypotheses
-(QUEUE: representability). Gödel's β-function codes a finite sequence as a pair
+(queue: representability). Gödel's β-function codes a finite sequence as a pair
 of numbers, and it works because the moduli it uses are pairwise coprime and the
 remainder theorem then recovers each entry.
 

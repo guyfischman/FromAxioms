@@ -9,7 +9,7 @@ CHALLENGE: the ordered pair has the universal property of a product.
 
 Mathlib's vocabulary: `Prod`, `Prod.fst`, `Prod.snd`, `∃!`.
 
-WHICH ROW, AND WHY THIS STATEMENT RATHER THAN INJECTIVITY. The row is `ordered
+Which row, and why this statement rather than injectivity. The row is `ordered
 pair from sets`, whose `mathlib` field reads `Prod (primitive) / ZFSet.pair` and
 whose `mathlib_form` names `SetTheory.opair_isProd` --- the tower's four-clause
 bundle: two projection rules, an eta rule, and injectivity.
@@ -17,13 +17,13 @@ bundle: two projection rules, an eta rule, and injectivity.
 Injectivity alone is already paired, at `comparator/Comparator/PairEncoding/`,
 credited to the row `the ⟨a,b⟩ = {{a},{a,b}} encoding`. Restating it over an
 arbitrary type would be a generalisation of an existing pair rather than a new
-one. The UNIVERSAL PROPERTY is the statement the other three clauses are for, and
+one. The universal property is the statement the other three clauses are for, and
 no pair on this track carries it: a pair of maps out of any type factors through
 the product, uniquely.
 
-WHERE THE CONTENT SITS, WHICH IS NOT WHERE IT LOOKS. Existence is `rfl` in Lean
+Where the content sits, which is not where it looks. Existence is `rfl` in Lean
 --- `fun z => (f z, g z)` satisfies both equations by computation, because
-`Prod` is a primitive with definitional projections. UNIQUENESS is the half with
+`Prod` is a primitive with definitional projections. Uniqueness is the half with
 mathematics in it: it needs that a pair is determined by its coordinates, which
 mathlib gets from `Prod.ext` and the tower has to prove about the Kuratowski
 encoding. `Solution.lean` therefore routes uniqueness through

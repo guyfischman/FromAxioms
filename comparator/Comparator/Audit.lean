@@ -1,5 +1,5 @@
 /-
-THE AUDIT: is each `solution` really this tower's proof of Mathlib's statement?
+The audit: is each `solution` really this tower's proof of Mathlib's statement?
 
 A pair claims two things, and prose can assert either. This file asks Lean for
 both, because every compiled proof term carries its constant dependencies and
@@ -7,29 +7,29 @@ every constant knows which module declared it. `open`, helper indirection,
 notation and elaboration are all resolved by the time the term exists, so there
 is nothing left for a grep to miss.
 
-  THE PROOF USES THIS TOWER. A `solution` must reach a PROPOSITION declared
-  under `FromAxioms/`. Reaching tower DATA is not enough and was the first
+  The proof uses this tower. A `solution` must reach a proposition declared
+  under `FromAxioms/`. Reaching tower data is not enough and was the first
   version's mistake: `ZFSet`, `SetTheory.sep` and `Analysis.IsCut` are reached
   through the types of encoded terms, so a Solution that pushed everything
   through the encoding and then argued about it in Mathlib would show exactly
   those, having derived none of it.
 
-  THE PROOF IS NOT MATHLIB'S. `challenge_is_mathlibs` discharges the challenge
-  FROM Mathlib, so the Mathlib theorems it reaches are the ones Mathlib itself
+  The proof is not Mathlib's. `challenge_is_mathlibs` discharges the challenge
+  from Mathlib, so the Mathlib theorems it reaches are the ones Mathlib itself
   uses to prove this statement. A `solution` reaching any of them is using
   Mathlib's proof of the very theorem it claims to have matched.
 
-WHY THE SECOND IS AN INTERSECTION AND NOT A BAN. A pair stated over `ℝ` must
+Why the second is an intersection and not a ban. A pair stated over `ℝ` must
 reach Mathlib propositions to relate `ℝ` to this tower's reals at all, and a
 transfer is not a proof of the theorem. So every Mathlib theorem a solution
-reaches is REPORTED, and only the ones Mathlib's own proof uses are a finding.
+reaches is reported, and only the ones Mathlib's own proof uses are a finding.
 
-WHAT IT STILL CANNOT SEE, said plainly so the next reader does not overtrust
-it: whether the tower constant is LOAD-BEARING rather than incidental. A proof
+What it still cannot see, said plainly so the next reader does not overtrust
+it: whether the tower constant is load-bearing rather than incidental. A proof
 could depend on a tower lemma in a step some Mathlib lemma would also close.
 Only removing the citation and rebuilding settles that, one pair at a time.
 -/
--- `import Lean` IS NOT INCIDENTAL. This file asks the environment about
+-- `import Lean` is not incidental. This file asks the environment about
 -- constants, and nothing under `FromAxioms/` imports Lean's meta library: the
 -- tower is `prelude` at the root and pulls in as little as it can. A pair that
 -- happened to import Mathlib would drag `Lean` in behind it and hide the need.
@@ -54,7 +54,7 @@ namespace Comparator.Audit
 
 /-- The module that declared this constant.
 
-DEFINED HERE RATHER THAN IMPORTED. `Environment.getModuleFor?` is Mathlib's,
+Defined here rather than imported. `Environment.getModuleFor?` is Mathlib's,
 and an audit that reached for it would be asking Mathlib to help check whether
 Mathlib was used. Core gives the index and the header gives the names. -/
 def moduleOf (env : Environment) (n : Name) : Option Name := do
@@ -93,15 +93,15 @@ partial def depsOf (env : Environment) (stop : Environment → Name → Bool)
     | none => return
   | none => return
 
-/-- A constant carrying PROOF CONTENT rather than statement vocabulary.
+/-- A constant carrying proof content rather than statement vocabulary.
 
-A THEOREM IS PROOF; A DEFINITION IS VOCABULARY. Both halves of a pair elaborate
+A theorem is proof; A definition is vocabulary. Both halves of a pair elaborate
 the same statement, so both reach the instances and class fields of whatever
 the statement mentions.
 
-THE TRAP IS THE `Prop`-CLASS. `Archimedean`, `IsWellFounded` and
+The trap is the `Prop`-class. `Archimedean`, `IsWellFounded` and
 `IsOrderedAddMonoid` are all `Prop`, so `Real.instArchimedean` is stored as a
-THEOREM and passes a theorem test while being nothing more than the statement
+theorem and passes a theorem test while being nothing more than the statement
 being able to mention `ℝ`. Counting those accused 18 of 60 solutions of resting
 on Mathlib's proof, and a check that reports the unavoidable trains its reader
 to skip it. Excluding instances, class fields and tactic internals leaves the
@@ -116,11 +116,11 @@ def isProofContent (env : Environment) (n : Name) : MetaM Bool := do
     return true
   | _ => return false
 
-/-- Is this the name of a Solution MODULE, `Comparator.<Pair>.Solution`? -/
+/-- Is this the name of a Solution module, `Comparator.<Pair>.Solution`? -/
 def isSolutionModule (m : Name) : Bool :=
   m.getRoot == `Comparator && m.getString! == "Solution"
 
-/-- Every pair's `solution`, found BY DECLARING MODULE rather than by name, so
+/-- Every pair's `solution`, found by declaring module rather than by name, so
 a pair whose theorem is spelled differently cannot go silently unaudited. -/
 def solutionNames (env : Environment) : Array Name :=
   env.constants.fold (init := #[]) fun acc n _ =>
@@ -171,7 +171,7 @@ def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.ProductUniversal, `none),
   (`Comparator.Soundness, `none)]
 
-/-- Does `start`'s proof term reach `target`, DESCENDING INTO MATHLIB?
+/-- Does `start`'s proof term reach `target`, descending into Mathlib?
 
 The other walks stop at the first Mathlib constant, which is right for asking
 what a proof leans on and wrong here: a solution that calls some Mathlib lemma
@@ -212,12 +212,12 @@ def report : MetaM Unit := do
       | none => pure ()
     if props.isEmpty then
       noProp := noProp + 1
-      IO.println s!"NO TOWER PROPOSITION  {n}   (tower data reached: {data.size})"
+      IO.println s!"no tower proposition  {n}   (tower data reached: {data.size})"
       if fuel == 0 then IO.println "    (fuel exhausted -- inconclusive, not a verdict)"
     else
       IO.println s!"ok  {n}   tower props={props.size} data={data.size}"
       for c in props.toList.take 3 do IO.println s!"      {c}"
-    -- THE CHECK THAT FAILS THE BUILD. A pair is void if its solution reaches
+    -- The check that fails the build. A pair is void if its solution reaches
     -- the theorem it claims to match. Sharing `one_mul` with Mathlib's proof is
     -- not that: any proof of a ring identity over Mathlib's `R` has to use
     -- Mathlib's lemmas about `R`, so the intersection below reports and does
@@ -226,22 +226,22 @@ def report : MetaM Unit := do
     match pair.bind (fun p => (matched.find? (·.1 == p)).map (·.2)) with
     | none =>
       calls := calls + 1
-      IO.println s!"    NO MATCHED THEOREM registered for this pair"
+      IO.println s!"    no matched theorem registered for this pair"
     | some tgt =>
-      -- A PAIR CAN HAVE NO COUNTERPART. `pair-encoding` matches a definitional
+      -- A pair can have no counterpart. `pair-encoding` matches a definitional
       -- convention rather than a theorem, and its registry says `mathlib:
       -- none`, so there is nothing to reach and nothing to check. Reported,
       -- because a pair nothing can check should say so, and not failed.
       if tgt == `none || tgt == `«n/a» then
-        IO.println s!"    NO MATHLIB COUNTERPART -- unchecked by this rule"
+        IO.println s!"    no Mathlib counterpart -- unchecked by this rule"
       else if !env.contains tgt then
         calls := calls + 1
-        IO.println s!"    MATCHED THEOREM `{tgt}` DOES NOT EXIST in this Mathlib"
+        IO.println s!"    matched theorem `{tgt}` does not exist in this Mathlib"
       else
         let ((), (hit, _, left)) := (reaches env tgt n).run (false, {}, 2000000)
         if hit then
           calls := calls + 1
-          IO.println s!"    CALLS THE THEOREM IT MATCHES: `{tgt}`"
+          IO.println s!"    calls the theorem it matches: `{tgt}`"
         else if left == 0 then
           calls := calls + 1
           IO.println s!"    INCONCLUSIVE -- fuel exhausted before `{tgt}` was ruled out"
@@ -249,7 +249,7 @@ def report : MetaM Unit := do
           IO.println s!"    does not reach `{tgt}`"
     let (mine, _) ← mathlibTheorems env n
     match witnessFor env n with
-    | none => IO.println s!"    NO WITNESS -- no `challenge_is_*` certifies this statement"
+    | none => IO.println s!"    no witness -- no `challenge_is_*` certifies this statement"
     | some w =>
       let (theirs, _) ← mathlibTheorems env w
       let wset := theirs.foldl (init := ({} : NameSet)) fun s x => s.insert x
@@ -271,24 +271,24 @@ proof (reported, not failed): {onMathlib}"
 
 /-- **The per-pair verdict, written to `PAIRS.md`.**
 
-WHAT A READER WANTS FROM A PAIR is three things at once: that the proof is
+What a reader wants from a pair is three things at once: that the proof is
 correct, that it is as general as the theorem it matches, and what it costs in
 axioms. The evidence for those is scattered -- the build settles the first, the
 challenge's binders carry the second, and the axiom lines are per declaration --
 so this assembles what the kernel can answer into one table.
 
-TWO OF THE THREE ARE MECHANICAL AND THE THIRD IS NOT. Correctness and cost are
-computed here. GENERALITY IS NOT: whether `∀ (R : Type) [CommRing R] (m : Nat)`
+Two of the three are mechanical and the third is not. Correctness and cost are
+computed here. Generality is not: whether `∀ (R : Type) [CommRing R] (m : Nat)`
 matches a Mathlib statement quantified over `[Fintype n] [DecidableEq n]` is a
 reading of two binder lists, and a table that guessed at it would be the
 confident-and-wrong kind. `formalization.yaml` carries that per pair, in prose,
 where it can be qualified.
 
-THE COST COLUMN IS THE ONE THAT NEEDS ITS BASELINE STATED. A pair whose Mathlib
+The cost column is the one that needs its baseline stated. A pair whose Mathlib
 statement mentions `Matrix.det` cannot print without `Classical.choice`, because
 `Matrix.det` carries it: no route avoids it, and the pair is not paying for its
-own construction. So the surcharge is measured against BOTH what the tower
-theorems need AND what Mathlib's own proof of the challenge costs, and it is the
+own construction. So the surcharge is measured against both what the tower
+theorems need and what Mathlib's own proof of the challenge costs, and it is the
 part that says whether the pair spent anything of its own. -/
 def writePairs : MetaM Unit := do
   let env ← getEnv
@@ -318,11 +318,11 @@ def writePairs : MetaM Unit := do
     let extra := paid.filter (fun a => !owed.contains a && !mathlibs.contains a)
     rows := rows.push (n, certified, paid, props, owed, applied, extra)
   let mut out := "# The pairs, and what each one establishes\n\n"
-  out := out ++ "Generated by `Comparator/Audit.lean` on every `lake build` in `comparator/`.\nEach row is what the kernel answers about one pair.\n\nA PAIR IS CERTIFIED AS MATHLIB'S AND CARRIES NO SURCHARGE UNLESS ITS ROW SAYS\nOTHERWISE. `challenge_is_mathlibs` proves the challenge FROM Mathlib, so the\nproposition is Mathlib's rather than ours; a pair without that witness is\nmarked `NOT CERTIFIED`, and one paying beyond both sides carries a\n`surcharge` line.\n\n`rests on` counts the propositions proved under `FromAxioms/` that the proof\nactually reaches; a pair reaching none has not used this library.\n\nA surcharge is what a pair pays beyond both the tower theorems it uses and\nMathlib's own proof of the same statement. A statement whose vocabulary carries\n`Classical.choice` costs it whoever proves it, so that is charged to neither\nside.\n\nGenerality is NOT here. Comparing two binder lists is a reading rather than a\ncomputation, so `formalization.yaml` carries it per pair, where it can say that\na pair is narrower than what it matches.\n\n"
+  out := out ++ "Generated by `Comparator/Audit.lean` on every `lake build` in `comparator/`.\nEach row is what the kernel answers about one pair.\n\nA pair is certified as Mathlib's and carries no surcharge unless its row\nsays otherwise. `challenge_is_mathlibs` proves the challenge from Mathlib, so the\nproposition is Mathlib's rather than ours; a pair without that witness is\nmarked `not certified`, and one paying beyond both sides carries a\n`surcharge` line.\n\n`rests on` counts the propositions proved under `FromAxioms/` that the proof\nactually reaches; a pair reaching none has not used this library.\n\nA surcharge is what a pair pays beyond both the tower theorems it uses and\nMathlib's own proof of the same statement. A statement whose vocabulary carries\n`Classical.choice` costs it whoever proves it, so that is charged to neither\nside.\n\nGenerality is not here. Comparing two binder lists is a reading rather than a\ncomputation, so `formalization.yaml` carries it per pair, where it can say that\na pair is narrower than what it matches.\n\n"
   for (n, cert, paid, props, owed, applied, extra) in rows do
     out := out ++ s!"## `{n}`\n\n"
     if cert != "yes" then
-      out := out ++ "- NOT CERTIFIED: no `challenge_is_mathlibs` proves this\n"
+      out := out ++ "- not certified: no `challenge_is_mathlibs` proves this\n"
     out := out ++ s!"- this pair costs: `{paid.toList}`\n"
     out := out ++ s!"- rests on {props.size} tower proposition(s), costing `{owed.toList}`\n"
     for c in props.toList.take 4 do out := out ++ s!"    - `{c}`\n"

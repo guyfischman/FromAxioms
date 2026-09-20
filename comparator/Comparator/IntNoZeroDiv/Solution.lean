@@ -7,7 +7,7 @@ Authors: Guy Fischman
 /-
 SOLUTION: `challenge` discharged from `FromAxioms`.
 
-THE MATHEMATICS IS `NumberTheory.intMul_ne_zero` and `NumberTheory.intMul_neg`,
+The mathematics is `NumberTheory.intMul_ne_zero` and `NumberTheory.intMul_neg`,
 both about the tower's ZFSet integers:
 
     intMul_ne_zero (hz : z ∈ Int) (hw : w ∈ Int) (hz0 : z ≠ intZero)
@@ -19,18 +19,18 @@ The first is derived there from `intMul_left_cancel`, the second from
 `intMul_comm` and `intNeg_mul`. `Int.mul_eq_zero`, `mul_eq_zero` and `mul_neg`
 are not cited.
 
-NO BRIDGE. `NumberTheory.intOfLean` is the TOWER's map from Lean's core `Int`
+No bridge. `NumberTheory.intOfLean` is the tower's map from Lean's core `Int`
 into its own, with `intOfLean_mul`, `intOfLean_neg`, `intOfLean_zero` and
 `intOfLean_injective` beside it. So this Solution imports one tower file and
 nothing from `comparator/Comparator/Bridge/`, because the tower reached out to
 Lean's integers itself.
 
-THE TRANSLATION LAWS ARE USED BUT NOT PAIRED. `intOfLean_mul` carries the
-statement across; the CONTENT is `intMul_ne_zero`, which no homomorphism law
+The translation laws are used but not paired. `intOfLean_mul` carries the
+statement across; the content is `intMul_ne_zero`, which no homomorphism law
 implies --- a ring homomorphism from `ℤ` to a ring with zero divisors exists,
 so the transport alone could not give the challenge.
 
-DIRECTION OF `intOfLean_mul`. It is stated as
+Direction of `intOfLean_mul`. It is stated as
 `intMul (intOfLean k) (intOfLean l) = intOfLean (k * l)`, product first, so the
 rewrites below go from the tower's operation to Lean's and the `←` appears where
 the goal has a Lean product to break apart.

@@ -7,7 +7,7 @@ Authors: Guy Fischman
 /-
 # Counting a disjoint union.
 
-`equinumerous_union_disjoint` counts TWO disjoint blocks. Every counting
+`equinumerous_union_disjoint` counts two disjoint blocks. Every counting
 argument over a partition wants that iterated, and this is it.
 
 The statement is a divisibility invariant rather than a sum. Writing the

@@ -359,7 +359,7 @@ theorem ratAdd_neg {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
   refine (ratOf_eq_ratOf_iff intZero_mem_Int hbb intZero_mem_Int one_mem_intPositive).mpr ?_
   rw [intZero_mul (intPositive_subset _ one_mem_intPositive), intZero_mul (intPositive_subset _ hbb)]
 
-/-! THE LEFT FORM IS ALREADY BELOW, at `ratAdd_left_cancel`, and I landed a
+/-! The left form is already below, at `ratAdd_left_cancel`, and I landed a
 duplicate of it here before the build caught the clash.
 
 The right form above is genuinely absent; only the left one was the duplicate.
@@ -639,7 +639,7 @@ def ratLt (r s : ZFSet.{u}) : Prop := ratLe r s ∧ r ≠ s
 
 /-! ### What the order does at an argument that is not a rational
 
-`ratLe` names `ratOf` on BOTH sides, so neither argument can be a set that is
+`ratLe` names `ratOf` on both sides, so neither argument can be a set that is
 not one of those classes. The consequences are three one-liners, and they
 matter because `realLOf` is total: it accepts any `ZFSet`, so every interval
 `realLIcc p q` is defined at junk endpoints too, and these fix what it means
@@ -654,17 +654,17 @@ theorem ratOf_ne_empty {a b : ZFSet.{u}} (ha : a ∈ Int.{u})
   rw [h] at hmem
   exact not_mem_empty _ hmem
 
-/-- Nothing is `≤ empty`, since the RIGHT side of `ratLe` must be a `ratOf`. -/
+/-- Nothing is `≤ empty`, since the right side of `ratLe` must be a `ratOf`. -/
 theorem not_ratLe_empty_right {t : ZFSet.{u}} : ¬ ratLe t empty.{u} := by
   rintro ⟨-, -, c, d, -, -, hc, hd, -, hs, -⟩
   exact ratOf_ne_empty hc hd hs.symm
 
-/-- And `empty` is below nothing, since the LEFT side must be one too. -/
+/-- And `empty` is below nothing, since the left side must be one too. -/
 theorem not_ratLe_empty_left {t : ZFSet.{u}} : ¬ ratLe empty.{u} t := by
   rintro ⟨a, b, -, -, ha, hb, -, -, hr, -, -⟩
   exact ratOf_ne_empty ha hb hr.symm
 
-/-- So the rationals STRICTLY ABOVE a non-rational form the empty set --- which
+/-- So the rationals strictly above a non-rational form the empty set --- which
 is the upper half of `realLOf` at such an argument. -/
 theorem ratUpper_empty :
     sep (fun p => ratLt empty.{u} p) Rat.{u} = empty.{u} := by
@@ -1018,7 +1018,7 @@ theorem ratMul_neg {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
       ratMul_ratOf ha hb hc hd, ratNeg_ratOf (intMul_mem_Int ha hc)
         (intMul_mem_intPositive hb hd), intMul_neg ha hc]
 
-/-- Negation in the LEFT factor. `ratMul_neg` states it for the right one;
+/-- Negation in the left factor. `ratMul_neg` states it for the right one;
 this is that lemma with `ratMul_comm` on either side. -/
 theorem ratNeg_mul {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratMul (ratNeg r) s = ratNeg (ratMul r s) := by
@@ -2285,7 +2285,7 @@ theorem ratInv_ratNat {m : Nat} (hm : 0 < m) :
   have h1 : intOfNat.{u} 1 ∈ intPositive.{u} :=
     intOfNat_mem_intPositive (by omega)
   have hmP : intOfNat.{u} m ∈ intPositive.{u} := intOfNat_mem_intPositive hm
-  -- non-zero comes straight from POSITIVITY. Going via `intOfNat_injective`
+  -- non-zero comes straight from positivity. Going via `intOfNat_injective`
   -- makes Lean unify `intZero` (which is `intOf empty empty`) with `intOfNat ?k`
   -- and it grinds to a whnf timeout; `intPositive_ne_zero` sidesteps it.
   exact ratInv_ratOf (intOfNat_mem_Int m) h1 (intOfNat_mem_Int 1) hmP
@@ -2383,7 +2383,7 @@ theorem ratNat_add_same_denom {a c q : Nat} (hq : 0 < q) :
     ratOf_add_same_denom (intOfNat_mem_Int a) (intOfNat_mem_Int c)
       (intOfNat_mem_intPositive hq), intOfNat_add]
 
-/-- Addition of numerals at DIFFERENT scales. `ratNat_add_same_denom` covers
+/-- Addition of numerals at different scales. `ratNat_add_same_denom` covers
 the shared-denominator case, which is what this file's own proofs needed;
 anything comparing bracket endpoints built at two scales wants this one. -/
 theorem ratNat_add {a b c d : Nat} (hb : 0 < b) (hd : 0 < d) :
@@ -2438,7 +2438,7 @@ theorem intToRat_mul {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u})
 /-- One denominator cleared. A rational becomes an integer after
 multiplication by a positive integer.
 
-Stated as an EXISTENTIAL: naming the denominator as DATA would extract a
+Stated as an existential: naming the denominator as data would extract a
 witness from `mem_Rat_iff` and cost `Classical.choice`; here every extraction
 happens inside a proof, where it is free. -/
 theorem exists_clear_denom {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
@@ -2492,7 +2492,7 @@ theorem exists_common_denom {T : Nat → ZFSet.{u}} :
             intToRat_mul hnI hmI]
 
 /-- The map `Z -> Q` is injective.  What makes the cleared polynomial
-definable by SEPARATION rather than by choosing a numerator for each
+definable by separation rather than by choosing a numerator for each
 coefficient: the graph `{(i,a) : N * F i = intToRat a}` is single-valued
 because of this, so it is a function without any witness being named. -/
 theorem intToRat_inj {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u})
@@ -2506,7 +2506,7 @@ theorem intToRat_inj {a c : ZFSet.{u}} (ha : a ∈ Int.{u}) (hc : c ∈ Int.{u})
 
 `theOnly` carves the numerator out of the class: `a/1` is the class holding
 `opair a intOne`, and the cross-multiplication in `mem_ratOf_iff` forces that
-element to be unique, so the integer is NAMED rather than chosen. A cleared
+element to be unique, so the integer is named rather than chosen. A cleared
 polynomial is therefore built by `polyOfSeq` with no witness selected. -/
 def intOfRat (r : ZFSet.{u}) : ZFSet.{u} :=
   theOnly (fun x => opair x intOne.{u} ∈ r) Int.{u}
@@ -2550,7 +2550,7 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 
 /-- The same subtraction when it goes the other way.
 
-`ratNat_sub` needs `b <= a` because `ratNat` carries a NATURAL numerator and
+`ratNat_sub` needs `b <= a` because `ratNat` carries a natural numerator and
 has nowhere to put a negative one. When the difference is negative the answer
 still lives in the numerals, one `ratNeg` outside: negating both sides turns
 `a/d - b/d` into `b/d - a/d`, which `ratNat_sub` does handle.
@@ -2667,7 +2667,7 @@ theorem ratNeg_nonpos {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
 /-! ### Powers
 
 `intPow` is `Field.lean`'s; this is its rational mirror, wanted wherever a
-RATIO is iterated -- a contraction's estimate, a geometric series. -/
+ratio is iterated -- a contraction's estimate, a geometric series. -/
 
 /-- `q^n`, mirroring `intPow`. -/
 def ratPow (q : ZFSet.{u}) : Nat -> ZFSet.{u}
@@ -2707,7 +2707,7 @@ theorem ratPow_ratNat (p : Nat) (k : Nat) :
 
 #print axioms ratPow_ratNat
 
-/-- `n * d`, built by ITERATION rather than as a numeral times `d`.
+/-- `n * d`, built by iteration rather than as a numeral times `d`.
 
 Deliberate: `ratNat n 1` would need `ratNat 0 1 = ratZero` for the base case and
 the library has no such lemma -- `ratNat p q` is `ratOf (intOfNat p) (intOfNat
@@ -2835,7 +2835,7 @@ step, `ratPow_mul` collapses the middle, and `ratPow_le_one` closes it:
     c^n * (1 + n*d)  <=  c^n * (1+d)^n  =  (c * (1+d))^n  <=  1
 
 The textbook route inverts Bernoulli into `c^n <= 1/(1 + n*d)`, which needs
-`ratInv` of a PRODUCT -- and this library's inverse API is entirely
+`ratInv` of a product -- and this library's inverse API is entirely
 order-theoretic, with no multiplicative lemma at all. A consumer wanting
 `c^n < eps` multiplies instead of dividing: choose `n` with
 `1 < eps * (1 + n*d)`. -/
@@ -2922,7 +2922,7 @@ theorem one_sub_mul_ratGeomSum {c : ZFSet.{u}} (hc : c ∈ Rat.{u}) :
         ratAdd_comm (ratNeg_mem_Rat hck) hck, ratAdd_neg hck,
         ratZero_add (ratNeg_mem_Rat hck1)]
 
-/-- `0/q` is zero. MOVED here from `Omniscience.lean`, which is downstream and
+/-- `0/q` is zero. Moved here from `Omniscience.lean`, which is downstream and
 could not lend it to the Archimedean step below; the proof is that file's. -/
 theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
   rw [ratZero_eq_ratNat, ratNat_eq_iff hq (by omega)]
@@ -2930,7 +2930,7 @@ theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
 
 /-- `k/1` is non-negative, for every `k`.
 
-`ratNat_pos` is the STRICT form and needs `0 < k`. This one holds at zero too
+`ratNat_pos` is the strict form and needs `0 < k`. This one holds at zero too
 and needs nothing. `realLOf_ratNat_one_nonneg` is the same fact one layer up.
 -/
 theorem ratNat_nonneg (k : Nat) : ratLe ratZero.{u} (ratNat.{u} k 1) := by
@@ -2998,7 +2998,7 @@ theorem ratNatMul_mul {e d : ZFSet.{u}} (he : e ∈ Rat.{u}) (hd : d ∈ Rat.{u}
 Given `0 <= c` with `c*(1+d) <= 1` for some `d > 0`, every positive scale
 eventually exceeds `c^n`. The two halves are the decay
 `c^n*(1 + n*d) <= 1` and Archimedes applied to `eps*d`, and they meet by
-CANCELLING `1 + n*d` rather than dividing by it:
+cancelling `1 + n*d` rather than dividing by it:
 
     c^n * (1 + n*d)  <=  1  <  eps * (1 + n*d)
 
@@ -3038,7 +3038,7 @@ theorem exists_ratPow_lt {c d eps : ZFSet.{u}} (hc : c ∈ Rat.{u}) (hd : d ∈ 
     (ratLt_of_le_of_lt (ratMul_mem_Rat hcn hW) hone (ratMul_mem_Rat heps hW)
       hdecay hlt1)
 
-/-- The iteration IS a multiplication: `n` copies of `e` is `(n/1) * e`.
+/-- The iteration is a multiplication: `n` copies of `e` is `(n/1) * e`.
 
 `ratNatMul` is defined by repeated addition so that its base case needs no
 numeral bridge; this is the bridge, proved once, for the callers that would
@@ -3064,7 +3064,7 @@ hypothesis `exists_ratPow_lt` asks for. Archimedes on `1 - c` gives an `m` with
 turns the iteration into the product this needs.
 
 With this, a caller holding only `0 <= c < 1` gets `c^n -> 0` and never names a
-reciprocal: `1/m` here is a NUMERAL, not `ratInv` of anything. -/
+reciprocal: `1/m` here is a numeral, not `ratInv` of anything. -/
 theorem exists_contraction_margin {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
     (hc0 : ratLe ratZero.{u} c) (hc1 : ratLt c ratOne.{u}) :
     ∃ d : ZFSet.{u}, d ∈ Rat.{u} ∧ ratLt ratZero.{u} d ∧
@@ -3131,7 +3131,7 @@ theorem ratPow_add {c : ZFSet.{u}} (hc : c ∈ Rat.{u}) :
 
 #print axioms ratPow_add
 
-/-- Powers of a rational in `[0,1]` DECREASE in the exponent. -/
+/-- Powers of a rational in `[0,1]` decrease in the exponent. -/
 theorem ratPow_le_ratPow_of_le {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
     (hc0 : ratLe ratZero.{u} c) (hc1 : ratLe c ratOne.{u}) {m k : Nat} (hmk : m ≤ k) :
     ratLe (ratPow c k) (ratPow c m) := by
@@ -3145,7 +3145,7 @@ theorem ratPow_le_ratPow_of_le {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
 /-- `c^n * K` beats any scale, for a non-negative constant `K`. The same
 proof as `exists_ratPow_lt` with `1` replaced by `K` -- Archimedes is applied to
 `T*d` against the target `K` rather than against `1`, and the two sides still
-meet by CANCELLING `1 + n*d`. -/
+meet by cancelling `1 + n*d`. -/
 theorem exists_ratPow_mul_lt {c K T : ZFSet.{u}} (hc : c ∈ Rat.{u})
     (hK : K ∈ Rat.{u}) (hT : T ∈ Rat.{u}) (hc0 : ratLe ratZero.{u} c)
     (hc1 : ratLt c ratOne.{u}) (hK0 : ratLe ratZero.{u} K)
@@ -3312,8 +3312,8 @@ theorem ratThree_add_neg_two :
     ratAdd_neg (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat),
     ratAdd_zero ratOne_mem_Rat]
 /-- A short interval cannot contain a wide one, wherever it sits. Step (3)
-of the argument. The route works because containment is constrained by LENGTH
-ALONE, so the convergence witness -- which says nothing about positions --
+of the argument. The route works because containment is constrained by length
+alone, so the convergence witness -- which says nothing about positions --
 still excludes every late interval from covering a node of fixed width. -/
 theorem not_contains_of_short {ai bi u v : ZFSet.{u}} (hai : ai ∈ Rat.{u})
     (hbi : bi ∈ Rat.{u}) (hu : u ∈ Rat.{u}) (hv : v ∈ Rat.{u})
@@ -3369,7 +3369,7 @@ theorem ratNat_pos {k : Nat} (hk : 0 < k) : ratLt ratZero.{u} (ratNat.{u} k 1) :
 
 /-- A positive rational stays positive under powers. The `<` companion to
 `ratPow_nonneg`, wanted because `ratMul_lt_cancel_right` needs the factor
-STRICTLY positive and the non-strict version cannot supply that. -/
+strictly positive and the non-strict version cannot supply that. -/
 theorem ratPow_pos {q : ZFSet.{u}} (hq : q ∈ Rat.{u})
     (hq0 : ratLt ratZero.{u} q) : ∀ n : Nat, ratLt ratZero.{u} (ratPow q n)
   | 0 => ratZero_lt_one
@@ -3535,7 +3535,7 @@ theorem lt_ratMid {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
   exact ratMul_lt_cancel_right ha (ratMid_mem_Rat ha hb) ratTwo_mem_Rat
     ratTwo_pos hsum
 
-/-- A midpoint of zero and `e` doubles back to `e`, as a SUM rather than a
+/-- A midpoint of zero and `e` doubles back to `e`, as a sum rather than a
 product. `ratMid_double` gives the product form; this is the one a halving
 argument wants, and every `ε/2` bound is put back together with it. -/
 theorem ratMid_add_self {e : ZFSet.{u}} (he : e ∈ Rat.{u}) :
@@ -3656,7 +3656,7 @@ theorem ratPow_half : ∀ n : Nat, ratPow (ratNat.{u} 1 2) n = ratNat.{u} 1 (2 ^
         ratNat_mul (two_pow_pos k) (by omega), Nat.pow_succ]
 
 /-- The geometric rate dominates the harmonic one, at every index past the one
-asked for: `(1/2)^n ≤ 1/(m+1)` for `m ≤ n` IS `m + 1 ≤ n + 1 ≤ 2 ^ n`.
+asked for: `(1/2)^n ≤ 1/(m+1)` for `m ≤ n` is `m + 1 ≤ n + 1 ≤ 2 ^ n`.
 
 `invScale` indexes a harmonic family and a geometric series shrinks
 geometrically; nothing related the two, so a geometric modulus could not be handed
@@ -3695,7 +3695,7 @@ series is this identity. -/
 theorem ratPow_half_add_self (k : Nat) :
     ratAdd (ratPow (ratNat.{u} 1 2) (k + 1)) (ratPow (ratNat.{u} 1 2) (k + 1))
       = ratPow (ratNat.{u} 1 2) k := by
-  -- EXPLICIT indices: a bare `rw [ratPow_half]` instantiates at `k+1` and leaves
+  -- Explicit indices: a bare `rw [ratPow_half]` instantiates at `k+1` and leaves
   -- the RHS's `ratPow _ k` alone, and the mismatch then surfaces as metavariables
   -- inside omega rather than as a missing rewrite
   rw [ratPow_half (k + 1), ratPow_half k,
@@ -3750,9 +3750,9 @@ theorem invWidth_lt_of_lt {k m : Nat} (h : k < m) :
 
 /-! ### The room between consecutive widths
 
-A construction that must fit a slack INSIDE a modulus radius cannot use a cell
+A construction that must fit a slack inside a modulus radius cannot use a cell
 whose width equals that radius --- `W + slack > W` for every positive slack. The
-repair is to bound the cell by the NEXT finer width and spend the slack in the
+repair is to bound the cell by the next finer width and spend the slack in the
 gap, which is positive because `invWidth` is strictly decreasing.
 -/
 
@@ -3876,7 +3876,7 @@ theorem ratMul_le_cancel_right {x y t : ZFSet.{u}} (hx : x ∈ Rat.{u})
     (ratMul_lt_mul_right hy hx ht (ratNe_zero_of_pos ht0)
       ht0.left hlt)
 
-/-- Powers are monotone in the BASE. `ratPow_le_ratPow_of_le` is monotone in
+/-- Powers are monotone in the base. `ratPow_le_ratPow_of_le` is monotone in
 the exponent; this is the other variable, and the tower had no lemma for it. -/
 theorem ratPow_base_mono {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLe p q) : ∀ m : Nat,
@@ -4092,7 +4092,7 @@ theorem diffPow_over_factor {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ R
   exact ratMul_le_mul_right (ratMul_mem_Rat h8 hden) hF' hD2 h8d hD20
 
 /-- A difference of squares is strictly positive when the bases are. The
-one STRICT fact the chain needs -- everything above it is `<=`, and a comparison
+one strict fact the chain needs -- everything above it is `<=`, and a comparison
 test with only non-strict bounds proves nothing about a sign. -/
 theorem diffSq_pos {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLt p q) :
@@ -4122,7 +4122,7 @@ theorem ratPow_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
     D_4 / 24  <  D_2 / 2
 
 so `cos p - cos q > 0` rather than `>= 0`: the alternating bound gives
-`>= c_1 - c_2`, and only a STRICT gap there yields a sign.
+`>= c_1 - c_2`, and only a strict gap there yields a sign.
 
 `diffPow_even_step` at `k = 0` supplies `D_4 <= 8·D_2`, and `diffSq_pos`
 supplies `D_2 > 0`, so `8·D_2 < 12·D_2` closes it. -/
@@ -4177,7 +4177,7 @@ theorem diffTerm_two_lt_one {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ R
 
 `ratInv_ratNat` is the `q = 1` case. Both are `ratInv_ratOf` with the
 commutation of the two integers as its witness; the general form is what a
-reciprocal of a NON-integer rational needs, and a Dirichlet ratio is exactly
+reciprocal of a non-integer rational needs, and a Dirichlet ratio is exactly
 that. -/
 theorem ratInv_ratNat_gen {p q : Nat} (hp : 0 < p) (hq : 0 < q) :
     ratInv (ratNat.{u} p q) = ratNat.{u} q p := by

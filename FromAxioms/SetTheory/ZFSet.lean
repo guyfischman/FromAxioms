@@ -92,7 +92,7 @@ theorem mk_subset_mk (w x : PSet.{u}) : mk w ⊆ mk x ↔ w ⊆ x := by
     exact Quotient.ind (motive := fun z : ZFSet.{u} => z ∈ mk w → z ∈ mk x)
       (fun z hz => h z hz)
 
-/-! ## EXTENSIONALITY, as an equation
+/-! ## extensionality, as an equation
 
 The payoff. On `PSet` this was `Equiv x y ↔ ∀ w, w ∈ x ↔ w ∈ y`. Here the
 left-hand side is genuine equality, so two sets with the same members are
@@ -112,7 +112,7 @@ theorem ext_iff (x y : ZFSet.{u}) : x = y ↔ ∀ z : ZFSet.{u}, z ∈ x ↔ z �
 Each is `Quotient.lift` applied to its `PSet` counterpart, with the matching
 congruence lemma discharging the well-definedness obligation. -/
 
-/-- EMPTY SET. -/
+/-- Empty set. -/
 def empty : ZFSet.{u} := mk PSet.empty
 
 @[simp] theorem not_mem_empty : ∀ w : ZFSet.{u}, w ∉ empty.{u} :=
@@ -129,7 +129,7 @@ theorem mem_insert_iff (w y x : ZFSet.{u}) : w ∈ insert y x ↔ w = y ∨ w �
     ⟨fun h => ((PSet.mem_insert_iff w y x).mp h).imp Quotient.sound id,
      fun h => (PSet.mem_insert_iff w y x).mpr (h.imp Quotient.exact id)⟩
 
-/-- PAIRING. -/
+/-- Pairing. -/
 def pair (x y : ZFSet.{u}) : ZFSet.{u} := insert x (insert y empty)
 
 theorem mem_pair_iff (w x y : ZFSet.{u}) : w ∈ pair x y ↔ w = x ∨ w = y := by
@@ -144,7 +144,7 @@ theorem mem_pair_iff (w x y : ZFSet.{u}) : w ∈ pair x y ↔ w = x ∨ w = y :=
     · exact Or.inl h
     · exact Or.inr ((mem_insert_iff w y empty).mpr (Or.inl h))
 
-/-- UNION. -/
+/-- Union. -/
 def sUnion : ZFSet.{u} → ZFSet.{u} :=
   Quotient.lift (fun x => mk (PSet.sUnion x))
     (fun _ _ h => Quotient.sound (PSet.sUnion_congr h))
@@ -160,7 +160,7 @@ theorem mem_sUnion_iff (w x : ZFSet.{u}) :
     obtain ⟨z, rfl⟩ := Quotient.exists_rep z
     exact (PSet.mem_sUnion_iff w x).mpr ⟨z, hzx, hwz⟩
 
-/-- POWER SET. -/
+/-- Power set. -/
 def powerset : ZFSet.{u} → ZFSet.{u} :=
   Quotient.lift (fun x => mk (PSet.powerset x))
     (fun _ _ h => Quotient.sound (PSet.powerset_congr h))
@@ -169,7 +169,7 @@ theorem mem_powerset_iff (w x : ZFSet.{u}) : w ∈ powerset x ↔ w ⊆ x :=
   Quotient.inductionOn₂ w x fun w x =>
     Iff.trans (PSet.mem_powerset_iff w x) (mk_subset_mk w x).symm
 
-/-! ### SEPARATION, without a side condition
+/-! ### separation, without a side condition
 
 The reason the quotient was worth building. `PSet.mem_sep_iff` required a proof
 that `p` respects `Equiv`; here `p : ZFSet → Prop` and no such hypothesis is
@@ -189,7 +189,7 @@ theorem mem_sep_iff (p : ZFSet.{u} → Prop) (w x : ZFSet.{u}) :
   Quotient.inductionOn₂ w x fun w x =>
     PSet.mem_sep_iff (fun hab hpa => mk_eq_mk.mpr hab ▸ hpa) w x
 
-/-! ## INFINITY -/
+/-! ## infinity -/
 
 def succ (x : ZFSet.{u}) : ZFSet.{u} := insert x x
 
@@ -200,17 +200,17 @@ theorem empty_mem_omega : empty.{u} ∈ omega.{u} := PSet.empty_mem_omega
 theorem succ_mem_omega : ∀ x : ZFSet.{u}, x ∈ omega.{u} → succ x ∈ omega.{u} :=
   Quotient.ind fun _ h => PSet.succ_mem_omega h
 
-#print axioms ext                -- EXTENSIONALITY, as equality
-#print axioms not_mem_empty      -- EMPTY SET
-#print axioms mem_pair_iff       -- PAIRING
-#print axioms mem_sUnion_iff     -- UNION
-#print axioms mem_powerset_iff   -- POWER SET
-#print axioms mem_sep_iff        -- SEPARATION, hypothesis-free
-#print axioms succ_mem_omega     -- INFINITY
-#print axioms pair             -- PAIRING, as the constructor
-#print axioms powerset         -- POWER SET, as the constructor
-#print axioms sep              -- SEPARATION, as the constructor
-#print axioms omega            -- INFINITY, as the constructor
+#print axioms ext                -- Extensionality, as equality
+#print axioms not_mem_empty      -- Empty set
+#print axioms mem_pair_iff       -- Pairing
+#print axioms mem_sUnion_iff     -- Union
+#print axioms mem_powerset_iff   -- Power set
+#print axioms mem_sep_iff        -- Separation, hypothesis-free
+#print axioms succ_mem_omega     -- Infinity
+#print axioms pair             -- Pairing, as the constructor
+#print axioms powerset         -- Power set, as the constructor
+#print axioms sep              -- Separation, as the constructor
+#print axioms omega            -- Infinity, as the constructor
 
 #print axioms mk_eq_mk
 #print axioms subset_def

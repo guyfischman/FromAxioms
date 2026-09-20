@@ -21,15 +21,15 @@ and no `Prop`-level principle constructs data. A readout
 hypothesis is therefore strictly sharper than its principle, so
 the consumers keep the readout form.
 
-THAT LAST CLAIM IS FALSE FOR A READOUT WHOSE BIT IS A `ZFSet`, and
-`Analysis.SignReadout` is one. `condP P A B` is a total `ZFSet` term for ANY
+That last claim is false for a readout whose bit is a `ZFSet`, and
+`Analysis.SignReadout` is one. `condP P A B` is a total `ZFSet` term for any
 `Prop` `P` -- separation does not ask whether `P` is decided -- so a readout
 carrying a set-valued bit is not on the far side of the wall at all. What its
 fields cost is three `Prop` obligations, and a `Prop`-level decision discharges
 them: `Constructive.signReadout_of_decidableRealLLe` builds the whole structure
 from `WEM`.
 
-SO THE `n/a` IS A FACT ABOUT THE BIT'S SORT AND NOT ABOUT READOUTS. Where the
+So the `n/a` is a fact about the bit's sort and not about readouts. Where the
 bit is a `Bool` or a `Nat`-valued modulus the wall is real and countable choice
 is the price -- `Analysis.nonempty_uniformOn_of_countableNatChoice` pays
 exactly that, and its conclusion is `Nonempty` for exactly this reason. Both
@@ -37,10 +37,8 @@ halves appear in `exactIVT01_of_wem_of_countableNatChoice` below, so it takes
 two principles rather than one.
 -/
 
-import FromAxioms.Analysis.Complex
+import FromAxioms.Analysis.Complete
 import FromAxioms.Analysis.Deriv
-import FromAxioms.Analysis.Weier
-import FromAxioms.Constructive.ContentLocated
 import FromAxioms.NumberTheory.Halving
 
 set_option autoImplicit false
@@ -174,7 +172,7 @@ theorem signDisjunction_of_llpo_binaryDC (hllpo : LLPO)
       (hloc.ordered _ hjL p hpU))
 
 /-- The payload the bisection carries, named so that the instance of
-`BinaryDCOn` this file actually uses can be WRITTEN DOWN.
+`BinaryDCOn` this file actually uses can be written down.
 
 It was a lambda inside the proof below until now, so the seven rows' debt could
 only ever be stated in the quantified form: a hypothesis about `halveS P` needs
@@ -187,22 +185,22 @@ abbrev straddleSignP (G : ZFSet.{u} → ZFSet.{u}) (a b : ZFSet.{u}) : Prop :=
       (realLLe realLZero.{u} (G (realLOf b)))
 
 set_option maxHeartbeats 1000000 in
-/-- The exact IVT from a bisection LIMIT, and no principle at all.
+/-- The exact IVT from a bisection limit, and no principle at all.
 
-THIS IS THE FUNNEL THE SEVEN BISECTION THEOREMS PASS THROUGH, and this form
+This is the funnel the seven bisection theorems pass through, and this form
 says what they actually spend. Darboux, Rolle, Taylor, the extreme value
 theorem, the exact IVT, the mean value theorem and the mean value theorem for
 integrals each spend `SignDisjunction + BinaryDCOn`, while the reversal
 recovers only the first summand. Both
-summands are consumed HERE, and both are consumed producing ONE object: a
+summands are consumed here, and both are consumed producing one object: a
 halving limit for the straddle payload. Everything after that object -- nesting
 the endpoints, and pinning `G c` to zero by uniform continuity -- is a theorem of
 the ambient axioms, which is what this signature makes visible.
 
-SO THE ROWS' DEBT IS `HasHalveLimit (straddleSignP G)`, not two principles. The
+So the rows' debt is `HasHalveLimit (straddleSignP G)`, not two principles. The
 two corollaries below reach it two ways, and neither is a special case of the
-other: `SignDisjunction` supplies the STEP and the chain principle supplies the
-ITERATION, while a `HalveDecider` supplies both at once. -/
+other: `SignDisjunction` supplies the step and the chain principle supplies the
+iteration, while a `HalveDecider` supplies both at once. -/
 theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
     (hlim : HasHalveLimit (straddleSignP G))
     (hGm : ∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u})
@@ -268,9 +266,9 @@ theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
       (realLLe_trans realLZero_mem (hGm _ hbIcc)
         (realLAdd_mem (hGm _ hcIcc) (realLOf_mem hnQ)) hpay.right hGble)
 
-/-! ### AND THE CEILING COMES DOWN AGAIN, TO ONE NODE IN THE ROW'S OWN VOCABULARY
+/-! ### and the ceiling comes down again, to one node in the row's own vocabulary
 
-IT IS BOUNDED ON BOTH SIDES BY NODES ALREADY NAMED HERE, so it is worth a
+It is bounded on both sides by nodes already named here, so it is worth a
 name rather than an inline binder:
 
     Constructive.SignDisjunction  ≤  NonnegDecision  ≤  Constructive.WEM
@@ -278,38 +276,38 @@ name rather than an inline binder:
                                      NonnegDecision  ≤  Constructive.ZeroOrApart
                                      NonnegDecision  ≤  Constructive.EqOrApart
 
-AND THE GAP TO THE FLOOR IS NOW ONE DOUBLE NEGATION, WRITTEN OUT. Unfolding
-`realLLe`, whose definition is a NEGATION, the two ends of the bracket read
+And the gap to the floor is now one double negation, written out. Unfolding
+`realLLe`, whose definition is a negation, the two ends of the bracket read
 
     SignDisjunction    ¬ (0 < z)  ∨  ¬ (z < 0)
     NonnegDecision     ¬ (z < 0)  ∨  ¬ ¬ (z < 0)
 
-so what the row still owes is exactly whether the landmark can STABILISE its own
+so what the row still owes is exactly whether the landmark can stabilise its own
 sign disjunction. That is a sharper question than *is some chain principle
 reversible*, and it is asked in one vocabulary rather than in two.
 
-WHY THE MIDPOINT IS CLAMPED, AND IT IS NOT DECORATION. `HalveDecider.decided`
-is quantified over ALL rational pairs, with only `a, b ∈ Rat` in hand --- no
+Why the midpoint is clamped, and it is not decoration. `HalveDecider.decided`
+is quantified over all rational pairs, with only `a, b ∈ Rat` in hand --- no
 `0 ≤ a` and no `b ≤ 1`. `WEM` did not care, taking any `Prop`; a principle
 restricted to `z ∈ RealL` does, because `G` is only known to take real values on
 `[0,1]`. So `goLeft` tests `G` at `max 0 (min m 1)`, which lies in `[0,1]` for
-every rational `m` and EQUALS `m` at every stage the recursion actually reaches
+every rational `m` and equals `m` at every stage the recursion actually reaches
 (`ratMid_facts` supplies the two bounds there). `ratMin` and `ratMax` decide a
-comparison of RATIONALS, which is free. -/
+comparison of rationals, which is free. -/
 
-/-- The chain principle AT ONE CARRIER, plus the sign disjunction for the
+/-- The chain principle at one carrier, plus the sign disjunction for the
 step. The halving machine's payload is the pair of endpoint signs; the sign
 disjunction at the midpoint keeps one half's pair intact; the chain iterates.
 
-WHY THE INSTANCE IS THE STATEMENT AND THE QUANTIFIED FORM WAS NOT. Those rows'
-reversal target read `<landmark> -> BinaryDCOn`: a chain in an ARBITRARY set,
+Why the instance is the statement and the quantified form was not. Those rows'
+reversal target read `<landmark> -> BinaryDCOn`: a chain in an arbitrary set,
 `powerset RealL` included, derived from landmarks that conclude only about
 `RealL`. Here the carrier is `halveS (straddleSignP G)` -- coded pairs of
-RATIONALS carrying `G`'s two endpoint signs, which is the landmarks' own
+rationals carrying `G`'s two endpoint signs, which is the landmarks' own
 subject. The target shrinks to a statement about the very object the landmark
 speaks of.
 
-NOT CLAIMED: that the instance is CHEAPER. `binaryDCOnAt_of_binaryDCOn` fixes the
+Not claimed: that the instance is cheaper. `binaryDCOnAt_of_binaryDCOn` fixes the
 direction and nothing here derives the quantified form back, so this is an upper
 bound moving down, not a separation. -/
 theorem attainment_of_signDisjunction_binaryDCOnAt_le (hsd : SignDisjunction.{u})
@@ -341,7 +339,7 @@ because seventeen theorems and seven registry rows cite it. The whole difference
 is `binaryDCOnAt_of_binaryDCOn`, and its subset side condition is discharged by
 `halveR` being a `sep` of `prod (halveS _) (halveS _)`.
 
-SO THE PROOF NO LONGER USES `BinaryDCOn` AT ALL -- it uses one instance of it,
+So the proof no longer uses `BinaryDCOn` at all -- it uses one instance of it,
 and this line takes the instance. So a reader asking what these theorems spend
 finds the answer in a signature rather than in a proof body. -/
 theorem attainment_of_signDisjunction_binaryDCOn_le (hsd : SignDisjunction.{u})
@@ -356,7 +354,7 @@ theorem attainment_of_signDisjunction_binaryDCOn_le (hsd : SignDisjunction.{u})
       (fun _ hp => ((mem_sep_iff _ _ _).mp hp).left))
     hGm hGuc hG0 hG1
 
-/-! ### The same bound with the CHAIN removed -/
+/-! ### The same bound with the chain removed -/
 
 /-- The sign disjunction with dependent choice recovers the exact IVT --
 the strict hypotheses weaken into the non-strict core. -/

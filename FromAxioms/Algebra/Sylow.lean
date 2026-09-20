@@ -12,7 +12,6 @@ the divisibility of exponents. Cauchy's theorem needs both, so this file sits
 above both rather than pulling either under the other.
 -/
 
-import FromAxioms.NumberTheory.Prime
 import FromAxioms.SetTheory.Cardinal
 
 universe u
@@ -37,7 +36,7 @@ theorem mem_nbhd_iff (R B S b : ZFSet.{u}) :
 
 /-- Hall's condition: every set of boys knows at least as many girls.
 
-Stated with the two counts SUPPLIED rather than existentially, so the condition
+Stated with the two counts supplied rather than existentially, so the condition
 says nothing about finiteness and carries no decision -- the caller produces the
 counts from whatever finiteness it has. -/
 def HallCondition (R A B : ZFSet.{u}) : Prop :=
@@ -53,7 +52,7 @@ def IsMatching (M R A B : ZFSet.{u}) : Prop :=
 /-- Two injections with disjoint domains and disjoint codomains union to an
 injection.
 
-`Cardinal.lean` has the COUNT version (`equinumerous_union_disjoint`) and not
+`Cardinal.lean` has the count version (`equinumerous_union_disjoint`) and not
 this one. Hall's theorem needs it to glue the two halves of the critical-set
 split, where the codomains are disjoint by construction. -/
 theorem isInjection_union {f g x y z w : ZFSet.{u}}

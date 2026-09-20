@@ -39,7 +39,7 @@ trick sits one level down, in the existence of the least rank, and that is
 where it is pinned.
 -/
 
-import FromAxioms.SetTheory.OrdinalArith
+import FromAxioms.Algebra.Algebra
 
 universe u
 

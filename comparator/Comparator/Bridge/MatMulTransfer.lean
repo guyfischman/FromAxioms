@@ -5,7 +5,7 @@ Authors: Guy Fischman
 -/
 
 /-
-MATRIX PRODUCTS AND POWERS, ACROSS THE TRANSPORT.
+Matrix products and powers, across the transport.
 
 The last carrier rung under Cayley-Hamilton. `cayleyHamilton_matSet` states the
 theorem as a fold over `k` of `A^k · charPoly_k`, so the powers have to cross.
@@ -19,7 +19,7 @@ tower folds over `0 .. n-1`, and `Fin.sum_univ_eq_sum_range` plus `SumFold`
 carry one to the other. `matPow` then follows by induction on the exponent,
 with `matPow … 0 = idMat` against `M ^ 0 = 1`.
 
-THE SIZE IS FIXED THROUGHOUT, so `matPow` recurses on the exponent and takes
+The size is fixed throughout, so `matPow` recurses on the exponent and takes
 `n` as a parameter: `matMulOn` needs the size as its fold bound and cannot take
 it from the recursion. The transported statement inherits that shape rather
 than fighting it.
@@ -71,12 +71,12 @@ theorem matPow_encMat (M : Matrix (Fin m) (Fin m) α) :
     show idMat (encode (0 : α)) (encode (1 : α)) i j = _
     rw [idMat, encMat_apply_lt (M ^ 0) hi hj, pow_zero]
     by_cases h : i = j
-    · -- The two `Fin`s must be one TERM before `one_apply_eq` applies.
+    · -- The two `Fin`s must be one term before `one_apply_eq` applies.
       have hji : (⟨j, hj⟩ : Fin m) = ⟨i, hi⟩ := Fin.ext h.symm
       rw [if_pos h, hji, Matrix.one_apply_eq]
     · rw [if_neg h, Matrix.one_apply_ne (fun hc => h (congrArg Fin.val hc))]
   | k + 1, i, j, hi, hj => by
-    -- The inductive hypothesis holds ON THE SQUARE only, so the two entry
+    -- The inductive hypothesis holds on the square only, so the two entry
     -- functions are not equal --- `matMulOn_congr_left` is what makes the
     -- square enough, exactly as `detN_congr_lt` did for the determinant.
     show matMulOn (opSet (α := α) (· + ·)) (opSet (α := α) (· * ·)) (encode (0 : α))

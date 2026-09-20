@@ -15,6 +15,7 @@ elements, and a field when `n` is prime.
 -/
 
 import FromAxioms.Algebra.Ring
+import FromAxioms.NumberTheory.Prime
 
 universe u
 

@@ -275,7 +275,7 @@ theorem fireStage_ge_of_silent {α : Nat → Bool} {N j : Nat}
 /-- Fired by `N` fixes every later sampling stage at the same index.
 
 The other half. Once the predicate has fired, `firstFire` has stabilised, so
-the sampled sequence is CONSTANT from `N` on --- so the Cauchy
+the sampled sequence is constant from `N` on --- so the Cauchy
 estimate is trivial in this case rather than needing a width bound. -/
 theorem fireStage_eq_of_fired {α : Nat → Bool} {N j : Nat}
     (hN : firedBy α N = true) (h : N ≤ j) :

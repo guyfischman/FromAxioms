@@ -5,31 +5,31 @@ Authors: Guy Fischman
 -/
 
 /-
-THE CHALLENGE: Brouwer's fan theorem for decidable bars.
+The challenge: Brouwer's fan theorem for decidable bars.
 
-WHY THIS ROW'S COST IS ON THE CHALLENGE SIDE, WHICH IS UNUSUAL HERE. Every other
+Why this row's cost is on the challenge side, which is unusual here. Every other
 pair on this track states something mathlib already proves and asks whether the
 tower can match it. The row `Brouwer's fan theorem` records mathlib's counterpart
 as unnamed --- derivable classically from compactness, and that is accurate:
 searching the pinned Mathlib (v4.24.0) for `koenig`, `konig` and `König` returns
-only `SetTheory/Cardinal/*`, which is König's THEOREM on cardinal arithmetic and
-has nothing to do with binary trees. There is no König's LEMMA to cite.
+only `SetTheory/Cardinal/*`, which is König's theorem on cardinal arithmetic and
+has nothing to do with binary trees. There is no König's lemma to cite.
 
 So the classical argument is written out below. It is the whole content of this
 file, and `Solution.lean` is four lines by comparison --- the tower states the
 fan theorem as a named principle and derives it from a decider.
 
-THE ARGUMENT. Suppose the bar is not uniform. Then for every `N` some path
-avoids `B` for its first `N` steps, so the tree of nodes NO PREFIX OF WHICH IS
-BARRED has arbitrarily long members. An infinitely-extendible node has an
+The argument. Suppose the bar is not uniform. Then for every `N` some path
+avoids `B` for its first `N` steps, so the tree of nodes no prefix of which is
+barred has arbitrarily long members. An infinitely-extendible node has an
 infinitely-extendible child --- classically, since if both children failed, the
 larger of the two bounds would contradict the parent. Iterating builds a path
 all of whose prefixes are unbarred, contradicting barhood.
 
-THE BOOKKEEPING IS ONE LEMMA. Proving prefix closure for an abstract tree ---
+The bookkeeping is one lemma. Proving prefix closure for an abstract tree ---
 `PrefixClosed T → T (s ++ (t ++ u)) → T (s ++ t)` --- takes a left induction
 with the prefix generalised, since `List.reverseRecOn` is not core. None of
-that is needed here: `Unbarred` is a CONCRETE predicate quantified over
+that is needed here: `Unbarred` is a concrete predicate quantified over
 `List.take`, so `unbarred_append` falls out of `List.take_append_of_le_length`
 with no induction at all.
 -/
@@ -90,7 +90,7 @@ theorem unbarred_append {B : List Bool → Prop} {u v : List Bool}
 def Ext (B : List Bool → Prop) (s : List Bool) : Prop :=
   ∀ N, ∃ t : List Bool, t.length = N ∧ Unbarred B (s ++ t)
 
-/-- THE CLASSICAL STEP. A node with unbarred extensions of every length has
+/-- The classical step. A node with unbarred extensions of every length has
 a child with the same property.
 
 If both children failed there would be bounds `N₁` and `N₂` past which no
@@ -114,14 +114,14 @@ theorem ext_child {B : List Bool → Prop} {s : List Bool} (hs : Ext B s) :
     have hsplit : Unbarred B ((s ++ [b]) ++ rest) := by
       simpa using hUt
     -- `push_neg` leaves the failures as `∀ t, t.length = Nᵢ → ¬ Unbarred …`,
-    -- so each branch SUPPLIES the truncation and its length rather than
+    -- so each branch supplies the truncation and its length rather than
     -- building a pair for `absurd`.
     cases b with
     | true =>
       refine hN1 (List.take N1 rest) ?_ ?_
       · rw [List.length_take, hrest]
         exact Nat.min_eq_left (Nat.le_max_left _ _)
-      · -- stated in this direction so `List.append_assoc` fires on the SPLIT
+      · -- stated in this direction so `List.append_assoc` fires on the split
         -- side; the other orientation rewrites `s ++ ([true] ++ rest)` instead
         -- and `take_append_drop` then has no occurrence to match.
         have hsplit' : ((s ++ [true]) ++ List.take N1 rest) ++ List.drop N1 rest

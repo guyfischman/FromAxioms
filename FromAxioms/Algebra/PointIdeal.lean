@@ -8,7 +8,7 @@ Authors: Guy Fischman
 # The ideal of a point on a plane curve
 
 The divisor-to-ideal-class correspondence needs the ideal of `R[x][y]` whose
-members vanish at a point. It needs no new construction: it is the KERNEL of
+members vanish at a point. It needs no new construction: it is the kernel of
 evaluation, and evaluation is a ring homomorphism twice over.
 
 `evalPoint` at the outer layer carries `R[x][y]` to `R[x]`; `evalPoint` at the

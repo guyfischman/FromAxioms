@@ -51,7 +51,7 @@ REPO = "https://github.com/guyfischman/FromAxioms/"
 _SOURCES = {}
 
 # What the page must show, checked when it is built. Each of these fails by
-# drawing LESS -- a section left out, a link without its line -- and a smaller
+# drawing less -- a section left out, a link without its line -- and a smaller
 # picture raises no error, so `graph()` records the reasons here and every mode
 # refuses on them.
 PROBLEMS = []
@@ -109,9 +109,9 @@ _OPEN, _CLOSE = "([{⟨", ")]}⟩"
 
 
 def _decl_src(by, name, cap=2400):
-    """The declaration's STATEMENT, sliced from the published source.
+    """The declaration's statement, sliced from the published source.
 
-    THE PANEL NAMED A THEOREM AND NEVER SAID WHAT IT SAYS. A reader had the
+    The panel named a theorem and never said what it says. A reader had the
     name, the module, the axioms and the cone, and had to open GitHub to learn
     the one thing the page is about.
 
@@ -121,9 +121,9 @@ def _decl_src(by, name, cap=2400):
     Lean's elaborated form rather than the text in the file -- so the panel
     would disagree with the source it links to.
 
-    WHERE THE STATEMENT ENDS DEPENDS ON WHAT IS DECLARED. A theorem's statement
-    is its TYPE, and its body is a proof nobody reads in a side panel, so it
-    cuts at the `:=`. A definition's statement IS its body -- `LPO` is the
+    Where the statement ends depends on what is declared. A theorem's statement
+    is its type, and its body is a proof nobody reads in a side panel, so it
+    cuts at the `:=`. A definition's statement is its body -- `LPO` is the
     quantifier that follows the `:=`, and cutting there would leave the reader
     with `def LPO : Prop`. A structure's fields are likewise its content, so
     the `where` block stays.
@@ -291,7 +291,7 @@ def graph():
     # node at layer -1 and an edge to every declaration that *introduces* it,
     # so the drawing starts where the reader's question does: at the kernel's
     # assumptions, with each entering only where first needed.
-    # Index order must match the order the root nodes are APPENDED below, not
+    # Index order must match the order the root nodes are appended below, not
     # KERNEL's declaration order -- `Classical.choice` is appended last so it
     # sits at the bottom of the rail, and an index computed from KERNEL would
     # point every choice edge at a principle instead.
@@ -310,16 +310,16 @@ def graph():
     # merely what the kernel assumed underneath it.
     lat = json.loads((ROOT / "tools" / "lattice.json").read_text())
     want = {n.lower() for n in lat["nodes"]} | {"fan", "wkl", "pathselection"}
-    # A STATEMENT PRICED AS A LANDMARK IS A RESULT, NOT A PRINCIPLE. The lattice
+    # A statement priced as a landmark is a result, not a principle. The lattice
     # carries `ExactIVT01` as a node so its place can be computed; on the rail
     # it would read as something other theorems pay for.
     equivs = json.loads((ROOT / "tools" / "classical.json").read_text()) \
         .get("_equivalences", [])
-    # EVERY STATEMENT THE REGISTRY PRICES, landmark or not: `SubsetFinite` is
+    # Every statement the registry prices, landmark or not: `SubsetFinite` is
     # equivalent to excluded middle and carries no landmark, and it is a
     # result the lattice places, never a principle other theorems pay for.
     priced = {e["statement"] for e in equivs}
-    # A FAMILY'S STATEMENTS ARE CALIBRATIONS, not principles: `TernaryLLPO` is
+    # A family's statements are calibrations, not principles: `TernaryLLPO` is
     # the ternary walk's LLPO question and is priced at `llpo`.
     priced |= {s for f in json.loads((ROOT / "tools" / "classical.json").read_text())
                .get("_families", []) for s in f.get("statements", [])}
@@ -337,7 +337,7 @@ def graph():
             by[n]["module"].split(".")[-1] != "Omniscience",
             n.count("."), n))[0]
         princ[best.split(".")[-1]] = best
-    # A PRINCIPLE NOTHING DEPENDS ON IS NOT DRAWN. The lattice names more
+    # A principle nothing depends on is not drawn. The lattice names more
     # principles than any one cut uses, and each was given a root on the rail
     # whether or not a single declaration took it as a hypothesis -- so the
     # picture showed a cost that nothing here pays. A root is where an edge
@@ -346,7 +346,7 @@ def graph():
     users = {s: [n for n in names if full in by[n].get("refs", ()) and n != full]
              for s, full in princ.items()}
     princ = {s: full for s, full in princ.items() if users[s]}
-    # AND A PRINCIPLE IS WHAT `principles.json` SAYS IS ONE. The rail is built
+    # And a principle is what `principles.json` says is one. The rail is built
     # from the lattice, which carries a node for every statement whose place
     # needs computing -- `MaxAttainmentTop`, `HasApprox`, `FamilyLocated`.
     # Those are this development's own statements, and drawn on the rail they
@@ -355,7 +355,7 @@ def graph():
     # one goes by in the literature, so nothing reaches the rail unnamed.
     known = _principles()
     princ = {s: full for s, full in princ.items() if s in known}
-    # STRENGTH ORDER, derived from the lattice's own closure rather than
+    # Strength order, derived from the lattice's own closure rather than
     # listed by hand. A principle that derives more is stronger; ties keep the
     # alphabetical order so the layout is stable across runs. The kernel
     # axioms bracket it: `propext` and `Quot.sound` are the two Lean assumes
@@ -376,7 +376,7 @@ def graph():
                     changed = True
         return have - {start}
 
-    # HYPOTHESES THE REGISTRY NAMES BESIDE A PROOF, which the lattice may not
+    # Hypotheses the registry names beside a proof, which the lattice may not
     # know. `BinaryDCOn` is what the exact intermediate value theorem's proof
     # takes, and with no lattice node it was on no rail at all. It is drawn,
     # but not ranked: its place in the strength order is the lattice's to give.
@@ -391,24 +391,24 @@ def graph():
             if full and any(full in by[n].get("refs", ()) and n != full for n in names):
                 princ[full.split(".")[-1]] = full
                 unranked.add(full.split(".")[-1])
-    # THE SAME RULE FOR THESE. A hypothesis the registry names beside a proof
+    # The same rule for these. A hypothesis the registry names beside a proof
     # is still only drawn if the page will call it a principle.
     unranked &= set(known)
     princ = {s: full for s, full in princ.items() if s in known}
 
-    # LEVELS, NOT A RANKING. The lattice orders few pairs of principles: most
+    # Levels, not a ranking. The lattice orders few pairs of principles: most
     # are simply not compared by any published proof, and a single ranked
     # column asserted an order between them anyway, broken alphabetically. A
     # principle's level is the longest chain of proved implications from it
     # down to other principles on the rail, so principles no proof separates
     # share a level, and a lower row always means a proved implication.
     #
-    # PRINCIPLES THAT IMPLY EACH OTHER ARE ONE CLASS, and share a level. Counting
+    # Principles that imply each other are one class, and share a level. Counting
     # chains through a cycle made each level depend on which member the walk
     # reached first, which followed the hash seed. Levels are counted over the
     # classes, which form no cycle, in sorted order.
     #
-    # RUN AFTER THE BRACKETS, because the rail is not final until then: a
+    # Run after the brackets, because the rail is not final until then: a
     # principle no published landmark reaches is named rather than drawn, and
     # which those are is only known once every landmark's bracket is read.
     def _rank():
@@ -445,7 +445,7 @@ def graph():
         "k": by[n]["kind"],
         "l": layer[n],
         "a": [a for a in KERNEL if a in by[n].get("axioms", ())],
-        # The PRINCIPLES the statement takes, read off its type. The panel
+        # The principles the statement takes, read off its type. The panel
         # listed kernel axioms alone, so `mvt_lagrange_of_llpo_binaryDC_dc` --
         # whose own name says what it takes -- reported `propext, Quot.sound`
         # alone, while the drawing showed its edges to LLPO, BinaryDC and DC.
@@ -454,24 +454,24 @@ def graph():
                     & set(princ)),
         "i": intro.get(n, []),
         "d": len(deps[n]),
-        # WHAT IT SAYS, under the name. Everything else in the panel is about
+        # What it says, under the name. Everything else in the panel is about
         # the declaration; this is the declaration.
         "s": _decl_src(by, n),
     } for n in names]
     # Landmarks, so the dated results are findable rather than being three
     # of six thousand identical dots.
     sys.path.insert(0, str(ROOT / "tools"))
-    # ONE node per dated landmark, not every declaration whose name happens to
+    # One node per dated landmark, not every declaration whose name happens to
     # match a detector. The detectors are regexes over squashed names, so a row
     # like "the mean value theorem" matched dozens of lemmas and the
     # landmarks-only view showed 422 dots named `rec`, `smulFun`, `HasDerivAt`
     # -- declaration names, when what a reader wants is "irrationality of √2".
     #
-    # The representative is the most DEPENDED-UPON match: a landmark's headline
+    # The representative is the most depended-upon match: a landmark's headline
     # theorem is the one the rest of the library builds on, and ties break on
     # the shorter name, which is the general statement rather than a variant.
     land = {}
-    # THE PUBLISHED LANDMARKS, read from `tools/landmarks.json`.
+    # The published landmarks, read from `tools/landmarks.json`.
     #
     # This imported the dating table, which is a research instrument and not
     # part of this tree, inside a `try` that fell back to marking nothing. So
@@ -483,7 +483,7 @@ def graph():
     if not marks.exists():
         raise SystemExit(f"missing {marks} -- which landmark a declaration "
                          f"carries is not recoverable from the source alone")
-    # ONE NODE PER ROW. A row reached by two witnesses keeps a theorem where
+    # One node per row. A row reached by two witnesses keeps a theorem where
     # there is one, then the more depended-upon.
     rdeg = {}
     for n in names:
@@ -501,7 +501,7 @@ def graph():
     land = {name: (what, yr) for what, (_k, name, yr) in best.items()}
     if not land:
         raise SystemExit(f"{marks} names no declaration this tree has")
-    # THE BRACKET: what a reversal proves the landmark needs, and what the
+    # The bracket: what a reversal proves the landmark needs, and what the
     # library's proof of it uses. Only published proofs are cited, so a side
     # with nothing published says so rather than naming a declaration the
     # reader cannot open.
@@ -541,7 +541,7 @@ def graph():
             if s and entry.get("reversal") in by:
                 rev.append({**link(s), "by": entry["reversal"],
                             "bu": _decl_url(by, entry["reversal"])})
-            # The forward proof is what USES principles. With it unpublished
+            # The forward proof is what uses principles. With it unpublished
             # there is no proof here to read them off, and the statement's own
             # cone would report `none` for a result that needs one.
             via = entry.get("forward") if entry.get("forward") in by else None
@@ -564,17 +564,17 @@ def graph():
         if got[0] in pairs:
             nd["pr"] = pairs[got[0]]
 
-    # ONLY WHAT A LANDMARK PAYS FOR IS DRAWN. A principle reached by no dated
+    # Only what a landmark pays for is drawn. A principle reached by no dated
     # result is a cost this library's headline theorems do not carry, and a
     # rail root sitting there says otherwise: a reader takes the rail as the
     # price list for the mathematics above it.
     #
-    # Reached means EITHER a landmark's bracket names it -- the reversal it is
-    # pinned by, or the principles its published forward proof takes -- OR the
+    # Reached means either a landmark's bracket names it -- the reversal it is
+    # pinned by, or the principles its published forward proof takes -- or the
     # landmark's dependency cone contains it, which is the same question the
     # panel answers when the principle is clicked.
     #
-    # WITHHELD, NOT DISCARDED. `LLPO` and `MP` are principles by anyone's
+    # Withheld, not discarded. `LLPO` and `MP` are principles by anyone's
     # reckoning and this library calibrates both; they reach no landmark today
     # only because the reversal that would attach them is not published yet.
     # Dropping them silently would say the library does not know them, so they
@@ -659,7 +659,7 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
     for s, full in princ.items():
         if full in priced:
             out.append(f"`{full}` is a priced landmark statement on the rail")
-    # EVERY RAIL ROOT IS NAMED AND REACHED. Both are what the rail means: a
+    # Every rail ROOT is named and reached. Both are what the rail means: a
     # principle is a cost a reader can look up, and the rail is the price list
     # for the landmarks above it. Neither holds by construction once the
     # registry or the manifest moves, and a rail that quietly regrows the
@@ -802,12 +802,12 @@ const COLW=30, ROWH=13;
 Object.entries(byL).forEach(([l,col]) =>
   col.forEach((n,i)=>{ n.x = 130 + (+l)*COLW; n.y = 70 + i*ROWH; }));
 // The axioms are the picture's roots: one column, far left, well separated.
-// One rail, ordered by STRENGTH rather than by kind: propext and Quot.sound at
+// One rail, ordered by strength rather than by kind: propext and Quot.sound at
 // the top (Lean assumes them with no choice content), the principles in the
 // order the lattice's own closure puts them, and Classical.choice at the bottom
 // because it proves em, which is the top of the lattice. Reading down the rail
 // is reading up in strength, which is the picture's actual claim.
-// ROWS BY LEVEL. `r` is a level: principles no proof separates share one, and
+// rows by level. `r` is a level: principles no proof separates share one, and
 // sit side by side. Unranked principles come last, below `Classical.choice`,
 // since nothing has placed them.
 const RAIL = N.filter(n=>n.k==='axiom'||n.k==='principle')
@@ -827,7 +827,7 @@ let RAILBOTTOM = 0;
 function railHue(r){ return 210 - 210*(r/RMAX); }
 function railCol(n){ return n.ur ? 'hsl(215 12%% 48%%)'
                               : 'hsl(' + railHue(n.r) + ' 62%% 45%%)'; }
-// What is the STRONGEST root reaching each declaration. Computed once: an
+// What is the strongest root reaching each declaration. Computed once: an
 // edge's colour is the strongest assumption flowing down it, so a reader can
 // see the price of a region without selecting anything.
 const STRONG = new Array(N.length).fill(-1);
@@ -847,7 +847,7 @@ let view={x:20,y:20,s:0.55}, drag=null, sel=null, filt=null;
 const css = v => getComputedStyle(document.documentElement)
   .getPropertyValue(v).trim();
 let focus = new Set();
-// THE RAIL IS THE PRICE LIST FOR WHAT IS DRAWN, so a principle no published
+// the rail is the price list for what is drawn, so a principle no published
 // landmark reaches is not on it. Saying which those are is the difference
 // between a rail that is a function of what is published and one a reader
 // mistakes for everything the library knows: `LLPO` and `MP` are calibrated
@@ -883,7 +883,7 @@ function shortName(f){ return f.split('.').pop(); }
 // page is about.
 function stmtHtml(n){
   return n.s ? '<pre class=stmt>'+esc(n.s)+'</pre>' : ''; }
-// WHAT IT IS CALLED OUTSIDE THIS LIBRARY. The rail's names are this tree's --
+// what it is called outside this library. The rail's names are this tree's --
 // short, and chosen to fit a diagram. A reader who knows constructive reverse
 // mathematics knows `SignDisjunction` as LLPO over the reals, and nothing on
 // the page said so.
@@ -940,7 +940,7 @@ function landmarksOn(n){
   while(st.length){ const i = st.pop();
     for(const j of DOWN[i]) if(!seen.has(j)){ seen.add(j); st.push(j); } }
   const direct = new Set(n.dn.filter(j => N[j].lm));
-  // A LANDMARK THAT IS A STATEMENT sits upstream of its own proof: the proof
+  // a landmark that is a statement sits upstream of its own proof: the proof
   // mentions the statement, not the other way round. So `ExactIVT01` has no
   // path from the principles its proof takes, and is found through the
   // bracket instead, where the proof names them itself.
@@ -972,13 +972,13 @@ let coneCut = 0;
 function inFocus(n){ return focus.has(n); }
 function visible(n){
   if(n.k==='axiom' || n.k==='principle') return true;
-  // A selected node's neighbourhood shows THROUGH the landmarks-only filter.
+  // A selected node's neighbourhood shows through the landmarks-only filter.
   // Otherwise clicking a landmark hides exactly the dependencies the click was
   // asking about, since almost nothing a landmark rests on is itself a
   // landmark.
   if(inFocus(n)) return true;
   if(document.getElementById('onlylm').checked && !n.lm) return false;
-  // A LANDMARK IS NEVER A LEMMA. `sq_two_irrational` is a leaf -- nothing in
+  // a landmark is never a lemma. `sq_two_irrational` is a leaf -- nothing in
   // the library rests on it, which is what a headline result usually looks
   // like -- so the lemma filter hid the oldest theorem in the tree while the
   // landmarks toggle counted it. The graph said `only landmarks (7)` and drew
@@ -1002,7 +1002,7 @@ const LABELS = [];
 function X(n){ return n.px!==undefined ? n.px : n.x; }
 function Y(n){ return n.py!==undefined ? n.py : n.y; }
 function draw(){
-  // The rail is PINNED TO THE VIEWPORT, not placed in the graph. In world
+  // The rail is pinned to the viewport, not placed in the graph. In world
   // space it sat at x=40 and any layout reaching left of that -- a cone's
   // ancestor columns, the earliest landmarks -- drew its labels straight
   // through the boxes. Recomputing its world position from a fixed screen
@@ -1011,7 +1011,7 @@ function draw(){
   // hit-testing need no special case.
   // Screen-placed rows, boxes side by side within a row. Measured here so the
   // positions exist before any edge is drawn from them.
-  // A level WRAPS at a fixed width, so a row of ten principles stays a block
+  // A level wraps at a fixed width, so a row of ten principles stays a block
   // on the left rather than a line across the timeline.
   g.setTransform(1,0,0,1,0,0);
   g.font = '600 10px ui-sans-serif, system-ui';
@@ -1039,7 +1039,7 @@ function draw(){
   // carry the picture's claim are drawn -- each axiom to what introduces it
   // -- and the rest are opt-in.
   if(all){ g.lineWidth = 0.4/view.s; g.globalAlpha=0.35;
-    // Coloured by the strongest assumption reaching the EDGE'S TARGET, so a
+    // Coloured by the strongest assumption reaching the edge's target, so a
     // region's price is legible without clicking into it. A single grey pass
     // drew 83k strokes that said only "there are dependencies".
     for(const [a,b] of E){ const A=N[a], B=N[b];
@@ -1049,7 +1049,7 @@ function draw(){
       g.beginPath(); g.moveTo(X(A),Y(A)); g.lineTo(X(B),Y(B)); g.stroke(); }
     g.globalAlpha=1; }
   else { g.lineWidth = 0.5/view.s;
-    // Axioms AND principles, always. A principle's edges used to appear only
+    // Axioms and principles, always. A principle's edges used to appear only
     // while its consumer was selected, so the standing question -- what rests
     // on LPO, on MP, on a locator -- was invisible until you already knew where
     // to click. Faint when nothing is selected, solid when the edge touches the
@@ -1061,7 +1061,7 @@ function draw(){
       g.lineWidth = (hot ? 1.1 : A.k==='principle' ? 0.4 : 0.5)/view.s;
       g.strokeStyle = railCol(A);
       g.beginPath(); g.moveTo(X(A),Y(A)); g.lineTo(X(B),Y(B)); g.stroke(); }
-    // WHAT EACH LANDMARK RESTS ON, drawn directly. An axiom's own consumers
+    // what each landmark rests on, drawn directly. An axiom's own consumers
     // are the declarations that introduce it, and those are almost never
     // landmarks -- so under `only landmarks` every rail edge was filtered out
     // and the view showed a row of results resting on nothing. The dependency
@@ -1078,7 +1078,7 @@ function draw(){
           g.strokeStyle = railCol(A);
           g.beginPath(); g.moveTo(X(A),Y(A)); g.lineTo(X(n),Y(n)); g.stroke(); } } }
     g.globalAlpha=1; }
-  // A SELECTED PRINCIPLE draws to the landmarks resting on it: solid where the
+  // a selected principle draws to the landmarks resting on it: solid where the
   // landmark names the principle itself, dashed where it rests on it through
   // other declarations. Only landmarks are lit.
   if(PSEL){
@@ -1088,7 +1088,7 @@ function draw(){
       g.setLineDash(PSEL.direct.has(id) ? [] : [5/view.s, 4/view.s]);
       g.beginPath(); g.moveTo(X(sel),Y(sel)); g.lineTo(X(m),Y(m)); g.stroke(); }
     g.setLineDash([]); g.globalAlpha = 1; }
-  // A SELECTED LANDMARK'S BRACKET, drawn. Its principles reach it through the
+  // a selected landmark's bracket, drawn. Its principles reach it through the
   // proof, and where the landmark is a statement that proof sits downstream
   // of it, so no dependency edge joins them and the cone showed nothing from
   // `SignDisjunction` to the intermediate value theorem.
@@ -1100,15 +1100,15 @@ function draw(){
       g.beginPath(); g.moveTo(X(r),Y(r)); g.lineTo(X(sel),Y(sel)); g.stroke(); }
     g.globalAlpha = 1; }
   if(sel && !PSEL){ g.lineWidth=1.0/view.s; g.globalAlpha=0.85;
-    // Every edge INSIDE the cone, not just the selected node's own -- and each
+    // Every edge inside the cone, not just the selected node's own -- and each
     // in the colour of the strongest assumption reaching its target, so the
     // cone shows where its price enters rather than only its shape.
     for(const [a,b] of E){ const A=N[a], B=N[b];
       if(!inFocus(A) || !inFocus(B)) continue;
       if(keepEdge.size && !keepEdge.has(a + ':' + b)) continue;
-      // Coloured by what the SOURCE carries, not by what the target inherits.
+      // Coloured by what the source carries, not by what the target inherits.
       // Target-colouring gave one node's out-edges a dozen different colours,
-      // which reads as the source EMITTING them -- the picture said every
+      // which reads as the source emitting them -- the picture said every
       // strength originated at `Divides`. What flows along an edge is the
       // source's cost.
       g.strokeStyle = STRONG[a] >= 0 ? 'hsl('+railHue(STRONG[a])+' 62%% 45%%)'
@@ -1146,14 +1146,14 @@ function draw(){
     if(lm){ g.strokeStyle=ink; g.lineWidth=1.1/view.s; g.stroke(); } }
   // Landmark names, drawn last so nothing covers them, and only when the
   // view is close enough for them not to collide into a smear.
-  // Labels whenever there are FEW ENOUGH to read, not only when zoomed in.
+  // Labels whenever there are few enough to read, not only when zoomed in.
   // The old gate was `view.s > 0.9`, so the landmarks view -- the one a reader
   // opens to see named results -- showed sixty unlabelled dots until they
   // discovered they could zoom. A count is the right condition: what makes
   // labels illegible is collision, and collision is about how many are on
   // screen rather than how far in the view is.
   // The timeline's own axis note. Ticks were considered and rejected: x is
-  // RANK, so a tick labelled 1600 would sit at 8%% across while a reader
+  // rank, so a tick labelled 1600 would sit at 8%% across while a reader
   // reading distance as elapsed time expects 85%% -- the ticks would be labels
   // on positions rather than a scale, and misleading precisely because they
   // look like one. The ends are honest, and the note says
@@ -1177,7 +1177,7 @@ function draw(){
     }
   }
 
-  // With a selection, the labels to draw are the ANSWER -- the node, what it
+  // With a selection, the labels to draw are the answer -- the node, what it
   // rests on, and what rests on it -- and every other name is context. Drawn
   // faint rather than dropped, so the reader keeps the shape of the graph
   // around the thing they asked about.
@@ -1185,7 +1185,7 @@ function draw(){
     ? N.filter(n => visible(n) && (inFocus(n) || n.lm))
     : N.filter(n => n.lm && visible(n));
   if(sel || view.s > 0.9 || shownLm.length <= 140){ g.fillStyle=ink;
-    // In timeline mode the font is fixed in WORLD units, so the lane packing
+    // In timeline mode the font is fixed in world units, so the lane packing
     // computed at layout time and the text measured at draw time agree. Sizing
     // it in screen units made a 15px label 60 world units wide at s=0.25, four
     // times what the packing reserved, and every label after the third
@@ -1197,11 +1197,11 @@ function draw(){
     const done=new Set(), placed=[];
     // Collision avoidance, greedy by importance. Sixty labels in one band
     // overlapped into an unreadable smear; a label that cannot be placed
-    // clear of an earlier one is SKIPPED rather than drawn over it, and
+    // clear of an earlier one is skipped rather than drawn over it, and
     // zooming in frees space so the skipped ones appear. Most-depended-upon
     // first, so what survives a crowded view is what the library leans on.
     // Focus first, so a crowded view spends its space on the answer before it
-    // spends it on context -- the greedy placement below SKIPS what collides,
+    // spends it on context -- the greedy placement below skips what collides,
     // and without this the most-depended-upon landmarks would take the room and
     // the selected node's own dependencies would be the ones dropped.
     const ordered = shownLm.slice().sort((a,b)=>
@@ -1232,13 +1232,13 @@ function draw(){
           clash=true; break; } }
       // Focus labels skip on collision like any other. Exempting them meant
       // 480 cone names drew on top of each other into a white smear -- worse
-      // than the unlabelled dots they replaced. They are SORTED first instead,
+      // than the unlabelled dots they replaced. They are sorted first instead,
       // so they win the space they can use, and zooming frees the rest.
       if(clash) continue;
       placed.push({x:x,y:y,w:w,h:h}); if(n.lm) done.add(n.lm);
       LABELS.push({n:n, x0:x, y0:y-h, x1:x+w, y1:y+h*0.35});
       g.globalAlpha = (sel && !foc) ? 0.28 : 1;
-      // A PLATE, not a halo. The label was legible over the edges because it
+      // a plate, not a halo. The label was legible over the edges because it
       // was stroked in white underneath at 3.5px and then filled -- which at
       // the landmark zoom is a fat soft outline around every glyph, and reads
       // as blur. The axiom tags were always crisp because they sit on a solid
@@ -1255,7 +1255,7 @@ function draw(){
     g.font = '600 '+(10/view.s)+'px ui-sans-serif, system-ui';
     g.fillStyle = css('--muted') || '#888'; g.textAlign = 'left';
     g.fillText('not in the lattice', X(n), Y(n) - 16/view.s); }
-  // THE RAIL LAST, on its own panel. The timeline's axis note and the landmark
+  // the rail last, on its own panel. The timeline's axis note and the landmark
   // labels are drawn above, and painting the rail before them put the note
   // across its lower rows.
   g.save(); g.setTransform(DPR,0,0,DPR,0,0);
@@ -1301,7 +1301,7 @@ function clearSel(){
   for(const m of N){ m.px=undefined; m.py=undefined; }
   document.getElementById('side').innerHTML=INTRO; }
 function pick(n){ sel=n; const s=document.getElementById('side');
-  // DESELECTING RETURNS TO THE OPENING VIEW, restored exactly rather than
+  // deselecting returns to the opening view, restored exactly rather than
   // refitted: the rail is pinned to the screen, so a refit depends on wherever
   // the view last was.
   if(!n){ clearSel(); if(HOME) view={...HOME}; draw(); return; }
@@ -1316,12 +1316,12 @@ function pick(n){ sel=n; const s=document.getElementById('side');
   while(stack.length){ const i=stack.pop(); if(seen.has(i)) continue;
     seen.add(i); for(const a of N[i].i){ (first[a]=first[a]||[]).push(N[i].f); }
     for(const u of N[i].up) stack.push(u); }
-  // Frame the NEIGHBOURHOOD: the node, what it rests on, and every landmark
+  // Frame the neighbourhood: the node, what it rests on, and every landmark
   // that rests on it -- the two questions a reader has on clicking. Fitting to
   // the whole graph left the answer scattered across a viewport scaled for six
   // thousand nodes.
   const idx = N.indexOf(n);
-  // The WHOLE cone, both ways -- everything the node rests on transitively and
+  // The whole cone, both ways -- everything the node rests on transitively and
   // everything transitively resting on it. Direct neighbours alone answered
   // "what did this use" and left "what does it ultimately cost" to the panel's
   // numbers, which is the question the picture exists to answer.
@@ -1342,7 +1342,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
   for(const i of upAll) keep.add(N[i]);
   for(const j of dnAll) keep.add(N[j]);
   focus = keep;
-  // Laid out by DEPTH from the selection: ancestors to the left one column per
+  // Laid out by depth from the selection: ancestors to the left one column per
   // step, descendants to the right, stacked within a column. A single column
   // per side worked for 44 direct dependencies and cannot hold 461 -- and a
   // cone drawn by depth is the shape the reader is asking about anyway.
@@ -1363,10 +1363,10 @@ function pick(n){ sel=n; const s=document.getElementById('side');
           if(!depth.has(j)){ depth.set(j, d); next.push(j); }
         front = next; }
     })();
-    // TRANSITIVE REDUCTION over the cone. Every edge here is a genuine direct
+    // transitive reduction over the cone. Every edge here is a genuine direct
   // reference -- a Lean proof term mentions every constant it uses, so a
   // theorem three steps above `IsPrime` still names it -- but 40 of IsPrime's
-  // 52 out-edges are ALSO reachable by a longer path, and drawing them makes a
+  // 52 out-edges are also reachable by a longer path, and drawing them makes a
   // fan that says only "many things use this". Keeping just the edges no
   // longer path implies leaves the shape: a to b and b to d, not a to d.
   keepEdge = new Set();
@@ -1377,7 +1377,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
       if(!succ.has(a)) succ.set(a, []); succ.get(a).push(b); }
     for(const [a, outs] of succ){
       const os = new Set(outs);
-      // What a reaches in TWO OR MORE steps. Any direct successor also in
+      // What a reaches in two or more steps. Any direct successor also in
       // that set is implied by a longer path and is dropped.
       const seen = new Set(), st = [];
       for(const b of outs) for(const c of (succ.get(b) || [])) st.push(c);
@@ -1393,10 +1393,10 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     // Wrapped: a depth with 200 members is a 5,000-unit column, and fitting it
     // zooms to where no name can be read. Sub-columns keep the cone roughly as
     // wide as it is tall, which is the shape a screen can hold.
-    // Column offsets ACCUMULATE outward. Computing each depth's x from its
+    // Column offsets accumulate outward. Computing each depth's x from its
     // own sub-column count made them non-monotonic: depth 1 had 52 members and
     // wrapped to two sub-columns ending at 720, while depth 2 had two members
-    // and sat at 600 -- so the deeper nodes were drawn LEFT of the shallower
+    // and sat at 600 -- so the deeper nodes were drawn left of the shallower
     // ones and the far end of the cone landed off-screen behind the panel.
     // Reading the cone outward requires x to increase with depth, always.
     const PER = 26, SUB = 230;
@@ -1415,7 +1415,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
       }
     }
   }
-  // Frame what can be READ, not everything that is drawn. The whole cone is
+  // Frame what can be read, not everything that is drawn. The whole cone is
   // on screen and coloured -- 461 nodes for the fundamental theorem -- but a
   // viewport scaled to hold it puts every name below a pixel tall, which is
   // the smear this replaced. The camera goes to the selected node and its
@@ -1434,7 +1434,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     if(anyL) sideHead.push({x: n.x - 250, y: top, s: 'rests on \u2192'});
     if(anyR) sideHead.push({x: n.x + 250, y: top, s: '\u2192 rests on it'});
   }
-  // Frame the WHOLE cone when it can be read. 69 nodes for the infinitude of
+  // Frame the whole cone when it can be read. 69 nodes for the infinitude of
   // primes fits legibly; 480 for the fundamental theorem does not, and a
   // viewport scaled to hold those puts every name under a pixel. The cutoff is
   // the only honest knob here, and the status line says which view you got so
@@ -1461,9 +1461,9 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     + (axInBracket(n) ? '' :
       '<p>'+(n.a.length ? n.a.map(a=>tag(a, a==='Classical.choice'
         ? css('--red') : css('--blue'))).join('') : '<b>no axioms</b>')+'</p>')
-    // Principles are a SEPARATE line and separately labelled, because they are
+    // Principles are a separate line and separately labelled, because they are
     // a different kind of cost: an axiom is what the kernel assumed under the
-    // proof, a principle is what the STATEMENT takes as a hypothesis. Merging
+    // proof, a principle is what the statement takes as a hypothesis. Merging
     // them into one row of tags would say a theorem "depends on LLPO" in the
     // same voice as "depends on propext", and this development exists to
     // separate those two claims.
@@ -1484,23 +1484,23 @@ function pick(n){ sel=n; const s=document.getElementById('side');
        || '<li class=p>nothing -- this rests on no axiom</li>')
     + '</ul>';
   draw(); }
-// THE LANDMARK TIMELINE. In landmarks-only mode the graph layout is the wrong
+// the landmark timeline. In landmarks-only mode the graph layout is the wrong
 // one: it places six thousand declarations by dependency depth, and the sixty
 // dated results end up in a narrow band with most of the canvas empty. Here
-// the x axis is the DATE the idea was fixed and each landmark takes a lane
+// the x axis is the date the idea was fixed and each landmark takes a lane
 // wide enough for its own label, so nothing collides and every name is
 // readable at the default zoom. Dependency edges still draw, so a reader sees
-// what rests on what ACROSS the centuries rather than within a layer.
+// what rests on what across the centuries rather than within a layer.
 let lmLaid = false;
 function layoutLandmarks(){
   if(lmLaid) return; lmLaid = true;
   const lm = N.filter(n=>n.lm && n.yr!==null && n.yr!==undefined);
   if(!lm.length) return;
   lm.sort((a,b)=>a.yr-b.yr);
-  // x by RANK, not by year. A linear axis piles twenty modern results on top
+  // x by rank, not by year. A linear axis piles twenty modern results on top
   // of each other; a square-root axis spreads the sparse ancient end and
   // crushes the dense modern one, which is the same mistake mirrored. Rank
-  // keeps the thing that carries the meaning -- the ORDER in which the ideas
+  // keeps the thing that carries the meaning -- the order in which the ideas
   // were fixed -- and spends the axis evenly, and the year is in every label
   // so nothing is lost by not spacing to scale.
   const W = 1000;
@@ -1525,18 +1525,18 @@ function fitTo(ns, pad){
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   for(const n of ns){ x0=Math.min(x0,X(n)); y0=Math.min(y0,Y(n));
                       y1=Math.max(y1,Y(n));
-                      // A label extends to the RIGHT of its node, so fitting
+                      // A label extends to the right of its node, so fitting
                       // to node positions alone clipped every name in the last
                       // column against the detail panel.
                       x1=Math.max(x1, X(n) + ((n.lm||n.n||'').length*12+30)); }
   const m = pad===undefined ? 90 : pad;
-  // The canvas is full-window and the detail panel OVERLAYS its right 330px,
+  // The canvas is full-window and the detail panel overlays its right 330px,
   // so fitting to `c.width` pushed the last column of labels underneath it.
-  // CSS PIXELS, not the backing store. `c.width` counts device pixels since
+  // CSS pixels, not the backing store. `c.width` counts device pixels since
   // the canvas was made HiDPI, so this fitted the layout to a viewport twice
   // the real width: every label came out at double size and the last two
   // landmarks fell off the right edge.
-  // AND THE RAIL'S PANEL ON THE LEFT. The rail is pinned to the screen and
+  // and the rail's panel on the left. The rail is pinned to the screen and
   // painted last, so a frame that used the full width put the earliest
   // landmarks underneath it.
   const left = 14 + 250 + 14;
@@ -1557,7 +1557,7 @@ function fitTo(ns, pad){
 document.getElementById('q').addEventListener('input', e=>{
   filt = e.target.value.trim().toLowerCase() || null; draw(); });
 addEventListener('resize', resize);
-// The landmarks view is the DEFAULT now, and a checkbox that starts checked
+// The landmarks view is the default now, and a checkbox that starts checked
 // never fires `change` -- so the timeline layout ran only if you toggled it
 // off and on again. The page opened with landmark labels over a
 // force-directed scatter, under an axis note promising chronological order:

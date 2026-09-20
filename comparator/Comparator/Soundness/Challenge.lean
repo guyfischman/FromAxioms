@@ -5,10 +5,10 @@ Authors: Guy Fischman
 -/
 
 /-!
-# The challenge: intuitionistic natural deduction is sound, in CORE vocabulary
+# The challenge: intuitionistic natural deduction is sound, in core vocabulary
 
 Every symbol is Lean core's --- `Nat`, `Prop`, `List`, `∧`, `∨`, `→`, `False`.
-The tower's `Algebra.Form`, `Algebra.Derives` and `Algebra.eval` are NOT
+The tower's `Algebra.Form`, `Algebra.Derives` and `Algebra.eval` are not
 imported: the syntax, the derivation relation and the semantics are all declared
 below, so this file depends on no tower definition and on no Mathlib.
 
@@ -21,7 +21,7 @@ tower's `Algebra.soundness` is over an intuitionistic natural-deduction calculus
 with no `⊥`-elimination to excluded middle and no double-negation rule.
 
 So the two do not share a formula type, and no encoding relates them: the
-comparison is made by RESTATING the calculus and translating, so the Challenge
+comparison is made by restating the calculus and translating, so the Challenge
 declares its own inductives rather than importing either side's.
 
 ## The syntax here is the tower's, character for character
@@ -29,12 +29,12 @@ declares its own inductives rather than importing either side's.
 `Form`, `Derives`, `eval` and `evalCtx` below are `Algebra.Form`,
 `Algebra.Derives`, `Algebra.eval` and `Algebra.evalCtx` rewritten in this
 namespace. That is deliberate: the Solution's translation is then a structural
-recursion with nothing to decide, and the pair tests the SOUNDNESS THEOREM
+recursion with nothing to decide, and the pair tests the soundness theorem
 rather than an encoding.
 
-AND THIS IS ONLY POSSIBLE BECAUSE THE TWO LIVE IN DIFFERENT NAMESPACES. The
+And this is only possible because the two live in different namespaces. The
 set-theory rows cannot be paired at all --- both libraries declare `PSet` and
-`ZFSet` at the ROOT, so an environment holding both is rejected at import time.
+`ZFSet` at the root, so an environment holding both is rejected at import time.
 `Algebra.Form` and this file's `Form` coexist because one of them is qualified.
 -/
 
@@ -49,7 +49,7 @@ inductive Form where
   | disj : Form → Form → Form
 
 /-- Intuitionistic natural deduction. This is `Algebra.Derives`: `fls_elim`
-gives anything from absurdity, and there is NO double-negation rule. -/
+gives anything from absurdity, and there is no double-negation rule. -/
 inductive Derives : List Form → Form → Prop where
   | assume {Γ : List Form} {φ : Form} : φ ∈ Γ → Derives Γ φ
   | imp_intro {Γ φ ψ} : Derives (φ :: Γ) ψ → Derives Γ (Form.imp φ ψ)

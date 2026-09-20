@@ -19,7 +19,7 @@ under the section variables at lines 349-350:
 `InnerProductSpace/Defs.lean:87`; it is spelled out here because this file opens
 no notation namespace.
 
-The carrier is SEMINORMED, not normed, which is weaker and is what the theorem is
+The carrier is seminormed, not normed, which is weaker and is what the theorem is
 actually stated over. The challenge takes it as Mathlib gives it.
 -/
 import Mathlib.Analysis.InnerProductSpace.Basic

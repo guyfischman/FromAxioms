@@ -122,7 +122,7 @@ theorem isCancellative_of_disjunctive {R add mul zero one : ZFSet.{u}}
   · exact (ringSub_eq_zero_iff hR ha hb).mp h
 
 /-- A field cancels, so `IsCancellative` never has to be assumed alongside
-`IsField`. The inverse does the work in one step; the only content is the SIDE,
+`IsField`. The inverse does the work in one step; the only content is the side,
 since `IsCancellative` is stated on the left and `mul_right_cancel_field`
 cancels on the right. -/
 theorem isCancellative_of_isField {R add mul zero one : ZFSet.{u}}
@@ -640,8 +640,8 @@ while `fracOf_eq_zero_iff` and `fracEmbed_ne_zero_of_ne_zero` state theirs as
 `fracOf .. zero one` -- and the crossing is definitional, so which one a goal
 carries is not a fact about the mathematics.
 
-`rw` crosses it in BOTH directions when the def is NAMED: `rw [fracZero]`
-unfolds, `rw [← fracZero]` folds. What does NOT cross is the IMPLICIT trailing
+`rw` crosses it in both directions when the def is named: `rw [fracZero]`
+unfolds, `rw [← fracZero]` folds. What does not cross is the implicit trailing
 `rfl` of a rewrite, which runs at reducible transparency where a plain `def` is
 opaque -- so a goal left as `fracOf .. zero one = fracZero ..` by some other
 rewrite needs `rfl`, `exact`, or a naming rewrite, and not the rewrite that
@@ -1078,14 +1078,14 @@ They are isomorphic, and the bridge is what lets generic fraction-field
 results reach `Rat` without changing a statement everything downstream
 rewrites with. -/
 
-/-- The quotient by a prime ideal has the DISJUNCTIVE no-zero-divisor
+/-- The quotient by a prime ideal has the disjunctive no-zero-divisor
 property, which `isIntegralDomain_quotient_of_prime` computes and discards.
 
 The negative form it returns (`mul_ne_zero`) cannot yield cancellation
 constructively -- that step is double-negation elimination, as `Fraction.lean`
 records above `IsCancellative`.  The disjunction can, through
 `isCancellative_of_disjunctive`, and the prime ideal supplies it directly:
-`IsPrimeIdeal`'s third clause IS this statement, one `cls_eq_zero_iff` away. -/
+`IsPrimeIdeal`'s third clause is this statement, one `cls_eq_zero_iff` away. -/
 theorem disjunctive_quotient_of_prime {I R add mul zero one : ZFSet.{u}}
     (h : IsRing R add mul zero one) (hP : IsPrimeIdeal I R add mul zero one) :
     ∀ A, A ∈ quotientSet (idealRel R add zero I) R →
@@ -1108,7 +1108,7 @@ theorem disjunctive_quotient_of_prime {I R add mul zero one : ZFSet.{u}}
 #print axioms disjunctive_quotient_of_prime
 
 
-/-- The quotient by a prime ideal is CANCELLATIVE, which the domain form
+/-- The quotient by a prime ideal is cancellative, which the domain form
 cannot give: `isIntegralDomain_quotient_of_prime` returns the negative
 `mul_ne_zero`, and crossing from that to cancellation is double-negation
 elimination.  The disjunction crosses it, and the prime ideal supplies one. -/
@@ -1169,7 +1169,7 @@ theorem pb_embed_mul {R add mul zero one b c : ZFSet.{u}}
     fracOf R mul zero (opAt mul b c) one
       = opAt (fracMulOp R mul zero) (fracOf R mul zero b one)
           (fracOf R mul zero c one) := by
-  -- only DENOMINATORS must be non-zero; a numerator needs `R` alone, which is
+  -- only denominators must be non-zero; a numerator needs `R` alone, which is
   -- what lets this serve both the scalar and the numerator side below
   have hR := hdom.ring
   have hone := one_mem_nonzeroIn hdom
@@ -1177,11 +1177,11 @@ theorem pb_embed_mul {R add mul zero one b c : ZFSet.{u}}
   rw [opAt_fracMulOp hdom hcan (fracOf_mem hb hone) (fracOf_mem hc hone),
       fracMul_fracOf hdom hcan hb hone hc hone, hR.mul_one _ honeR]
 
-/-- A COMMON DENOMINATOR FOR FINITELY MANY FRACTIONS, OVER ANY DOMAIN.
+/-- A common denominator for finitely many fractions, over any domain.
 
 `exists_common_denom` (in `Rational.lean`) is this for `Z ⊂ Q`; the argument is the same
 bounded induction -- one more denominator at each step -- and uses nothing of
-`Z`. Stated over `opAt (fracMulOp ..)` rather than `fracMul` so the FIELD's own
+`Z`. Stated over `opAt (fracMulOp ..)` rather than `fracMul` so the field's own
 ring structure supplies associativity on abstract elements: `fracMul_assoc` is
 stated over `fracOf` forms and cannot reach a `T i` that is not one. -/
 theorem pb_common_denom {R add mul zero one : ZFSet.{u}}
@@ -1224,17 +1224,17 @@ theorem pb_common_denom {R add mul zero one : ZFSet.{u}}
             hFF.mulAssoc _ hbF _ hcF _ (hmem i (Nat.lt_succ_self i)), hca,
             ← pb_embed_mul hdom hcan (nonzeroIn_subset _ hb) ha0]
 
-/-- THE EMBEDDING'S PREIMAGE, AS A TERM -- the generic `intOfRat`.
+/-- The embedding's preimage, as a term -- the generic `intOfRat`.
 
 `intOfRat` (in `Rational.lean`) is this for `Z ⊂ Q`, and its docstring already names the
 technique: a definite description via `theOnly`. The same argument works over
-any domain, because `a ↦ a/1` is INJECTIVE and so the preimage, where it exists,
+any domain, because `a ↦ a/1` is injective and so the preimage, where it exists,
 is unique -- the separation is a singleton and `sUnion` opens it.
 
 This is the third time today the tower's answer to *turn `∀i, ∃a, P i a` into a
-FUNCTION* has been a definite description rather than a choice: `polyQuotBy` for
+function* has been a definite description rather than a choice: `polyQuotBy` for
 the exact quotient, `intOfRat` here, and `theOnly` itself underneath both. In a
-SET-THEORETIC development that move is free; reaching for a recursion or for
+set-theoretic development that move is free; reaching for a recursion or for
 choice is the type-theorist's instinct and the expensive one. -/
 noncomputable def fracPre (R mul zero one x : ZFSet.{u}) : ZFSet.{u} :=
   theOnly (fun a => x = fracOf R mul zero a one) R

@@ -27,7 +27,7 @@ The constructive half is here:
 Foundation itself is priced rather than proved: `Constructive.Regularity` is
 the statement, `regularityProp_of_em` proves it from `EM`, and
 `em_of_regularity` derives `EM` back, so foundation over this tree's other
-axioms IS excluded middle rather than merely following from it.
+axioms is excluded middle rather than merely following from it.
 
 The obstruction is the familiar one. Knowing that no infinite descent exists
 does not hand you a minimal element; extracting one from `x ≠ ∅` means

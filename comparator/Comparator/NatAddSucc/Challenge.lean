@@ -13,17 +13,17 @@ Mathlib's vocabulary only. `Nat.add_succ` is Lean core's
 
 and mathlib inherits it rather than defining its own naturals.
 
-THIS PAIR IS UNUSUAL. Mathlib's side is true by `rfl` on an inductive type, so
+This pair is unusual. Mathlib's side is true by `rfl` on an inductive type, so
 the challenge is trivially discharged there, and a Solution that also said
 `rfl` would prove nothing about this tower.
 
-WHAT MAKES THE PAIR REAL IS THE SOLUTION'S ROUTE, not the statement. The tower
+What makes the pair real is the solution's route, not the statement. The tower
 defines addition on the von Neumann ordinals and proves
-`add x (succ y) = succ (add x y)` by EXTENSIONALITY, for arbitrary `ZFSet`s and
+`add x (succ y) = succ (add x y)` by extensionality, for arbitrary `ZFSet`s and
 not only on `omega`; `add_ofNat` then says that operation agrees with Lean's
 through `ofNat`. The Solution goes that way round --- into the ordinals,
 through the set-theoretic recursion, and back by injectivity of `ofNat` --- so
-what is checked is that the tower's construction DISCHARGES Lean's arithmetic.
+what is checked is that the tower's construction discharges Lean's arithmetic.
 
 A reader who wants to confirm the Solution does not cheat should look for
 `rfl` in it: there is none, and `ofNat_injective` is what closes it.

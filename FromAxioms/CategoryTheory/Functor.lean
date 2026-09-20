@@ -15,7 +15,7 @@ a call site.
 
 The forgetful direction from rings to their additive groups is the first
 instance a reader expects. It is not buildable: `IsCategory` takes
-`Ob : ZFSet`, so a category here is SMALL, and the rings do not form a set. The
+`Ob : ZFSet`, so a category here is small, and the rings do not form a set. The
 first functor every reader reaches for is the first one this development cannot
 state.
 

@@ -23,14 +23,14 @@ operation over a set's members needs the image of that set, which is
   pre-set level with `powerset` written in, so `L` is not an instantiation of
   it either.
 
-What makes `L` reachable is that the definable power set HAS the pre-set
+What makes `L` reachable is that the definable power set has the pre-set
 realisation: it is a separation over a power set, both liftings, so the
 composite is their composite and `Definable.spec` is `rfl`. With that, `L` is
 `V`'s own shape -- structural recursion on the pre-set, then a congruence
 lemma to lift -- and no replacement is needed at all, because the index type
 does the work the image would have done.
 
-This is a construction ABOUT the theory, not inside it. `definablePower`
+This is a construction about the theory, not inside it. `definablePower`
 is a Lean-level operation on sets, so `L` here is not a model construction
 carried out in the object language, and no relative-consistency result follows
 from it. What would be needed for that is a definability
@@ -39,7 +39,6 @@ built.
 -/
 
 import FromAxioms.SetTheory.DefinablePower
-import FromAxioms.SetTheory.Hierarchy
 
 universe u
 

@@ -120,18 +120,18 @@ The distinction is not constructivity. `exists_rat_bound` is fully
 constructive and still will not hand the bound over; what separates the two is
 the universe the statement lives in.
 
-WHAT THE FAMILY BELOW MEASURES, since the members alone do not say it.
-Bound-carrying is closed under the RING operations --
+What the family below measures, since the members alone do not say it.
+Bound-carrying is closed under the ring operations --
 the members named ratCut, neg, add and mul, each with a bound-computing companion
 for the resulting bracket -- so a real built from rationals by `+`, `-` and `×`
 carries a bound as data where an arbitrary located one does not. It stops at the
 ring, and that boundary is the result: there is no inverse member and there
 cannot be, because
-bounding an inverse needs a LOWER bound on the input, which is apartness from
+bounding an inverse needs a lower bound on the input, which is apartness from
 zero.
 
 The family has no consumer outside this file. That is not neglect -- nothing yet
-needs a bound as DATA -- and it is why the members name only each other. -/
+needs a bound as data -- and it is why the members name only each other. -/
 structure BoundedLocated (L U : ZFSet.{u}) : Type (u + 1) where
   bound : ZFSet.{u}
   bound_mem : bound ∈ NumberTheory.Rat.{u}
@@ -2155,7 +2155,7 @@ theorem realLLt_trans {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Rea
   · rw [fst_opair]
     exact h₃.lower_down q hqL p (h₂.lower_subset p hpL) (h₂.ordered p hpL q hqU)
 
-/-- The strict order is ASYMMETRIC: `x < y` rules out `y < x`.
+/-- The strict order is asymmetric: `x < y` rules out `y < x`.
 
 The two-line composition of the two theorems above.
 
@@ -2797,14 +2797,14 @@ theorem realLAdd_pos_of_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y 
     simp only [fst_opair, snd_opair]
     exact (mem_addLower_iff _ _ s).mpr ⟨hsQ, p, hpL, t, htL, hspt⟩
 
-/-- TWO IS A REAL. -/
+/-- Two is a real. -/
 theorem realLTwo_mem : realLAdd realLOne.{u} realLOne.{u} ∈ RealL.{u} :=
   realLAdd_mem realLOne_mem realLOne_mem
 
-/-- TWO IS POSITIVE.
+/-- Two is positive.
 
 The field axioms alone do not give `2 ≠ 0`, since `1 + 1 = 0` in characteristic
-two, so `realLOne_ne_zero` does not reach it. The ORDER rules it out.
+two, so `realLOne_ne_zero` does not reach it. The order rules it out.
 -/
 theorem realLTwo_pos : realLLt realLZero.{u} (realLAdd realLOne.{u} realLOne.{u}) := by
   have h := realLLt_add_right realLZero_mem realLOne_mem realLOne_mem realLZero_lt_one
@@ -2914,7 +2914,7 @@ theorem realLOf_add {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b 
 
 `ratNat_add_same_denom` does the rational half and `realLOf_add` the located
 half; neither is about `Nat`, and together they are. Stated because the bound
-this rung carries is an inequality between NATURALS and the content's values
+this rung carries is an inequality between naturals and the content's values
 are located reals. -/
 theorem realLOf_ratNat_add (a b : Nat) :
     realLOf (ratNat.{u} (a + b) 1)
@@ -2976,11 +2976,11 @@ theorem addLower_eq_realAdd {L₁ U₁ L₂ U₂ : ZFSet.{u}} (h₁ : IsLocated 
       (h₁.lower_subset q' hq')).mpr hqq'
 
 /-- Where both factors are non-negative the four corners collapse to one.
-Not because three are dominated -- because the two MIXED corners are what make
+Not because three are dominated -- because the two mixed corners are what make
 the sign hypothesis bite. If `q < 0` then `r' ≥ 0` (else `hn₂` puts `r'` in
 `L₂` and `ordered` gives `r' < r'`), so `q·r' ≤ 0` and `p < q·r'` forces
 `p < 0`. On the branch where `p` is not negative the witnesses `mulLower` hands
-over are ALREADY non-negative, and `p < q·r` is the corner `realMulNonneg`
+over are already non-negative, and `p < q·r` is the corner `realMulNonneg`
 asks for. -/
 theorem mulLower_nonneg_witnesses {L₁ U₁ L₂ U₂ q r' p : ZFSet.{u}}
     (h₁ : IsLocated L₁ U₁) (h₂ : IsLocated L₂ U₂) (hn₂ : realNonneg L₂)
@@ -3070,7 +3070,7 @@ private theorem upper_nonneg {L U q' : ZFSet.{u}} (h : IsLocated L U)
   exact ratLt_irrefl (h.ordered q' (neg_mem_lower hn hq'Q hc) q' hq')
 
 /-- Below zero, the negatives reach every corner. The upper witnesses are
-fixed FIRST, so each mixed corner imposes one inequality on its own variable
+fixed first, so each mixed corner imposes one inequality on its own variable
 and `small_of_pos` discharges it. The like-signed corners are free: a product
 of two negatives is positive, and `q'·r'` is non-negative, both above `p`. -/
 private theorem mem_mulLower_of_neg {L₁ U₁ L₂ U₂ p : ZFSet.{u}}
@@ -3119,10 +3119,10 @@ private theorem mem_mulLower_of_neg {L₁ U₁ L₂ U₂ p : ZFSet.{u}}
       (ratZero_le_mul hq'Q hr'Q hq'0 hr'0)
 
 /-- The sign-free half of the product: where both factors are non-negative,
-the four-corner lower set IS the one-sided one. Both inclusions are proved
+the four-corner lower set is the one-sided one. Both inclusions are proved
 separately and neither is a triviality: the forward one needs the sign
-hypothesis to KILL the two mixed corners (`mulLower_nonneg_witnesses`), and the
-reverse one needs them to SURVIVE, small (`mem_mulLower_of_neg`). Same two
+hypothesis to kill the two mixed corners (`mulLower_nonneg_witnesses`), and the
+reverse one needs them to survive, small (`mem_mulLower_of_neg`). Same two
 corners, opposite role -- so the four-corner definition is not
 redundant under `realNonneg`. -/
 theorem mulLower_eq_realMulNonneg {L₁ U₁ L₂ U₂ : ZFSet.{u}}
@@ -3293,12 +3293,12 @@ theorem realLApart_tight {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (h : ¬ realLApart x y) : x = y :=
   realLLe_antisymm hx hy (fun hlt => h (Or.inr hlt)) (fun hlt => h (Or.inl hlt))
 
-/-- APARTNESS FROM ZERO SURVIVES DOUBLING.
+/-- Apartness from zero survives doubling.
 
 `realLApart` is a disjunction of strict inequalities, so this is two symmetric
 branches and each is one `realLLt_add_right` plus transitivity.
 
-Written for the cubic group law's VERTICAL clause, whose comaximality condition
+Written for the cubic group law's vertical clause, whose comaximality condition
 is `-y - y # 0` --- this, with `realLApart_neg` on top. -/
 theorem realLApart_add_self {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
     (hap : realLApart realLZero.{u} y) :
@@ -3313,7 +3313,7 @@ theorem realLApart_add_self {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
     rw [realLZero_add hy] at h
     exact realLLt_trans (realLAdd_mem hy hy) hy realLZero_mem h hlt
 
--- Its companion `realLApart_neg` sits AFTER `realLNeg_neg_of_pos` (line ~5290),
+-- Its companion `realLApart_neg` sits after `realLNeg_neg_of_pos` (line ~5290),
 -- which it needs and which is defined below this point.
 
 #print axioms Analysis.realLApart_add_self
@@ -3322,7 +3322,7 @@ theorem realLApart_add_self {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
 
 The contrapositive of `realLApart_tight`, which already says that denying an
 apartness produces an equation -- `realLApart` is a disjunction of strict
-inequalities, so denying it denies both, and `realLLe` IS a negated `realLLt`.
+inequalities, so denying it denies both, and `realLLe` is a negated `realLLt`.
 
 The converse is `NeApartZero` and is floored at `MP`; the asymmetry is the
 content. -/
@@ -3773,7 +3773,7 @@ theorem realLMax_lt {a b x : ZFSet.{u}} (ha : a ∈ RealL.{u})
   · exact hmax p hpU (hB.upper_up q hqU p (hA.upper_subset p hpU) hgt) hpL
 
 /-- The minimum of a finite list of located reals, below a seed. The mirror of
-`realLMaxList`, and the shape a DISTANCE to a finite set of points takes. -/
+`realLMaxList`, and the shape a distance to a finite set of points takes. -/
 def realLMinList (seed : ZFSet.{u}) : List ZFSet.{u} → ZFSet.{u}
   | [] => seed
   | a :: as => realLMin a (realLMinList seed as)
@@ -3927,7 +3927,7 @@ theorem mul_eq_zero_absurd_of_apart {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 /-- A product of non-zero located reals is non-zero, and no principle is
 spent. Getting `0 # a` from `a ≠ 0` is `NeApartZero`, floored at `MP` -- but the
-GOAL here is itself a negation, so `not_not_apart_of_ne`'s double negation is
+goal here is itself a negation, so `not_not_apart_of_ne`'s double negation is
 consumed rather than eliminated. The apartness route is sufficient, not
 necessary. -/
 theorem realL_mul_ne_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
@@ -3940,7 +3940,7 @@ theorem realL_mul_ne_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 #print axioms Analysis.realL_mul_ne_zero
 
 /-! The regularity form of `realL_mul_ne_zero` --- `IsRegularElt RealL …` ---
-CANNOT LIVE HERE: `IsRegularElt` is `Algebra/Ring.lean`'s and this file imports
+cannot live here: `IsRegularElt` is `Algebra/Ring.lean`'s and this file imports
 only `Analysis.Real`, so the two cones are parallel. It is landed in
 `Analysis/Complex.lean` beside `isConstructiveField_realL`, which is the lowest
 file holding both. -/
@@ -4128,7 +4128,7 @@ theorem realLMul_sub_mul {x y L M : ZFSet.{u}} (hx : x ∈ RealL.{u})
     realLAdd_zero (realLNeg_mem hLM)]
 /-- The four-term additive shuffle -- `(A+B)+(C+D) = (A+C)+(B+D)`, the
 additive partner of `realLMul_shuffle_pair`. Named for the algebraic
-convention rather than the family convention; the word SHUFFLE is here so a search on the family's usual name finds
+convention rather than the family convention; the word shuffle is here so a search on the family's usual name finds
 it too. -/
 theorem realLAdd_interchange {A B C D : ZFSet.{u}} (hA : A ∈ RealL.{u})
     (hB : B ∈ RealL.{u}) (hC : C ∈ RealL.{u}) (hD : D ∈ RealL.{u}) :
@@ -4147,7 +4147,7 @@ The reciprocal estimates below are conditional on an apartness and the spike's
 continuity is priced at `WLPO`: the cost lives in the operations that must
 divide, not in the order on `RealL`.
 
-Geometry's `tangent_cs` is the MINKOWSKI form on the hyperboloid: a different
+Geometry's `tangent_cs` is the Minkowski form on the hyperboloid: a different
 statement in a different signature, not a duplication of this one. -/
 theorem cauchySchwarz_realL {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) :
@@ -4391,7 +4391,7 @@ theorem realLLt_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ Rea
 -- the one its `realLApart_` siblings are named after.
 
 /-- A doubled real that vanishes was already zero. Apartness is tight, so
-refuting the apartness IS the equality. -/
+refuting the apartness is the equality. -/
 theorem eq_zero_of_add_self_eq_zero {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
     (h : realLAdd y y = realLZero.{u}) : y = realLZero.{u} := by
   have hnap : ¬ realLApart realLZero.{u} y := fun hz =>
@@ -4612,7 +4612,7 @@ theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ Rea
 second places it with `c` under `M` up to another `ε/2`, and the two halves fold
 by `ratMid_add_self`.
 
-`hh` IS A HYPOTHESIS RATHER THAN A DERIVATION: every call site already holds
+`hh` is a hypothesis rather than a derivation: every call site already holds
 it, so taking it costs no caller anything.
 -/
 theorem realLLe_add_of_halves {a b c M e : ZFSet.{u}}
@@ -4881,13 +4881,13 @@ theorem sub_add_sub_eq_zero {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
   rw [realLAdd_assoc hy hnx (realLAdd_mem hx hny),
     ← realLAdd_assoc hnx hx hny, realLAdd_comm hnx hx, realLAdd_neg hx,
     realLZero_add hny, realLAdd_neg hy]
-/-- Every located real IS its pair of cuts, so the locator hypotheses are
+/-- Every located real is its pair of cuts, so the locator hypotheses are
 stated with `fst`/`snd` rather than with an equation. -/
 theorem realL_eq_opair {w : ZFSet.{u}} (hw : w ∈ RealL.{u}) :
     w = opair (fst w) (snd w) := by
   obtain ⟨L, U, rfl, -⟩ := (mem_RealL_iff w).mp hw
   rw [fst_opair, snd_opair]
-/-- An inverse is unique. `realLInvApart` is a CONSTRUCTION, so two proofs
+/-- An inverse is unique. `realLInvApart` is a construction, so two proofs
 arriving at "the inverse" by different routes cannot be identified without this. -/
 theorem realL_inv_unique {a e e' : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (he : e ∈ RealL.{u}) (he' : e' ∈ RealL.{u})
@@ -4999,9 +4999,9 @@ The mirror of `realLLt_self_add_pos`, and the other half of what an
 `(x - e, x + e)` neighbourhood claim needs: an epsilon-ball hypothesis about a
 real is two strict inequalities, and this is the lower one.
 
-THE NEGATION STAYS ON THE REAL, and it has to: pushing it onto the rational by
+The negation stays on the real, and it has to: pushing it onto the rational by
 `realLOf_neg` is the obvious route and that lemma lives in `IVT.lean`,
-DOWNSTREAM of this file, so it is not in scope here at all.
+downstream of this file, so it is not in scope here at all.
 `realLNeg_neg_of_pos` does the same step with no rational arithmetic at all. -/
 theorem realLLt_sub_pos_self {L e : ZFSet.{u}} (hL : L ∈ RealL.{u})
     (he : e ∈ NumberTheory.Rat.{u}) (he0 : ratLt ratZero.{u} e) :
@@ -5110,7 +5110,7 @@ theorem realLOf_mul {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b 
 /-- Inversion reverses the order: `0 < a <= b` gives `1/b <= 1/a`.
 
 `realLInv_le_of_le` below compares `1/z` against `realLOf (ratInv c)` for a
-RATIONAL `c`, which is what the cut arguments needed. This is the two-real
+rational `c`, which is what the cut arguments needed. This is the two-real
 statement, and the difference matters: a comparison between two constructed
 reals --- two powers `r^s` and `r^t`, say --- has no rational in hand to route
 through.
@@ -5138,10 +5138,10 @@ theorem realLInv_antitone {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 #print axioms realLInv_antitone
 
-/-- The inverse is unique: anything multiplying `z` to one IS `1/z`.
+/-- The inverse is unique: anything multiplying `z` to one is `1/z`.
 
 `realLMul_ratInv_cancel` shows that `realLOf (ratInv d)` cancels `realLOf d`
-without saying that such a witness must BE `realLInv`. This identifies a
+without saying that such a witness must be `realLInv`. This identifies a
 rational reciprocal with the constructed one.
 
 One line of associativity: `w = w * (z * (1/z)) = (w * z) * (1/z) = 1/z`. -/
@@ -5159,7 +5159,7 @@ theorem realLInv_eq_of_mul_one {z w : ZFSet.{u}} (hz : z ∈ RealL.{u})
 
 #print axioms realLInv_eq_of_mul_one
 
-/-- And so `realLInv` of a rational IS the rational inverse.
+/-- And so `realLInv` of a rational is the rational inverse.
 
 This is the bridge a Dirichlet term needs: `1/(n+1)` written as `invScale` and
 `1/(n+1)` written as `realLInv` of a real are the same object, which until now
@@ -5292,7 +5292,7 @@ def WithinOf (z ε : ZFSet.{u}) : Prop :=
 
 `realLMul_le_right` needs a non-negative multiplier and so cannot be pointed at
 `y` directly. The factorisation does it instead: `c*c - y*y` is
-`(c - y) * (c + y)`, and BOTH factors are non-negative precisely because the
+`(c - y) * (c + y)`, and both factors are non-negative precisely because the
 window is two-sided --- the right half gives `c - y >= 0`, the left half gives
 `c + y >= 0`. Neither says which side of zero `y` is on, and the product does
 not care.
@@ -5339,10 +5339,10 @@ theorem realLSq_le_of_within {y c : ZFSet.{u}} (hy : y ∈ RealL.{u})
 def Close (x y δ : ZFSet.{u}) : Prop := WithinOf (realLAdd x (realLNeg y)) δ
 
 /-- `WithinOf` is stable under double negation, by its shape rather than
-anything about reals: `realLLe a b` IS `¬ realLLt b a`, so
+anything about reals: `realLLe a b` is `¬ realLLt b a`, so
 `WithinOf` is a conjunction of two negations and a negation absorbs `¬¬`.
 
-That separates a bar phrased with `Close` from a DECIDABLE one. The fan
+That separates a bar phrased with `Close` from a decidable one. The fan
 theorem's premise is `B s ∨ ¬ B s`, which such a bar does not satisfy --
 `realLLt` is an existential over rationals and nothing decides it. But
 stability it does satisfy, for free. -/
@@ -5373,18 +5373,18 @@ def dyadicHi (p q : ZFSet.{u}) : List Bool → ZFSet.{u}
 
 /-! ### The endpoints are rational
 
-Both definitions above had NO lemmas: `dyadicLo_*` and `dyadicHi_*` were empty
+Both definitions above had no lemmas: `dyadicLo_*` and `dyadicHi_*` were empty
 tree-wide, so a predicate over a dyadic cell could not state its own
 decidability --- which is where this was noticed, pricing a fan route to Cousin's
 lemma.
 
-THE INDUCTION GENERALISES `p` AND `q`, which is the only thing to get right here:
+The induction generalises `p` and `q`, which is the only thing to get right here:
 each step replaces one endpoint by the midpoint, so an induction that fixed them
 does not close.
 -/
 
 /-- Scaling a real by `d` and then by `1/d` returns it. The inverse is taken on
-the RATIONAL, so this is `ratMul_inv` carried across `realLOf_mul` -- no real is
+the rational, so this is `ratMul_inv` carried across `realLOf_mul` -- no real is
 inverted anywhere. -/
 theorem realLMul_ratInv_cancel {d y : ZFSet.{u}} (hd : d ∈ NumberTheory.Rat.{u})
     (hne : d ≠ ratZero.{u}) (hy : y ∈ RealL.{u}) :
@@ -5409,7 +5409,7 @@ theorem withinOf_realLMul {z e c : ZFSet.{u}} (hz : z ∈ RealL.{u})
   rw [realLMul_comm hz hc, realLMul_comm he hc] at hhi
   exact ⟨hlo, hhi⟩
 
-/-- A stable goal may be proved by cases on an UNDECIDED proposition.
+/-- A stable goal may be proved by cases on an undecided proposition.
 
 If `A` proves the goal and `¬ A` proves the goal, the goal follows -- not
 because `A ∨ ¬ A` is available, but because `WithinOf` is a negation and so
@@ -5448,7 +5448,7 @@ theorem nonneg_of_withinOf {z ε : ZFSet.{u}} (hz : z ∈ RealL.{u})
 
 /-- Negating what is estimated, at a bound that is any real.
 
-`withinOf_neg` (`Deriv.lean`) is this at a RATIONAL bound, and the general form
+`withinOf_neg` (`Deriv.lean`) is this at a rational bound, and the general form
 is the fourth member of the family whose other three -- `withinOf_add_real`,
 `close_trans_real`, `close_add_real` -- are already here. The rational versions
 cannot serve a caller whose bound is `invScale n` composed with anything. -/
@@ -5466,13 +5466,13 @@ theorem close_symm_real {x y ε : ZFSet.{u}} (hx : x ∈ RealL.{u})
   have hstep := withinOf_neg_real (realLAdd_mem hx (realLNeg_mem hy)) hε h
   rwa [realLNeg_sub hx hy] at hstep
 
-/-- `realLMax` is NON-EXPANSIVE: clamping two nearby reals from below by the
+/-- `realLMax` is non-expansive: clamping two nearby reals from below by the
 same thing leaves them just as near.
 
 One direction is the whole content and the other is it applied to the symmetric
 hypothesis. The direction runs `max a c ≤ max b c + ε` by `realLMax_le` on two
 cases: `a ≤ b + ε` is the estimate weakened along `b ≤ max b c`, and
-`c ≤ max b c` is weakened by adding a NON-NEGATIVE `ε` -- which is what
+`c ≤ max b c` is weakened by adding a non-negative `ε` -- which is what
 `nonneg_of_withinOf` is for, and the step that fails if the bound is allowed to
 be negative.
 
@@ -5506,7 +5506,7 @@ theorem close_realLMax {a b c ε : ZFSet.{u}} (ha : a ∈ RealL.{u})
       (step a b ha hb h)
 
 /-- Two-sided bounds add, over arbitrary located bounds. `Deriv.lean`'s
-`withinOf_add` is the RATIONAL case of this and is now a corollary of it: its
+`withinOf_add` is the rational case of this and is now a corollary of it: its
 bounds are `realLOf c` for rationals, which is what a grid supplies and not what
 a modulus does. The general form is what `Close`'s arithmetic needs.
 
@@ -5525,7 +5525,7 @@ theorem withinOf_add_real {z₁ z₂ ε₁ ε₂ : ZFSet.{u}} (hz₁ : z₁ ∈ 
   exact realLLe_add (realLNeg_mem hε₁) hz₁ (realLNeg_mem hε₂) hz₂ h₁.left h₂.left
 
 /-- Chaining, over arbitrary located bounds. `close_trans` in Banach.lean and
-`close_of_close_close` in Deriv.lean are the RATIONAL cases; this is the general
+`close_of_close_close` in Deriv.lean are the rational cases; this is the general
 one, following the general-bound suffix those files already use for
 `withinOf_le_real`/`close_le_real`. The telescoping `(x - y) + (y - z) = x - z`
 is `realLSub_add_cancel` under one re-association. -/
@@ -5742,7 +5742,7 @@ witness for the strict inequality would put one rational in both halves of a
 located pair, which `ordered` refutes.
 
 This is the bridge the supremum lemmas need.  `le_sup` and `sup_le`
-(`le_sup` and `sup_le`) are stated as inclusions of LOWER CUTS, and every
+(`le_sup` and `sup_le`) are stated as inclusions of lower cuts, and every
 consumer wants `realLLe`. -/
 theorem realLLe_of_lower_subset {L U L' U' : ZFSet.{u}}
     (h' : IsLocated L' U') (hsub : L ⊆ L') :
@@ -5752,7 +5752,7 @@ theorem realLLe_of_lower_subset {L U L' U' : ZFSet.{u}}
   rw [fst_opair] at hpL
   exact ratLt_irrefl (h'.ordered p (hsub p hpL) p hpU)
 
-/-- The supremum is the LEAST upper bound, at the order rather than the cut.
+/-- The supremum is the least upper bound, at the order rather than the cut.
 `sup_le` says the lower cut is contained; the bridge turns that into `realLLe`,
 which is what a consumer states its bounds in.
 
@@ -5766,7 +5766,7 @@ theorem sup_realLLe_of_forall {S b L' U' : ZFSet.{u}}
   rw [hb]
   exact realLLe_of_lower_subset h' (sup_le h)
 
-/-- The supremum is the least upper bound, with the hypothesis at the ORDER
+/-- The supremum is the least upper bound, with the hypothesis at the order
 level.  The companion of `sup_realLLe_of_forall`, and the one that composes:
 consumers produce `realLLe` bounds, not cut inclusions, and the converse bridge
 is not available.
@@ -5785,14 +5785,14 @@ theorem sup_realLLe_of_forall_le {S w : ZFSet.{u}}
   exact hpLz
 
 
-/-- Every member sits below the supremum, at the ORDER rather than the cut.
+/-- Every member sits below the supremum, at the order rather than the cut.
 
-`le_sup` gives the LOWER-CUT inclusion and has no consumer
+`le_sup` gives the lower-cut inclusion and has no consumer
 in the tree -- `rangeSup_le` inlines its own argument instead. This is the form a
 consumer states its bounds in, and it is the companion of
 `sup_realLLe_of_forall_le`.
 
-A witness for the strict inequality would put one rational above EVERY member --
+A witness for the strict inequality would put one rational above every member --
 `supUpper`'s own condition -- and simultaneously in this member's lower half,
 which its `ordered` clause refutes. -/
 theorem le_sup_realLLe {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
@@ -5806,13 +5806,13 @@ theorem le_sup_realLLe {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
   have hrQ : r ∈ NumberTheory.Rat.{u} := hloc.lower_subset r hrL
   exact ratLt_irrefl (ratLt_trans hpQ hrQ hpQ hpr hrp)
 
-/-- The lower cut of an INFIMUM: a rational below every member, with a strict
+/-- The lower cut of an infimum: a rational below every member, with a strict
 buffer -- the mirror of `supUpper`. -/
 def infLower (S : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun p => ∃ q, q ∈ NumberTheory.Rat.{u} ∧ ratLt p q ∧
         ∀ z, z ∈ S → ∀ L U, z = opair L U → q ∈ L) NumberTheory.Rat.{u}
 
-/-- The upper cut of an INFIMUM: a rational above SOME member -- the mirror of
+/-- The upper cut of an infimum: a rational above some member -- the mirror of
 `supLower`. -/
 def infUpper (S : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun r => ∃ z, z ∈ S ∧ ∃ L U, z = opair L U ∧ r ∈ U) NumberTheory.Rat.{u}
@@ -5827,7 +5827,7 @@ theorem mem_infUpper_iff (S r : ZFSet.{u}) :
   mem_sep_iff _ _ _
 
 /-- The dual of `FamilyLocated`, and it is a genuinely different condition:
-`FamilyLocated` asks whether SOME member exceeds `p`, this asks whether EVERY
+`FamilyLocated` asks whether some member exceeds `p`, this asks whether every
 member does. Neither follows from the other -- each member's own `located`
 clause gives a pointwise disjunction, and the two ways of collapsing it over the
 family are independent. -/
@@ -5838,7 +5838,7 @@ def FamilyLocatedInf (S : ZFSet.{u}) : Prop :=
 
 /-- The infimum of a family is a located real, dual to
 `isLocated_sup_of_familyLocated` -- and the tree had no infimum construction at
-all before this. Every outer measure is a greatest LOWER bound, so
+all before this. Every outer measure is a greatest lower bound, so
 `LebesgueOuter` could only be stated as a characterisation. -/
 theorem isLocated_inf_of_familyLocatedInf {S : ZFSet.{u}} (hS : S ⊆ RealL.{u})
     (hne : ∃ z, z ∈ S)
@@ -5886,11 +5886,11 @@ theorem isLocated_inf_of_familyLocatedInf {S : ZFSet.{u}} (hS : S ⊆ RealL.{u})
     · exact Or.inl ((mem_infLower_iff S p).mpr ⟨hpQ, t, htQ, h₁, hleft⟩)
     · exact Or.inr ((mem_infUpper_iff S q).mpr ⟨hqQ, hright⟩)
 
-/-- A constructed infimum is APPROACHED, free.  Anything strictly above the
+/-- A constructed infimum is approached, free.  Anything strictly above the
 infimum has a member of the family at or below it.
 
 This is `OuterApproached`'s conclusion (`Caratheodory.lean`) for an infimum
-that has been BUILT rather than characterised, and it costs nothing: `infUpper`
+that has been built rather than characterised, and it costs nothing: `infUpper`
 is by definition above some member, so a witness for `inf < U` names the member
 directly.
 
@@ -5917,7 +5917,7 @@ theorem approached_of_inf {S U : ZFSet.{u}} (hS : S ⊆ RealL.{u})
   exact ratLt_irrefl (ratLt_trans hrQ hpQ hrQ hrp hpr)
 
 
-/-- The infimum is a LOWER bound.  Dual to `le_sup_realLLe`. -/
+/-- The infimum is a lower bound.  Dual to `le_sup_realLLe`. -/
 theorem inf_realLLe_of_mem {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
     (hloc : IsLocated L U) :
     realLLe (opair (infLower S) (infUpper S)) z := by
@@ -5928,8 +5928,8 @@ theorem inf_realLLe_of_mem {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair 
   exact ratLt_irrefl (ratLt_trans hrQ hqQ hrQ hrq
     (hloc.ordered q (hall z hz L U he) r hrU))
 
-/-- And it is the GREATEST lower bound.  Dual to `sup_realLLe_of_forall_le`,
-with the hypothesis at the ORDER level, which is the form that composes. -/
+/-- And it is the greatest lower bound.  Dual to `sup_realLLe_of_forall_le`,
+with the hypothesis at the order level, which is the form that composes. -/
 theorem realLLe_inf_of_forall {S K : ZFSet.{u}}
     (h : ∀ z, z ∈ S → realLLe K z) :
     realLLe K (opair (infLower S) (infUpper S)) := by
@@ -5945,10 +5945,10 @@ theorem realLLe_inf_of_forall {S K : ZFSet.{u}}
 If `L <= M` and a rational `t` sits in `L`'s lower cut, every rational strictly
 below `t` is in `M`'s lower cut.
 
-This is the LEFT case of the converse sketch, and writing it revealed the family
+This is the left case of the converse sketch, and writing it revealed the family
 hypothesis was never used: the statement is about two located reals.
 
-The step that matters: `realLLe L M` forbids `t` from `M`'s UPPER cut, and `M`'s
+The step that matters: `realLLe L M` forbids `t` from `M`'s upper cut, and `M`'s
 own `located` clause at `(p, t)` then has only one branch left. Being below is
 not enough on its own -- the dichotomy is what converts it. -/
 theorem lower_of_le_of_lower {L M Ll Lu Ml Mu p t : ZFSet.{u}}
@@ -5962,10 +5962,10 @@ theorem lower_of_le_of_lower {L M Ll Lu Ml Mu p t : ZFSet.{u}}
   · exact absurd ⟨t, by rw [hMeq, snd_opair]; exact ht,
       by rw [hLeq, fst_opair]; exact htL⟩ hle
 
-/-- The RIGHT case: an approximant below a rational puts that rational in its
+/-- The right case: an approximant below a rational puts that rational in its
 upper cut.  If `M <= realLOf t'` and `t' < q`, then `q ∈ U_M`.
 
-As the left case predicted, this does NOT go by transitivity. `M`'s own `located`
+As the left case predicted, this does not go by transitivity. `M`'s own `located`
 clause at `(t', q)` leaves two branches, and the wrong one is killed by
 `lower_open`: a rational in `M`'s lower cut has a strictly larger companion
 there, which is exactly the witness `M <= realLOf t'` forbids. -/
@@ -5982,14 +5982,14 @@ theorem upper_of_le_ratOf {M Ml Mu t q : ZFSet.{u}} (hMeq : M = opair Ml Mu)
     · rw [hMeq, fst_opair]; exact ht'L
   · exact hq
 
-/-- THE CONVERSE: a lower bound that is APPROACHED makes the family
+/-- The converse: a lower bound that is approached makes the family
 inf-located.  So `FamilyLocatedInf` is not strictly stronger than
 `OuterApproached` -- given a glb that exists as a located real, the two are
 interderivable. What that buys is not an upgrade to the characterisations, which
-were always correct as conditionals on a supplied `L`: it is the ANTECEDENT.
+were always correct as conditionals on a supplied `L`: it is the antecedent.
 With the bound family inf-located, `L` can be produced rather than assumed.
 
-The proof is one case split on `L`'s OWN `located` clause, with a proved lemma
+The proof is one case split on `L`'s own `located` clause, with a proved lemma
 per branch. Neither branch is transitivity: both convert an order fact into cut
 membership through a dichotomy, which is what the order/cut gap forces. -/
 theorem familyLocatedInf_of_lowerBound_of_approx {S L Ll Lu : ZFSet.{u}}
@@ -6025,7 +6025,7 @@ theorem mem_lower_of_neg_of_nonneg {M Ml Mu p : ZFSet.{u}} (hMeq : M = opair Ml 
     · rw [realLZero, realLOf, fst_opair]
       exact (mem_ratCut_iff ratZero.{u} r).mpr ⟨hlocM.upper_subset r hrU, hr0⟩
 
-/-- A member of the UPPER cut names a rational the real is strictly below.
+/-- A member of the upper cut names a rational the real is strictly below.
 `upper_open` supplies the witness `realLLt` asks for; the rationality of `v`
 is not needed, since the witness comes from the cut rather than from `v`. -/
 theorem realLLt_realLOf_of_mem_upper {L Ll Lu v : ZFSet.{u}} (hLeq : L = opair Ll Lu)
@@ -6063,7 +6063,7 @@ theorem lowerBound_boundsOf {P : ZFSet.{u} → Prop}
   exact mem_lower_of_neg_of_nonneg heq
     (isLocated_of_mem_RealL (hmem _ hb) heq) (hnn _ hb) hsQ hs0
 
-/-- The greatest lower bound of ANY nonnegative family of reals exists once the
+/-- The greatest lower bound of any nonnegative family of reals exists once the
 family is inf-located -- `LebesgueOuter`'s three clauses, with the bound
 predicate abstracted. -/
 theorem glb_of_familyLocatedInf {P : ZFSet.{u} → Prop}
@@ -6087,11 +6087,11 @@ theorem glb_of_familyLocatedInf {P : ZFSet.{u} → Prop}
 
 /-- The infimum of a set of located reals is its greatest lower bound.
 
-Stated over a SET rather than a carving predicate, which is the form
+Stated over a set rather than a carving predicate, which is the form
 `isLocated_sup_of_familyLocated` already takes on the dual side and the form
 every consumer holding a family actually has.
 
-What it asks for is a rational LOWER BOUND, not nonnegativity:
+What it asks for is a rational lower bound, not nonnegativity:
 `glb_of_familyLocatedInf` takes the latter only to derive the former through
 `lowerBound_boundsOf`, so nonnegativity is one way of meeting the hypothesis
 rather than the hypothesis itself. A finite family of located reals has a lower
@@ -6260,7 +6260,7 @@ theorem realLOne_le_realLInv_of_le_one {y : ZFSet.{u}} (hy : y ∈ RealL.{u})
 
 /-- And `Nat` order embeds too, at denominator one.
 
-`realLOf_ratNat_add` carries the arithmetic; this carries the COMPARISON, and
+`realLOf_ratNat_add` carries the arithmetic; this carries the comparison, and
 the pair is what lets a `Nat` inequality be read as one between contents.
 `lawOfLargeNumbers_tail` is stated as `q * binomTail ... <= (a+b)^(n+2)` with
 both denominators cleared, so it needs exactly this and no division. -/
@@ -6349,7 +6349,7 @@ theorem realLOf_ratNat_succ_pos (k : Nat) :
 
 /-- And a rational strictly above it.
 
-WHY IT WAS BUILT: the other side of the same bracket. Stated separately rather
+Why it was built: the other side of the same bracket. Stated separately rather
 than as a conjunction because the two halves are used at different points of a
 reduction --- the lower one bounds the round from below, the upper one bounds
 the remainder. -/
@@ -6363,7 +6363,7 @@ theorem exists_realLLt_ratOf {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
 
 #print axioms Analysis.exists_realLLt_ratOf
 
-/-- Deciding the strict order between LOCATED REALS, as a Prop.
+/-- Deciding the strict order between located reals, as a Prop.
 
 Named because the seven bisection rows' residue is exactly this and a principle
 named in prose cannot be reversed to. Those rows spend
@@ -6371,10 +6371,10 @@ named in prose cannot be reversed to. Those rows spend
 the second summand by a decision about the branch, and the branch is a
 comparison of one located real against another.
 
-THE `RealL` GUARDS MUST NOT BE DROPPED. `Constructive.DecidableRealLLe` has
+The `RealL` guards must not be dropped. `Constructive.DecidableRealLLe` has
 none, and `Constructive.wem_of_decidableRealLLe` exploits that: its witness is
-built from `opair`s of separation sets, points that are NOT located reals, so
-`decidableRealLLe_iff_wem` prices the UNRESTRICTED decision by the `sep` gadget
+built from `opair`s of separation sets, points that are not located reals, so
+`decidableRealLLe_iff_wem` prices the unrestricted decision by the `sep` gadget
 and says nothing about this one. Restricting to `RealL` changes the question,
 and `Analysis.lpo_of_decidableRealLLt` shows it changes the answer.
 -/

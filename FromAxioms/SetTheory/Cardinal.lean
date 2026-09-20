@@ -29,7 +29,6 @@ does, so `equinumerous_powSet`'s induction transplants to count it.
 -/
 
 import FromAxioms.Constructive.Reverse
-import FromAxioms.Core.NatSearch
 
 universe u
 
@@ -145,7 +144,7 @@ theorem equinumerous_refl (x : ZFSet.{u}) : Equinumerous x x :=
 /-- The image of an injective `Nat`-indexed family has as many elements as its
 index bound.
 
-Stated over a set `S` given by its MEMBERSHIP characterisation rather than as a
+Stated over a set `S` given by its membership characterisation rather than as a
 `range`, so a caller who already holds the set by a separation supplies `hS`
 directly instead of transporting across an equality. `equinumerous_cyclic` is
 this argument written out at `gpow`, where only the injectivity step is about
@@ -214,7 +213,7 @@ theorem dominates_of_equinumerous {x y : ZFSet.{u}} (h : Equinumerous x y) :
 
 The hypothesis is `P a ∨ Q a` rather than `P a ∨ ¬ P a`, and that is the
 load-bearing choice: a search whose negative branch delivers `¬ P a` delivers
-nothing a caller can use, since the caller needs a VALUE. Taking the dichotomy
+nothing a caller can use, since the caller needs a value. Taking the dichotomy
 as the hypothesis makes the negative branch carry information by construction,
 and every caller already holds it in that form.
 
@@ -1210,7 +1209,7 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 #print axioms isFinite_of_detachable
 #print axioms subsetFinite_of_em
 
-/-! ## The same theorem over a Lean TYPE
+/-! ## The same theorem over a Lean type
 
 `SubsetFinite` above is stated over `ZFSet`, and the usual statement over a
 Lean type, where `Set α` is `α → Prop`. No `ZFSet` is the `α` that statement
@@ -1219,15 +1218,15 @@ quantifies over, so the ZFSet form cannot discharge one about it.
 A classical proof of the same theorem is free, because the decision that
 selects the subset is ambient. This one carries it, and `subsetFinite_of_em`
 above says where --- `isFinite_of_detachable … (fun a _ => hem (a ∈ x))`. The
-principle buys DETACHABILITY of the subset.
+principle buys detachability of the subset.
 
-AND `List.filter` IS UNAVAILABLE, WHICH IS THE CONSTRUCTIVE CONTENT RATHER
-THAN AN INCONVENIENCE. `filter` wants a `Decidable` instance --- `Type`-valued
+And `List.filter` is unavailable, which is the constructive content rather
+than an inconvenience. `filter` wants a `Decidable` instance --- `Type`-valued
 --- and `Constructive.EM` is a `Prop`. Eliminating a `Prop` disjunction into
 `Type` is large elimination and is refused. So the selecting list cannot be
-COMPUTED from `EM` at all; it has to be produced inside a proof, where the goal
+computed from `EM` at all; it has to be produced inside a proof, where the goal
 is a `Prop` and case analysis on `hem (s a)` is ordinary. That is why
-`exists_sublist_of_em` returns an EXISTENTIAL and recurses on the ambient list
+`exists_sublist_of_em` returns an existential and recurses on the ambient list
 rather than being a function.
 -/
 
@@ -1238,11 +1237,11 @@ rather than being a function.
 
 /-- An injective enumeration gives a duplicate-free list.
 
-`Distinct` has exactly one lemma in this tree and no way to BUILD one, so every
+`Distinct` has exactly one lemma in this tree and no way to build one, so every
 argument wanting a list of distinct roots has had to hand-roll the recursion.
 This is that recursion once.
 
-The induction is on the FRONT of `List.range`, via `List.range_succ_eq_map`,
+The induction is on the front of `List.range`, via `List.range_succ_eq_map`,
 because `Distinct` is defined head-first; `List.range_succ` appends at the back
 and would
 need an append lemma that does not exist either. -/

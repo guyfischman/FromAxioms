@@ -21,7 +21,6 @@ is a sum of index types.
 -/
 
 import FromAxioms.NumberTheory.Natural
-import FromAxioms.SetTheory.Hierarchy
 
 universe u
 

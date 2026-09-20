@@ -5,31 +5,31 @@ Authors: Guy Fischman
 -/
 
 /-
-ANY Lean type as a ZFSet, injectively --- the encoding three rows were blocked
+Any Lean type as a ZFSet, injectively --- the encoding three rows were blocked
 on today for being impossible.
 
-WHY IT LOOKED IMPOSSIBLE. `natOpSet` transports a FINITE type into the tower by
+Why it looked impossible. `natOpSet` transports a finite type into the tower by
 using its enumeration, and there is no enumeration for an infinite one. Reading
 that as no encoding exists is the mistake: it says the finite instrument does
 not reach, not that nothing does.
 
-WHY IT IS POSSIBLE. This tree's pre-sets are the standard construction,
+Why it is possible. This tree's pre-sets are the standard construction,
 
     inductive PSet : Type (u+1) | mk (α : Type u) (A : α → PSet)
 
-so ANY `Type u` may index one. What is needed is an INJECTIVE `α → ZFSet`, and
+so any `Type u` may index one. What is needed is an injective `α → ZFSet`, and
 the classical construction is Mostowski's collapse: well-order `α`, then send
 `a` to the set of images of its strict predecessors.
 
-WHERE THE PRICE SITS, AND WHY IT IS THE RIGHT SIDE. The well-ordering is
+Where the price sits, and why it is the right side. The well-ordering is
 mathlib's `WellOrderingRel`, so this needs choice --- and this file is the
 mathlib side of a comparator pair, where choice is available and the tower's
 floor does not apply. Nothing here is re-exported into `FromAxioms`, and no
 `FromAxioms` declaration changes.
 
-WHAT THIS GIVES AND WHAT IT DOES NOT. It gives the CARRIER: `encodeSet α` is a
+What this gives and what it does not. It gives the carrier: `encodeSet α` is a
 ZFSet whose members are exactly the encodings of `α`'s elements, and distinct
-elements stay distinct. It does NOT by itself give a transported STRUCTURE ---
+elements stay distinct. It does not by itself give a transported structure ---
 an operation still has to be carried across, the way `natOpSet` carries one for
 a finite carrier and `graphOn` carries a unary map. So a row blocked on "the
 carrier cannot be encoded" is unblocked by this; a row whose remaining work is
@@ -47,7 +47,7 @@ its strict predecessors.
 
 Written with `WellFounded.fix` rather than `termination_by`: the latter wants a
 measure into a type Lean already knows to be well-founded, and there is none to
-offer --- the well-order IS this recursion's justification, so it is passed
+offer --- the well-order is this recursion's justification, so it is passed
 directly. -/
 noncomputable def emb : α → PSet.{0} :=
   (WellOrderingRel.isWellOrder (α := α)).toIsWellFounded.wf.fix
@@ -70,10 +70,10 @@ theorem exists_of_mem_emb {a : α} {w : PSet.{0}} (h : w ∈ emb a) :
   obtain ⟨i, hi⟩ := h
   exact ⟨i.1, i.2, hi⟩
 
-/-- THE POINT: the collapse is injective up to `Equiv`.
+/-- The point: the collapse is injective up to `Equiv`.
 
 Well-founded induction plus trichotomy. If `a < b` then `emb a` is a member of
-`emb b`, so an equivalence between them puts `emb a` inside ITSELF, and the
+`emb b`, so an equivalence between them puts `emb a` inside itself, and the
 predecessor witnessing that contradicts the induction hypothesis together with
 irreflexivity. The `b < a` branch is the same move one step further out: its
 witness lies below `b`, hence below `a` by transitivity, so the induction
@@ -107,7 +107,7 @@ theorem emb_injective : ∀ a b : α, PSet.Equiv (emb a) (emb b) → a = b := by
 /-- The type's element, as a ZFSet. -/
 noncomputable def encode (a : α) : ZFSet.{0} := SetTheory.mk (emb a)
 
-/-- The type ITSELF, as a ZFSet: the set of all the encodings. This is the
+/-- The type itself, as a ZFSet: the set of all the encodings. This is the
 carrier a transported structure would live on. -/
 noncomputable def encodeSet (α : Type) : ZFSet.{0} := SetTheory.mk ⟨α, emb⟩
 

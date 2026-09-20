@@ -117,43 +117,43 @@ Probed, and constructive:
 
 Three things about that list are load-bearing:
 
-1. It covers the dependencies of ONE proof and the chain beneath it. It is not
+1. It covers the dependencies of one proof and the chain beneath it. It is not
    a survey of core, and a lemma's absence says only that this proof did not
    reach it.
 
-2. The candidates came from ERROR TEXT, not from the export. Each name entered
+2. The candidates came from error text, not from the export. Each name entered
    the list because an audit line moved and the failing rewrite named it. So
    the list is complete for the failures observed, which is weaker than
    complete for the proof: a classical lemma whose use happened not to move an
    audit line would not appear.
 
-3. The list GREW after it was first believed closed -- `Nat.div_pos` was found
+3. The list grew after it was first believed closed -- `Nat.div_pos` was found
    classical only when the audit line moved a second time, so the
    lemma below exists. That is the evidence for (2) rather than a story about
    it.
 
-Probed, and CLASSICAL -- each `[propext, Classical.choice, Quot.sound]`,
+Probed, and classical -- each `[propext, Classical.choice, Quot.sound]`,
 measured with `Nat.div_pos` alongside as a control:
 
     Nat.div_pos            Nat.mul_lt_mul_left
     Nat.instLawfulEqOrd    Nat.instTransOrd
 
-THE TWO INSTANCES ARE WHY THIS HALF OF THE TABLE EXISTS. The other names are
+The two instances are why this half of the table exists. The other names are
 lemmas, which a proof cites by name and a reader can find in the source text.
-`Nat.instLawfulEqOrd` and `Nat.instTransOrd` are INSTANCES: they arrive through
+`Nat.instLawfulEqOrd` and `Nat.instTransOrd` are instances: they arrive through
 Std's order machinery with nothing at the use site naming them, so a
 declaration goes classical with no classical name written anywhere in it.
 `set_option pp.explicit true in #print` shows them.
 
-WHICH IS THE SAME LESSON AS `by_cases` ONE LAYER DOWN: the door does not have
+Which is the same lesson as `by_cases` one layer down: the door does not have
 to appear in the source. There the tactic supplied `Classical.propDecidable`
 for an undecidable argument; here
 instance resolution supplies a classical instance for a decidable-looking one.
-`#print axioms` names the declaration that PAYS, never the step that charged it,
+`#print axioms` names the declaration that pays, never the step that charged it,
 so between the two the only reliable instrument is the axiom line plus an
 explicit print of the term.
 
-NOT A REPAIR LIST. These are recorded as measured, not shimmed. `Nat.div_pos`
+Not a repair list. These are recorded as measured, not shimmed. `Nat.div_pos`
 has `div_pos_of_dvd` below because a use site needed it; the other three have no
 constructive replacement here because nothing in this development has yet been
 blocked on them. A name in this list is a warning to the next caller, not a
@@ -175,13 +175,13 @@ theorem div_lt_of_lt_mul' {m n k : Nat} (h : m < n * k) : m / n < k := by
 
 
 /-- A number splitting as `a + M * c` with `a < M` has remainder `a`. Abstracted
-so `t` occurs ONCE -- in place, `x` appears on both sides of the goal and any
+so `t` occurs once -- in place, `x` appears on both sides of the goal and any
 `rw` of its decomposition rewrites the right-hand side too. -/
 theorem nat_mod_of_split {M a c t : Nat} (hlt : a < M)
     (hx : t = a + M * c) : t % M = a := by
   rw [hx, Nat.add_mul_mod_self_left, Nat.mod_eq_of_lt hlt]
 
-/-- `Nat.mod_pow_succ`, constructively. Core's is CLASSICAL --
+/-- `Nat.mod_pow_succ`, constructively. Core's is classical --
 `[propext, Classical.choice, Quot.sound]` -- as are `Nat.mod_mul` and
 `Nat.mod_mul_right_div_self`. Every piece used here is not: `Nat.div_add_mod`
 and `Nat.add_mul_mod_self_left` are `[propext]`, and `Nat.mod_lt` depends on no

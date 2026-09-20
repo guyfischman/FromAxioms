@@ -46,7 +46,7 @@ private theorem four_sq (m : Nat) : (2 * m) * (2 * m) = 4 * (m * m) := by
 /-- The irrationality of √2, as the prime case at `2`.
 
 `prime_sq_irrational` runs the descent for an arbitrary prime modulus, and the
-only thing this row adds is `isPrime_two`. The descent WAS written out here once,
+only thing this row adds is `isPrime_two`. The descent was written out here once,
 with a private `odd_sq` and `even_of_sq_even` supplying `2 ∣ p² → 2 ∣ p` by
 expanding `(2r+1)²`; the general lemma gets that step from `prime_divides_sq` and
 needs no expansion, so the specialised proof and both helpers came out together.
@@ -141,7 +141,7 @@ theorem no_rat_sq_prime {n : Nat} (hn : IsPrime n) {r : ZFSet.{u}} (hr : r ∈ R
     omega
   · exact hpos r hr hgt he
 
-/-- No rational squares to `2`, the landmark's own statement, now READ OFF
+/-- No rational squares to `2`, the landmark's own statement, now read off
 the general one rather than proved beside it. -/
 theorem no_rat_sq_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
     ratMul r r ≠ ratNat.{u} 2 1 :=

@@ -13,12 +13,12 @@ Mathlib's vocabulary only. `Mathlib/Data/Nat/ModEq.lean:353`:
       { k // k ≡ a [MOD n] ∧ k ≡ b [MOD m] }
 
 That is a subtype rather than a theorem, so the challenge states the
-proposition it carries. NO POSITIVITY ON EITHER MODULUS: mathlib asks only
+proposition it carries. No positivity on either modulus: mathlib asks only
 coprimality, and the degenerate cases (`n = 0` forces `m = 1`, and conversely)
 are inside what it claims.
 
 The row's other mathlib counterpart, `ZMod.chineseRemainder`, is the ring
-ISOMORPHISM. It is a `def` and not comparator-shaped; this pair matches the
+isomorphism. It is a `def` and not comparator-shaped; this pair matches the
 existence statement, and the row's `at_parity` records the isomorphism axis
 separately.
 -/

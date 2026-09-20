@@ -5,7 +5,6 @@ Authors: Guy Fischman
 -/
 
 import FromAxioms.Algebra.TowerLaw
-import FromAxioms.Geometry.GeomCongruence
 
 open Algebra SetTheory
 namespace Analysis
@@ -14,7 +13,7 @@ universe u
 
 /-! ## Symmetry -/
 
-/-- Symmetry of the fold in its two list arguments, with NO equal-length
+/-- Symmetry of the fold in its two list arguments, with no equal-length
 hypothesis: a ragged pair sends both sides to the module's zero, so all the
 statement needs is that the entries are ring elements.
 
@@ -33,7 +32,7 @@ theorem dot_comm {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero on
       dot_comm hR xs ys (fun a ha => hxs a (List.mem_cons_of_mem _ ha))
         (fun b hb => hys b (List.mem_cons_of_mem _ hb))]
 
-/-- Additivity at the VECTORS, which is the form a consumer holds.
+/-- Additivity at the vectors, which is the form a consumer holds.
 `tupleToList_vecAdd` carries the vector sum to the pairwise sum of the
 coefficient lists, so this is `lincomb_zipWith_add` at three lists of one
 length rather than a second induction. -/
@@ -48,7 +47,7 @@ theorem dot_vec_add_left {R add mul zero one : ZFSet.{u}}
     (by rw [tupleToList_length, tupleToList_length])
     (tupleToList_mem hx) (tupleToList_mem hx') (tupleToList_mem hy)
 
-/-- Additivity in the SECOND argument, by symmetry rather than by a second
+/-- Additivity in the second argument, by symmetry rather than by a second
 induction. Bilinearity is one law and a commutation, so `dot_comm` carries the
 second half, and it is stated without a length hypothesis. -/
 theorem dot_vec_add_right {R add mul zero one : ZFSet.{u}}
@@ -73,7 +72,7 @@ against. It was not that the mathematics was missing --- `dot_vec_add_left`,
 `dot_vec_add_right` and `dot_comm` are all here and all over an arbitrary
 `IsRing`. Only the statement was.
 
-THE ADDITION FORM: it needs no vector subtraction, so no additive inverse is
+The addition form: it needs no vector subtraction, so no additive inverse is
 used and the ring hypothesis is not strengthened to reach it. Orthogonality is
 the dot product landing on the ring's zero. -/
 theorem dot_vec_add_self_of_orth {R add mul zero one : ZFSet.{u}}

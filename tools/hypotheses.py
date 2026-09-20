@@ -29,7 +29,7 @@ entries still owing -- no block, or a direction `open` -- is `_uncalibrated`,
 and the check demands exact equality: lowering it records progress, raising
 it takes the same two edits as any ratchet.
 
-It also lists, as a NOTE, `Prop`-valued definitions that appear in other
+It also lists, as a note, `Prop`-valued definitions that appear in other
 declarations' binders but are not registered -- the discovery mechanism, so
 a new principle cannot circulate quietly.
 """
@@ -78,14 +78,14 @@ def sweep():
             binders = " ".join(binder_list) \
                 if isinstance(binder_list, list) else binder_list
             binder_text.append((path.name, bare, binders))
-            # `split_signature` has ALREADY eaten the colon, so a pattern
+            # `split_signature` has already eaten the colon, so a pattern
             # requiring one can never match and `prop_defs` stayed empty on
             # every run this detector has ever had. Nothing noticed, because
             # an empty set and a set nothing was found for print the same
-            # thing: no NOTE.
-            # A PRINCIPLE IS A CLOSED PROP. `def LPO : Prop` takes no
+            # thing: no note.
+            # A principle is a closed prop. `def LPO : Prop` takes no
             # parameters; `def Btw (a b c : Point) : Prop` is an ordinary
-            # predicate and there are 141 of those, which as a NOTE would be
+            # predicate and there are 141 of those, which as a note would be
             # a wall of text nobody reads. Requiring no binders is what
             # separates a strength from a relation.
             if re.match(r"\s*:?\s*Prop\s*$", conclusion or "") \
@@ -112,11 +112,11 @@ def sweep():
 
 
 # The five kinds `hypotheses.json`'s `_README` declares, and against which it
-# says `kind` IS validated. It was not: the field was read in exactly one
+# says `kind` is validated. It was not: the field was read in exactly one
 # place -- an f-string that prints it -- and never compared, which is how four
 # entries drifted to a fifth value nothing defined.
 #
-# **The README asserted the check in the past tense while the check did not
+# **The Readme asserted the check in the past tense while the check did not
 # exist.** A reader who verified the claim by reading the registry's own
 # documentation found it stated as settled. Argument, mechanism and execution
 # are three things (structures); here only the first was present.
@@ -126,7 +126,7 @@ KINDS = frozenset({"principle", "readout", "witness", "decider", "structural"})
 def bad_kinds(reg):
     """Registered hypotheses whose `kind` is not one of the declared five.
 
-    Returns (name, kind) pairs. An entry with NO `kind` is reported too: a
+    Returns (name, kind) pairs. An entry with no `kind` is reported too: a
     missing field and an undeclared value are the same defect for a reader
     who trusts the enum.
     """
@@ -143,7 +143,7 @@ def bad_kinds(reg):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
-    # THE FULL LIST, BECAUSE `--check` PRINTS A SAMPLE. That NOTE says `e.g.`,
+    # The full list, because `--check` prints a sample. That note says `e.g.`,
     # which is right for a report a human reads and useless to anything that
     # wants to act on the population.
     #
@@ -151,7 +151,7 @@ def main():
     # second derivation, because a caller reimplementing the sweep is how two
     # tools come to disagree about one tree. The filters that remove lattice
     # nodes and `classical.json`-priced entries run below and are applied here
-    # too, so this and the NOTE always name the same set.
+    # too, so this and the note always name the same set.
     ap.add_argument("--unregistered", action="store_true",
                     help="print every closed-Prop hypothesis that circulates "
                          "unregistered, one per line, for a tool to consume")
@@ -165,17 +165,17 @@ def main():
     budget = full.get("_uncalibrated")
     nodes = set(json.loads(
         (ROOT / "tools" / "lattice.json").read_text())["nodes"]) | {"none"}
-    # `relative` IS THE ABSENCE OF A SINGLE STRENGTH. A hypothesis carrying a
-    # PROMISE about its argument has a strength that varies with the argument,
+    # `relative` is the absence of a single strength. A hypothesis carrying a
+    # promise about its argument has a strength that varies with the argument,
     # so `principle`, `forward` and `reverse` cannot apply, and writing `n/a` in
     # all three says nothing about why.
     #
     # `HalveDecider` is the case: `not_halveDecider_forall` refutes the
     # universal form and `sqrtTwoDecider` builds an instance outright, so the
-    # strength runs from FREE to FALSE. `Calibrate.lean`'s docstring predicted
+    # strength runs from free to false. `Calibrate.lean`'s docstring predicted
     # the shape --- *its calibration must therefore be relative to a P, which
     # is a different kind of registry entry* --- and the entry
-    # sat at `calibration: null` for want of it, counted as OWING, while both
+    # sat at `calibration: null` for want of it, counted as owing, while both
     # ends stood proved in the tree.
     shapes = {"omniscience", "choice", "modulus", "subject", "relative"}
     decls = {d["name"]
@@ -206,8 +206,8 @@ def main():
             else:
                 bad_cal.append((k, f"{side} {w!r} is neither open, n/a, nor "
                                 "a declaration"))
-        # BOTH ENDS OF THE VARIATION, OR IT IS AN OPT-OUT. An entry claiming
-        # its strength DEPENDS on its argument must exhibit the dependence;
+        # Both ends of the variation, or it is an opt-out. An entry claiming
+        # its strength depends on its argument must exhibit the dependence;
         # otherwise `relative` is how a hypothesis leaves the register while
         # appearing to be in it.
         if cal.get("shape") == "relative":
@@ -282,17 +282,17 @@ def main():
         print("  takes two edits.")
         return 1
     if unregistered:
-        # TWO REGISTRIES, and a principle adjudicated in the other one is not
-        # unadjudicated. 15 of the first 29 this reported are LATTICE NODES
+        # Two registries, and a principle adjudicated in the other one is not
+        # unadjudicated. 15 of the first 29 this reported are lattice nodes
         # with a gloss and edges -- reporting them as unregistered overstates
         # the backlog by half and would have sent someone to write entries
         # that already exist elsewhere (2215).
         try:
-            # FOLD THE KEYS, because the query side is folded two lines below.
+            # Fold the keys, because the query side is folded two lines below.
             # `set(...["nodes"])` keeps the registry's own spelling, and
             # `'FANΔ'.lower()` is `'fanδ'` while the key is `'fanΔ'` --- the one
             # node of 86 whose key is not its own lowercase. Comparing a folded
-            # name against unfolded keys reported it as UNREGISTERED, which is
+            # name against unfolded keys reported it as unregistered, which is
             # the same character that produced two contradictory counts.
             nodes = {k.lower() for k in json.loads(
                 (ROOT / "tools" / "lattice.json").read_text())["nodes"]}
@@ -312,17 +312,17 @@ def main():
                       f"in the\n      other registry rather than "
                       f"unadjudicated.")
     if unregistered:
-        # THREE registries, not two. `_equivalences` prices a statement that no
+        # Three registries, not two. `_equivalences` prices a statement that no
         # declaration's audit line can reach, which is exactly the shape of a
         # hypothesis, so the sharpest of these live there, each with a named
         # reversal.
-        # AND `_unplaced` IS THE FOURTH, which this missed. A principle
-        # adjudicated as UNPLACEABLE --- proved outright, or with an edge whose
+        # And `_unplaced` is the fourth, which this missed. A principle
+        # adjudicated as unplaceable --- proved outright, or with an edge whose
         # witness carries an extra hypothesis that is not itself a principle ---
         # has been ruled on, with a note saying what would close it. Reporting
         # it as *circulating unregistered* asks a reader to
         # adjudicate what is already adjudicated, and the only way to satisfy
-        # the report would be to give it a lattice node, which for a PROVED
+        # the report would be to give it a lattice node, which for a proved
         # statement is the error `_unplaced` exists to prevent.
         #
         try:
@@ -351,19 +351,19 @@ def main():
                       f"({', '.join(equiv[:5])}), so they carry a\n      "
                       f"principle and a reversal already.")
     if args.unregistered:
-        # AFTER both filters above, so this names what the NOTE names.
+        # After both filters above, so this names what the note names.
         for n, f, c in sorted(unregistered):
             print(f"{n}\t{f}\t{c}")
         return 0
     if unregistered:
         names = ", ".join(f"{n} ({f})" for n, f, c in unregistered[:6])
-        # The COUNT, not just a sample. Six names with no total reads as six
+        # The count, not just a sample. Six names with no total reads as six
         # cases: a count without its ceiling is a numerator.
         print(f"NOTE: {len(unregistered)} closed-Prop hypotheses circulate "
               f"unregistered, e.g. {names}."
               f"\n      `_uncalibrated` counts only what the registry holds, "
               f"so it cannot see these.")
-    # The one measurement of what a hypothesis COSTS. Reversals price axioms
+    # The one measurement of what a hypothesis costs. Reversals price axioms
     # and the costmap prices encodings, and both are cheap because the second
     # artefact is free -- a reversal is a theorem worth having, the second
     # encoding already exists. For a hypothesis the second route is never
@@ -387,17 +387,17 @@ def main():
               f"supersession in\n      tools/routes.json when the hypothesis "
               f"set changes; a tidier proof from\n      the same inputs is "
               f"not one.")
-    # THREE NUMBERS, because one was doing work it could not support.
+    # Three numbers, because one was doing work it could not support.
     # `_uncalibrated` counts entries with an `open` direction and reads 2,
-    # which invites "34 are pinned down". They are not: only TWO of 36 are
+    # which invites "34 are pinned down". They are not: only two of 36 are
     # clean equivalences. Six are two-way, and four of those have forwards
-    # spending BinaryDC and DC on top of LLPO -- a BOUND, not an equivalence,
+    # spending BinaryDC and DC on top of LLPO -- a bound, not an equivalence,
     # and the entries say so while the number cannot (2221).
     def _real(x):
         return x not in ("n/a", "open", None)
 
     equiv, bound, unmeasured = 0, 0, 0
-    # THE N/A GROUP IS SEVERAL CONDITIONS, so it is reported split by the
+    # The N/a group is several conditions, so it is reported split by the
     # adjudicated `verdict` rather than as one number.
     verdicts = collections.Counter()
     for _k, _v in reg.items():
@@ -426,12 +426,12 @@ def main():
           + ", ".join(f"{n} {v}" for v, n in sorted(verdicts.items()))
           + ".\n      Only `open` is debt -- `never` is the measuring stick, "
             "the subject\n      matter, and the universe gap.")
-    # A FIELD SAYING `n/a` WHILE THE ENTRY'S OWN PROSE SAYS THE DIRECTION IS
-    # OWED. `n/a` means *the question does not arise*; `open` means *owed*, and
+    # A field saying `n/a` while the entry's own prose says the direction is
+    # owed. `n/a` means *the question does not arise*; `open` means *owed*, and
     # `_uncalibrated` counts only the latter --- so an owed direction spelled
     # `n/a` is invisible to the budget that exists to track it.
     #
-    # DELIBERATELY NARROW: it fires only when the prose NAMES the direction
+    # Deliberately narrow: it fires only when the prose names the direction
     # alongside an openness word, because a discharge may say `open` about
     # something else entirely and a check that guessed would be ignored.
     disagree = []
@@ -445,7 +445,7 @@ def main():
             if _dir not in low:
                 continue
             near = low[max(0, low.find(_dir) - 60):low.find(_dir) + 80]
-            # AN ENTRY EXPLAINING WHY `n/a` IS CORRECT MUST NOT FIRE. `DC`
+            # An entry explaining why `n/a` is correct must not fire. `DC`
             # says a forward deriving it from itself *is not a thing to
             # write* --- a justification, matched by a rule hunting for
             # `forward` beside a negation. A check that names the entry

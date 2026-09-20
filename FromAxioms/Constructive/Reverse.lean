@@ -172,7 +172,7 @@ The converse of `em_of_familyLocated` (`Calibrate.lean`), which turns that
 lemma's one-way price into an equivalence --- stated there, where both
 directions are in scope, as `familyLocated_all_iff_em`.
 
-ONLY THE EXISTENTIAL NEEDS DECIDING, and that is the whole content. `EM` picks
+Only the existential needs deciding, and that is the whole content. `EM` picks
 between "some member's lower cut holds `p`" and its negation; in the negative
 branch each member's own `IsLocated.located` field supplies `q ∈ U` for free,
 its left disjunct refuted by the negation just assumed. So family locatedness

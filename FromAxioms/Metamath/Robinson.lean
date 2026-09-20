@@ -36,7 +36,6 @@ it.
 -/
 
 import FromAxioms.Metamath.FirstOrder
-import FromAxioms.NumberTheory.Prime
 
 universe u
 

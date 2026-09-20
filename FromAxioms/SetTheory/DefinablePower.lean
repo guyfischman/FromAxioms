@@ -24,14 +24,14 @@ The obstruction this construction was expected to hit, and why it does not.
 A definable subset is one named by a `Formula` -- a Lean type, not a set -- so
 the operation quantifies over syntax while having to return a `ZFSet`. That is
 the shape which has blocked several constructions in this development. It does
-not block here, because `sep` takes an ARBITRARY Lean predicate: the
+not block here, because `sep` takes an arbitrary Lean predicate: the
 quantification over `Formula` and over environments happens in the `Prop` that
 `sep` is handed, and the result is a set because `sep` returns one. No
 satisfaction predicate inside the set theory is needed, and `Godel.lean`'s
 arithmetisation -- the route this development takes when the answer is no -- is
 not required.
 
-What this does NOT give is a definability predicate *expressible in the object
+What this does not give is a definability predicate *expressible in the object
 language*. `definablePower` is a Lean-level operation on sets; a formula of the
 ∈-language saying S is definable over x is a different object and would need
 the arithmetised satisfaction. The distinction matters the moment one wants the
@@ -78,8 +78,8 @@ def definablePower (x : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
 
 The constructible hierarchy iterates this operation, and iterating anything
 over a set's members needs `replacement` -- which takes a `Definable`, a map
-carrying a PRE-SET level realisation. `memRec` (Hierarchy.lean) is the general
-∈-recursion and does NOT help: its step is handed a dependent
+carrying a pre-set level realisation. `memRec` (Hierarchy.lean) is the general
+∈-recursion and does not help: its step is handed a dependent
 `∀ y, y ∈ x → ZFSet`, which is not a `ZFSet → ZFSet` at all, so no image of it
 is formable.
 

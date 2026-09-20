@@ -26,7 +26,6 @@ modulus is an existential per scale.
 -/
 
 import FromAxioms.Analysis.Ternary
-import FromAxioms.NumberTheory.Prime
 
 universe u
 

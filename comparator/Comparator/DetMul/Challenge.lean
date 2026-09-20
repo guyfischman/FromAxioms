@@ -7,7 +7,7 @@ Authors: Guy Fischman
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 
 /-!
-# The challenge: multiplicativity of the determinant, in MATHLIB's vocabulary
+# The challenge: multiplicativity of the determinant, in Mathlib's vocabulary
 
 `Matrix`, `Matrix.det`, the `CommRing` class and the matrix `*` are all
 Mathlib's. Every declaration below uses Mathlib's vocabulary alone, so a reader
@@ -25,21 +25,21 @@ checkout:
 with the file's `variable` lines supplying `{n : Type*} [DecidableEq n]
 [Fintype n]` and `{R : Type v} [CommRing R]`.
 
-READ FROM `.compare/mathlib4`, NOT FETCHED, for the reason `IvtExact/Challenge`
+Read from `.compare/mathlib4`, not fetched, for the reason `IvtExact/Challenge`
 records at length: the fetch tool answers with a summarising model rather than
 returning source, and gave three different readings of one theorem there.
 
 ## Why the index type is `Fin m` and the ring stays a variable
 
 Mathlib's `n` is any `Fintype` with decidable equality. A comparator has to be
-a CLOSED statement to be discharged, and the tower indexes matrices by `Nat`
+a closed statement to be discharged, and the tower indexes matrices by `Nat`
 below a bound, so `Fin m` is the instance it actually speaks about;
 instantiating chooses which case is asserted rather than weakening the claim
 being matched.
 
-THE RING IS NOT INSTANTIATED, and that is the load-bearing choice. The
+The ring is not instantiated, and that is the load-bearing choice. The
 shape is `∀ (R : Type) [CommRing R]`, and the pair turns on it: the tower's
-`Algebra.detN_mul` holds over an ARBITRARY `IsRing`, so pinning `R` to `ℤ` here
+`Algebra.detN_mul` holds over an arbitrary `IsRing`, so pinning `R` to `ℤ` here
 would test a special case of a general theorem and report it as parity. The
 `TypeTransfer` encoding carries an arbitrary `R` across.
 

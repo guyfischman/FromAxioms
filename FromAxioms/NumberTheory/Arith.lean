@@ -24,7 +24,6 @@ recursion alone does not give.
 -/
 
 import FromAxioms.NumberTheory.Natural
-import FromAxioms.SetTheory.Pair
 
 universe u
 
@@ -257,7 +256,7 @@ theorem mul_add {x y z : ZFSet.{u}} (hx : x ∈ omega.{u}) (hy : y ∈ omega.{u}
   obtain ⟨k, rfl⟩ := (mem_omega_iff z).mp hz
   rw [add_ofNat, mul_ofNat, mul_ofNat, mul_ofNat, add_ofNat, Nat.mul_add]
 
-/-! ## The laws a SEMIRING needs that a ring derives
+/-! ## The laws a semiring needs that a ring derives
 
 `IsRing` states two multiplicative laws and gets their transposes from
 `mulComm`; `IsSemiring` must state four. These are the transposes for `omega`,

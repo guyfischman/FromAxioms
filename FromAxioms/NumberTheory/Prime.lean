@@ -28,7 +28,7 @@ statement is the `Nat` one read through it.
 import FromAxioms.Core.CoreShim
 import FromAxioms.Core.NatSearch
 import FromAxioms.NumberTheory.Arith
-import FromAxioms.SetTheory.Relation
+import FromAxioms.SetTheory.Pair
 
 universe u
 
@@ -59,7 +59,7 @@ theorem mod_eq_zero_of_divides {d n : Nat} (h : Divides d n) : n % d = 0 := by
 /-- Divisibility of naturals is a decision, not a search.
 
 A remainder settles it, so the bounded searches the Gauss argument needs -- least
-index whose coefficient a prime does NOT divide -- can branch without reaching
+index whose coefficient a prime does not divide -- can branch without reaching
 for a principle. `Eis.dvd_or_not` says the same for the Eisenstein integers and
 is the model; nothing said it for `Nat`, where it is two lines.
 
@@ -209,8 +209,8 @@ theorem divides_fact : ∀ n d : Nat, 1 ≤ d → d ≤ n → Divides d (fact n)
 A prime at most `n` divides `n!`, and `minFac (n! + 1)` divides `n! + 1`, so if
 it were at most `n` it would divide their difference, which is one.
 
-Stated separately from `exists_prime_gt` because a prime ENUMERATION needs the
-witness as a TERM: `exists_prime_gt` hands back an existential, and extracting a
+Stated separately from `exists_prime_gt` because a prime enumeration needs the
+witness as a term: `exists_prime_gt` hands back an existential, and extracting a
 function from it would be a choice. Here the successor is named outright. -/
 theorem lt_minFac_fact_succ (n : Nat) : n < minFac (fact n + 1) := by
   have hf := fact_pos n
@@ -241,7 +241,7 @@ theorem exists_prime_gt (n : Nat) : ∃ p, IsPrime p ∧ n < p := by
 /-- `mathlib_form` for the `infinitude of primes` landmark: a prime at or
 above every bound.
 
-Weaker than `exists_prime_gt`, which gives a prime STRICTLY above `n`; that
+Weaker than `exists_prime_gt`, which gives a prime strictly above `n`; that
 implies this and is not implied by it. Stated separately because the non-strict
 form is the one `Nat.exists_infinite_primes` takes. -/
 theorem exists_prime_ge (n : Nat) : ∃ p, IsPrime p ∧ n ≤ p := by
@@ -288,9 +288,9 @@ theorem bezout : ∀ x y : Nat, ∃ a b : Nat,
         rw [Nat.add_mul, ← mul_shuffle]
         omega
 
-/-- Mathlib's form. `Nat.gcd_eq_gcd_ab` writes the gcd as an INTEGER
+/-- Mathlib's form. `Nat.gcd_eq_gcd_ab` writes the gcd as an integer
 combination, `(gcd x y : ℤ) = x·u + y·v`. `bezout` cannot say that: `Nat` has
-no subtraction, so it carries a DISJUNCTION instead, naming which of the two
+no subtraction, so it carries a disjunction instead, naming which of the two
 sides the remainder falls on.
 
 Over `Int` the disjunction collapses, and that is the whole content here. Both
@@ -398,13 +398,13 @@ theorem gcd_eq_one_of_prime_not_divides {p a : Nat} (hp : IsPrime p)
     · omega
   · exact absurd ((hp.right _ hge hd) ▸ (Nat.gcd_dvd_right p a : Divides (Nat.gcd p a) a)) h
 
-/-- A modular inverse, as a NATURAL NUMBER.
+/-- A modular inverse, as a natural number.
 
 For a prime `p` and `j` strictly between `0` and `p`, some `k` has
 `j * k % p = 1`.
 
 `Field.lean`'s `mem_modInv_iff_gcd_one` says the class is invertible, but it is
-stated at universe `0` and yields a CLASS. Bezout gives the witness directly
+stated at universe `0` and yields a class. Bezout gives the witness directly
 and stays in `Nat`, so nothing crosses a universe or a quotient.
 
 Bezout's two cases are not symmetric here. One gives `j * b + 1` as a multiple
@@ -886,13 +886,13 @@ theorem succ_mul_choose : ∀ n k : Nat, (n + 1) * choose n k = choose (n + 1) (
     omega
 
 
-/-- The falling product on naturals, peeling the FIRST factor:
+/-- The falling product on naturals, peeling the first factor:
 `i * (i-1) * ... * (i-k+1)`.
 
 Peeled at the front rather than the back so it matches `succ_mul_choose`, which
 is the only absorption identity the tree carries. Defining it the other way makes
 the induction want `choose i (k+1) * (k+1) = choose i k * (i-k)`, which is true
-and is NOT what is available. -/
+and is not what is available. -/
 def fallNat : Nat → Nat → Nat
   | _, 0 => 1
   | i, k + 1 => i * fallNat (i - 1) k
@@ -900,7 +900,7 @@ def fallNat : Nat → Nat → Nat
 /-- `C(i,k) * k! = i(i-1)...(i-k+1)`.
 
 The arithmetic core of the binomial polynomial: it says `C(x,k)` evaluated at a
-natural `i` really is the NUMBER `C(i,k)`, once the falling product is divided by
+natural `i` really is the number `C(i,k)`, once the falling product is divided by
 `k!`. Everything else about `C(x,k)` is ring bookkeeping; this is the content. -/
 theorem choose_mul_fact : ∀ (i k : Nat), choose i k * fact k = fallNat i k
   | i, 0 => by
@@ -917,12 +917,12 @@ theorem choose_mul_fact : ∀ (i k : Nat), choose i k * fact k = fallNat i k
     rw [← Nat.mul_assoc, ← succ_mul_choose i k, Nat.mul_assoc]
 
 
-/-- The falling product peels from the BACK as well as the front:
+/-- The falling product peels from the back as well as the front:
 `fallNat i (k+1) = fallNat i k * (i - k)`.
 
 Both forms are needed and neither is definitional. `choose_mul_fact` wants the
-FRONT peel, because `succ_mul_choose` absorbs at the front; a `foldF` over
-`j < k` produces the BACK peel, because that is the order a fold visits. This is
+front peel, because `succ_mul_choose` absorbs at the front; a `foldF` over
+`j < k` produces the back peel, because that is the order a fold visits. This is
 the bridge, and the induction runs at `i - 1` rather than at `i`. -/
 theorem fallNat_succ_back : ∀ (i k : Nat), k ≤ i →
     fallNat i (k + 1) = fallNat i k * (i - k)
@@ -955,8 +955,8 @@ theorem fallNat_mul_fact : ∀ (n k : Nat), k ≤ n → fallNat n k * fact (n - 
 
 /-- `C(n,k) · k! · (n-k)! = n!` for `k <= n`.
 
-The bridge between the BINOMIAL form of the Bernoulli recursion
-(`sum_k choose (n+1) k * B_k = 0`) and the CONVOLUTION form a generating
+The bridge between the binomial form of the Bernoulli recursion
+(`sum_k choose (n+1) k * B_k = 0`) and the convolution form a generating
 function speaks (`sum_k B_k/(k! (n-k+1)!)`). -/
 theorem choose_mul_fact_mul_fact (n k : Nat) (hk : k ≤ n) :
     choose n k * (fact k * fact (n - k)) = fact n := by
@@ -1015,7 +1015,7 @@ three Eisenstein hypotheses are then binomial facts:
 * the top one is `C(p,p) = 1`, which `p` does not divide;
 * the constant term is `C(p,1) = p`, which `p²` does not divide.
 
-Stated over the coefficient FUNCTION rather than over a polynomial object,
+Stated over the coefficient function rather than over a polynomial object,
 because the substitution `x → x+1` does not exist in this tree and is not needed
 to state the conditions -- only to transfer the resulting irreducibility back to
 `Φp` itself, which is a separate rung. -/
@@ -1267,7 +1267,7 @@ theorem eq_zero_of_mul_eq_zero {x y : Eis} (h : mul x y = zero)
 /-! ### Division with remainder
 
 `ℤ[ω]` is Euclidean for the norm. To divide `x` by `y` one takes `x * conj y`,
-divides both coordinates by `N(y)` with ROUNDING, and the error is a lattice
+divides both coordinates by `N(y)` with rounding, and the error is a lattice
 point at distance under `1` from an arbitrary point of the plane -- the
 hexagonal covering radius. In coordinates that is the bound below, proved as an
 inequality on integers rather than as geometry.
@@ -1333,7 +1333,7 @@ theorem norm_error_bound {e : Eis} {N : Int}
     (h1 : -N <= 2 * e.re) (h2 : 2 * e.re <= N)
     (h3 : -N <= 2 * e.im) (h4 : 2 * e.im <= N) :
     4 * norm e <= 3 * (N * N) := by
-  -- `a` and `b` are BOUND here rather than instantiated, so `omega` sees three
+  -- `a` and `b` are bound here rather than instantiated, so `omega` sees three
   -- clean atoms rather than three spellings of each numeral-scaled product.
   have key : ∀ a b : Int, -N <= 2 * a -> 2 * a <= N -> -N <= 2 * b -> 2 * b <= N ->
       4 * (a * a - a * b + b * b) <= 3 * (N * N) := by
@@ -1462,7 +1462,7 @@ private theorem four_norm_form (a b : Int) :
 replaces a pair by `(y, x mod y)` terminates. That is stated here as a strong
 induction on the norm rather than as a greatest-common-divisor function,
 because what the
-factorisation argument needs is the INDUCTION and not the algorithm. -/
+factorisation argument needs is the induction and not the algorithm. -/
 
 def Dvd (d x : Eis) : Prop := ∃ k : Eis, x = mul d k
 
@@ -1547,7 +1547,7 @@ before the descent itself. -/
 
 def IsUnit (u : Eis) : Prop := ∃ v : Eis, mul u v = one
 
-/-- Norm `1` IS the unit condition, not just a consequence of it: `x · conj x`
+/-- Norm `1` is the unit condition, not just a consequence of it: `x · conj x`
 is `N(x)`, so an element of norm `1` has its own conjugate as an inverse. -/
 theorem isUnit_of_norm_eq_one {x : Eis} (h : norm x = 1) : IsUnit x :=
   ⟨conj x, by rw [mul_conj, h]; rfl⟩
@@ -1569,7 +1569,7 @@ divides are exactly the multiples of `3`. Both directions are computations:
 `λ·(c + dω) = (c + d) + (2d - c)ω`, whose coordinate sum is `3d`, and
 conversely `a + b = 3m` is solved by `c = a - m`, `d = m`.
 
-This makes `λ`-divisibility DECIDABLE by an integer test, turning the descent's
+This makes `λ`-divisibility decidable by an integer test, turning the descent's
 case analysis into arithmetic rather than search. -/
 theorem lam_dvd_iff {x : Eis} :
     Dvd lam x ↔ ∃ m : Int, x.re + x.im = 3 * m := by
@@ -1640,7 +1640,7 @@ theorem eq_of_mul_left_cancel {a b c : Eis}
 
 The descent for `n = 3` case II needs each of the three factors to be a unit
 times a cube times a power of `λ`, which is unique factorisation. The first half
-is that a factorisation exists at all, and the NORM is what makes the recursion
+is that a factorisation exists at all, and the norm is what makes the recursion
 terminate: it is multiplicative, so a proper factor has a strictly smaller one,
 and `norm_induction` already turns that into an induction. -/
 
@@ -1676,7 +1676,7 @@ theorem norm_mul_eq_one {a b : Eis} (h : norm a * norm b = 1) :
   rw [hae] at h
   omega
 
-/-- The decision the factorisation needs, as a HYPOTHESIS rather than an
+/-- The decision the factorisation needs, as a hypothesis rather than an
 axiom. Is this element irreducible, or does it split into two non-units?
 
 Taken as a supplied readout in the manner of `DC` and the locators, because the
@@ -1684,13 +1684,13 @@ constructive content is exactly here and hiding it in a `Classical.em` would
 put the whole factorisation above the base without a single audit line moving.
 
 The two hypotheses make it satisfiable. Stated over every `x` the
-disjunction is FALSE at a unit: `IsIrreducible u` fails on its own first
+disjunction is false at a unit: `IsIrreducible u` fails on its own first
 clause, and `u = a·b` forces `N(a)·N(b) = 1`, hence two units by
 `norm_mul_eq_one`. `not_splitDecision_unrestricted` proves that, so the
 unrestricted form is a hypothesis nothing can supply, and every theorem
 carrying it is vacuous.
 
-It is PROVABLE rather than assumed in this restricted form: a proper factor
+It is provable rather than assumed in this restricted form: a proper factor
 of `x` has norm strictly between `1` and `N(x)`, `coord_bounds` puts its
 coordinates in a box of side `O(N(x))`, and `dvd_or_not` decides each candidate.
 `splitDecision` discharges it. -/
@@ -1698,7 +1698,7 @@ def SplitDecision : Prop :=
   ∀ x : Eis, ¬ IsUnit x -> ¬ (x.re = 0 ∧ x.im = 0) ->
     IsIrreducible x ∨ ∃ a b : Eis, x = mul a b ∧ ¬ IsUnit a ∧ ¬ IsUnit b
 
-/-- The unrestricted split decision is FALSE. Not merely unproved: `one` is
+/-- The unrestricted split decision is false. Not merely unproved: `one` is
 a counterexample, so any theorem taking the unrestricted form as a hypothesis
 is vacuously true and measures nothing.
 
@@ -1716,7 +1716,7 @@ theorem not_splitDecision_unrestricted :
 
 /-! ### Discharging the split decision
 
-Deciding irreducibility needs a search, and the search is FINITE:
+Deciding irreducibility needs a search, and the search is finite:
 `4N = (2a - b)² + 3b²` bounds both coordinates of any element by its norm, so
 the candidate divisors of `x` live in a box of side `O(√N(x))` and divisibility
 inside the box is arithmetic.
@@ -1734,7 +1734,7 @@ theorem coord_bounds (x : Eis) :
   have hn : norm x = x.re * x.re - x.re * x.im + x.im * x.im := rfl
   constructor <;> omega
 
-/-- Divisibility in `ℤ[ω]` is DECIDABLE, by the same route `lam_dvd_iff`
+/-- Divisibility in `ℤ[ω]` is decidable, by the same route `lam_dvd_iff`
 takes for `λ`: `a ∣ x` exactly when `N(a)` divides both coordinates of
 `x · conj a`, which is a question about two integers.
 
@@ -1771,7 +1771,7 @@ theorem dvd_iff_norm_dvd_coords {a x : Eis}
         refine ext_of_coords ?_ ?_ <;> simp [mul, ofInt] <;> omega
       rw [hl, hr]
 
-/-- A non-unit divisor of `x` other than an associate is PROPER: its norm is
+/-- A non-unit divisor of `x` other than an associate is proper: its norm is
 strictly between `1` and `N(x)`. The band the search runs over, stated so the
 enumeration has a `Nat` to count.
 
@@ -1809,7 +1809,7 @@ theorem dvd_or_not (a x : Eis) (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
   have he := Int.mul_ediv_add_emod (mul x (conj a)).im (norm a)
   have hr0 : 0 <= (mul x (conj a)).re % norm a := Int.emod_nonneg _ hn0
   have hi0 : 0 <= (mul x (conj a)).im % norm a := Int.emod_nonneg _ hn0
-  -- `Int.lt_or_le`, never `by omega : _ ∨ _`: omega on a DISJUNCTION routes
+  -- `Int.lt_or_le`, never `by omega : _ ∨ _`: omega on a disjunction routes
   -- through `Classical.em` and only the audit line tells the two apart.
   rcases Int.lt_or_le 0 ((mul x (conj a)).re % norm a) with hre | hre
   · exact Or.inr (fun hdv => by
@@ -1827,14 +1827,14 @@ theorem dvd_or_not (a x : Eis) (ha : ¬ (a.re = 0 ∧ a.im = 0)) :
           rw [hv]; exact Int.mul_emod_right _ _
         rw [hz] at him
         exact Int.lt_irrefl 0 him)
-    · -- The two components are built SEPARATELY and the division is never
-      -- handed to `omega`: it interprets `/` and `%` by CONSTANTS only, and by
+    · -- The two components are built separately and the division is never
+      -- handed to `omega`: it interprets `/` and `%` by constants only, and by
       -- a variable it reaches for a classical route -- the audit line was
       -- `[propext, Classical.choice, Quot.sound]` until this was split out.
       -- `Int.le_antisymm`, not `omega`: the remainders are bounded above and
-      -- below already, and handing omega a `%` by a VARIABLE is what pulled
+      -- below already, and handing omega a `%` by a variable is what pulled
       -- `Classical.choice` into the audit line. It interprets `/` and `%` by
-      -- CONSTANTS only; by a variable it takes a classical route and nothing
+      -- constants only; by a variable it takes a classical route and nothing
       -- about the proof text shows it.
       have hre0 : (mul x (conj a)).re % norm a = 0 := Int.le_antisymm hre hr0
       have him0 : (mul x (conj a)).im % norm a = 0 := Int.le_antisymm him hi0
@@ -1856,7 +1856,7 @@ The enumeration returns a `Bool`, so the outer branch is `Bool.rec` and never
 
 /-- `c ≤ c·c` and `-(c·c) ≤ c`, for every integer.
 
-Crude: it turns a SQUARE bound into a LINEAR box, which `omega` can carry
+Crude: it turns a square bound into a linear box, which `omega` can carry
 through the rest of the argument. A tight bound would need a square root and
 buy nothing, since the box only has to be finite. -/
 theorem le_sq_self (c : Int) : c <= c * c ∧ -(c * c) <= c := by
@@ -1926,7 +1926,7 @@ theorem properTest_sound {x a : Eis} (h : properTest x a = true) :
     omega
 
 /-- Conversely, a genuine proper factor is accepted. Both halves are needed:
-soundness makes a hit meaningful, completeness makes a MISS meaningful, and it
+soundness makes a hit meaningful, completeness makes a miss meaningful, and it
 is the miss that proves irreducibility. -/
 theorem properTest_complete {x a b : Eis} (hx : x = mul a b)
     (ha : ¬ IsUnit a) (hb : ¬ IsUnit b) (hz : ¬ (x.re = 0 ∧ x.im = 0)) :
@@ -2001,12 +2001,12 @@ theorem boxFind_complete {x : Eis} {base : Int} {w : Nat} (j : Nat) :
       · have he : j = m := by omega
         exact Or.inl (he ▸ h)
 
-/-- The split decision is a THEOREM. The box is `[-4N, 4N]²` with
+/-- The split decision is a theorem. The box is `[-4N, 4N]²` with
 `N = N(x)`, every candidate in it is tested by an integer remainder, and the
 outer branch is on a `Bool`.
 
 The bound is crude by a factor of about four in each direction, since the
-statement to be proved is that the search TERMINATES and is complete, and a
+statement to be proved is that the search terminates and is complete, and a
 sharp box would cost a square root without changing either. -/
 theorem splitDecision : SplitDecision := by
   intro x hu hz
@@ -2119,8 +2119,8 @@ end Eis
 /-- The primes, enumerated. `nthPrime 0 = 2` and each successor is the least
 factor of `(previous)! + 1`.
 
-NOT the `k`-th prime in order --- it skips. What it is, and what an Euler
-product needs, is a STRICTLY INCREASING sequence of primes given as a TERM.
+Not the `k`-th prime in order --- it skips. What it is, and what an Euler
+product needs, is a strictly increasing sequence of primes given as a term.
 `exists_prime_gt` says one exists past every bound; turning that existential
 into a function would be a choice, so the witness is named directly instead. -/
 def nthPrime : Nat → Nat
@@ -2128,12 +2128,12 @@ def nthPrime : Nat → Nat
   | k + 1 => minFac (fact (nthPrime k) + 1)
 
 #print axioms nthPrime
-/-- The `p`-adic decomposition is UNIQUE.
+/-- The `p`-adic decomposition is unique.
 
     p^a * z = p^b * w,  p dividing neither z nor w   ->   a = b  and  z = w
 
 `prime_pow_split` gives existence; uniqueness is the half that recovers an
-EXPONENT from a product --- which is what identifies the summands of an
+exponent from a product --- which is what identifies the summands of an
 expanded Euler product with integers.
 
 The argument is trichotomy on the exponents: write the larger as `i + (d + 1)`,
@@ -2181,7 +2181,7 @@ theorem isPrime_iff_minFac_self {k : Nat} (hk : 2 ≤ k) :
     rwa [h] at hmf
 
 /-- The search terminates. Hoisted into its own lemma rather than inlined
-twice: `natFind` takes the existence proof as an ARGUMENT, so the definition
+twice: `natFind` takes the existence proof as an argument, so the definition
 and its specification have to hand it the same term. -/
 theorem exists_primeTest_above (n : Nat) :
     ∃ k, (fun k => decide (n < k ∧ 2 ≤ k ∧ minFac k = k)) k = true := by
@@ -2194,8 +2194,8 @@ theorem exists_primeTest_above (n : Nat) :
 
 /-- The least prime strictly above `n`.
 
-`nthPrime` gives an indexed family of DISTINCT primes and skips wildly, which
-is all an indexed family needs. A product over the primes needs them IN ORDER,
+`nthPrime` gives an indexed family of distinct primes and skips wildly, which
+is all an indexed family needs. A product over the primes needs them in order,
 and this supplies that: `natFind` walks up from zero, `exists_primeTest_above`
 proves the walk terminates, and `minFac` makes the test computable. -/
 noncomputable def leastPrimeAbove (n : Nat) : Nat :=
@@ -2211,7 +2211,7 @@ theorem leastPrimeAbove_spec (n : Nat) :
 
 
 
-/-- A product of TWO naturals prime to `p` is prime to `p`.
+/-- A product of two naturals prime to `p` is prime to `p`.
 
 Euclid's lemma in the `% p /= 0` spelling. `prime_divides_mul` splits the
 divisibility and each branch contradicts a hypothesis. -/
@@ -2227,7 +2227,7 @@ theorem mul_mod_ne_zero {p a b : Nat} (hp : IsPrime p)
 /-- A product of naturals prime to `p` is prime to `p`.
 
 Euclid's lemma folded along `prodUpto`. The hypothesis is bounded because the
-consumer below has a family of DISTINCT primes and can only show the factors
+consumer below has a family of distinct primes and can only show the factors
 below `K` are prime to `P K`, so a version demanding it at every index would
 compile and never apply.
 
@@ -2258,7 +2258,7 @@ peeled prime --- is `prodUpto_mod_ne_zero` applied through `prime_divides_pow`,
 which says a prime dividing a prime power divides its base.
 
 This is the injectivity an Euler product needs: with it, the flat sum produced
-by expanding the product is a sum over DISTINCT naturals rather than a sum with
+by expanding the product is a sum over distinct naturals rather than a sum with
 repetitions. Unique factorisation is not invoked --- the statement is about a
 fixed family in a fixed order, so no permutation appears. -/
 theorem prodUpto_pow_inj {P : Nat → Nat} (hP : ∀ k : Nat, IsPrime (P k))
@@ -2293,9 +2293,9 @@ theorem prodUpto_pow_inj {P : Nat → Nat} (hP : ∀ k : Nat, IsPrime (P k))
 /-- The primes in order. `leastPrimeAbove` is the step; this is the family
 it generates, starting at two.
 
-`nthPrime` is an indexed family of DISTINCT primes and skips wildly, which is
+`nthPrime` is an indexed family of distinct primes and skips wildly, which is
 all a family of distinct primes needs. An Euler product ranges over the primes
-in order, and its convergence is read off from how fast they GROW, so it needs
+in order, and its convergence is read off from how fast they grow, so it needs
 this one. -/
 noncomputable def orderedPrime : Nat → Nat
   | 0 => 2
@@ -2334,7 +2334,7 @@ theorem orderedPrime_ne {i j : Nat} (h : i ≠ j) :
 /-- The `k`-th prime in order is at least `k + 2`.
 
 The growth bound a comparison test reads: `1 / P k ^ s <= 1 / (k+2) ^ s`, so
-summability over the ordered primes follows from summability over ALL naturals
+summability over the ordered primes follows from summability over all naturals
 with no relation between the two families. Going through `nthPrime`'s
 summability instead would need a bijection between the families, which is
 exactly the reindexing an Euler product must avoid. -/
@@ -2360,7 +2360,7 @@ theorem prodUpto_congr {F G : Nat → Nat} :
 product of their powers.
 
 The converse of `prodUpto_pow_inj`: that says an exponent vector is determined
-by its product, this says every admissible product ARISES from one. An Euler
+by its product, this says every admissible product arises from one. An Euler
 product needs both --- injectivity to know the expanded sum has no repeats,
 this to know it omits nothing below the truncation point.
 
@@ -2434,8 +2434,8 @@ theorem prodUpto_factor_le {F : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
 
 /-- No prime lies strictly between `n` and the least prime above it.
 
-`leastPrimeAbove_spec` says the value is a prime above `n`; it does NOT say it
-is the LEAST such, and the enumeration's completeness needs exactly that.
+`leastPrimeAbove_spec` says the value is a prime above `n`; it does not say it
+is the least such, and the enumeration's completeness needs exactly that.
 `natFind_least` supplies it: every candidate below the found one fails the
 test, and failing the test while being above `n` and at least two means not
 being its own least factor, which for a prime is false. -/
@@ -2451,7 +2451,7 @@ theorem leastPrimeAbove_least {n q : Nat} (hn : n < q) (hq : IsPrime q) :
     exact absurd hgood hfail
   · exact hge
 
-/-- The ordered enumeration is COMPLETE below its own values.
+/-- The ordered enumeration is complete below its own values.
 
 Every prime strictly below `orderedPrime K` is `orderedPrime i` for some
 `i < K`. So every `n` below the `K`-th prime is `K`-smooth, and an Euler
@@ -2460,7 +2460,7 @@ point.
 
 The induction is on `K`: a prime below `orderedPrime (K+1)` is either below
 `orderedPrime K`, and the hypothesis applies, or it lies in the closed gap
-between them --- which `leastPrimeAbove_least` rules out unless it IS
+between them --- which `leastPrimeAbove_least` rules out unless it is
 `orderedPrime K`. -/
 theorem orderedPrime_complete {q : Nat} (hq : IsPrime q) :
     ∀ K : Nat, q < orderedPrime K → ∃ i : Nat, i < K ∧ orderedPrime i = q
@@ -2485,7 +2485,7 @@ theorem orderedPrime_complete {q : Nat} (hq : IsPrime q) :
 /-- Every positive number below the `K`-th prime factors over the first `K`
 primes, with every exponent bounded by the number itself.
 
-This is the step that makes the Euler comparison FINITE. The product side is
+This is the step that makes the Euler comparison finite. The product side is
 truncated twice --- at `K` primes and at exponent depth `J` --- and this fixes
 both truncations at once against a single bound `n`:
 
@@ -2526,7 +2526,7 @@ Termwise monotonicity, bounded like every other `prodUpto` fact by the range
 rather than demanded at every index --- the consumer compares digit exponents,
 which agree with the bound only below `K`.
 
-Positivity of the SMALLER family is what makes the step sound: without it a
+Positivity of the smaller family is what makes the step sound: without it a
 zero factor collapses the left product and the induction's multiplication step
 carries no information. -/
 theorem prodUpto_le_of_le {F G : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
@@ -2545,7 +2545,7 @@ theorem prodUpto_le_of_le {F G : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
 
 Splitting `j < n` as `j = a + f*b` with `n = f*g`, the exponent `j*k` depends
 only on `a`, because the `f*b` part contributes a multiple of `n`.  This is why
-the product over the family FIBRES over the inner index rather than permuting:
+the product over the family fibres over the inner index rather than permuting:
 `j |-> j*k mod n` is `g`-to-one, not a bijection, unless `p` generates. -/
 theorem mul_mod_of_split (f g a b k' : Nat) :
     ((a + f * b) * (g * k')) % (f * g) = (a * (g * k')) % (f * g) := by
@@ -2561,7 +2561,7 @@ theorem mul_mod_of_split (f g a b k' : Nat) :
 `coprime_divides` is the content: `f` divides `(a-b)*k` and is coprime to `k`,
 so it divides `a-b`, which is below `f` and therefore zero.  This is the
 injectivity `foldF_permOn` asks for, and with it `a |-> a*k' mod f` is a
-permutation of the INNER index in the character-family product --- the outer
+permutation of the inner index in the character-family product --- the outer
 index fibres instead, which no permutation lemma can express. -/
 theorem mul_mod_inj_of_gcd_one {f k : Nat} (hf : 0 < f)
     (hgcd : Nat.gcd f k = 1) {a b : Nat} (ha : a < f) (hb : b < f)
@@ -2582,7 +2582,7 @@ theorem mul_mod_inj_of_gcd_one {f k : Nat} (hf : 0 < f)
   · exact key a b hle ha h
   · exact (key b a hle hb h.symm).symm
 
-/-- MULTIPLYING THE INDEX BY A UNIT PERMUTES THE NON-ZERO RESIDUES.
+/-- Multiplying the index by a unit permutes the non-zero residues.
 
     gcd(p,a) = 1   ==>   j |-> (j*a) mod p  is a bijection of {1,...,p-1}
 
@@ -2590,7 +2590,7 @@ Stated on the shifted index `i |-> ((i+1)*a) % p - 1` because that is the form
 `foldF_permOn` consumes: folds here run over `i < p - 1` and the residues they
 name are `i + 1`.
 
-THE NON-VANISHING CONJUNCT IS NEEDED. `Nat` subtraction is TRUNCATED, so
+The non-vanishing conjunct is needed. `Nat` subtraction is truncated, so
 `0 - 1 = 0` and the bound `((i+1)*a) % p - 1 < p - 1` is satisfied by the very
 index it was meant to exclude. A caller reindexing along this map needs to know
 the scaled residue is non-zero to shift back, and cannot recover it from the
@@ -2655,7 +2655,7 @@ theorem exists_fibre_split {n : Nat} (hn : 0 < n) (k : Nat) :
   have hnf : n / Nat.gcd n k * Nat.gcd n k = n :=
     Nat.div_mul_cancel (Nat.gcd_dvd_left n k)
   refine ⟨n / Nat.gcd n k, Nat.gcd n k, k / Nat.gcd n k, ?_, hg, ?_, ?_, ?_⟩
-  · -- NOT `Nat.div_pos`: that is proved classically in core and pulls
+  · -- Not `Nat.div_pos`: that is proved classically in core and pulls
     -- `Classical.choice`. The quotient is positive because its product with
     -- `g` is `n`, which is positive.
     rcases Nat.eq_zero_or_pos (n / Nat.gcd n k) with h0 | hpos
@@ -2675,7 +2675,7 @@ theorem exists_fibre_split {n : Nat} (hn : 0 < n) (k : Nat) :
 `cConj_cPow_cZeta` gives the conjugate index as `(n-1)*j`, `cPow_cZeta_mod`
 reduces it mod `n`, and this says the reduction is simply `n - j`. Two facts
 then follow by arithmetic: it is non-zero because `j < n`, and it differs from
-`j` unless `n = 2j` --- which is the QUADRATIC character, the one real
+`j` unless `n = 2j` --- which is the quadratic character, the one real
 non-principal character, and the case the other branch handles. -/
 theorem conj_index_complement {n j : Nat} (hj0 : 0 < j) (hjn : j < n) :
     ((n - 1) * j) % n = n - j := by

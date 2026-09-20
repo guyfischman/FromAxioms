@@ -1,44 +1,44 @@
 #!/usr/bin/env python3
-"""Principle-shaped HYPOTHESES no registry accounts for.
+"""Principle-shaped hypotheses no registry accounts for.
 
-`#print axioms` is the whole-library sweep for AXIOMS, and `audit.py` refuses
+`#print axioms` is the whole-library sweep for axioms, and `audit.py` refuses
 any non-constructive result without a `classical.json` entry. That side is
 closed.
 
-**A PRINCIPLE CARRIED IN A BINDER AUDITS EXACTLY AS CLEAN AS ONE THAT NEEDS
-NOTHING.** `EM` is a `def : Prop`, so `(hem : EM)` is a signature, not a proof
+**A principle carried in a binder audits exactly as clean as one that needs
+nothing.** `EM` is a `def : Prop`, so `(hem : EM)` is a signature, not a proof
 step, and no axiom line can see it, which is the reason this file exists.
 
 So the question here is the auditor's: which principle-shaped hypotheses are
-TAKEN somewhere and accounted for NOWHERE. It reports the takers, so a
+taken somewhere and accounted for nowhere. It reports the takers, so a
 reviewer can read the site rather than the name.
 
     python3 tools/hypaudit.py              # report
     python3 tools/hypaudit.py --names      # bare names, one per line
     python3 tools/hypaudit.py --taker NAME # which declarations take one
 
-**REPORT-ONLY.** There is no `--check`, and nothing gates on this. Most
+**Report-only.** There is no `--check`, and nothing gates on this. Most
 unaccounted names are ordinary predicates stated as hypotheses precisely so
 their price is visible, so a count here is a reading rather than a debt.
 
-**NO FIGURE IS QUOTED HERE.** `_freshness()` and `_population()` print the
+**No figure is quoted here.** `_freshness()` and `_population()` print the
 counts instead, because a number in prose beside a tool that computes it is a
 claim nobody re-runs.
 
-**WHAT IT CANNOT SEE, and the first is the one that matters.**
+**What it cannot see, and the first is the one that matters.**
 
-  * PARAMETERISED principles. `DCOn (baireStateOn X)` has type
+  * Parameterised principles. `DCOn (baireStateOn X)` has type
     `ZFSet -> Prop`, so `isPropDef` is false and it is invisible here. A clean
     report is therefore not a statement that nothing parameterised is
     unaccounted.
-  * Strengths arriving as DATA. A readout, a selector or a modulus is a
+  * Strengths arriving as data. A readout, a selector or a modulus is a
     function, not a Prop, and `hypcost.json` already holds two such nodes
     (`choice`, `natof`). This population is Props only.
-  * Whether a listed name IS a strength. This is a NAME-SHAPE measurement:
+  * Whether a listed name is a strength. This is a name-shape measurement:
     nullary Prop-def, taken in a binder spine, minus two registries. It
     produces candidates for reading, never a verdict.
 
-An empty result means nothing was found IN THAT POPULATION.
+An empty result means nothing was found in that population.
 """
 import argparse
 import json
@@ -79,19 +79,19 @@ def collect():
 
     lat = _load(LATTICE) or {}
     hyp = _load(HYPCOST) or {}
-    # Registries key on BARE names; the export is fully qualified. AND THE
-    # COMPARISON IS CASE-INSENSITIVE: a registered principle whose name has
+    # Registries key on bare names; the export is fully qualified. And the
+    # comparison is case-insensitive: a registered principle whose name has
     # capitals reads as a debt otherwise.
     known = {n.split(".")[-1].lower() for n in (lat.get("nodes") or [])}
     known |= {k.lower() for k in hyp if not k.startswith("_")}
-    # `_unplaced` IS A REGISTRY. A principle adjudicated there as
+    # `_unplaced` is a registry. A principle adjudicated there as
     # unplaceable is accounted for, and reporting it as unregistered asks a
     # reader to adjudicate what is already adjudicated. A backlog with an
     # irreducible floor stops being read at all.
     cls = _load(ROOT / "tools" / "classical.json") or {}
     known |= {e.get("principle", "").split(".")[-1].lower()
               for e in (cls.get("_unplaced") or []) if e.get("principle")}
-    # AND `hypotheses.json` IS A REGISTRY TOO, which this counted as none at
+    # And `hypotheses.json` is a registry too, which this counted as none at
     # all: two tools, one question, opposite answers.
     hyps = _load(ROOT / "tools" / "hypotheses.json") or {}
     known |= {k.split(".")[-1].lower() for k in hyps if not k.startswith("_")}
@@ -102,18 +102,18 @@ def collect():
         for h in _spine_names(r) & nullary:
             takers.setdefault(h, []).append(r["name"])
 
-    # CONCLUDERS, for the second question this tool answers: is anything even
-    # CLAIMING to establish this, or is it only ever assumed?
+    # Concluders, for the second question this tool answers: is anything even
+    # claiming to establish this, or is it only ever assumed?
     #
     # `head` is the conclusion's head after telescoping, so a declaration
-    # concluding `EM` has `head == "Constructive.EM"`. CONCLUDED IS NOT
-    # DISCHARGED and the distinction is the whole care needed here: `EM` has 35
-    # concluders and every one is a REVERSAL (`em_of_subgroupFinite`), deriving
-    # it FROM something rather than proving it. So a positive count means only
+    # concluding `EM` has `head == "Constructive.EM"`. Concluded is not
+    # discharged and the distinction is the whole care needed here: `EM` has 35
+    # concluders and every one is a reversal (`em_of_subgroupFinite`), deriving
+    # it from something rather than proving it. So a positive count means only
     # that the name appears on the right of an arrow somewhere, so the report
     # says `some declaration concludes it` and not `it is proved`.
     #
-    # The sound half is the NEGATIVE: zero concluders means nothing in the
+    # The sound half is the negative: zero concluders means nothing in the
     # library so much as claims to establish it. Combined with absence from
     # every registry, that is a hypothesis assumed and owed.
     concluders = {}
@@ -122,10 +122,10 @@ def collect():
         if h in nullary:
             concluders.setdefault(h, []).append(r["name"])
 
-    # THIRD TIER, AND IT IS WEAKER EVIDENCE THAN THE OTHER TWO. A landmark row
+    # Third tier, and it is weaker evidence than the other two. A landmark row
     # can price a principle in its `principle` field or merely mention it in
     # prose, and this cannot tell those apart: it is a substring test over the
-    # whole registry. It is reported SEPARATELY rather than folded into
+    # whole registry. It is reported separately rather than folded into
     # `accounted` for that reason -- collapsing them would let a name that
     # appears only inside someone's note read as adjudicated.
     #
@@ -143,7 +143,7 @@ def collect():
             mentioned[k] = v
         else:
             unacc[k] = v
-    # CASED THE SAME WAY AS ABOVE, and it is written twice: `known` is
+    # Cased the same way as above, and it is written twice: `known` is
     # lowercased, so a comparison that is not reports a registered principle
     # as a debt.
     debt = {k: v for k, v in takers.items()
@@ -181,7 +181,7 @@ def _freshness():
 def _population():
     """The extent this tool's answers are about, printed rather than assumed.
 
-    A tool that computes a declaration set and reports an ABSENCE must say
+    A tool that computes a declaration set and reports an absence must say
     which population the absence is over. These takers come from this tree's
     elaborated export, so every count below is a floor.
     """

@@ -13,9 +13,7 @@ constructive: an arbitrary union is `sUnion` of a subfamily, which the axioms
 already provide, and no separation axiom is assumed unless it is named.
 -/
 
-import FromAxioms.Core.CoreShim
-import FromAxioms.SetTheory.Cantor
-import FromAxioms.SetTheory.Cardinal
+import FromAxioms.Constructive.Reverse
 
 universe u
 
@@ -33,14 +31,14 @@ structure IsTopology (T X : ZFSet.{u}) : Prop where
 
 /-- The subspace topology: the traces of the opens on a subset.
 
-Defined by SEPARATION over `powerset A` rather than by replacing each open with
+Defined by separation over `powerset A` rather than by replacing each open with
 its trace. The two describe the same set, and the sep form is the one that needs
 nothing: replacement would hand back a family indexed by the opens, and reading
 a trace back to an open it came from is a choice this does not have to make.
 
 `union_closed` is where that matters. Given a family of traces, the union is the
 trace of the union of the opens they came from --- but "the opens they came
-from" is exactly the choice being avoided. The repair is to take ALL opens whose
+from" is exactly the choice being avoided. The repair is to take all opens whose
 trace lies in the family, `sep (fun U => inter U A ∈ F) T`, which is a set by
 separation and contains a witness for every member. -/
 def subspaceOpens (T A : ZFSet.{u}) : ZFSet.{u} :=
@@ -59,7 +57,7 @@ theorem isTopology_subspaceOpens {T X A : ZFSet.{u}} (hT : IsTopology T X)
   mem_empty := (mem_subspaceOpens_iff T A _).mpr
     ⟨empty_subset A, empty.{u}, hT.mem_empty, (empty_inter A).symm⟩
   mem_univ := (mem_subspaceOpens_iff T A _).mpr
-    -- `A = X ∩ A` by membership. NOT by `rw [inter_comm ...]`: the goal carries
+    -- `A = X ∩ A` by membership. Not by `rw [inter_comm ...]`: the goal carries
     -- `X.inter A` and the rewrite pattern is `X ∩ A`, which does not match
     -- syntactically even though `mem_inter_iff` applies to both.
     ⟨fun w hw => hw, X, hT.mem_univ, ext _ _ (fun w =>
@@ -83,7 +81,7 @@ theorem isTopology_subspaceOpens {T X A : ZFSet.{u}} (hT : IsTopology T X)
       exact (mem_inter_iff w _ _).mpr
         ⟨(mem_inter_iff w U₁ A).mpr ⟨hu₁, ha⟩, (mem_inter_iff w U₂ A).mpr ⟨hu₂, ha⟩⟩
   union_closed F hF := by
-    -- ALL opens whose trace is in the family: a set by separation, and it
+    -- All opens whose trace is in the family: a set by separation, and it
     -- contains a witness for every member, so no choice is made.
     refine (mem_subspaceOpens_iff T A _).mpr ⟨fun w hw => ?_, sUnion (sep (fun U => U ∩ A ∈ F) T),
       hT.union_closed _ (fun U hU => (mem_sep_iff _ _ _).mp hU |>.left), ?_⟩
@@ -180,15 +178,15 @@ def preimageIn (f X V : ZFSet.{u}) : ZFSet.{u} := sep (fun x => app f x ∈ V) X
 theorem mem_preimageIn_iff (f X V w : ZFSet.{u}) :
     w ∈ preimageIn f X V ↔ w ∈ X ∧ app f w ∈ V := mem_sep_iff _ _ _
 
-/-- Compactness, by open covers given as INDEXED FAMILIES.
+/-- Compactness, by open covers given as indexed families.
 
 A cover is a set function `u` from an index set `J` to opens, and a finite
-subcover is a bound `n` with an enumeration of INDICES. Not a set of opens with
+subcover is a bound `n` with an enumeration of indices. Not a set of opens with
 a finite subset, and the difference is not presentation: with indices the image
 theorem is choice-free.
 
-MEASURED, by writing the set version first and watching it fail. With a cover
-as a SET `C`, pulling it back through `f` produces the set of preimages, and a
+Measured, by writing the set version first and watching it fail. With a cover
+as a set `C`, pulling it back through `f` produces the set of preimages, and a
 finite subcover of the source comes back as opens `V i` each satisfying
 `∃ U ∈ C, V i = preimageIn f X U`. Pushing that forward needs the `U` for each
 `i` --- an existential per index, extracted, which is a choice. With indices the
@@ -196,9 +194,9 @@ correspondence is definitional: the same `idx i` names a member of `J` on both
 sides, and nothing is chosen.
 
 That is this tree's standing rule (`UniformOn`'s modulus, `TotallyBoundedOn`'s
-net) applied to compactness: carry the DATA, not an existential over it.
+net) applied to compactness: carry the data, not an existential over it.
 
-Stated as a `Prop` because it is a HYPOTHESIS here rather than a construction:
+Stated as a `Prop` because it is a hypothesis here rather than a construction:
 `[0,1]` is not open-cover compact without the fan theorem, so this predicate has
 no located-real instance and must not be read as having one. -/
 def IsCompact (T X K : ZFSet.{u}) : Prop :=
@@ -211,23 +209,23 @@ def IsCompact (T X K : ZFSet.{u}) : Prop :=
 def IsContinuous (f X Y S T : ZFSet.{u}) : Prop :=
   IsFunction f ∧ domain f = X ∧ range f ⊆ Y ∧ ∀ V, V ∈ T → preimageIn f X V ∈ S
 
-/-- A cover that carries what a finite subcover has to be COMPUTED from.
+/-- A cover that carries what a finite subcover has to be computed from.
 
 `Topology.IsCompact`'s conclusion demands `idx : Nat -> ZFSet` --- an index per
-member of the subcover, as DATA. Its hypothesis offers only
+member of the subcover, as data. Its hypothesis offers only
 `forall x in K, exists j, x in u j`, a `Prop`. Nothing constructs the one from
 the other: extracting a function from a bounded `forall`-`exists` is finite
 choice, and membership in a located open is not decidable, so it cannot be
 searched for either.
 
-That is why open-cover compactness of `[0, 1]` is the FANΔ THEOREM here and not
+That is why open-cover compactness of `[0, 1]` is the FANΔ theorem here and not
 a consequence of `Analysis.totallyBoundedOn_realLIcc`. The obstruction is not the
 interval and not the reals; it is the same one rung 9 met for compactness and
 rung 16 met for connectedness --- a decision handed over as a proposition.
 
 A `CoverData` hands over both missing pieces:
 
-  * `sel`, saying WHICH open a point is in, so the subcover's indices can be
+  * `sel`, saying which open a point is in, so the subcover's indices can be
     computed rather than chosen; and
   * `mesh`, a Lebesgue scale, so finitely many net points suffice --- without
     it the net is fine enough for the metric and still says nothing about the
@@ -429,17 +427,17 @@ theorem isTopology_realOpens : IsTopology realOpens.{u} Real.{u} where
 /-! ## Audit -/
 
 #print axioms isTopology_realOpens
-/-- The order topology: generated by the rays, with endpoints in the SPACE.
+/-- The order topology: generated by the rays, with endpoints in the space.
 
-Mathlib's `OrderTopology`, and NOT what `Topology.realLOpens` is --- measured: that
-one's basic opens have RATIONAL endpoints, so it is the order topology
+Mathlib's `OrderTopology`, and not what `Topology.realLOpens` is --- measured: that
+one's basic opens have rational endpoints, so it is the order topology
 presented through a dense subset, with second countability baked in. The two
-agreeing on `RealL` is a THEOREM about density (`exists_rat_bracket`), not an
+agreeing on `RealL` is a theorem about density (`exists_rat_bracket`), not an
 unfolding, and rung 11 owes it.
 
 A `Prop` about a topology `T` rather than a construction of one: building the
 generated topology needs an arbitrary intersection of topologies, and this
-tree's `IsTopology` is closed under FINITE intersection only --- the same wall
+tree's `IsTopology` is closed under finite intersection only --- the same wall
 `isClosed_inter_of_detachable` names one level down. Characterising is enough
 for every use above, and it costs no decision. -/
 def IsOrderTopology (T X lt : ZFSet.{u}) : Prop :=
@@ -452,17 +450,17 @@ def IsOrderTopology (T X lt : ZFSet.{u}) : Prop :=
         sep (fun w => (opair a w ∈ lt ∨ a = w) ∧ (opair w b ∈ lt ∨ w = b)) X ⊆ U
 
 /-- Conditional completeness: every inhabited, bounded-above subset has a
-least upper bound IN the carrier.
+least upper bound in the carrier.
 
 Mathlib's `ConditionallyCompleteLinearOrder`, and the hypothesis its EVT and
-IVT both carry. Stated with the supremum EXISTENTIAL rather than as a function,
+IVT both carry. Stated with the supremum existential rather than as a function,
 a `sSup` operator would have to return something for the empty and unbounded
 cases, and every such choice is a decision about a set the order cannot see
 into.
 
 `RealL` will not satisfy this in the naive form. A located real has no
 decidable order, so `∃ s, IsLUB s` for an arbitrary subset is exactly the shape
-that fails --- the tree's `Analysis.rangeSup` is a supremum of a LOCATED FAMILY,
+that fails --- the tree's `Analysis.rangeSup` is a supremum of a located family,
 built from the family's own approximants, and that is the instance to expect.
 Rung 12 must take the located form as its hypothesis or it will have a
 definition nothing here satisfies. -/
@@ -474,12 +472,12 @@ def IsConditionallyComplete (X lt : ZFSet.{u}) : Prop :=
 
 /-- Below a supremum there is a member of the set, under `EM`.
 
-THE LEAST-UPPER-BOUND CLAUSE IS STATED NEGATIVELY --- *no `u` bounding `S` has
+The least-upper-bound clause is stated negatively --- *no `u` bounding `S` has
 `u < s`* --- so instantiating it at a `u < s` yields `¬ (∀ x ∈ S, ¬ (u < x))`, a
-double negation. Turning that into a WITNESS is the step constructive
+double negation. Turning that into a witness is the step constructive
 mathematics refuses, and it is the whole content of this lemma.
 
-STATED OVER ANY `X` AND `lt`, because nothing here is about reals: it is the
+Stated over any `X` and `lt`, because nothing here is about reals: it is the
 third clause read contrapositively. `hleast` is that clause verbatim, so a
 caller holding a supremum from `IsConditionallyComplete` can pass its third
 component unchanged.
@@ -493,20 +491,20 @@ theorem exists_mem_of_lt_sup (hem : Constructive.EM) {X lt S s u : ZFSet.{u}}
   · exact h
   · exact absurd hu_lt (hleast u hu (fun x hx hlt => h ⟨x, hx, hlt⟩))
 
-/-- A subset LOCATED in the order: between any two points of the carrier,
+/-- A subset located in the order: between any two points of the carrier,
 either the subset reaches above the lower one, or it stays below the upper one.
 
 The repair `Topology.IsConditionallyComplete` needs, and the point of stating
-it here is that it needs NOTHING but the order. Locatedness is usually phrased
+it here is that it needs nothing but the order. Locatedness is usually phrased
 with rational approximants, which `Analysis.rangeSup` is built from, and a
 general carrier has no approximants to phrase it with. Read as a straddling
-condition on a PAIR of carrier points it becomes order-theoretic, and the
+condition on a pair of carrier points it becomes order-theoretic, and the
 metric statement is the instance where the pair is a pair of rationals.
 
 The disjunction is genuine information: a located real supplies it and an
 arbitrary subset of the reals does not.
 `Metamath.wlpo_of_conditionally_complete` builds the subset `{0}` together with
-`1` if a Boolean sequence fires, and locatedness at the pair `(0, 1)` for THAT
+`1` if a Boolean sequence fires, and locatedness at the pair `(0, 1)` for that
 subset is precisely the decision the sequence withholds --- so the
 counterexample to the naive predicate is refuted by this hypothesis rather than
 dodged by it.
@@ -517,7 +515,7 @@ def IsLocatedSubset (X lt S : ZFSet.{u}) : Prop :=
   ∀ u v, u ∈ X → v ∈ X → opair u v ∈ lt →
     (∃ x, x ∈ S ∧ opair u x ∈ lt) ∨ (∀ x, x ∈ S → opair v x ∉ lt)
 
-/-- Conditional completeness for LOCATED subsets, which is the form a
+/-- Conditional completeness for located subsets, which is the form a
 carrier without a decidable order can satisfy.
 
 `Topology.IsConditionallyComplete` asks every inhabited bounded-above subset for a
@@ -525,7 +523,7 @@ least upper bound, and `Metamath.wlpo_of_conditionally_complete` shows that cost
 `WLPO`. The only change here is `Topology.IsLocatedSubset` on the subset, which is
 exactly what that counterexample lacks.
 
-Weaker as a HYPOTHESIS on the carrier, so a descent proved from it measures
+Weaker as a hypothesis on the carrier, so a descent proved from it measures
 more, and every subset a located real actually presents --- the range of a
 uniformly continuous function on a closed interval, which is what
 `Analysis.rangeSup` sums up --- meets it. -/
@@ -547,20 +545,20 @@ theorem isConditionallyCompleteLocated_of_isConditionallyComplete
 /-- A strict order, as a set of pairs.
 
 `Topology.IsOrderTopology` and `Topology.IsConditionallyComplete` take `lt` as an
-ARBITRARY relation, and that turned out to be a defect rather than a
+arbitrary relation, and that turned out to be a defect rather than a
 generalisation: mathlib's extreme value theorem is over a
 `ConditionallyCompleteLinearOrder`, and dropping the order axioms makes the
-theorem FALSE.
+theorem false.
 
 The refutation is one point. Take `Y = K = {a}` and `lt = {(a,a)}`, with the
 indiscrete topology and the identity map. Both rays are `Y`, so the order
-topology clauses hold; NOTHING is bounded above, because the only candidate
-bound `a` satisfies `(a,a) ∈ lt`, so conditional completeness holds VACUOUSLY;
+topology clauses hold; Nothing is bounded above, because the only candidate
+bound `a` satisfies `(a,a) ∈ lt`, so conditional completeness holds vacuously;
 a singleton is compact. Every hypothesis is met and the conclusion asks for
 `(a,a) ∉ lt`, which is false.
 
 Irreflexivity is what that example violates and transitivity is what the finite
-subcover argument needs, so those are the two clauses. Linearity is NOT
+subcover argument needs, so those are the two clauses. Linearity is not
 required here: the proof compares only elements the cover already relates. -/
 def IsStrictOrderOn (X lt : ZFSet.{u}) : Prop :=
   (∀ x, x ∈ X → opair x x ∉ lt) ∧
@@ -569,9 +567,9 @@ def IsStrictOrderOn (X lt : ZFSet.{u}) : Prop :=
 
 /-- Excluded middle locates every subset of a strict order.
 
-`Topology.IsLocatedSubset` is a DISJUNCTION of two `Prop`s, so `EM` decides it
+`Topology.IsLocatedSubset` is a disjunction of two `Prop`s, so `EM` decides it
 outright --- but only the left branch comes for free. The right one, *`S` stays
-below `v`*, does NOT follow from the negation on its own: `¬ ∃ x ∈ S, u < x`
+below `v`*, does not follow from the negation on its own: `¬ ∃ x ∈ S, u < x`
 says nothing about `v` until transitivity carries `u < v < x` back to `u < x`.
 That is the only use of `hso`, and it is why this is not `hem` applied to the
 definition.
@@ -589,7 +587,7 @@ theorem isLocatedSubset_of_em (hem : Constructive.EM) {X lt S : ZFSet.{u}}
 `Topology.isConditionallyCompleteLocated_of_isConditionallyComplete` run
 backwards at the price of excluded middle.
 
-The extra hypothesis the located form carries is DISCHARGED rather than
+The extra hypothesis the located form carries is discharged rather than
 assumed, so the two predicates coincide classically and the whole distance
 between them is that one disjunction.
 -/
@@ -605,7 +603,7 @@ theorem isConditionallyComplete_of_located_of_em (hem : Constructive.EM)
 map from a compact space into a conditionally complete order attains a maximum
 on any inhabited compact subset.
 
-A HYPOTHESIS, not a theorem, for a measured reason. Two of its three inputs
+A hypothesis, not a theorem, for a measured reason. Two of its three inputs
 have no located-real instance: `[0,1]` is not
 open-cover compact without the fan theorem, and
 `Topology.IsConditionallyComplete` fails for `RealL` in this naive form because a
@@ -613,12 +611,12 @@ located real admits no decidable order. So this predicate is calibrated ---
 `Analysis.MaxAttainmentCompact` descends from it, and through
 `Metamath.llpo_of_max_attainment` the whole chain still reaches `LLPO`.
 
-That descent is rung 12's real content and it is NOT proved here: it needs the
-metric carrier of rung 6 exhibited as a compact space in THIS sense, which is
+That descent is rung 12's real content and it is not proved here: it needs the
+metric carrier of rung 6 exhibited as a compact space in this sense, which is
 precisely the fan-theorem step. Stated so the shape is on record and the gap is
 visible rather than implied. -/
 def MaxAttainmentTop : Prop :=
-  -- the universe is ANNOTATED: a bare `∀ T X ...` leaves every binder's
+  -- the universe is annotated: a bare `∀ T X ...` leaves every binder's
   -- `ZFSet.{?u}` free, and a `Prop`-valued definition gives Lean nothing to
   -- solve them from. Every other calibrated predicate here (`ExactIVT01`,
   -- `MaxAttainment01`) pins `.{u}` for the same reason.
@@ -629,17 +627,17 @@ def MaxAttainmentTop : Prop :=
     IsContinuous f X Y T S →
       ∃ c, c ∈ K ∧ ∀ x, x ∈ K → opair (app f c) (app f x) ∉ lt
 
-/-- Max attainment over a LOCATED conditionally complete order.
+/-- Max attainment over a located conditionally complete order.
 
 `Topology.MaxAttainmentTop` with `Topology.IsConditionallyCompleteLocated` in place of
 `Topology.IsConditionallyComplete`, and the change of direction is worth being
-explicit about: weakening a HYPOTHESIS of the quantified statement makes the
-PREDICATE stronger, so this implies `MaxAttainmentTop` and not the reverse ---
+explicit about: weakening a hypothesis of the quantified statement makes the
+predicate stronger, so this implies `MaxAttainmentTop` and not the reverse ---
 `Topology.maxAttainmentTop_of_located` is that implication.
 
 Why the stronger one is the one worth descending from. A descent proving
 `MaxAttainmentTop -> LLPO` alongside auxiliary hypotheses measures the
-hypothesis SET, and `Metamath.llpo_of_conditionally_complete` shows the naive
+hypothesis set, and `Metamath.llpo_of_conditionally_complete` shows the naive
 supremum in that set already reaches `LLPO` by itself, so the descent says
 nothing about maxima. Replace it with the located form and that shortcut is
 closed: the located supremum is what a located real actually admits, so it can

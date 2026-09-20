@@ -12,7 +12,7 @@ Mathlib). Regenerated on every push.
 
 `lake build` needs only the Lean toolchain. Mathlib appears in one place,
 `comparator/`, which is a separate package built by a separate command: it is
-imported there to STATE the theorems this library is measured against, never to
+imported there to state the theorems this library is measured against, never to
 prove one. `tools/imports.py --check` holds both directions, so the sentence
 above is a checked fact rather than a promise.
 
@@ -82,7 +82,7 @@ registers every principle assumed in a binder together with its calibration,
 and `tools/hypcost.json` records which declarations spend one rather than
 forward it. A new spend site is the event nothing else reports.
 
-Per-declaration costs are in [AXIOMS.md](AXIOMS.md), regenerated with each
+Per-declaration costs are in [axioms.md](axioms.md), regenerated with each
 commit.
 
 ## The comparators

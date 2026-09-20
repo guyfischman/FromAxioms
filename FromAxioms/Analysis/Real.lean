@@ -17,7 +17,7 @@ antisymmetry extensionality. Completeness is then literally a union: `⋃ S` is 
 cut whenever `S` is a non-empty family of cuts with an upper bound, and
 `subset_sUnion` and `sUnion_subset` say it is the least one.
 
-Classical logic USED TO enter at exactly two places, and both were the same
+Classical logic used to enter at exactly two places, and both were the same
 step: deciding a comparison that no witness has been produced for.
 `realLe_of_witness` -- a rational in `x` but not in `y` forces `y ⊆ x` -- is
 constructive, and it is the whole mathematical content of linearity; the retired
@@ -27,7 +27,7 @@ constructive, and choosing between them is not. On ℚ the corresponding
 trichotomy was free, because equality of rationals reduces to equality of
 naturals.
 
-NEITHER PLACE IS IN THIS FILE ANY MORE. The comparisons are stated in
+Neither place is in this file any more. The comparisons are stated in
 `Constructive/` with `EM` as a binder and reversed back to it, so each is priced
 exactly rather than merely bounded; the sign decision is a `Decidable` parameter
 of `realMulOf`. Nothing here depends on `Classical.choice`.
@@ -67,7 +67,7 @@ def ratCut (q : ZFSet.{u}) : ZFSet.{u} := sep (fun p => ratLt p q) NumberTheory.
 theorem mem_ratCut_iff (q p : ZFSet.{u}) : p ∈ ratCut q ↔ p ∈ NumberTheory.Rat.{u} ∧ ratLt p q :=
   mem_sep_iff _ _ _
 
-/-- The cut below a NON-rational is empty, because `ratLe` names `ratOf` on
+/-- The cut below a non-rational is empty, because `ratLe` names `ratOf` on
 its right side and nothing is `≤ empty`. `ratCut` is total, so this says what it
 returns off the rationals rather than leaving it unspecified --- and with
 `NumberTheory.ratUpper_empty` it pins both halves of `realLOf empty`. -/

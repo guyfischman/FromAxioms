@@ -15,7 +15,7 @@ Anything reaching `Classical.choice`, or the `em` and `choice` declared in
 reason. The build fails until it has one. Everything else is reported and not
 gated.
 
-Two failure modes are guarded explicitly, because both report a CLEAN TREE
+Two failure modes are guarded explicitly, because both report a clean tree
 while measuring nothing:
 
   * An empty sweep. "No classical results" and "no results examined" are the
@@ -53,7 +53,7 @@ CHUNK = 400
 # here and not what this file watches for.
 GATED = {"Classical.choice", "em", "choice"}
 
-# Non-greedy, because a primed name puts a quote INSIDE the quotes: Lean prints
+# Non-greedy, because a primed name puts a quote inside the quotes: Lean prints
 # `'contrapose'' depends on ...`, and a `[^']+` class stops at the first inner
 # quote and silently reports `contrapose`, a name that does not exist. Eight
 # declarations went missing that way and the coverage guard caught them.
@@ -101,7 +101,7 @@ def declarations():
                       "pass.")
                 raise SystemExit(1)
             for path in found:
-                # PUBLIC declarations only. A private one cannot be named from
+                # Public declarations only. A private one cannot be named from
                 # outside its module, so `#print axioms ZFSet.nat_cancel` is an
                 # unknown constant and the whole probe chunk fails -- taking
                 # every declaration in that chunk out of the sweep with it.

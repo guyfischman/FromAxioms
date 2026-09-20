@@ -18,7 +18,8 @@ whole of this file is that transport plus its consequences.
 and is not, and this file is what lets that be said.
 -/
 
-import FromAxioms.Constructive.Vanishing
+import FromAxioms.Algebra.Ring
+import FromAxioms.SetTheory.Uncountable
 
 set_option autoImplicit false
 

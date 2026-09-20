@@ -21,7 +21,7 @@ which `exchange_le` already requires and which ℚ satisfies.
 
 import FromAxioms.Algebra.LinAlg
 import FromAxioms.Algebra.Module
-import FromAxioms.Constructive.Vanishing
+import FromAxioms.SetTheory.Uncountable
 
 universe u
 
@@ -31,7 +31,7 @@ namespace Algebra
 /-! ## Coordinates
 
 A basis of length `d` writes every vector as a tuple in `R^d`. The list of
-coefficients comes from `spanSet = V`, which is an EXISTENCE statement, so
+coefficients comes from `spanSet = V`, which is an existence statement, so
 nothing here can be a definition -- the same constraint `exists_round` records,
 so the transport ahead is a theorem about a disjunction rather than a map. -/
 

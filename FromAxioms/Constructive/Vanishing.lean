@@ -28,8 +28,6 @@ lower bound only, and the gap is the familiar one: `located` returns a
 disjunction, and turning one into a bit is defining data by cases.
 -/
 
-import FromAxioms.Algebra.Field
-import FromAxioms.Analysis.IVT
 import FromAxioms.SetTheory.Uncountable
 
 set_option autoImplicit false
@@ -64,16 +62,16 @@ theorem ternaryReal_nonneg (α : Nat → Bool) :
   exact ratLt_irrefl (ratLt_trans ratZero_mem_Rat hpQ ratZero_mem_Rat
     (ratLt_trans ratZero_mem_Rat (ratNat_mem_Rat (pow3_pos i)) hpQ hpos hlt) hpneg)
 
-/-- And it lands in `[0,1]`, with the upper end ATTAINED. The lower cut
+/-- And it lands in `[0,1]`, with the upper end attained. The lower cut
 holds nothing above `1`, because every approximant is `tnum c n / 3^n` and
 `tnum_lt_pow3` keeps that strictly below one. The companion to
 `ternaryReal_nonneg`, and what lets a product be compared against a single
 factor.
 
-THE BOUND IS TIGHT AND THE STRICT FORM IS FALSE. `tnum c (n+1)` is
-`3 * tnum c n + 2 * c n`, which DOUBLES each digit, so the walk is the Cantor
+The bound is tight and the strict form is false. `tnum c (n+1)` is
+`3 * tnum c n + 2 * c n`, which doubles each digit, so the walk is the Cantor
 embedding whose supremum is exactly `1` --- attained at the all-true sequence.
-A caller needing `<` must constrain the SEQUENCE rather than sharpen this
+A caller needing `<` must constrain the sequence rather than sharpen this
 proof; `ternaryReal_lt_one_of_head_false` does it with a single digit. -/
 theorem ternaryReal_le_one (a : Nat → Bool) :
     realLLe (ternaryReal.{u} a) realLOne.{u} := by
@@ -94,15 +92,15 @@ theorem ternaryReal_le_one (a : Nat → Bool) :
     (ratNat_mem_Rat (pow3_pos i)) hlt1 (ratLt_trans ratOne_mem_Rat hpQ
       (ratNat_mem_Rat (pow3_pos i)) hp1 hlt))
 
-/-- A walk whose first digit is `false` is STRICTLY below one.
+/-- A walk whose first digit is `false` is strictly below one.
 
 `ternaryReal_le_one` cannot be sharpened as it stands, because its bound is
-attained, so the strictness has to be bought from the SEQUENCE. One digit pays
+attained, so the strictness has to be bought from the sequence. One digit pays
 for it: with `a 0 = false` the walk is confined to the first third, and `1/2` is
 then a rational lying in its upper cut and under one, which is exactly the
 witness `realLLt` asks for.
 
-THE INDEX IS ONE, NOT ZERO, and that is the whole content. `thigh` at zero is
+The index is one, not zero, and that is the whole content. `thigh` at zero is
 `1` itself and says nothing; at one it is `(2 * d_0 + 1)/3`, which the
 hypothesis pins at `1/3`. -/
 theorem ternaryReal_lt_one_of_head_false {a : Nat → Bool} (h : a 0 = false) :
@@ -283,10 +281,10 @@ Here `R` is only total, so nothing about step `n+1` is available until step `n`
 has been chosen.
 
 Stated but not used. Like `ACOmega` in `Cauchy.lean` it is here so implications
-can be measured against it. `ACOmega` from it is DONE -- `acOmega_of_dc`, below
-in this file. What is still wanted is the Baire category theorem REVERSED to it:
+can be measured against it. `ACOmega` from it is done -- `acOmega_of_dc`, below
+in this file. What is still wanted is the Baire category theorem reversed to it:
 `baireL_of_dc` and `baire_of_dc` are the forward direction, and the Baire node
-is a SINK in `lattice.json`, with incoming edges only. -/
+is a sink in `lattice.json`, with incoming edges only. -/
 def DC : Prop :=
   ∀ S R : ZFSet.{u}, R ⊆ prod S S →
     (∀ a, a ∈ S → ∃ b, b ∈ S ∧ opair a b ∈ R) →
@@ -438,12 +436,12 @@ private theorem le_of_sub_le_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
   refine h ?_
   exact sub_pos_of_lt hb ha hlt
 
-/-- `LLPO` from comparing ternary reals ALONE, which is all
+/-- `LLPO` from comparing ternary reals alone, which is all
 `llpo_of_signDisjunction` ever used.
 
-A REFINEMENT OF AN EXISTING THEOREM, not a new route. `llpo_of_signDisjunction`
+A refinement of an existing theorem, not a new route. `llpo_of_signDisjunction`
 takes `SignDisjunction` --- every real has a sign --- and spends it in one place:
-`rcases h _ (realLAdd_mem hα (realLNeg_mem hβ))`, on the DIFFERENCE of two
+`rcases h _ (realLAdd_mem hα (realLNeg_mem hβ))`, on the difference of two
 ternary reals, immediately converting the answer into `a <= b` or `b <= a`. The
 `key` helper, which is the substance, never sees the principle at all.
 
@@ -452,7 +450,7 @@ of two ternary reals only --- a statement about a bounded family rather than
 about every located real --- and `signDisjunction` still reaches it, so nothing
 is lost.
 
-WHY IT MATTERS HERE: `ternary_dichotomy` derives that comparison from
+Why it matters here: `ternary_dichotomy` derives that comparison from
 `DyadicApprox`, so the one-cell readout reaches `LLPO` through this and would not
 through the unrefined form, which would demand a sign for reals the readout says
 nothing about. -/
@@ -483,8 +481,8 @@ theorem llpo_of_ternaryComparison
 
 /-- A sign for every real is `LLPO`. -/
 theorem llpo_of_signDisjunction (h : SignDisjunction.{u}) : LLPO :=
-  -- ROUTED THROUGH `llpo_of_ternaryComparison`, which carries the comparison
-  -- block. The principle is spent in ONE place: on the DIFFERENCE of the two
+  -- Routed through `llpo_of_ternaryComparison`, which carries the comparison
+  -- block. The principle is spent in one place: on the difference of the two
   -- ternary reals, read back as a comparison.
   llpo_of_ternaryComparison fun α β => by
     have hα := ternaryReal_mem.{u} α
@@ -515,24 +513,24 @@ Berger-Ishihara-Kihara-Nemoto, Theorem 12, `WKL_c => IVT` (page 14): from
 
 where `S-`, `S0`, `S+` classify each child by the sign of `f` at its left
 endpoint with a margin. Nothing in the recursion touches a real: it consumes a
-CLASS FUNCTION `cls : Nat → Nat` on positions (`0`, `1`, `2` for `S-`, `S0`,
+class function `cls : Nat → Nat` on positions (`0`, `1`, `2` for `S-`, `S0`,
 `S+`; `signClass` below produces it from a locator) and two bounded searches.
 So it is stated over an arbitrary `cls`, proved once, and instantiated
 afterwards; the four facts `Analysis.IntervalTree` wants of the bounds and the
 two facts the sign invariant wants of the classes are the lemmas here.
 -/
 
-/-- The ONE-cell readout at DEPTH ONE decides which side of `1` a real lies on.
+/-- The one-cell readout at depth one decides which side of `1` a real lies on.
 
 Why the two-cell form is a necessity and not a convenience. At depth one the
 one-cell window is `2 * (1/2)^1 = 1` and the grid is `{0, 1}` --- the two strings
-of length one --- so a one-cell answer at that depth IS a dichotomy: `[false]`
+of length one --- so a one-cell answer at that depth is a dichotomy: `[false]`
 says `x <= 1` and `[true]` says `1 <= x`.
 
-THE `∃` IS ALREADY THE DISJUNCTION. This needs no map form and no choice to
+The `∃` is already the disjunction. This needs no map form and no choice to
 extract: a list of length one is `[false]` or `[true]`, so the existential
 unfolds to a two-way case split on its own. So the one-cell form is expensive
-where the two-cell form is free --- a locator answers about a PAIR and never
+where the two-cell form is free --- a locator answers about a pair and never
 places a real relative to a single point.
 
 `SignDisjunction` is this dichotomy at zero, and `llpo_of_signDisjunction`
@@ -579,20 +577,20 @@ theorem dichotomy_of_dyadicApprox (h : SetTheory.DyadicApprox.{u})
   dichotomy_of_depthOne (fun y hy hy0 hy2 => h y hy hy0 hy2 1) hx h0 h2
 #print axioms Constructive.dichotomy_of_dyadicApprox
 
-/-- The depth-one readout gives a SIGN for every real in `[-1,1]`.
+/-- The depth-one readout gives a sign for every real in `[-1,1]`.
 
 `SignDisjunction` with the range restricted, stated in that principle's own
 shape so the two are directly comparable. The record's line that the one-cell
 readout "yields a sign disjunction for bounded reals" was prose; this is it.
 
-THE SHIFT IS THE WHOLE PROOF. `z + 1` lies in `[0,2]` exactly when `z` lies in
+The shift is the whole proof. `z + 1` lies in `[0,2]` exactly when `z` lies in
 `[-1,1]`, and `dichotomy_of_depthOne` decides that against the midpoint `1` ---
 which is `z` against `0`. Every step adds or subtracts `1` and cancels.
 
-WHAT SEPARATES THIS FROM `SignDisjunction` IS THE RANGE HYPOTHESES. So the
+What separates this from `SignDisjunction` is the range hypotheses. So the
 distance between the one-cell readout and that principle is exactly the offset
 --- reaching an arbitrary real --- which is the same forall-exists gap in its
-third appearance, and NOT anything about deciding signs. -/
+third appearance, and not anything about deciding signs. -/
 theorem boundedSign_of_depthOne
     (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
       realLLe (realLOf ratZero.{u}) x →
@@ -625,19 +623,19 @@ theorem boundedSign_of_depthOne
   · -- `z + 1 <= 1` is `z <= 0`
     refine Or.inl ?_
     have hstep := realLLe_add_right hx h1 hn1 hle
-    -- `rw` rewrites EVERY occurrence, so the second `realLAdd_neg` has nothing
+    -- `rw` rewrites every occurrence, so the second `realLAdd_neg` has nothing
     -- left; the chain is already at the goal. Trailing step trimmed.
     rwa [realLAdd_assoc hz h1 hn1, realLAdd_neg h1, realLAdd_zero hz] at hstep
   · -- `1 <= z + 1` is `0 <= z`
     refine Or.inr ?_
     have hstep := realLLe_add_right h1 hx hn1 hge
-    -- `rw` rewrites EVERY occurrence, so the second `realLAdd_neg` has nothing
+    -- `rw` rewrites every occurrence, so the second `realLAdd_neg` has nothing
     -- left; the chain is already at the goal. Trailing step trimmed.
     rwa [realLAdd_assoc hz h1 hn1, realLAdd_neg h1, realLAdd_zero hz] at hstep
 
 #print axioms Constructive.boundedSign_of_depthOne
 
-/-- The comparison is the SIGN of the difference, so one of the two bounded
+/-- The comparison is the sign of the difference, so one of the two bounded
 results derives the other.
 
 `boundedDichotomy` and `boundedSign_of_depthOne` were proved separately from the
@@ -664,11 +662,11 @@ theorem boundedDichotomy
   have hna : realLNeg a ∈ RealL.{u} := realLNeg_mem ha
   have hd : realLAdd b (realLNeg a) ∈ RealL.{u} := realLAdd_mem hb hna
   -- `b - a <= 1`, from `b <= 1` and `-a <= 0`
-  -- `realLNeg_le_zero` IS this; the four lines it replaces were a hand-rolled
+  -- `realLNeg_le_zero` is this; the four lines it replaces were a hand-rolled
   -- derivation of a lemma sitting in `Located.lean`.
   have hna0 : realLLe (realLNeg a) realLZero.{u} := realLNeg_le_zero ha ha0
   have hhi : realLLe (realLAdd b (realLNeg a)) (realLOf ratOne.{u}) := by
-    -- `realLLe_add_right` adds on the RIGHT, so this is `(-a) + b <= 0 + b`
+    -- `realLLe_add_right` adds on the right, so this is `(-a) + b <= 0 + b`
     have hstep := realLLe_add_right hna realLZero_mem hb hna0
     rw [realLZero_add hb, realLAdd_comm hna hb] at hstep
     exact realLLe_trans hd hb h1 hstep hb1
@@ -689,16 +687,16 @@ theorem boundedDichotomy
 /-- The one-cell readout compares any two ternary reals.
 
 The step that carries `dichotomy_of_dyadicApprox` toward a named principle.
-`llpo_of_signDisjunction` consumes its hypothesis only at DIFFERENCES of ternary
+`llpo_of_signDisjunction` consumes its hypothesis only at differences of ternary
 reals, which lie in `[-1,1]`, so a dichotomy on `[0,2]` is enough: shift by one
-and "which side of the midpoint" IS "which of the two is smaller".
+and "which side of the midpoint" is "which of the two is smaller".
 
-NO NEGATION OF A SUM ANYWHERE, so this stays short. Every step adds `b` to both
+No negation of a sum anywhere, so this stays short. Every step adds `b` to both
 sides and cancels: `x + b = 1 + a` by `realLSub_add_cancel`, so `x <= 1`
 becomes `1 + a <= 1 + b` and then `a <= b` by cancelling on the right after a
 commutation. The range bounds go the same way.
 
-`1 + a` AND `2 + b` ARE THE ONLY TERMS THAT APPEAR, so the whole argument stays
+`1 + a` and `2 + b` are the only terms that appear, so the whole argument stays
 inside the abelian-group laws the tree already has. -/
 theorem ternary_dichotomy
     (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →

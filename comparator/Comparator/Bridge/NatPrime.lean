@@ -42,7 +42,7 @@ theorem prime_of_isPrime {p : ℕ} (hp : IsPrime p) : Nat.Prime p := by
   --   `Prime p ↔ 2 ≤ p ∧ ∀ m, m ∣ p → m = 1 ∨ m = p`
   refine Nat.prime_def.mpr ⟨h2, fun m hm => ?_⟩
   rcases Nat.lt_or_ge m 2 with hlt | hge
-  · -- `m < 2`, so `m` is 0 or 1. `interval_cases` is NOT available here:
+  · -- `m < 2`, so `m` is 0 or 1. `interval_cases` is not available here:
     -- `Mathlib.Tactic.IntervalCases` is not imported by `Prime/Basic`, and the
     -- build reports it as `unknown tactic`. `Nat.eq_zero_or_pos` plus `omega`
     -- needs no extra import.

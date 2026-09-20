@@ -5,7 +5,7 @@ Authors: Guy Fischman
 -/
 
 /-
-A MATHLIB MATRIX, AS THE TOWER'S ENTRY FUNCTION OVER THE ENCODED CARRIER.
+A Mathlib matrix, as the tower's entry function over the encoded carrier.
 
 The bottom rung for the 1858 row, Cayley-Hamilton. The two libraries hold a
 matrix differently and the difference is smaller than it looks:
@@ -19,9 +19,9 @@ entry function with `∀ i j, A i j ∈ R`, so the transport is `encode` at each
 entry and a junk value off the square. The junk is never read: every theorem
 above quantifies indices below `n`.
 
-WHAT THE ROW WILL NEED ABOVE THIS, measured rather than guessed:
+What the row will need above this, measured rather than guessed:
 
-  * `detN` (`PolyRing.lean:10307`) is LAPLACE ALONG ROW 0 with a `Nat`-parity
+  * `detN` (`PolyRing.lean:10307`) is Laplace along row 0 with a `Nat`-parity
     sign; `Matrix.det` is the signed sum over permutations. Those are not the
     same definition --- but mathlib proves `Matrix.det_succ_row_zero`, which IS
     Laplace along row 0, so the two meet by induction on the size rather than by
@@ -46,7 +46,7 @@ variable {α : Type} [CommRing α] {m : Nat}
 
 /-- A mathlib matrix as an entry function.
 
-NAMED `encMat` AND NOT `matOf`: the tower already has `Algebra.matOf`
+Named `encMat` and not `matOf`: the tower already has `Algebra.matOf`
 (`LinAlg.lean:1183`), and this file opens `Algebra`, so the obvious name
 resolves to that one and `rw` reports the tower's constant where the reader
 expects this definition. The clash is silent at the definition site and only
@@ -59,7 +59,7 @@ noncomputable def encMat (M : Matrix (Fin m) (Fin m) α) : Nat → Nat → ZFSet
   fun i j =>
     if h : i < m ∧ j < m then encode (M ⟨i, h.1⟩ ⟨j, h.2⟩) else encode (0 : α)
 
-/-- THE COMPUTATION RULE, on the square. -/
+/-- The computation rule, on the square. -/
 theorem encMat_apply (M : Matrix (Fin m) (Fin m) α) (i j : Fin m) :
     encMat M i.val j.val = encode (M i j) := by
   rw [encMat, dif_pos ⟨i.isLt, j.isLt⟩]

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """No Mathlib under `FromAxioms/`, and no `comparator/` either --- checked.
 
-THE CLAIM THIS EXISTS TO MAKE CHECKABLE. `README.md` says the tower is built on
-Lean core with no Mathlib. Once `comparator/` imports Mathlib --- to STATE the
+The claim this exists to make checkable. `README.md` says the tower is built on
+Lean core with no Mathlib. Once `comparator/` imports Mathlib --- to state the
 theorems parity is measured against --- that sentence stops being true in letter
 unless it is qualified, and a qualified sentence nobody checks is exactly the
 kind of assertion this project exists to replace. So:
@@ -15,15 +15,15 @@ reverse --- a `FromAxioms/` file citing something under `comparator/` would make
 the tower depend on Mathlib transitively while every direct import still looked
 clean.
 
-WHY IMPORTING MATHLIB TO CHECK A CLAIM IS THE OPPOSITE OF IMPORTING IT TO MAKE
-ONE. A `comparator/` pair states mathlib's theorem in MATHLIB's own vocabulary
+Why importing Mathlib to check a claim is the opposite of importing it to make
+one. A `comparator/` pair states mathlib's theorem in Mathlib's own vocabulary
 and discharges it from ours. Mathlib appears there as the thing being matched,
 never as a step in a proof: the `challenge.lean` half imports it to write the
 statement, and the `solution.lean` half closes that statement using only this
 tree. Nothing in `FromAxioms/` can see either file, which is what this gate
-enforces and what makes the README's distinction a fact.
+enforces and what makes the Readme's distinction a fact.
 
-TESTED ON COMMENT-STRIPPED SOURCE. A docstring naming Mathlib is prose, not an
+Tested on comment-stripped source. A docstring naming Mathlib is prose, not an
 import --- this file's own header would trip a naive grep, and so would every
 parity docstring that says what mathlib's version assumes. Skipping that
 distinction treats a docstring line reading `instance costs**` as a command.
@@ -39,7 +39,7 @@ import lean  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "FromAxioms"
-# THE ROOT, WHICHEVER TREE THIS IS. The aggregate that pulls the tower in is
+# The ROOT, whichever tree this is. The aggregate that pulls the tower in is
 # not named the same in every tree, and a hard-coded path silently skips the
 # direction check wherever the name does not match.
 TOWER_ROOT = next((p for p in (SRC / "Foundations.lean", ROOT / "FromAxioms.lean")
@@ -57,7 +57,7 @@ COMPARATOR = "Comparator"
 
 
 def imports_of(path):
-    """Every module this file imports, read from COMMENT-STRIPPED source."""
+    """Every module this file imports, read from comment-stripped source."""
     raw = path.read_text(errors="replace").split("\n")
     code = lean.strip_comments(raw)
     out = []
@@ -91,7 +91,7 @@ def check():
                             f"imports {mod} -- the tower must not depend on "
                             "the comparators"))
 
-    # THE DIRECTION CHECK, stated over the ROOT rather than over every file:
+    # The direction check, stated over the ROOT rather than over every file:
     # the root is what the tower's own entry point pulls in, so a comparator
     # reachable from it is a comparator the whole tower depends on.
     if TOWER_ROOT is not None:
@@ -110,7 +110,7 @@ def check():
         print(f"\n  FAIL -- {len(bad)} forbidden import(s):")
         for where, why in bad:
             print(f"    {where:52s} {why}")
-        print("\n  Mathlib belongs under `comparator/` only, where it states the"
+        print("\n  Mathlib belongs under `comparator/` ONLY, where it states the"
               " theorem being")
         print("  matched. A proof step that needs it is a proof this tree has "
               "not made.")
@@ -123,7 +123,7 @@ def check():
 
 
 def selftest():
-    """Prove the checker can FAIL, since a gate that cannot is not a gate.
+    """Prove the checker can fail, since a gate that cannot is not a gate.
 
     The population is real files, so a clean run is consistent with a matcher
     that never matches --- the failure this repository keeps meeting, where
@@ -142,7 +142,7 @@ def selftest():
         print("  SELFTEST FAIL -- a real import was not matched:", hits)
         ok = False
 
-    # a docstring naming Mathlib is NOT an import
+    # a docstring naming Mathlib is not an import
     probe = ["/-- mathlib states this as `import Mathlib.Order.Basic`, and we",
              "do not. -/", "theorem t : True := trivial"]
     hits = [m.group(1) for m in (IMPORT.match(l) for l in lean.strip_comments(probe)) if m]

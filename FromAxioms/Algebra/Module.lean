@@ -21,7 +21,7 @@ span of `d` independent vectors a copy of `R^d`.
 import FromAxioms.Algebra.PolyRing
 
 universe u v
--- `v` IS FOR INDEX TYPES, WHICH ARE NOT IN THE ZFSet UNIVERSE.
+-- `v` is for index types, which are not in the ZFSet universe.
 -- `ZFSet.{u} : Type (u+1)`, so a list lemma stated at `Type u` compiles and
 -- no caller here can ever instantiate it.
 
@@ -59,8 +59,8 @@ theorem vaddAt_mem {R add mul zero one V vadd vzero smul x y : ZFSet.{u}}
 
 The additive half of a quotient module is `isGroup_congQuotient`, which takes an
 `IsCongruence` and hands back `IsGroup (quotientSet r G) (congOp r G op)`. What
-`congOp` cannot supply is the SCALAR action: it descends a binary operation by
-quotienting BOTH arguments, while a scalar action quotients only the second ---
+`congOp` cannot supply is the scalar action: it descends a binary operation by
+quotienting both arguments, while a scalar action quotients only the second ---
 the ring keeps its own elements.
 
     `congOp   r V vadd`  :  V/r  x  V/r  ->  V/r
@@ -258,11 +258,11 @@ theorem lincomb_zipWith_sub {R add mul zero one V vadd vzero smul : ZFSet.{u}}
 /-- The coefficientwise sum of two combinations is their sum.
 
 The additive counterpart of `lincomb_zipWith_sub`, and the one a coordinate
-argument needs: `lincomb_add` gives only that SOME coefficient list works, which
+argument needs: `lincomb_add` gives only that some coefficient list works, which
 is enough to know the span is closed and not enough to say which vector the
 coordinates name.
 
-Both zip the COEFFICIENTS against a fixed vector list. -/
+Both zip the coefficients against a fixed vector list. -/
 theorem lincomb_zipWith_add {R add mul zero one V vadd vzero smul : ZFSet.{u}}
     (hM : IsModule R add mul zero one V vadd vzero smul) :
     ∀ (cs ds vs : List ZFSet.{u}), cs.length = ds.length →
@@ -562,7 +562,7 @@ theorem isIndep_cons {R add mul zero one V vadd vzero smul : ZFSet.{u}}
     refine hstab c hc ?_
     intro hne
     -- solving for `w` would put it in the span; the goal is already `False`,
-    -- so the branch that refutes IS the proof stability asks for
+    -- so the branch that refutes is the proof stability asks for
     obtain ⟨b, hb, hbc⟩ := hF.inverses c hc hne
     have hcw : opAt smul c w = ginv V vadd vzero (lincomb vadd smul vzero cs' vs) :=
       inv_unique hM.group hL (smulAt_mem hM hc hw) (ginv_mem hM.group hL)
@@ -708,7 +708,7 @@ structure IsSubmodule (S R V vadd vzero smul : ZFSet.{u}) : Prop where
 
 /-! ## Linear functionals, sublinear bounds, and the extension problem
 
-THE ORDER IS A PARAMETER rather than fixed to the reals. Mathlib's
+The order is a parameter rather than fixed to the reals. Mathlib's
 `exists_extension_of_le_sublinear` is stated for `ℝ`; carrying `le` covers that
 case and any other ordered scalar ring. -/
 
@@ -727,7 +727,7 @@ theorem neg_one_smul {R add mul zero one V vadd vzero smul a : ZFSet.{u}}
 
 /-! ## Differences, and the quotient by a submodule
 
-`idealRel R add zero I` (`Ring.lean`) is named for ideals but DEFINED as
+`idealRel R add zero I` (`Ring.lean`) is named for ideals but defined as
 `a - b in I` over an additive group and a subset, so it is already the right
 relation for a module. What is not available is its congruence property:
 `isCongruence_idealRel_add` demands `IsRingNC R add mul zero one`, and a
@@ -1317,7 +1317,7 @@ def IsBasis (R zero V vadd vzero smul : ZFSet.{u}) (vs : List ZFSet.{u}) : Prop 
 
 /-- A basis spans with coefficient lists of its own length.
 
-`mem_spanSet_iff` gives coefficients of ANY length --- `lincomb` ignores the
+`mem_spanSet_iff` gives coefficients of any length --- `lincomb` ignores the
 extra ones and pads the missing with zero --- while every tower lemma wants the
 length pinned to the basis. `padTo` is that normalisation and `lincomb_padTo`
 says it changes nothing. -/
@@ -1436,21 +1436,21 @@ theorem isModule_of_subring {S R add mul zero one : ZFSet.{u}} (hR : IsRing R ad
 
 #print axioms zero_smul
 
-/-! ### The same three laws over a LEAN TYPE
+/-! ### The same three laws over a Lean type
 
 `zero_smul` and `smul_vzero` above are the `ZFSet` forms and each carries an
 `IsModule` --- a structure with a carrier, membership obligations and a scalar
-ring. WHAT THE PROOFS USE IS ONE DISTRIBUTIVITY AND THE ADDITIVE GROUP'S
-LAWS, so stated over a Lean type with those as function arguments the
+ring. What the proofs use is one distributivity and the additive group's
+laws, so stated over a Lean type with those as function arguments the
 structure has nothing left to do.
 
 Over a Lean type these carry no `Classical.choice`. Reaching an arbitrary type
 through an encoding into `ZFSet` well-orders it, and well-ordering an arbitrary
 type is the axiom of choice.
 
-AND THE THIRD IS NOT NEW MATHEMATICS AT ALL: `(-c) • x = -(c • x)` is uniqueness
+And the third is not new mathematics at all: `(-c) • x = -(c • x)` is uniqueness
 of the additive inverse, which is `Algebra.negT_eq_of_add_eq_zero` --- written
-for the determinant's ALTERNATION and applying here unchanged. That is the case
+for the determinant's alternation and applying here unchanged. That is the case
 for re-siting over per-pair bridges: a type-sited lemma has no carrier to be
 wrong about, so it composes across subjects sharing no mathematics.
 -/
@@ -1471,11 +1471,11 @@ wrong about, so it composes across subjects sharing no mathematics.
 #print axioms spanSet_exchange
 #print axioms exchange_le
 
-/-- An independent list extends to a basis, over an ARBITRARY field.
+/-- An independent list extends to a basis, over an arbitrary field.
 
 `exists_basis` is not this: it takes both carriers finite, which is the
 finiteness a general Artin bound has to shed. What that finiteness actually buys
-is the DECISION is `x` already in the span of `ws`, so this takes the decision
+is the decision is `x` already in the span of `ws`, so this takes the decision
 as `hspanDec` and asks nothing of either carrier.
 
 The loop's fuel is `bs.length`: by `exchange_le` an independent list inside `V`
@@ -1571,19 +1571,19 @@ theorem extend_to_basis {R add mul zero one V vadd vzero smul : ZFSet.{u}}
 
 #print axioms extend_to_basis
 
-/-- A finite spanning list contains a basis, over an ARBITRARY field.
+/-- A finite spanning list contains a basis, over an arbitrary field.
 
 The sibling of `extend_to_basis`, and the one a submodule actually hands you:
-`submodule_powSet_fg` returns a finite SPANNING list, never an independent one.
+`submodule_powSet_fg` returns a finite spanning list, never an independent one.
 
 `exists_basis` is not this either --- it takes both carriers finite. What that
-finiteness buys is the DECISION is `x` already in the span of `ws`, so this
+finiteness buys is the decision is `x` already in the span of `ws`, so this
 takes the decision as `hspanDec` and asks nothing of either carrier.
 
-THE INVARIANT IS STRONGER THAN THE CONCLUSION, and has to be: walking `gs` left
-to right, everything already KEPT stays in the span of the final answer, and so
-does everything already SEEN. Carrying only the second fails, because the
-recursive call returns a basis for a LONGER accumulator and nothing then gets
+The invariant is stronger than the conclusion, and has to be: walking `gs` left
+to right, everything already kept stays in the span of the final answer, and so
+does everything already seen. Carrying only the second fails, because the
+recursive call returns a basis for a longer accumulator and nothing then gets
 you back to the shorter one. -/
 theorem basis_of_span {R add mul zero one V vadd vzero smul : ZFSet.{u}}
     (hM : IsModule R add mul zero one V vadd vzero smul)
@@ -1645,7 +1645,7 @@ theorem basis_of_span {R add mul zero one V vadd vzero smul : ZFSet.{u}}
   · intro hz
     exact spanSet_subset _ hz
   · intro hz
-    -- NOT `rw [← hspan]`: that rewrites EVERY `V`, the carrier argument of the
+    -- Not `rw [← hspan]`: that rewrites every `V`, the carrier argument of the
     -- span on the right included, and then asks for
     -- `spanSet R (spanSet R V ..) .. bs`. Only the membership is rewritten.
     have hzg : z ∈ spanSet R V vadd smul vzero gs := by
@@ -1664,14 +1664,14 @@ theorem basis_of_span {R add mul zero one V vadd vzero smul : ZFSet.{u}}
 /-- A combination is unchanged by cutting the operations down to a
 submodule.
 
-STRUCTURAL, not incidental. `IsModule` demands `domain vadd = prod W W`, so a
-submodule carrier FORCES the restricted spelling that `isModule_submodule`
+Structural, not incidental. `IsModule` demands `domain vadd = prod W W`, so a
+submodule carrier forces the restricted spelling that `isModule_submodule`
 produces, while a span is most naturally stated in the operations it was formed
 with. Neither is wrong and something has to cross.
 
 `lincomb_restrictOp_sub` (GeomTower) is the ring version of this induction. The
-head needs the ACTION's crossing (`opAt_restrictLeft`), the join needs the
-ADDITION's (`opAt_restrictOp`), and the addition's needs the running combination
+head needs the action's crossing (`opAt_restrictLeft`), the join needs the
+addition's (`opAt_restrictOp`), and the addition's needs the running combination
 to have stayed inside `W`, which is `lincomb_mem_submodule`. Everything is about
 elements already known to lie in `W`, where the two operations agree pointwise. -/
 theorem lincomb_submodule
@@ -1711,7 +1711,7 @@ theorem lincomb_submodule
 different name, and the two distributivity clauses are the ring's one clause
 used twice -- once directly, once through commutativity.
 
-What it buys: `spanSet R R add mul zero gs` is then the IDEAL generated by
+What it buys: `spanSet R R add mul zero gs` is then the ideal generated by
 `gs`, so finitely generated needs no new construction. -/
 theorem isModule_self {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) :
@@ -1734,7 +1734,7 @@ theorem isModule_self {R add mul zero one : ZFSet.{u}}
     exact hR.mul_one _ hx
 
 /-- Noetherian: every ideal is finitely generated. The generators are a
-LIST -- data, not a cardinality claim -- and the ideal they generate is
+list -- data, not a cardinality claim -- and the ideal they generate is
 `spanSet` with the ring acting on itself (`isModule_self`), so no new
 construction is needed. -/
 def IsNoetherian (R add mul zero : ZFSet.{u}) : Prop :=
@@ -1742,14 +1742,14 @@ def IsNoetherian (R add mul zero : ZFSet.{u}) : Prop :=
     ∃ gs : List ZFSet.{u}, (∀ g, g ∈ gs → g ∈ I) ∧
       I = spanSet R R add mul zero gs
 
-/-- Finite choice over `Nat`-indexed existentials, CONSTRUCTIVELY.
+/-- Finite choice over `Nat`-indexed existentials, constructively.
 
 Given a witness for each `j` below `N`, assemble one matrix whose `j`-th column
 is that witness. No `Classical.choice` is spent: the conclusion is an
-existential, so each column is obtained INSIDE a proof rather than extracted
+existential, so each column is obtained inside a proof rather than extracted
 into data.
 
-No `EM : Prop` argument lets you DEFINE data by cases, but ASSEMBLING data
+No `EM : Prop` argument lets you define data by cases, but assembling data
 inside an existential is free, since nothing escapes the proof. So a caller
 needing a matrix as data -- `isIntegralOver_of_span_stable`, whose `A` is a
 `Nat → Nat → ZFSet` -- can take its input from `IsNoetherian`, which says only
@@ -1786,12 +1786,12 @@ theorem exists_matrix_of_forall_exists {P : Nat → (Nat → ZFSet.{u}) → Prop
 
 #print axioms exists_matrix_of_forall_exists
 
-/-- A linear combination over LISTS is a fold over INDICES.
+/-- A linear combination over lists is a fold over indices.
 
 `lincomb` recurses on the head and `foldF` on the last index, so the two agree
 only after the fold is re-associated -- which is `foldF_cons`. The
 vector-valued version of exactly this is `coeff_lincomb`; this is the scalar
-case, so a KERNEL VECTOR of a matrix reads as a vanishing combination. -/
+case, so a kernel vector of a matrix reads as a vanishing combination. -/
 theorem lincomb_eq_foldF {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) :
     ∀ (cs vs : List ZFSet.{u}) (k : Nat), cs.length = k → vs.length = k →
@@ -1833,7 +1833,7 @@ theorem lincomb_eq_foldF {R add mul zero one : ZFSet.{u}}
 
 #print axioms lincomb_eq_foldF
 
-/-- Span membership with a coefficient list of the RIGHT LENGTH.
+/-- Span membership with a coefficient list of the right length.
 
 `mem_spanSet_iff` promises coefficients but says nothing about how many:
 `lincomb` pairs positionally and stops at the shorter list, so a witness may be
@@ -1857,7 +1857,7 @@ theorem exists_coeffs_len_of_mem_spanSet {R add mul zero one V vadd vzero smul :
 
 Splitting a basis of `V` as `cs ++ ds` makes the classes of `ds` a basis of
 `V / span cs`. That is `dim(V/S) = dim V - dim S` in the form this tree states
-dimension: a basis LIST, whose length is the dimension.
+dimension: a basis list, whose length is the dimension.
 
 Both halves are stated over `spanSet` rather than over a basis of `S`, because
 `IsBasis .. S` computes its span with `restrictOp`/`restrictLeft` and taking
@@ -1866,7 +1866,7 @@ through every step. The span over `V`'s own operations is what
 `isSubmodule_spanSet` produces and what the consumer has.
 -/
 
-/-- A combination depends on the scalar action only through its VALUES.
+/-- A combination depends on the scalar action only through its values.
 
 Two actions agreeing on the coefficients and the vectors give the same
 combination. `lincomb_restrictLeft_eq` is the `restrictLeft` instance of this;
@@ -1894,12 +1894,12 @@ theorem lincomb_smul_congr {R V vadd vzero smul smul' : ZFSet.{u}}
 
 The expensive direction, and the price is named rather than assumed. `ACC`
 quantifies over a sequence and returns a bound; `IsNoetherian` must hand back a
-LIST. Producing generators from a chain condition means asking, of a finite list
+list. Producing generators from a chain condition means asking, of a finite list
 already inside the ideal, whether it spans -- and not yet in the span is
 exactly the negative membership test this tower prices.
 
-It is a READOUT, not `DC`. The obvious route builds the chain by choosing an
-escaping element at each step, which is dependent choice. A SELECTOR is a
+It is a readout, not `DC`. The obvious route builds the chain by choosing an
+escaping element at each step, which is dependent choice. A selector is a
 function, so the chain it generates is a plain `Nat` recursion and no principle
 is spent iterating it -- the same three-way split `Baire.lean` makes between
 `DC`, a selector, and a readout. What remains is the decision, and that is the
@@ -1911,15 +1911,15 @@ whole cost. -/
 index.
 
 `below n` descends and `foldF` ascends, so the two enumerate the same index set
-in opposite orders -- and over a COMMUTATIVE monoid that is the whole
-difference. `lincomb` peels the head, which is the TOP index; `foldF` peels the
+in opposite orders -- and over a commutative monoid that is the whole
+difference. `lincomb` peels the head, which is the top index; `foldF` peels the
 last, which is also the top; so the induction lines up and one `comm` closes
 each step.
 
 Wanted whenever a combination is built by mapping over an index range rather
 than by exhibiting a list, which is what `powerList` does -- and it is why
 `powerList` is defined as `(below n).map` rather than by its own recursion: two
-lists built from the SAME `below` zip index-by-index with nothing to reconcile. -/
+lists built from the same `below` zip index-by-index with nothing to reconcile. -/
 theorem lincomb_map_below {M op e smul : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {c v : Nat → ZFSet.{u}} (hmem : ∀ k, opAt smul (c k) (v k) ∈ M) :
     ∀ n : Nat, lincomb op smul e ((below n).map c) ((below n).map v)
@@ -1984,7 +1984,7 @@ theorem getD_mem_of_mem {l : List ZFSet.{u}} {X d : ZFSet.{u}}
 
 /-- `getD` on a list mapped over `below`.
 
-The index is REVERSED: `below (n+1)` puts `n` first, so entry `k` is
+The index is reversed: `below (n+1)` puts `n` first, so entry `k` is
 `f (n - 1 - k)` and not `f k`. A caller assuming the straight order selects the
 wrong element and the mistake type-checks.
 
@@ -2045,17 +2045,17 @@ theorem eq_map_below (dflt : ZFSet.{u}) :
 
 
 
-/-- A linear combination as a fold over the index, for a MODULE.
+/-- A linear combination as a fold over the index, for a module.
 
-`lincomb_eq_foldF` is the RING version -- coefficients and vectors in one `R`,
+`lincomb_eq_foldF` is the ring version -- coefficients and vectors in one `R`,
 joined by `mul`. This is the module case, with a separate action.
 
-`lincomb_map_below` is close but takes both lists ALREADY in `(below n).map`
-form. `Algebra.eq_map_below` puts them there, and its index map REVERSES --
+`lincomb_map_below` is close but takes both lists already in `(below n).map`
+form. `Algebra.eq_map_below` puts them there, and its index map reverses --
 `below 3 = [2,1,0]` -- so the fold lands on `n - 1 - k`. `foldF_reverse` is
 what a caller wanting the straight index applies next.
 
-Rewriting happens in the HYPOTHESIS, not the goal. This dialect has neither
+Rewriting happens in the hypothesis, not the goal. This dialect has neither
 `conv` nor `calc`, and rewriting `vs` in the goal would also hit the `vs.getD`
 on the right-hand side, changing the shape being proved. The length is a
 separate binder `n` for the same reason. -/
@@ -2083,7 +2083,7 @@ theorem lincomb_eq_foldF_module {M vadd vzero smul : ZFSet.{u}}
 
 
 /-- A scalar distributes over a finite module sum.
-`IsModule` carries `smul_add` as the TWO-TERM case; this is the iterate, with
+`IsModule` carries `smul_add` as the two-term case; this is the iterate, with
 `smul_vzero` at the base. -/
 theorem smul_foldF {R add mul zero one V vadd vzero smul c : ZFSet.{u}}
     (hM : IsModule R add mul zero one V vadd vzero smul) (hc : c ∈ R)
@@ -2105,7 +2105,7 @@ theorem smul_foldF {R add mul zero one V vadd vzero smul c : ZFSet.{u}}
 
 /-- A sum of scalars acting on one vector -- the mirror of
 `Algebra.smul_foldF`. `add_smul` is its two-term case, equally un-iterated. The
-base case is a DIFFERENT lemma, `zero_smul`: the zero SCALAR on a vector rather
+base case is a different lemma, `zero_smul`: the zero scalar on a vector rather
 than a scalar on the zero vector. -/
 theorem foldF_smul_left {R add mul zero one V vadd vzero smul v : ZFSet.{u}}
     (hM : IsModule R add mul zero one V vadd vzero smul) (hv : v ∈ V)
@@ -2137,8 +2137,8 @@ C3c-i-5g's last obligation, and exactly `matTrace_conj`'s (`IdealCount` 5310)
 and `v j = Σ_i δ_ij · v i` trivially, so uniqueness of the coefficients against
 `v` forces `P * Q = I`.
 
-Uniqueness is a HYPOTHESIS in family form, not derived from `IsIndep` here.
-`IsIndep` quantifies over coefficient LISTS while every fold here is indexed by
+Uniqueness is a hypothesis in family form, not derived from `IsIndep` here.
+`IsIndep` quantifies over coefficient lists while every fold here is indexed by
 a `Nat → ZFSet` family, and the conversion carries `below`'s reversal. Keeping
 it out leaves two tractable pieces instead of one long one.
 
@@ -2222,17 +2222,17 @@ theorem coordMat_mul_eq_id
 
 #print axioms coordMat_mul_eq_id
 
-/-- Coordinate uniqueness, in FAMILY form.
+/-- Coordinate uniqueness, in family form.
 
-`lincomb_injective` (`Module` 295) supplies it about coefficient LISTS;
+`lincomb_injective` (`Module` 295) supplies it about coefficient lists;
 `Algebra.coordMat_mul_eq_id` wants it about `Nat → ZFSet` families. This is the
 conversion, and it is where `below`'s reversal is paid.
 
-The list is built with the index ALREADY REVERSED.
+The list is built with the index already reversed.
 `Algebra.lincomb_eq_foldF_module` reads a combination as a fold over `n - 1 - k`,
 and `Algebra.map_below_getD` reads `(below n).map f` at `m` as `f (n - 1 - m)`.
 Composing them naively leaves a reversal on the coefficients; taking the list as
-`(below n).map (fun m => C (n - 1 - m))` makes the two CANCEL, so the fold comes
+`(below n).map (fun m => C (n - 1 - m))` makes the two cancel, so the fold comes
 out on the straight index and `getD` at `i` is `C i`. -/
 theorem coord_uniq_family
     {K add mul zero one V vadd vzero smul : ZFSet.{u}}
@@ -2284,7 +2284,7 @@ theorem coord_uniq_family
       exact hD _ (by have := mem_below.mp hm; omega))
     ((hfold C hC).trans (heq.trans (hfold D hD).symm))
   -- read at `i` itself: the list's own reversal already cancelled the map's,
-  -- so `getD` at `i` IS `C i`
+  -- so `getD` at `i` is `C i`
   have := congrArg (fun l => List.getD l i vzero) hlists
   simp only [] at this
   rw [map_below_getD n i hi, map_below_getD n i hi] at this
@@ -2298,7 +2298,7 @@ theorem coord_uniq_family
 /-- `getD`'s default is unreachable below the length, so any two defaults
 agree there.
 
-Not a convenience. `lincomb_eq_foldF_module` writes the COEFFICIENT list's
+Not a convenience. `lincomb_eq_foldF_module` writes the coefficient list's
 default as `vzero`, and `∀ i, f i ∈ K` forces `zero` --- `vzero` lives in `V`.
 The two terms are equal at every index a fold of length `bs.length` visits and
 unequal past it, so nothing definitional bridges them and `rw` spins.
@@ -2312,16 +2312,16 @@ theorem getD_default_agree {l : List ZFSet.{u}} {i : Nat} (hi : i < l.length)
   rfl
 
 
-/-- A basis coordinate column, at the DIRECT index.
+/-- A basis coordinate column, at the direct index.
 
-`spanCoeffs_of_isBasis` gives a coefficient LIST and `lincomb_eq_foldF_module`
-turns it into a fold whose index is REVERSED --- `cs.getD (n-1-k)` paired with
+`spanCoeffs_of_isBasis` gives a coefficient list and `lincomb_eq_foldF_module`
+turns it into a fold whose index is reversed --- `cs.getD (n-1-k)` paired with
 `vs.getD (n-1-k)`. `coordMat_mul_eq_id` consumes `fun i => opAt smul (P i k)
 (v i)`, direct. This is the bridge, and it is obligation 1b of the determinant
 route: the same pairing, enumerated the other way, which `foldF_reverse` settles
 because `V` under `vadd` is a commutative monoid.
 
-Stated as an EXISTENTIAL over a function rather than over a list, because
+Stated as an existential over a function rather than over a list, because
 `exists_matrix_of_forall_exists` wants exactly that shape per column and cannot
 consume a `List`. -/
 theorem exists_coordColumn {K add mul zero one V vadd vzero smul x : ZFSet.{u}}
@@ -2335,8 +2335,8 @@ theorem exists_coordColumn {K add mul zero one V vadd vzero smul x : ZFSet.{u}}
   have hcm : IsCommMonoid V vadd vzero := isCommMonoid_of_isGroup hM.group hM.comm
   have hvm : ∀ v, v ∈ vs → v ∈ V := hb.left
   refine ⟨fun i => bs.getD i zero, fun i => getD_mem_of_mem hmem hM.ring.addGroup.mem_e i, ?_⟩
-  -- THE EMPTY BASIS IS A REAL CASE, not a formality. `lincomb_eq_foldF_module`
-  -- wants its membership at EVERY `k`, and the reversed index `n - 1 - k` is
+  -- The empty basis is a real case, not a formality. `lincomb_eq_foldF_module`
+  -- wants its membership at every `k`, and the reversed index `n - 1 - k` is
   -- below `n` only when `n > 0` --- at `n = 0` Nat subtraction pins it to `0`,
   -- where `bs` is empty and the `vzero` default escapes `K`. So the zero-length
   -- basis is discharged first and separately, on `foldF _ _ _ 0 = vzero`.
@@ -2359,7 +2359,7 @@ theorem exists_coordColumn {K add mul zero one V vadd vzero smul x : ZFSet.{u}}
     exact getD_mem_of_mem hmem hM.ring.addGroup.mem_e i
   rw [heq, lincomb_eq_foldF_module hcm hlen rfl hterm]
   rw [(foldF_reverse hcm vs.length (fun i hi => hdir i hi)).symm]
-  -- `show` BEFORE `rw`: the goal carries an unreduced `(fun i => bs.getD i zero) i`
+  -- `show` before `rw`: the goal carries an unreduced `(fun i => bs.getD i zero) i`
   -- and `rw` matches syntactically, so it cannot see the redex. Stating the
   -- beta-reduced form is what puts the pattern where the rewrite can find it.
   exact (foldF_congr vs.length (fun i hi => by
@@ -2368,10 +2368,10 @@ theorem exists_coordColumn {K add mul zero one V vadd vzero smul x : ZFSet.{u}}
     rw [getD_default_agree (l := bs) (i := i) (by omega) zero vzero])).symm
 
 
-/-- A coordinate matrix at an ARBITRARY column count.
+/-- A coordinate matrix at an arbitrary column count.
 
 This is the lemma the determinant route needed and could not get.
-`exists_coordMat_of_isBasis` indexes EVERYTHING by the basis's own length, so
+`exists_coordMat_of_isBasis` indexes everything by the basis's own length, so
 applied to the shorter basis it constrains `j < vs.length` and cannot reach the
 longer one's columns. Here the width `N` is free: `exists_coordColumn` supplies
 one column per `j`, and `exists_matrix_of_forall_exists` turns a per-column
@@ -2392,7 +2392,7 @@ theorem exists_coordMat_wide {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 
 /-- A fold extends past its range when the added terms are the identity.
 
-`foldF_extend` (PolyRing.lean) is the RING version; the module carrier is a
+`foldF_extend` (PolyRing.lean) is the ring version; the module carrier is a
 commutative monoid without being a ring's additive group by that route. -/
 theorem foldF_extend_monoid {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {F : Nat → ZFSet.{u}} (hF : ∀ i, F i ∈ M) (m d : Nat)
@@ -2407,11 +2407,11 @@ theorem foldF_extend_monoid {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
 The last bridge of obligation 1c, and it joins the two lemmas that could not meet
 directly: `exists_coordMat_wide` produces a fold over `vs.length` against
 `vs.getD`, while `coordMat_mul_eq_id` consumes one over `us.length` against the
-PADDED family. Two steps, in this order:
+padded family. Two steps, in this order:
 
   `foldF_extend_monoid`  drops `m` to `vs.length`, the discarded terms being
                          `opAt smul (Q k) vzero`, each `vzero` by `smul_vzero`
-  `foldF_congr`          rewrites the padding away BELOW the cut, where
+  `foldF_congr`          rewrites the padding away below the cut, where
                          `vzeroPadP_lt` says it is the list entry
 
 Note the order: extend first, congr second. Doing it the other way asks
@@ -2426,7 +2426,7 @@ theorem foldF_pad_to_short {K add mul zero one V vadd vzero smul : ZFSet.{u}}
           (if k < vs.length then vs.getD k vzero else vzero)) m
       = foldF vadd vzero
         (fun k => opAt smul (Q k) (vs.getD k vzero)) vs.length := by
-  -- THE PADDING IS INLINED, not `vzeroPadP`. Writing the `if` directly keeps
+  -- The padding is inlined, not `vzeroPadP`. Writing the `if` directly keeps
   -- this lemma self-contained, and the named definition is not coming: the
   -- mirror probe holding it was rescued and then declined, so no second
   -- definition of the padding is pending anywhere.
@@ -2452,7 +2452,7 @@ theorem foldF_pad_to_short {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 
 /-- Truncating a matrix's rows above a cut leaves the padded fold unchanged.
 
-`exists_coordMat_wide` hands back an OPAQUE `Q`; the determinant argument needs
+`exists_coordMat_wide` hands back an opaque `Q`; the determinant argument needs
 one whose rows vanish above `vs.length`, because that zero row is what
 `detN_row_zero` consumes. Truncation is free here: above the cut the padded
 family is `vzero`, so the term is `opAt smul _ vzero = vzero` whatever the
@@ -2476,10 +2476,10 @@ theorem foldF_pad_truncate {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 /-- Two bases of different lengths give an identity with a zero row.
 
 The assembly, and the whole determinant argument minus the determinants. Both
-matrices come from `exists_coordMat_wide` --- `P` expressing the PADDED shorter
+matrices come from `exists_coordMat_wide` --- `P` expressing the padded shorter
 basis in the longer one, `Q` expressing the longer in the shorter --- and the
-instantiation is at `us`, the LONGER basis, because `coord_uniq_family` supplies
-uniqueness for a BASIS and the padded family is not one.
+instantiation is at `us`, the longer basis, because `coord_uniq_family` supplies
+uniqueness for a basis and the padded family is not one.
 
 `Q` is truncated above the cut afterwards rather than chosen that way: the
 existential hands back an opaque matrix, and `foldF_pad_truncate` says the
@@ -2504,11 +2504,11 @@ theorem exists_coordPair_of_lt {K add mul zero one V vadd vzero smul : ZFSet.{u}
     by_cases h : k < vs.length
     · rw [if_pos h]; exact getD_mem_of_mem hvmV hM.group.mem_e k
     · rw [if_neg h]; exact hM.group.mem_e
-  -- P: the padded SHORTER basis, expressed in the longer one.
+  -- P: the padded shorter basis, expressed in the longer one.
   obtain ⟨P, hP, hPrep⟩ :=
     exists_coordMat_wide hM hus (w := fun k => if k < vs.length then vs.getD k vzero else vzero)
       (N := us.length) (fun j _ => hpadV j)
-  -- Q0: the LONGER basis, expressed in the shorter one, at width us.length ---
+  -- Q0: the longer basis, expressed in the shorter one, at width us.length ---
   -- which is exactly the indexing `exists_coordMat_of_isBasis` cannot reach.
   obtain ⟨Q0, hQ0, hQ0rep⟩ :=
     exists_coordMat_wide hM hvs (w := fun j => us.getD j vzero) (N := us.length)
@@ -2540,13 +2540,13 @@ theorem exists_coordPair_of_lt {K add mul zero one V vadd vzero smul : ZFSet.{u}
     · exact coord_uniq_family hM hus.left hus.right.left rfl
 
 
-/-- Two bases of DIFFERENT lengths force `one = zero`.
+/-- Two bases of different lengths force `one = zero`.
 
 The determinant half, and the point of the whole route: no decidability anywhere.
 `P * Q = I` at the longer length `m`, so `det P * det Q = one`; but `Q`'s rows
 vanish above `vs.length`, so `detN_row_zero` makes `det Q = zero` and the product
 collapses. `detN_congr_lt` is what lets the pointwise identity --- which holds
-only BELOW `m` --- be used under a determinant computed from the whole matrix. -/
+only below `m` --- be used under a determinant computed from the whole matrix. -/
 theorem one_eq_zero_of_basis_length_lt
     {K add mul zero one V vadd vzero smul : ZFSet.{u}}
     (hM : IsModule K add mul zero one V vadd vzero smul)
@@ -2574,7 +2574,7 @@ theorem one_eq_zero_of_basis_length_lt
   have h3 : detN K add mul zero one Q us.length = zero := by
     rw [hd]
     exact detN_row_zero hR vs.length d hQ (fun m => hQz vs.length m (Nat.le_refl _))
-  -- `mul_zero_of_isRing`, found by STATEMENT. `ringMul_zero` does not exist ---
+  -- `mul_zero_of_isRing`, found by statement. `ringMul_zero` does not exist ---
   -- the tree has `ringZero_mul` for the other side --- and the name has a
   -- sibling `mul_zero_of_isRingNC` over another encoding, which is the pair a
   -- name search picks wrongly between.
@@ -2582,18 +2582,18 @@ theorem one_eq_zero_of_basis_length_lt
   exact h1.symm
 
 
-/-- Two bases of a module over a field have the same length --- with NO
+/-- Two bases of a module over a field have the same length --- with no
 decidability hypothesis.
 
-`dim_unique_of_exchange` takes `DecidableVanishing K zero`, spent at ONE line of
+`dim_unique_of_exchange` takes `DecidableVanishing K zero`, spent at one line of
 `exchange_le` deciding whether a coefficient vanishes in order to pivot. The
 statement never needed it: `IsIndep` is a universally quantified implication with
 no decision in it, so what was expensive was the argument. This is the argument
 that does not pay.
 
-It is also not `dim_unique`, which is free but wants the ring FINITE
+It is also not `dim_unique`, which is free but wants the ring finite
 (`Equinumerous R (ofNat q)`, counting the module as `q ^ length`). Neither
-dominates the other; this one covers an INFINITE field, which is where `RealL`
+dominates the other; this one covers an infinite field, which is where `RealL`
 lives and where the degree row's `refined` witness sits.
 
 The `Nat` trichotomy is decidable arithmetic and costs nothing. -/
@@ -2620,7 +2620,7 @@ theorem dim_unique_of_detN {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 #print axioms dim_unique_of_detN
 
 -- Shifting a witness by `X^s` moves its top coefficient from index `d` to
--- index `d + s`, unchanged, so the SAME generators serve at every index past
+-- index `d + s`, unchanged, so the same generators serve at every index past
 -- `N`: the coefficient ideal has stopped growing, so the coefficients still
 -- span, and the polynomials witnessing them need only be shifted to have the
 -- right bound.

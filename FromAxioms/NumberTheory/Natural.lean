@@ -121,7 +121,7 @@ theorem omega_transitive {x y : ZFSet.{u}} (hy : y ∈ omega.{u}) (hx : x ∈ y)
 
 /-- Each natural is itself a transitive set, which `omega_transitive` does
 not say: that one lands a member of a natural back in `ω`, this one lands it
-back in the SAME natural. A recursion whose step reads the value at `k` from a
+back in the same natural. A recursion whose step reads the value at `k` from a
 hypothesis about `k⁺` needs exactly this. -/
 theorem ofNat_transitive : ∀ (m : Nat) {x y : ZFSet.{u}},
     y ∈ ofNat.{u} m → x ∈ y → x ∈ ofNat.{u} m
@@ -232,7 +232,7 @@ the classical existence statement. Peano arithmetic costs no choice.
 
 /-- Naturals are comparable, as a theorem rather than an assumption.
 
-Constructively, ordinals are not comparable. For the NATURALS it is free:
+Constructively, ordinals are not comparable. For the naturals it is free:
 `mem_omega_iff` names each as an `ofNat`, and `ofNat_subset_iff` turns
 containment into Lean's own `≤`, where `Nat.le_total` holds with no principle.
 
