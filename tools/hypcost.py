@@ -186,7 +186,7 @@ def compare(roots, recorded):
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Where each principle is SPENT, not merely carried.")
+        description="Where each principle is spent, not merely carried.")
     ap.add_argument("--record", action="store_true",
                     help="write the current root set as the baseline")
     ap.add_argument("--check", action="store_true",
@@ -219,8 +219,8 @@ def main():
                 for k in ks:
                     print(f"        {pr}  {k}")
         if added:
-            print(f"FAIL -- {sum(len(v) for v in added.values())} NEW root(s): a "
-                  f"principle is now SPENT where it was not before.")
+            print(f"FAIL -- {sum(len(v) for v in added.values())} new root(s): a "
+                  f"principle is now spent where it was not before.")
             for pr, ks in sorted(added.items()):
                 for k in ks:
                     print(f"    {pr}  {k}")
@@ -249,9 +249,9 @@ def main():
     # THE EXTENT, in the OUTPUT rather than a docstring, because a comment is
     # not saying (extent.py's own rule, narrowed after a match anywhere in the
     # source granted the tier to a tool that named no extent at all).
-    print("  population: the declarations of THIS TREE. A peer branch may spend")
+    print("  population: the declarations of this tree. A peer branch may spend")
     print("  a principle in a file that has not merged, so a root set is a")
-    print("  LOWER BOUND that a merge can only raise;")
+    print("  lower bound that a merge can only raise;")
     print("  and `spent in 2 places` is a claim about this checkout, not the")
     print("  library. Re-run after a batch merge before quoting one.")
     return 0

@@ -1,9 +1,9 @@
 name: Comparators
 
-# SEPARATE FROM `ci.yml`, AND ON PURPOSE. A pair imports Mathlib to state the
-# theorem it matches, so this job resolves a full Mathlib and the main build
-# must not. Running it on every push would put an hour of Mathlib between the
-# author and a one-line proof, so it runs on the schedule and on demand, and
+# SEPARATE FROM `ci.yml`. A pair imports Mathlib to state the theorem it
+# matches, so this job resolves a full Mathlib and the main build must not.
+# Running it on every push would put an hour of Mathlib between the author
+# and a one-line proof, so it runs on the schedule and on demand, and
 # `lake exe cache get` takes the oleans rather than compiling them.
 #
 # THE AUDIT IS THE JOB. `lake build` elaborating is not the claim: a Solution

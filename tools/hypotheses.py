@@ -212,7 +212,7 @@ def main():
         # appearing to be in it.
         if cal.get("shape") == "relative":
             for side, what in (
-                    ("refuted", "a theorem refuting the UNIVERSAL form"),
+                    ("refuted", "a theorem refuting the universal form"),
                     ("free_at", "an instance discharged outright")):
                 w = cal.get(side)
                 if not (isinstance(w, str) and w.split(".")[-1] in decls):
@@ -300,14 +300,14 @@ def main():
             nodes = None
         if nodes is None:
             print("NOTE: tools/lattice.json is unreadable, so it cannot be "
-                  "told which of these\n      are adjudicated there. UNREAD, "
+                  "told which of these\n      are adjudicated there. Unread, "
                   "not absent.")
         else:
             placed = [n for n, _, _ in unregistered if n.lower() in nodes]
             unregistered = [x for x in unregistered if x[0].lower() not in nodes]
             if placed:
                 print(f"NOTE: {len(placed)} closed-Prop hypotheses are absent "
-                      f"from hypotheses.json but ARE\n      lattice nodes "
+                      f"from hypotheses.json but are\n      lattice nodes "
                       f"({', '.join(placed[:5])}...), so they are adjudicated "
                       f"in the\n      other registry rather than "
                       f"unadjudicated.")
@@ -339,14 +339,14 @@ def main():
             priced = None
         if priced is None:
             print("NOTE: tools/classical.json is unreadable, so it cannot be "
-                  "told which of these\n      are priced there. UNREAD, not "
+                  "told which of these\n      are priced there. Unread, not "
                   "absent.")
         else:
             equiv = [n for n, _, _ in unregistered if n.lower() in priced]
             unregistered = [x for x in unregistered if x[0].lower() not in priced]
             if equiv:
                 print(f"NOTE: {len(equiv)} closed-Prop hypotheses are absent "
-                      f"from hypotheses.json but ARE\n      priced in "
+                      f"from hypotheses.json but are\n      priced in "
                       f"classical.json's `_equivalences` "
                       f"({', '.join(equiv[:5])}), so they carry a\n      "
                       f"principle and a reversal already.")
@@ -377,15 +377,15 @@ def main():
         priced = None
     if priced is None:
         print("NOTE: tools/routes.json is unreadable, so no hypothesis is "
-              "known to be priced.\n      That is UNREAD, not zero.")
+              "known to be priced.\n      That is unread, not zero.")
     elif priced < 2:
         print(f"NOTE: {priced} hypothesis is priced by a second route. "
-              f"Hypotheses in this\n      library are otherwise UNPRICED -- "
+              f"Hypotheses in this\n      library are otherwise unpriced -- "
               f"`DC`, the readouts and the located\n      families each rest "
               f"on exactly one proof, and an overpriced result looks\n"
               f"      exactly like a correctly priced one. Record a "
-              f"supersession in\n      tools/routes.json when the HYPOTHESIS "
-              f"SET changes; a tidier proof from\n      the same inputs is "
+              f"supersession in\n      tools/routes.json when the hypothesis "
+              f"set changes; a tidier proof from\n      the same inputs is "
               f"not one.")
     # THREE NUMBERS, because one was doing work it could not support.
     # `_uncalibrated` counts entries with an `open` direction and reads 2,
@@ -417,7 +417,7 @@ def main():
             unmeasured += 1
             verdicts[(_v or {}).get("verdict") or "UNVERDICTED"] += 1
     print(f"NOTE: of {len(reg)} hypotheses, {equiv} are two-way equivalences, "
-          f"{bound} are ONE-WAY\n      BOUNDS, and {unmeasured} have neither "
+          f"{bound} are one-way\n      bounds, and {unmeasured} have neither "
           f"direction proved. `_uncalibrated` counts\n      only entries "
           f"with an `open` direction, so it cannot see the difference "
           f"between\n      *equivalent to LLPO* and *implied by LLPO plus two "
@@ -460,7 +460,7 @@ def main():
                 disagree.append((_k, _dir))
     if disagree:
         print("NOTE: %d entr(y/ies) say `n/a` in a field their own discharge\n"
-              "      calls OPEN. `n/a` is *does not arise*; `open` is *owed*,\n"
+              "      calls `open`. `n/a` is *does not arise*; `open` is *owed*,\n"
               "      and `_uncalibrated` counts only the second:"
               % len(disagree))
         for _k, _dir in disagree:
@@ -476,7 +476,7 @@ def main():
                 print(f'  {name}  kind={k!r}')
             print('\n  `_README` declares exactly five: '
                   + ', '.join(sorted(KINDS)) + '.')
-            print('  Use one, or extend the enum in `_README` AND here --')
+            print('  Use one, or extend the enum in `_README` and here --')
             print('  the registry says kind is validated, so it must be.')
             return 1
 

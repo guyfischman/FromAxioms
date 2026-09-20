@@ -110,7 +110,7 @@ def check():
         print(f"\n  FAIL -- {len(bad)} forbidden import(s):")
         for where, why in bad:
             print(f"    {where:52s} {why}")
-        print("\n  Mathlib belongs under `comparator/` ONLY, where it states the"
+        print("\n  Mathlib belongs under `comparator/` only, where it states the"
               " theorem being")
         print("  matched. A proof step that needs it is a proof this tree has "
               "not made.")

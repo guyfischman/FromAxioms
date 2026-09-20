@@ -133,7 +133,7 @@ def _report_repeats():
     worst = max(_STRIP_COUNTS.values())
     print(f"NOTE: this run re-parsed the same text {wasted} times over "
           f"({worst} for one input).\n      That is the shape where a "
-          f"function takes a NAME and re-reads the file to\n      find it. "
+          f"function takes a name and re-reads the file to\n      find it. "
           f"`lean.stripped_lines(path)` is the cached route.",
           file=sys.stderr)
 
@@ -143,7 +143,7 @@ def repeated_strips():
 
     `strip_comments` is the choke point every reader of this library passes
     through, so counting repeats here finds a whole class of waste that no
-    single tool can see: a function that takes a NAME and re-reads the file
+    single tool can see: a function that takes a name and re-reads the file
     to find it looks cheap at its own call site and is quadratic in a loop.
 
     `signature.structures()` re-read every source file once per declaration
@@ -577,9 +577,9 @@ def split_at_assignment(src):
 def invalidate(path=None):
     """Drop the cached strip for `path`, or for everything when `path` is None.
 
-    PUBLIC ON PURPOSE. A caller that WRITES a `.lean` file and then re-reads it
-    needs this, and the previous answer was to clear a private dict -- which
-    only a reader of this source could discover.
+    PUBLIC, because a caller that WRITES a `.lean` file and then re-reads it
+    needs it; the previous answer was to clear a private dict, which only a
+    reader of this source could discover.
     """
     if path is None:
         _STRIPPED.clear()

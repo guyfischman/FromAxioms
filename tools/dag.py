@@ -1470,7 +1470,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     + (n.p && n.p.length
         ? '<p><b>Takes as hypotheses:</b> '
           + n.p.map(x=>tag(x, css('--amber'))).join('')
-          + '</p><div class=p>Named in its statement, so the THEOREM costs '
+          + '</p><div class=p>Named in its statement, so the theorem costs '
           + 'it. The axioms above are what its proof used.</div>'
         : '')
     + '<p><b>'+n.up.length+'</b> direct dependencies, <b>'+seen.size

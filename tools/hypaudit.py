@@ -1,27 +1,17 @@
 #!/usr/bin/env python3
 """Principle-shaped HYPOTHESES no registry accounts for.
 
-`#print axioms` is the whole-library sweep for AXIOMS: `.audit/Sweep*.lean`
-prints every declaration reachable from `FromAxioms.Foundations`, and
-`audit.py` refuses any non-constructive result without a `classical.json`
-entry. That side is closed.
+`#print axioms` is the whole-library sweep for AXIOMS, and `audit.py` refuses
+any non-constructive result without a `classical.json` entry. That side is
+closed.
 
 **A PRINCIPLE CARRIED IN A BINDER AUDITS EXACTLY AS CLEAN AS ONE THAT NEEDS
 NOTHING.** `EM` is a `def : Prop`, so `(hem : EM)` is a signature, not a proof
-step, and no axiom line can see it. CLAUDE.md says this in its first five lines
-and it is the reason this file exists.
+step, and no axiom line can see it, which is the reason this file exists.
 
-Three tools already measure part of it, each with a population chosen for a
-DIFFERENT question, and none of them sweeps the library:
-
-    rowbinders.py   what each PARITY ROW's cited declarations take -- row-scoped
-    hypnodes.py     NULLARY Prop-defs that are not lattice nodes -- proposal-shaped
-    binders.py      binders no proof USES -- the opposite error
-
-This asks the auditor's question: which principle-shaped hypotheses are TAKEN
-somewhere and accounted for NOWHERE. It reports the takers, so a reviewer can
-read the site rather
-than the name.
+So the question here is the auditor's: which principle-shaped hypotheses are
+TAKEN somewhere and accounted for NOWHERE. It reports the takers, so a
+reviewer can read the site rather than the name.
 
     python3 tools/hypaudit.py              # report
     python3 tools/hypaudit.py --names      # bare names, one per line
@@ -31,11 +21,8 @@ than the name.
 unaccounted names are ordinary predicates stated as hypotheses precisely so
 their price is visible, so a count here is a reading rather than a debt.
 
-**EVERY FIGURE IN THIS DOCSTRING HAS BEEN WRONG ONCE**, which is the reason
-`_freshness()` and `_population()` now print rather than leaving the reader to
-trust a comment. The counts above replaced `62 / 38 / 57`, which came from the
-case-sensitivity defect; the debt count replaced `16`, from the SAME defect
-written a second time. A number in prose beside a tool that computes it is a
+**NO FIGURE IS QUOTED HERE.** `_freshness()` and `_population()` print the
+counts instead, because a number in prose beside a tool that computes it is a
 claim nobody re-runs.
 
 **WHAT IT CANNOT SEE, and the first is the one that matters.**
@@ -93,29 +80,19 @@ def collect():
     lat = _load(LATTICE) or {}
     hyp = _load(HYPCOST) or {}
     # Registries key on BARE names; the export is fully qualified. AND THE
-    # COMPARISON IS CASE-INSENSITIVE, which the first version got wrong and
-    # which made this tool report a false gap.
-    #
-    # THE DEBT COUNT SURVIVED THE BUG, because those names are absent from
-    # the registries in ANY casing, so the headline figure stayed intact while
-    # the comparison was wrong.
+    # COMPARISON IS CASE-INSENSITIVE: a registered principle whose name has
+    # capitals reads as a debt otherwise.
     known = {n.split(".")[-1].lower() for n in (lat.get("nodes") or [])}
     known |= {k.lower() for k in hyp if not k.startswith("_")}
     # `_unplaced` IS A REGISTRY. A principle adjudicated there as
     # unplaceable is accounted for, and reporting it as unregistered asks a
-    # reader to adjudicate what is already adjudicated.
-    #
-    # A backlog with an irreducible floor stops being read: the stop hook prints
-    # `THIS IS THE PRIORITY` at a number that no correct action can move, and
-    # the next session learns to discount it.
+    # reader to adjudicate what is already adjudicated. A backlog with an
+    # irreducible floor stops being read at all.
     cls = _load(ROOT / "tools" / "classical.json") or {}
     known |= {e.get("principle", "").split(".")[-1].lower()
               for e in (cls.get("_unplaced") or []) if e.get("principle")}
-    # AND `hypotheses.json`, WHICH THIS COUNTED AS NO REGISTRY AT ALL --- the
-    # registry `ROADMAP-ACCOUNTING`'s criterion 1 is defined against.
-    #
-    # Two tools, one question, opposite answers, and the report that carries
-    # the priority is this one.
+    # AND `hypotheses.json` IS A REGISTRY TOO, which this counted as none at
+    # all: two tools, one question, opposite answers.
     hyps = _load(ROOT / "tools" / "hypotheses.json") or {}
     known |= {k.split(".")[-1].lower() for k in hyps if not k.startswith("_")}
     known.discard("")
@@ -147,7 +124,7 @@ def collect():
 
     # THIRD TIER, AND IT IS WEAKER EVIDENCE THAN THE OTHER TWO. A landmark row
     # can price a principle in its `principle` field or merely mention it in
-    # prose, and this cannot tell those apart: it is a SUBSTRING test over the
+    # prose, and this cannot tell those apart: it is a substring test over the
     # whole registry. It is reported SEPARATELY rather than folded into
     # `accounted` for that reason -- collapsing them would let a name that
     # appears only inside someone's note read as adjudicated.
@@ -166,15 +143,9 @@ def collect():
             mentioned[k] = v
         else:
             unacc[k] = v
-    # THE SAME CASE BUG AS ABOVE, AND IT SURVIVED THE FIX BECAUSE IT IS WRITTEN
-    # TWICE. `known` is lowercased; this comparison was not, so a REGISTERED
-    # principle whose name has capitals was reported as a debt.
-    #
-    # AND THE DOCSTRING ABOVE ASSERTED THE OPPOSITE --- *the debt count survived
-    # the bug at 12, because those names are absent from the registries in ANY
-    # casing*. That was written when the classification was fixed here and the
-    # debt line was not read. A claim about which numbers a defect spared is
-    # itself a measurement, and that one was never taken.
+    # CASED THE SAME WAY AS ABOVE, and it is written twice: `known` is
+    # lowercased, so a comparison that is not reports a registered principle
+    # as a debt.
     debt = {k: v for k, v in takers.items()
             if not concluders.get(k)
             and k.split(".")[-1].lower() not in known
@@ -188,9 +159,6 @@ def _freshness():
     An audit tool whose output is a claim about coverage must say when its
     export no longer matches the sources: a stale denominator makes the
     coverage read better than it is.
-
-    A count that cannot announce its own staleness is validation that cannot
-    fail.
     """
     try:
         sys.path.insert(0, str(ROOT / "tools"))
@@ -201,10 +169,10 @@ def _freshness():
     if not stale:
         return
     print("=" * 74)
-    print(f"  ANSWERED FROM AN EXPORT THAT PREDATES THE SOURCES --"
+    print(f"  Answered from an export that predates the sources --"
           f" {len(stale)} module(s)")
     print("  have changed since it was written. Every count below is about the")
-    print("  tree AS IT WAS. A hypothesis landed since is missing from the")
+    print("  tree as it was. A hypothesis landed since is missing from the")
     print("  population, and one removed since is still counted.")
     print("  Run `python3 tools/regen.py`, then re-run this.")
     print("=" * 74)
@@ -217,7 +185,7 @@ def _population():
     which population the absence is over. These takers come from this tree's
     elaborated export, so every count below is a floor.
     """
-    print("  ONE BRANCH, AND EVERY COUNT HERE IS A LOWER BOUND. The takers are")
+    print("  One branch, and every count here is a lower bound. The takers are")
     print("  read from this tree's export, so a peer's declaration taking an")
     print("  unregistered principle is missing from these lists with no mark.")
     print("  The numbers are a claim about this branch and not about the")
@@ -239,7 +207,7 @@ def main() -> int:
     if got is None:
         print(f"  no elaborated export at {EXPORT.relative_to(ROOT)} --")
         print("  run `python3 tools/regen.py` first. This tool reads the")
-        print("  ELABORATED binders, so a source scan cannot stand in for it.")
+        print("  elaborated binders, so a source scan cannot stand in for it.")
         return 1
     unacc, acc, takers, mentioned, debt = got
 
@@ -276,42 +244,42 @@ def main() -> int:
     _freshness()
     _population()
     print(f"  nullary Prop-defs taken as a binder:   {len(takers)}")
-    print(f"    REGISTERED (lattice, hypcost, hypotheses): {len(acc)}")
-    print(f"    only MENTIONED in landmark-parity:    {len(mentioned)}")
+    print(f"    registered (lattice, hypcost, hypotheses): {len(acc)}")
+    print(f"    only mentioned in landmark-parity:    {len(mentioned)}")
     print(f"    in no registry at all:                {len(unacc)}")
     print()
-    print("  The middle tier is a SUBSTRING test over the parity registry, so")
+    print("  The middle tier is a substring test over the parity registry, so")
     print("  it cannot separate a priced `principle` field from a passing")
-    print("  mention in someone's note. It is listed apart from REGISTERED")
+    print("  mention in someone's note. It is listed apart from registered")
     print("  because that difference is the whole question.")
     print()
     for n, sites in sorted(unacc.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         print(f"  {len(sites):5d}  {n}")
     print()
-    print("  `--taker NAME` lists the declarations taking one, so the SITE can")
+    print("  `--taker NAME` lists the declarations taking one, so the site can")
     print("  be read rather than the name guessed at.")
     print()
-    print("  THIS IS A CANDIDATE LIST, NOT A VERDICT. A nullary Prop-def stated")
+    print("  This is a candidate list, not a verdict. A nullary Prop-def stated")
     print("  as a hypothesis is usually the discipline working -- the price is")
     print("  in the signature where a reader can see it. What the list is for is")
-    print("  that NOBODY HAS RULED on these one way or the other.")
+    print("  that nobody has ruled on these one way or the other.")
     print()
     print("-" * 74)
-    print(f"  ASSUMED AND NEVER CONCLUDED, in no registry: {len(debt)}")
+    print(f"  Assumed and never concluded, in no registry: {len(debt)}")
     print("-" * 74)
     for n, sites in sorted(debt.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         print(f"  {len(sites):5d} takers  {n}")
     print()
-    print("  These are the ones NOTHING in the library concludes -- not a")
+    print("  These are the ones nothing in the library concludes -- not a")
     print("  reversal, not a construction, nothing -- and that no registry")
     print("  prices. A theorem taking one is conditional on something nobody")
     print("  has established or declared a principle.")
     print()
-    print("  CONCLUDED IS NOT DISCHARGED. `EM` has 35 concluders and all are")
-    print("  reversals deriving it FROM something. So a name being ABSENT from")
+    print("  Concluded is not discharged. `EM` has 35 concluders and all are")
+    print("  reversals deriving it from something. So a name being absent from")
     print("  this list is weaker evidence than its being on it.")
     print()
-    print("  AND IT CANNOT SEE PARAMETERISED PRINCIPLES. `DCOn (baireStateOn X)`")
+    print("  And it cannot see parameterised principles. `DCOn (baireStateOn X)`")
     print("  is `ZFSet -> Prop`, so it is absent from this population entirely;")
     print("  An empty report here is not a clean bill for the tree.")
     return 0
