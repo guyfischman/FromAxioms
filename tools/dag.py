@@ -238,6 +238,11 @@ def _pairs():
                        f"#L{s + 1}-L{e}"}
         for row in re.findall(r'^      - "(.+)"$', blk, re.M):
             out[row] = rec
+            # A form of a landmark (`X, exactly`) is drawn as X, so a pair
+            # whose row is the form is drawn beside X.
+            head, _, form = row.rpartition(",")
+            if form.strip() in ("constructively", "exactly"):
+                out.setdefault(head, rec)
     return out
 
 
@@ -637,9 +642,12 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
     """Everything the page should show and would silently not."""
     out = []
     drawn = {what for what, _yr in land.values()}
-    # A pair attaches to its landmark by the row label, exactly.
+    # A pair attaches to its landmark by the row label, exactly; a row that is
+    # a form of a landmark (`X, exactly`) attaches to X.
     for row, rec in sorted(pairs.items()):
-        if row not in drawn:
+        head, _, form = row.rpartition(",")
+        as_form = form.strip() in ("constructively", "exactly") and head in drawn
+        if row not in drawn and not as_form:
             out.append(f"pair `{rec['id']}` matches the row `{row}`, which no "
                        f"drawn landmark carries")
         if rec["ml"] and not rec["mlu"]:
