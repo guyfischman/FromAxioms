@@ -15,13 +15,16 @@
   "binarydcon",
   "boolreadout1",
   "choice",
+  "conditionallycomplete",
   "dc",
   "dcomega",
   "dcon",
   "decidablerealllt",
+  "dyadicapprox",
   "dyadicapprox2",
   "em",
   "exactivt01",
+  "exactivt01top",
   "familylocated",
   "fanbool",
   "fanstable",
@@ -30,6 +33,7 @@
   "haszerolocators",
   "isnoetherian",
   "llpo",
+  "locatordc",
   "lpo",
   "maxattainmenttop",
   "maxattainmenttoplocated",
@@ -88,6 +92,16 @@
    "to": "exactivt01"
   },
   {
+   "by": "Metamath.exactIVT01_of_top",
+   "from": "exactivt01top",
+   "to": "exactivt01"
+  },
+  {
+   "by": "Analysis.exactIVT01Top_of_em",
+   "from": "em",
+   "to": "exactivt01top"
+  },
+  {
    "by": "Constructive.familyLocated_of_em",
    "from": [
     "em"
@@ -112,6 +126,13 @@
   {
    "by": "Constructive.llpo_of_signDisjunction",
    "from": "signdisjunction",
+   "to": "llpo"
+  },
+  {
+   "by": "Constructive.llpo_of_ternary_llpo",
+   "from": [
+    "ternaryllpo"
+   ],
    "to": "llpo"
   },
   {
@@ -158,6 +179,19 @@
    "by": "Constructive.mp_of_lpo",
    "from": "lpo",
    "to": "mp"
+  },
+  {
+   "by": "Algebra.neApartZero_of_mp_of_locators",
+   "from": [
+    "mp",
+    "haszerolocators"
+   ],
+   "to": "neapartzero"
+  },
+  {
+   "by": "Metamath.signDisjunction_of_exact_ivt",
+   "from": "exactivt01",
+   "to": "signdisjunction"
   },
   {
    "by": "Metamath.signDisjunction_of_llpo_binaryDC",
@@ -212,6 +246,11 @@
     "ternaryzerodecidable"
    ],
    "to": "wlpo"
+  },
+  {
+   "by": "Analysis.isConditionallyComplete_realL_of_em",
+   "from": "em",
+   "to": "conditionallycomplete"
   }
  ]
 }

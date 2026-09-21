@@ -86,8 +86,22 @@ theorem mp_of_neApartZero (h : NeApartZero.{u}) : MP := by
   refine exists_true_of_ternary_apart (h _ (ternaryReal_mem α) (fun he => ?_))
   exact hall ((ternary_eq_zero_iff α).mp ((ternaryReal_eq_zero_iff α).mp he))
 
+/-- The bracket closes from above, and the ceiling is locators rather than
+choice. `MP` finds the firing bit; the locators supply the sequence to
+look in. Nothing else is consumed.
+
+The choice version below uses its hypothesis in exactly one place, to
+manufacture a locator, so this is the form that assumes strictly less. -/
+theorem neApartZero_of_mp_of_locators (hmp : MP) (hloc : HasZeroLocators.{u}) :
+    NeApartZero.{u} := by
+  intro x hx hne
+  obtain ⟨L, U, rfl, hL⟩ := (mem_RealL_iff x).mp hx
+  obtain ⟨β, hβ⟩ := hloc L U hL
+  exact apart_of_mp_of_ne_zero hmp hL hβ hne
+
 end Algebra
 #print axioms Algebra.mp_of_neApartZero
+#print axioms Algebra.neApartZero_of_mp_of_locators
 namespace ZFSet
-export Algebra (IsPosCone NeApartZero mp_of_neApartZero)
+export Algebra (IsPosCone NeApartZero mp_of_neApartZero neApartZero_of_mp_of_locators)
 end ZFSet

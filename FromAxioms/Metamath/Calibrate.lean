@@ -44,7 +44,7 @@ set_option autoImplicit false
 
 universe u
 
-open Analysis Constructive NumberTheory SetTheory
+open Analysis Constructive NumberTheory SetTheory Topology
 
 namespace Analysis
 
@@ -61,6 +61,267 @@ def ExactIVT01 : Prop :=
     realLLt (G (realLOf ratZero.{u})) realLZero.{u} →
     realLLt realLZero.{u} (G (realLOf ratOne.{u})) →
     ∃ c, And (c ∈ realLIcc ratZero.{u} ratOne.{u}) (G c = realLZero.{u})
+
+/-- The read: an attainment equation for the clamped gadget decides the
+sign of the unclamped real, by cotransitivity at `4/9 < 5/9` and the two
+exclusions. -/
+theorem signDisjunction_read {z c : ZFSet.{u}} (hz : z ∈ RealL.{u})
+    (hcR : c ∈ RealL.{u})
+    (heq : mvGadget (realLClamp z) c = realLMul (realLOf (ratInv
+      (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)) :
+    Or (realLLe z realLZero.{u}) (realLLe realLZero.{u} z) := by
+  have hLm := realLClamp_mem hz
+  obtain ⟨hblo, hbhi⟩ := realLClamp_bracket (z := z)
+  have hinv9pos := ratInv_pos ratNine_mem ratZero_lt_nine.{u}
+  have hinv9Q := ratInv_mem_Rat ratNine_mem ratNine_ne_zero.{u}
+  have h45 : ratLt ratFour.{u} ratFive.{u} := by
+    have hstep := (ratAdd_lt_add_right_iff ratFour_mem ratZero_mem_Rat
+      ratOne_mem_Rat).mpr ratZero_lt_one
+    rwa [ratZero_add ratFour_mem] at hstep
+  have hpq : ratLt (ratMul ratFour.{u} (ratInv ratNine.{u}))
+      (ratMul ratFive.{u} (ratInv ratNine.{u})) :=
+    ratMul_lt_mul_right ratFour_mem ratFive_mem hinv9Q
+      (fun he => hinv9pos.right he.symm) hinv9pos.left h45
+  have hpqR : realLLt
+      (realLOf (ratMul ratFour.{u} (ratInv ratNine.{u})))
+      (realLOf (ratMul ratFive.{u} (ratInv ratNine.{u}))) :=
+    (realLOf_lt_realLOf (ratMul_mem_Rat ratFour_mem hinv9Q)
+      (ratMul_mem_Rat ratFive_mem hinv9Q)).mpr hpq
+  rcases realLLt_cotrans (realLOf_mem (ratMul_mem_Rat ratFour_mem hinv9Q))
+    (realLOf_mem (ratMul_mem_Rat ratFive_mem hinv9Q)) hcR hpqR with h4c | hc5
+  · exact Or.inl ((realLClamp_nonpos_iff hz).mp
+      (fun hLpos => mvGadget_exclusion_pos hLm hcR hLpos hbhi h4c heq))
+  · exact Or.inr ((realLClamp_nonneg_iff hz).mp
+      (fun hLneg => mvGadget_exclusion_neg hLm hcR hLneg hblo hc5 heq))
+
+/-- The clamped mean sits strictly inside `(-1, 1)`. -/
+theorem clamp_third_strict {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
+    And (realLLt (realLOf (ratNeg ratOne.{u}))
+      (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)))
+      (realLLt (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))
+        (realLOf ratOne.{u})) := by
+  have hLm := realLClamp_mem hz
+  obtain ⟨hblo, hbhi⟩ := realLClamp_bracket (z := z)
+  have h3Q := ratAdd_mem_Rat ratOne_mem_Rat
+    (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)
+  have h3R := realLOf_mem h3Q
+  have h2Q := ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat
+  have hinv3Q := ratInv_three_mem_Rat.{u}
+  have hinv3R := realLOf_mem hinv3Q
+  have hu := realLMul_mem hinv3R hLm
+  have hinv3_pos : realLLt realLZero.{u} (realLOf (ratInv (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u})))) :=
+    (realLOf_lt_realLOf ratZero_mem_Rat hinv3Q).mpr
+      (ratInv_pos h3Q ratZero_lt_three.{u})
+  -- `1/3 < 1`, and its negation flipped
+  have h13 : ratLt ratOne.{u} (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u})) := by
+    have h12 : ratLt ratOne.{u} (ratAdd ratOne.{u} ratOne.{u}) := by
+      have hstep := (ratAdd_lt_add_left_iff ratOne_mem_Rat ratZero_mem_Rat
+        ratOne_mem_Rat).mpr ratZero_lt_one
+      rwa [ratAdd_zero ratOne_mem_Rat] at hstep
+    have h23 := (ratAdd_lt_add_left_iff ratOne_mem_Rat ratOne_mem_Rat
+      h2Q).mpr h12
+    exact ratLt_trans ratOne_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat
+      ratOne_mem_Rat) h3Q h12 h23
+  have hinv3_lt_1 : ratLt (ratInv (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u}))) ratOne.{u} := by
+    have hstep := ratMul_lt_mul_right ratOne_mem_Rat h3Q hinv3Q
+      (fun he => (ratInv_pos h3Q ratZero_lt_three.{u}).right he.symm)
+      (ratInv_pos h3Q ratZero_lt_three.{u}).left h13
+    rwa [ratOne_mul hinv3Q, ratMul_inv h3Q ratThree_ne_zero.{u}] at hstep
+  -- `u ≤ 1/3` and `-1/3 ≤ u`, from the clamp bracket
+  have hu_le : realLLe (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))
+      (realLOf (ratInv (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})))) := by
+    have hstep := realLMul_le_right hLm realLOne_mem hinv3R hbhi
+      (realLLe_of_lt realLZero_mem hinv3R hinv3_pos)
+    rw [realLMul_comm hLm hinv3R, realLMul_comm realLOne_mem hinv3R,
+      realLMul_one hinv3R] at hstep
+    exact hstep
+  have hng_le_u : realLLe (realLOf (ratNeg (ratInv (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u})))))
+      (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)) := by
+    have hstep := realLMul_le_right (realLNeg_mem realLOne_mem) hLm
+      hinv3R hblo (realLLe_of_lt realLZero_mem hinv3R hinv3_pos)
+    rw [realLMul_comm (realLNeg_mem realLOne_mem) hinv3R,
+      realLMul_comm hLm hinv3R,
+      realLMul_neg hinv3R realLOne_mem, realLMul_one hinv3R,
+      realLOf_neg hinv3Q] at hstep
+    exact hstep
+  -- strict endpoint comparisons: `-1 < u < 1`
+  have hu_lt_1 : realLLt (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+      (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))
+      (realLOf ratOne.{u}) :=
+    realLLt_of_le_of_lt hu hinv3R (realLOf_mem ratOne_mem_Rat) hu_le
+      ((realLOf_lt_realLOf hinv3Q ratOne_mem_Rat).mpr hinv3_lt_1)
+  have hn1_lt_u : realLLt (realLOf (ratNeg ratOne.{u}))
+      (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)) := by
+    refine realLLt_of_lt_of_le (realLOf_mem (ratNeg_mem_Rat ratOne_mem_Rat))
+      (realLOf_mem (ratNeg_mem_Rat hinv3Q)) hu ?_ hng_le_u
+    exact (realLOf_lt_realLOf (ratNeg_mem_Rat ratOne_mem_Rat)
+      (ratNeg_mem_Rat hinv3Q)).mpr
+      ((ratNeg_lt_neg_iff ratOne_mem_Rat hinv3Q).mpr hinv3_lt_1)
+  exact ⟨hn1_lt_u, hu_lt_1⟩
+
+/-- Exact zero-crossing yields the sign disjunction. The gadget shifted
+by its own mean crosses zero -- strictly negative at `0`, strictly positive
+at `1` -- and an exact root is the attainment equation. This closes
+`IVT.lean`'s calibration: the approximate theorem is free, the exact one
+costs `LLPO`. -/
+theorem signDisjunction_of_exact_ivt
+    (hivt : ExactIVT01.{u}) :
+    SignDisjunction.{u} := by
+  intro z hz
+  have hLm := realLClamp_mem hz
+  obtain ⟨hblo, hbhi⟩ := realLClamp_bracket (z := z)
+  obtain ⟨hn1_lt_u, hu_lt_1⟩ := clamp_third_strict.{u} hz
+  have hinv3R := realLOf_mem ratInv_three_mem_Rat.{u}
+  have hu := realLMul_mem hinv3R hLm
+  obtain ⟨c, hcIcc, hroot⟩ := hivt
+    (fun t => realLAdd (mvGadget (realLClamp z) t)
+      (realLNeg (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))))
+    (fun x hx => realLAdd_mem
+      (mvGadget_mem hLm ((mem_realLIcc_iff _ _ x).mp hx).left)
+      (realLNeg_mem hu))
+    (uniformlyContinuousOn_add
+      (fun x hx => mvGadget_mem hLm ((mem_realLIcc_iff _ _ x).mp hx).left)
+      (fun _ _ => realLNeg_mem hu)
+      (mvGadget_uc hLm) (uniformlyContinuousOn_const (realLNeg_mem hu)))
+    (by
+      show realLLt (realLAdd (mvGadget (realLClamp z) (realLOf ratZero.{u}))
+        (realLNeg (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+          (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)))) realLZero.{u}
+      rw [mvGadget_at_zero hLm hblo]
+      have hstep := realLLt_add_right
+        (realLOf_mem (ratNeg_mem_Rat ratOne_mem_Rat)) hu
+        (realLNeg_mem hu) hn1_lt_u
+      rwa [realLAdd_neg hu] at hstep)
+    (by
+      show realLLt realLZero.{u}
+        (realLAdd (mvGadget (realLClamp z) (realLOf ratOne.{u}))
+          (realLNeg (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+            (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))))
+      rw [mvGadget_at_one hLm hbhi]
+      have hstep := realLLt_add_right hu (realLOf_mem ratOne_mem_Rat)
+        (realLNeg_mem hu) hu_lt_1
+      rwa [realLAdd_neg hu] at hstep)
+  have hcR := ((mem_realLIcc_iff _ _ c).mp hcIcc).left
+  have heq : mvGadget (realLClamp z) c
+      = realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+        (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z) := by
+    have hstep : realLAdd (realLAdd (mvGadget (realLClamp z) c)
+        (realLNeg (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+          (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))))
+        (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+          (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z))
+        = realLAdd realLZero.{u}
+          (realLMul (realLOf (ratInv (ratAdd ratOne.{u}
+            (ratAdd ratOne.{u} ratOne.{u})))) (realLClamp z)) :=
+      congrArg (fun w => realLAdd w (realLMul (realLOf (ratInv
+        (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u}))))
+        (realLClamp z))) hroot
+    rw [realLSub_add_cancel (mvGadget_mem hLm hcR) hu,
+      realLAdd_comm realLZero_mem hu, realLAdd_zero hu] at hstep
+    exact hstep
+  exact signDisjunction_read hz hcR heq
+
+
+/-- The located opens are the order topology.
+
+The clause that makes `MaxAttainmentTop` a statement about this tree rather
+than about an abstract carrier: `realLOpens` was defined by rational brackets,
+`IsOrderTopology` by rays and order intervals, and they agree.
+
+The rational endpoints do the work twice. `realLOpens`'s docstring gives the
+first reason --- a basis whose endpoints are decidable keeps the opens from
+inheriting the reals' undecidable order. The second shows up in the last
+clause, which asks for a closed order interval inside `U` while the bracket
+supplies an open one. Tightening the bracket once on each side closes the gap,
+and `exists_rat_between` is exactly that tightening --- it is `realLLt`'s own
+definition (a shared rational) read back as density, so no decision is made
+about either endpoint. -/
+theorem isOrderTopology_realLOpens :
+    IsOrderTopology realLOpens.{u} RealL.{u} realLLtRel.{u} := by
+  refine ⟨isTopology_realLOpens, ?_, ?_, ?_⟩
+  · -- the ray above `a` is open
+    intro a ha
+    refine (mem_realLOpens_iff _).mpr ⟨fun w hw => ((mem_sep_iff _ _ _).mp hw).left,
+      fun x hx => ?_⟩
+    obtain ⟨hxR, hax⟩ := (mem_sep_iff _ _ _).mp hx
+    have hlt : realLLt a x := (opair_mem_realLLtRel_iff ha hxR).mp hax
+    obtain ⟨p, hpQ, hap, hpx⟩ := exists_rat_between ha hxR hlt
+    obtain ⟨_, r, _, hrQ, _, hxr, _⟩ :=
+      exists_rat_bracket hxR ratOne_mem_Rat ratZero_lt_one
+    refine ⟨p, hpQ, r, hrQ, hpx, hxr, fun w hw => ?_⟩
+    obtain ⟨hwR, hpw, _⟩ := (mem_realLIoo_iff p r w).mp hw
+    exact (mem_sep_iff _ _ _).mpr ⟨hwR,
+      (opair_mem_realLLtRel_iff ha hwR).mpr
+        (realLLt_trans ha (realLOf_mem hpQ) hwR hap hpw)⟩
+  · -- the ray below `b` is open
+    intro b hb
+    refine (mem_realLOpens_iff _).mpr ⟨fun w hw => ((mem_sep_iff _ _ _).mp hw).left,
+      fun x hx => ?_⟩
+    obtain ⟨hxR, hxb⟩ := (mem_sep_iff _ _ _).mp hx
+    have hlt : realLLt x b := (opair_mem_realLLtRel_iff hxR hb).mp hxb
+    obtain ⟨q, hqQ, hxq, hqb⟩ := exists_rat_between hxR hb hlt
+    obtain ⟨l, _, hlQ, _, hlx, _, _⟩ :=
+      exists_rat_bracket hxR ratOne_mem_Rat ratZero_lt_one
+    refine ⟨l, hlQ, q, hqQ, hlx, hxq, fun w hw => ?_⟩
+    obtain ⟨hwR, _, hwq⟩ := (mem_realLIoo_iff l q w).mp hw
+    exact (mem_sep_iff _ _ _).mpr ⟨hwR,
+      (opair_mem_realLLtRel_iff hwR hb).mpr
+        (realLLt_trans hwR (realLOf_mem hqQ) hb hwq hqb)⟩
+  · -- every open contains an order interval around each of its points
+    intro U hU x hx
+    obtain ⟨p, hpQ, q, hqQ, hpx, hxq, hsub⟩ := ((mem_realLOpens_iff U).mp hU).right x hx
+    have hxR : x ∈ RealL.{u} := ((mem_realLOpens_iff U).mp hU).left x hx
+    -- Tighten once on each side. The bracket gives an open interval inside `U`;
+    -- the clause wants a closed one, so the endpoints have to move strictly in.
+    obtain ⟨a, haQ, hpa, hax⟩ := exists_rat_between (realLOf_mem hpQ) hxR hpx
+    obtain ⟨b, hbQ, hxb, hbq⟩ := exists_rat_between hxR (realLOf_mem hqQ) hxq
+    refine ⟨realLOf a, realLOf b, Or.inl ⟨realLOf_mem haQ,
+        (opair_mem_realLLtRel_iff (realLOf_mem haQ) hxR).mpr hax⟩,
+      Or.inl ⟨realLOf_mem hbQ,
+        (opair_mem_realLLtRel_iff hxR (realLOf_mem hbQ)).mpr hxb⟩,
+      fun w hw => ?_⟩
+    obtain ⟨hwR, hlo, hhi⟩ := (mem_sep_iff _ _ _).mp hw
+    refine hsub w ((mem_realLIoo_iff p q w).mpr ⟨hwR, ?_, ?_⟩)
+    · rcases hlo with haw | haw
+      · exact realLLt_trans (realLOf_mem hpQ) (realLOf_mem haQ) hwR hpa
+          ((opair_mem_realLLtRel_iff (realLOf_mem haQ) hwR).mp haw)
+      · exact haw ▸ hpa
+    · rcases hhi with hwb | hwb
+      · exact realLLt_trans hwR (realLOf_mem hbQ) (realLOf_mem hqQ)
+          ((opair_mem_realLLtRel_iff hwR (realLOf_mem hbQ)).mp hwb) hbq
+      · exact hwb ▸ hbq
+
+/-- Exact IVT on the unit interval, stated topologically. The same
+predicate as `ExactIVT01` with its continuity hypothesis given as membership in
+the located order topology rather than as a modulus. -/
+def ExactIVT01Top : Prop :=
+  ∀ G : ZFSet.{u} → ZFSet.{u},
+    (∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u}) →
+    IsContinuous (graphOn (realLIcc ratZero.{u} ratOne.{u}) RealL.{u} G)
+      (realLIcc ratZero.{u} ratOne.{u}) RealL.{u}
+      (subspaceOpens realLOpens.{u} (realLIcc ratZero.{u} ratOne.{u}))
+      realLOpens.{u} →
+    realLLt (G (realLOf ratZero.{u})) realLZero.{u} →
+    realLLt realLZero.{u} (G (realLOf ratOne.{u})) →
+    ∃ c, And (c ∈ realLIcc ratZero.{u} ratOne.{u}) (G c = realLZero.{u})
+
+/-- The topological form is the stronger statement. Its hypothesis is the
+weaker one, because the bridge manufactures topological continuity from a
+modulus and not the other way round. -/
+theorem exactIVT01_of_top (h : ExactIVT01Top.{u}) : ExactIVT01.{u} :=
+  fun G hmaps hUC hlo hhi =>
+    h G hmaps (isContinuous_of_uniformlyContinuousOn ratZero_mem_Rat
+      ratOne_mem_Rat ratZero_lt_one hmaps hUC) hlo hhi
 
 /-- `LLPO` with binary dependent choice recovers the sign disjunction --
 the converse of `llpo_of_signDisjunction`, and the choice layer is what it
@@ -375,6 +636,11 @@ theorem exactIVT_of_llpo_binaryDC_binaryDCOn (hllpo : LLPO) (hbdc : BinaryDC)
   attainment_of_signDisjunction_binaryDCOn
     (signDisjunction_of_llpo_binaryDC hllpo hbdc) hbdcon
 
+#print axioms Metamath.signDisjunction_read
+#print axioms Metamath.clamp_third_strict
+#print axioms Metamath.signDisjunction_of_exact_ivt
+#print axioms Metamath.exactIVT01_of_top
+#print axioms Metamath.isOrderTopology_realLOpens
 #print axioms Metamath.signDisjunction_of_llpo_binaryDC
 #print axioms Metamath.attainment_of_signDisjunction_binaryDCOn
 #print axioms Metamath.exactIVT_of_llpo_binaryDC_binaryDCOn
@@ -383,6 +649,7 @@ theorem exactIVT_of_llpo_binaryDC_binaryDCOn (hllpo : LLPO) (hbdc : BinaryDC)
 #print axioms Metamath.straddleSignP
 end Metamath
 #print axioms Metamath.ExactIVT01
+#print axioms Metamath.ExactIVT01Top
 namespace ZFSet
-export Metamath (ExactIVT01 attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le exactIVT_of_llpo_binaryDC_binaryDCOn signDisjunction_of_llpo_binaryDC straddleSignP)
+export Metamath (ExactIVT01 ExactIVT01Top attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le clamp_third_strict exactIVT01_of_top exactIVT_of_llpo_binaryDC_binaryDCOn isOrderTopology_realLOpens signDisjunction_of_exact_ivt signDisjunction_of_llpo_binaryDC signDisjunction_read straddleSignP)
 end ZFSet

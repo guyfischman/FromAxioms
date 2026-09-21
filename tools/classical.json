@@ -93,6 +93,14 @@
    "note": "deciding whether a walk-built real *is* zero. One quantifier weaker than membership in its cut, and correspondingly one step down the lattice from LPO"
   },
   {
+   "statement": "Constructive.TernaryLLPO",
+   "principle": "llpo",
+   "landmark": "the principles of omniscience",
+   "reversal": "Constructive.llpo_of_ternary_llpo",
+   "forward": "Constructive.ternary_llpo_of_llpo",
+   "note": "of two walk-built reals that cannot both be positive, one is at most zero. The three-way form of LLPO over the ternary digits"
+  },
+  {
    "statement": "SetTheory.SubsetFinite",
    "principle": "em",
    "reversal": "SetTheory.em_of_subset_finite",

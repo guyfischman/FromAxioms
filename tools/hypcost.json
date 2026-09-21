@@ -10,13 +10,23 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
+ "DyadicApprox": [
+  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+ ],
  "EM": [
+  "FromAxioms/Analysis/Extreme.lean::exists_rat_between_two",
   "FromAxioms/Constructive/Reverse.lean::dne_of_em",
   "FromAxioms/Constructive/Reverse.lean::familyLocated_of_em",
   "FromAxioms/Constructive/Reverse.lean::wem_of_em",
   "FromAxioms/SetTheory/Cardinal.lean::subsetFinite_of_em",
   "FromAxioms/Topology/Topology.lean::exists_mem_of_lt_sup",
   "FromAxioms/Topology/Topology.lean::isLocatedSubset_of_em"
+ ],
+ "ExactIVT01": [
+  "FromAxioms/Metamath/Calibrate.lean::signDisjunction_of_exact_ivt"
+ ],
+ "ExactIVT01Top": [
+  "FromAxioms/Metamath/Calibrate.lean::exactIVT01_of_top"
  ],
  "FANstable": [
   "FromAxioms/Constructive/Omniscience.lean::fanΔ_of_fanStable"

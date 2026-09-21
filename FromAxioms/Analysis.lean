@@ -24,3 +24,4 @@ import FromAxioms.Analysis.DirichletChar
 import FromAxioms.Analysis.HahnBanach
 import FromAxioms.Analysis.Limit
 import FromAxioms.Analysis.Measure
+import FromAxioms.Analysis.Extreme

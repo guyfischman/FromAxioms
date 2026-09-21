@@ -300,3 +300,26 @@ pairs:
       challenge's witness depending on, and `ours` is the tower
       theorem the Solution rests on. `Comparator/Audit.lean` is the
       instrument and re-derives both.
+
+  - id: ivt-exact
+    rows:
+      - "the intermediate value theorem, exactly"
+    mathlib: intermediate_value_Icc
+    mathlib_source: Mathlib/Topology/Order/IntermediateValue.lean:527
+    ours: Metamath.ExactIVT01
+    status: complete
+    note: >
+      Ours takes `SignDisjunction` as an explicit hypothesis where Mathlib needs
+      none, because Mathlib's reals are classical. `llpo_of_exact_ivt` measures
+      that difference exactly, so the hypothesis is a recorded price rather than
+      a weakness. The tower's
+      theorem is `Analysis.exactIVT01Top_of_em`, whose `EM` binder the
+      axiom print CANNOT see --- `EM` is a `def : Prop` passed as an
+      argument --- and the Solution supplies it as
+      `fun p => Classical.em p`. So the print reads
+      `[propext, Classical.choice, Quot.sound]` and here that line is the
+      mathematics, not the encoding, which separates this pair
+      from `det-mul` and `det-leibniz`, where the identical line was
+      `TypeTransfer.encode_injective` and mathlib's own proof carried it
+      too. `Metamath.llpo_of_exact_ivt` is the tree's proof that the
+      price cannot be avoided.

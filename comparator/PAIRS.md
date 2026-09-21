@@ -83,6 +83,17 @@ a pair is narrower than what it matches.
 - Mathlib's own proof applies 1 theorem(s), among them
     - `Nat.Prime.irrational_sqrt`
 
+## `Comparator.IvtExact.solution`
+
+- this pair costs: `[propext, Classical.choice, Quot.sound]`
+- rests on 73 tower proposition(s), costing `[Quot.sound, propext]`
+    - `Metamath.exactIVT01_of_top`
+    - `Analysis.exactIVT01Top_of_em`
+    - `NumberTheory.ratZero_mem_Rat`
+    - `NumberTheory.ratOne_mem_Rat`
+- Mathlib's own proof applies 1 theorem(s), among them
+    - `intermediate_value_Icc`
+
 ## `Comparator.ModuleQuotient.solution`
 
 - this pair costs: `[propext]`
