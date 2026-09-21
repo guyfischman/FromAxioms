@@ -314,7 +314,7 @@ pairs:
       that difference exactly, so the hypothesis is a recorded price rather than
       a weakness. The tower's
       theorem is `Analysis.exactIVT01Top_of_em`, whose `EM` binder the
-      axiom print CANNOT see --- `EM` is a `def : Prop` passed as an
+      axiom print cannot see --- `EM` is a `def : Prop` passed as an
       argument --- and the Solution supplies it as
       `fun p => Classical.em p`. So the print reads
       `[propext, Classical.choice, Quot.sound]` and here that line is the
