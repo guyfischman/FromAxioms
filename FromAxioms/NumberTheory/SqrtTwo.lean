@@ -28,11 +28,12 @@ irrationality is needed: the middle point could a priori equal `2·4ⁿ`, and
 `sq_two_irrational` is what rules that out.
 -/
 
+import FromAxioms.Analysis.Ternary
 import FromAxioms.NumberTheory.Prime
-import FromAxioms.NumberTheory.Rational
 
 universe u
 
+open Analysis SetTheory
 namespace NumberTheory
 
 /-! ## The Nat-level theorem -/
@@ -68,6 +69,23 @@ theorem succ_le_pow2 : ∀ n : Nat, n + 1 ≤ pow2 n
     have := succ_le_pow2 n
     simp only [pow2]
     omega
+
+/-- The numerator after `n` bisections: keep the right half when its left end
+still squares below `2`. -/
+def snum : Nat → Nat
+  | 0 => 1
+  | n + 1 =>
+    if (2 * snum n + 1) * (2 * snum n + 1) < 2 * (pow2 (n + 1) * pow2 (n + 1))
+      then 2 * snum n + 1 else 2 * snum n
+
+/-! ## The endpoints, and the real -/
+
+def sqLow (n : Nat) : ZFSet.{u} := ratNat (snum n) (pow2 n)
+
+def sqLowSeq : ZFSet.{u} := natSeq Rat.{u} sqLow
+
+/-- √2 as a real. -/
+def sqrtTwo : ZFSet.{u} := nestLower sqLowSeq.{u}
 
 /-! ## √2 is not a rational
 
@@ -156,5 +174,5 @@ theorem no_rat_sq_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (no_rat_sq_prime no_rat_sq_two pow2 sq_two_irrational succ_le_pow2)
+export NumberTheory (no_rat_sq_prime no_rat_sq_two pow2 snum sqLow sqLowSeq sq_two_irrational sqrtTwo succ_le_pow2)
 end ZFSet

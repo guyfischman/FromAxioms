@@ -21,7 +21,6 @@ two order facts. (`realLAbs` now exists case-free in `Deriv.lean`, as
 `max(x, -x)`; these brackets predate it and are the same content.)
 -/
 
-import FromAxioms.Analysis.Ternary
 import FromAxioms.NumberTheory.SqrtTwo
 import FromAxioms.SetTheory.Search
 import FromAxioms.Topology.Metric
