@@ -175,24 +175,6 @@ theorem sdiff_union (x y z : ZFSet.{u}) : x \ (y ∪ z) = (x \ y) ∩ (x \ z) :=
 Detachability decides `y` and double negation does not, and the refined forms
 below differ in that. -/
 
-/-- The cancellation at a detachability hypothesis.
-
-The version a caller who can already decide `y` pays nothing for.
-
-Deciding `y` is the whole of what the forward direction needs; backwards is free. -/
-theorem sdiff_sdiff_cancel_of_detachable {x y : ZFSet.{u}}
-    (hdet : ∀ w : ZFSet.{u}, w ∈ y ∨ w ∉ y) : x \ (x \ y) = x ∩ y :=
-  ext _ _ fun w => ⟨fun hw =>
-      have h := (mem_sdiff_iff w x (x \ y)).mp hw
-      (hdet w).elim
-        (fun hy => (mem_inter_iff w x y).mpr ⟨h.left, hy⟩)
-        (fun hy => absurd ((mem_sdiff_iff w x y).mpr ⟨h.left, hy⟩) h.right),
-    fun hw =>
-      have h := (mem_inter_iff w x y).mp hw
-      (mem_sdiff_iff w x (x \ y)).mpr
-        ⟨h.left, fun hs => ((mem_sdiff_iff w x y).mp hs).right h.right⟩⟩
-
-#print axioms sdiff_sdiff_cancel_of_detachable
 
 /-- Meeting a subset with a carrier-complement is just removing.
 
@@ -219,12 +201,10 @@ theorem inter_sdiff_of_subset {a x y : ZFSet.{u}}
 
 #print axioms inter_sdiff_of_subset
 
-/-- `sdiff_sdiff_cancel_of_detachable`, relativised to a carrier.
+/-- The detachable cancellation, relativised to a carrier.
 
-`sdiff_sdiff_cancel_of_detachable` is this at `a = x`, where `hsub` is
-`fun _ h => h` --- so generalising costs its callers nothing, and
-`sdiff_sdiff_cancel_of_subset_is_cancel` below is that equation rather than a
-claim about it.
+The detachable cancellation below is this at `a = x`, with `hsub` discharged by
+`fun _ h => h`.
 
 Where the decision goes, and it is the same single step the unrelativised form
 charges for: turning `¬ (w ∈ x ∧ w ∉ y)` into `w ∈ y`. `hsub` supplies the
@@ -244,6 +224,20 @@ theorem sdiff_sdiff_of_subset_of_detachable {a x y : ZFSet.{u}}
         ⟨h.left, fun hs => ((mem_sdiff_iff w x y).mp hs).right h.right⟩⟩
 
 #print axioms sdiff_sdiff_of_subset_of_detachable
+
+/-- The cancellation at a detachability hypothesis.
+
+The version a caller who can already decide `y` pays nothing for.
+
+Deciding `y` is what the forward direction needs; the converse is free.
+
+Proved as `sdiff_sdiff_of_subset_of_detachable` at `a = x`, with `hsub`
+discharged by `fun _ h => h`. -/
+theorem sdiff_sdiff_cancel_of_detachable {x y : ZFSet.{u}}
+    (hdet : ∀ w : ZFSet.{u}, w ∈ y ∨ w ∉ y) : x \ (x \ y) = x ∩ y :=
+  sdiff_sdiff_of_subset_of_detachable hdet (fun _ h => h)
+
+#print axioms sdiff_sdiff_cancel_of_detachable
 
 /-- Removing `x` from anything already inside `x` leaves nothing. -/
 @[simp] theorem sdiff_sdiff_left_self (x y : ZFSet.{u}) : (x \ y) \ x = empty.{u} :=

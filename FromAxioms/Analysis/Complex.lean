@@ -22,6 +22,7 @@ function would add an index type to carry for nothing.
 -/
 
 import FromAxioms.Algebra.Ring
+import FromAxioms.Analysis.Located
 
 universe u
 

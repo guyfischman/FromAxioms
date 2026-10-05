@@ -6,7 +6,7 @@
    "reverse": "n/a",
    "shape": "choice"
   },
-  "discharge": "PINNED EXACTLY, and `maybe` understated what was already proved. `binaryDC_iff_countableBoolChoice` (Vanishing.lean:2239) is an EQUIVALENCE with `CountableBoolChoice`, so this is not a principle awaiting a presentation -- it IS countable Boolean choice. The reason is that the hypothesis asks for a decision at EVERY numerator, so every decision precedes the recursion and the walk collapses. Weaker than DC follows rather than being guessed, since DC gives countable choice through `acOmega_of_dc`. WHAT IS ACTUALLY OPEN is STRICTNESS -- whether it sits strictly below DC -- which is a question about MODELS that no edge answers, and `BinaryDCOn`'s docstring records it the same way.",
+  "discharge": "Pinned exactly, and `maybe` understated what was already proved. `binaryDC_iff_countableBoolChoice` is an equivalence with `CountableBoolChoice`, so this is not a principle awaiting a presentation -- it is countable Boolean choice. The reason is that the hypothesis asks for a decision at every numerator, so every decision precedes the recursion and the walk collapses. Weaker than DC follows rather than being guessed, since DC gives countable choice through `acOmega_of_dc`. What is actually open is strictness -- whether it sits strictly below DC -- which is a question about models that no edge answers, and `BinaryDCOn`'s docstring records it the same way.",
   "kind": "principle",
   "meaning": "dependent choice along a two-valued step",
   "verdict": "lattice"
@@ -18,7 +18,7 @@
    "reverse": "n/a",
    "shape": "choice"
   },
-  "discharge": "PLACED, and this entry asked the question as open until 2026-08-31. The point is known exactly: `dc_of_setChoice` bounds it above and six edges run below it -- `acOmega_of_dc`, `dcOmega_of_dc`, `baire_of_dc`, `baireL_of_dc`, `binaryDCOn_of_dc`, `treeDCZ_of_dc` -- so Baire's dependence on choice along a sequence is not merely suspected but registered. The calibration fields are n/a BY CONSTRUCTION: this entry's `principle` is `dc`, so a forward deriving it from itself is not a thing to write, and its placement lives in lattice.json where `lattice.one_sided` reports it bracketed.",
+  "discharge": "Placed: `dc_of_setChoice` bounds it above and six edges run below it -- `acOmega_of_dc`, `dcOmega_of_dc`, `baire_of_dc`, `baireL_of_dc`, `binaryDCOn_of_dc`, `treeDCZ_of_dc` -- so Baire's dependence on choice along a sequence is registered. The calibration fields are `n/a` by construction: this entry's `principle` is `dc`, so a forward deriving it from itself is not a thing to write, and its placement lives in the lattice.",
   "kind": "principle",
   "meaning": "dependent choice",
   "verdict": "lattice"
@@ -42,10 +42,29 @@
    "reverse": "open",
    "shape": "omniscience"
   },
-  "discharge": "UPPER BOUND ONLY, and the reverse is not merely unproved but unattempted -- recorded `n/a` in the field until 2026-08-31, which says the question does not arise, while this sentence says it is owed. fan\u0394_of_decider takes a UNIVERSAL decider, which em supplies through decider_of_em, so em implies FAN\u0394 along a two-step chain and the forward named here is the second step. Nothing goes the other way: FAN\u0394 is consumed by twelve declarations and every one concludes a MEASURE-THEORETIC statement -- unitLowerBound_of_fan\u0394, unitLengthFloor_of_fan\u0394, the four uniformCoveredDepth forms, unitLowerBoundN_of_fan\u0394, unitLowerBoundAll_of_fan\u0394, unitLowerBound2_of_fan\u0394 and unitLowerBound_of_fan\u0394_viaProduct -- and not one concludes a lattice principle. So FAN's position relative to the omniscience lattice is UNMEASURED rather than zero, and a reversal at any node would be new. Registered because it was the most-used hypothesis ABSENT FROM THIS FILE at 54 binder occurrences, ahead of ZeroOrApart at 26 and HasZeroLocators at 20. NOT unregistered outright: `fan\u0394` is a lattice.json NODE with eight edges (corrected 2026-08-29: the key is `fan\u0394`, there is no `fan` node, and the count is 8 as measured, not 10), and the two registries record different things -- lattice.json says what implies what, this file says how a hypothesis is CALIBRATED. Saying unregistered without naming which register is a claim about none of them. And FANstable is STRONGER, not weaker -- corrected 2026-08-29. It demands LESS of the bar (double-negation-stability rather than decidability) and concludes the same, so it applies to MORE bars, and fanDelta_of_fanStable is free in the direction FANstable -> FAN\u0394, which is what settles it. The earlier reading conflated 'weaker premise on B' with 'weaker principle' and those invert. So the Weierstrass line, uniformlyContinuousOn_of_fanStable and weierstrassApprox_of_fanStable, is priced at the STRONGER hypothesis -- a WORSE upper bound than the measure line's FAN\u0394, not a better one; costmap.py prints + FAN\u0394 for both and flattens that distinction. THE `reverse: open` FIELD IS REFUTED BY EDGES THIS LATTICE ALREADY HOLDS, 2026-09-04, and `open` means OWED where this question does not arise. The reverse would be `fan\u0394 -> em`. But `lattice.json`'s `_refuted` list carries BOTH `fan\u0394 -> mp` and `fan\u0394 -> llpo`, each by the intuitionism (Brouwerian continuity) model --- the model that validates FAN and refutes MP, which is what separates the constructive schools. And `llpo` and `mp` are BOTH in the closure of `em` (computed: 121 nodes, via `em -> lpo` and onward). So `fan\u0394 -> em` would compose to a refuted edge, and is itself refuted by the same model. NOT EDITED HERE, DELIBERATELY. `undischarged.py --write` regenerates `opendirection-allow.txt` from the calibration fields and `ratchets.py` keeps that list SHRINK-ONLY, so changing `open` to a refutation verdict is a ratchet action --- it must go through the tool in a pass that records the movement, not through a hand edit that makes a count drop with no line in the diff explaining it. The argument is written down here so that pass is a confirmation rather than a re-derivation. AND CHECK `OuterApproached` AT THE SAME TIME: it also records `principle: em, reverse: open`, and whether the same composition argument applies depends on what its own reverse would have to conclude --- which I have NOT checked and am not asserting. REGISTERED 2026-09-05, AND THE FIELD BELOW STILL READS `open`. The composition argued above is now recorded where the vocabulary for it exists: lattice.json's `_refuted` carries `fan\u0394 -> em` outright, by the same intuitionistic model and with em's closure re-measured at the time of writing (95 of 203 nodes, not the 121 this field claimed -- the lattice changed underneath the number and the conclusion did not). THE CALIBRATION FIELD IS DELIBERATELY UNCHANGED: its vocabulary is a theorem name, `n/a` or `open`, and undischarged.py documents `n/a` as *the question does not arise*, which is not what a refutation says. Writing `n/a` here would shrink the ratchet by overloading a word rather than by answering anything, and the count would stop being readable. What is owed is a `refuted` value in that vocabulary plus the reader change to match; until then this row is an open DIRECTION whose answer is registered one file over, which is worse bookkeeping than it sounds and better than a silent drop.",
+  "discharge": "Upper bound only. `fan\u0394_of_decider` takes a universal decider, which `em` supplies through `decider_of_em`, so `em` implies `FAN\u0394` along a two-step chain and the forward named here is the second step. Nothing goes the other way: every consumer of `FAN\u0394` concludes a measure-theoretic statement and none a lattice principle, so its position relative to the omniscience lattice is unmeasured rather than zero. `FANstable` is stronger, not weaker: it demands less of the bar, double-negation stability rather than decidability, and concludes the same, so `fanDelta_of_fanStable` is free in the direction `FANstable -> FAN\u0394`, and the Weierstrass line is priced at the stronger hypothesis. The reverse `fan\u0394 -> em` is refuted: the lattice's `_refuted` list carries `fan\u0394 -> mp` and `fan\u0394 -> llpo` by the Brouwerian continuity model, and both `llpo` and `mp` lie in the closure of `em`, so `fan\u0394 -> em` would compose to a refuted edge. The field stays `open` because its vocabulary has no `refuted` value.",
   "kind": "principle",
   "meaning": "a decidable bar is uniform -- the compactness of 2^omega, read constructively",
   "where": "FromAxioms/Foundations/Omniscience.lean"
+ },
+ "HalveDecider": {
+  "calibration": {
+   "depends_on": "NumberTheory.ratStraddleDecider",
+   "forward": "n/a",
+   "free_at": "NumberTheory.sqrtTwoDecider",
+   "principle": "none",
+   "refuted": "Metamath.not_halveDecider_forall",
+   "reverse": "n/a",
+   "shape": "relative",
+   "sign_branch_ceiling": "Metamath.nonnegDecider",
+   "sign_branch_residue": "Metamath.MidpointSignDecided",
+   "sign_branch_sufficient": "Metamath.halveDecider_of_midpointSignDecided"
+  },
+  "discharge": "Relative to the predicate: a decider for every predicate is refutable, while the sqrt-2 straddle has one outright, spending no principle, so there is no single principle to record. The residue at `straddleSignP G` is the sign of `G` at the midpoint, decided at rational pairs only. Decided implies located and the reverse is the gap: the located form `0 <= G m` or `G m <= 0` is one negation, while the form the construction consumes, `0 <= G m` or its negation, is two.",
+  "kind": "decider",
+  "meaning": "the halving machine's branch is decidable at every step",
+  "verdict": "relative",
+  "where": "FromAxioms/NumberTheory/Halving.lean"
  },
  "IsRing": {
   "calibration": {
@@ -57,6 +76,44 @@
   "discharge": "never: subject matter, not strength -- the ring is the thing under study",
   "kind": "structural",
   "meaning": "the carrier with its operations is a ring",
+  "verdict": "never"
+ },
+ "SplitDecision": {
+  "calibration": {
+   "forward": "n/a",
+   "free_at": "NumberTheory.Eis.splitDecision",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: proved outright. `NumberTheory.Eis.splitDecision` derives it with no hypothesis, so it is not a strength and not a lattice node; the one theorem that takes it as a binder has an unconditional form beside it, and every caller can supply `splitDecision`.",
+  "kind": "structural",
+  "meaning": "every non-zero non-unit Eisenstein integer is irreducible or a product of two non-units --- restricted to non-zero non-units because the unrestricted form is false at a unit, and proved by a bounded box search over candidate factors, so a theorem and not a principle",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "IsPrime": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, not strength, and at a literal it is a computation rather than an assumption: `isPrime_decidable` decides it through `isPrime_iff_minFac_self`, choice-free at `[propext, Quot.sound]`, so a literal primality proof is `by decide`. No closed binder at a literal remains; the entry stays so that one reappearing is adjudicated here rather than paid. At a variable `p` it is not a closed binder at all.",
+  "kind": "structural",
+  "meaning": "a natural number is prime: at least two, and divisible only by one and itself --- decided by `isPrime_decidable` through `isPrime_iff_minFac_self`, so at a literal it is a computation rather than a hypothesis",
+  "verdict": "never"
+ },
+ "IsConditionallyCompleteLocated": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: the tree proves it outright. `Analysis.isConditionallyCompleteLocated_realL` has no hypotheses at all: the located least-upper-bound property holds constructively, because locatedness is exactly what supplies the rational bracket the supremum is built from. The one binder taking it is a layering artifact, since the discharging theorem sits downstream of the file that takes it.\n\nNot the same object as `IsConditionallyComplete`: this one carries `IsLocatedSubset X lt S` as an extra hypothesis, so it is the weaker property and a descent from it is the stronger result. `Topology.isConditionallyComplete_of_located_of_em` is the bridge and spends `EM` on precisely that gap.",
+  "kind": "structural",
+  "meaning": "the least-upper-bound property restricted to located subsets --- the constructively available half, which this tree proves unconditionally at `RealL`",
   "verdict": "never"
  },
  "IsMetric": {
@@ -102,7 +159,7 @@
    "reverse": "n/a",
    "shape": "subject"
   },
-  "discharge": "never: subject matter, not strength -- a relation between two GIVEN rationals, `ratLe r s` together with `r != s`. It carries no existential and no decision the tree does not already have, so a binder taking it asks for an order fact and not for a principle. It reaches `rowbinders.py`'s report only because rationals are ordered in almost every analytic statement here.",
+  "discharge": "never: subject matter, not strength -- a relation between two given rationals, `ratLe r s` together with `r != s`. It carries no existential and no decision the tree does not already have, so a binder taking it asks for an order fact and not for a principle. It reaches `rowbinders.py`'s report only because rationals are ordered in almost every analytic statement here.",
   "kind": "structural",
   "meaning": "strict order on the rationals: ratLe r s and r != s",
   "verdict": "never"
@@ -126,7 +183,7 @@
    "reverse": "Analysis.lpo_of_monotoneConvergence",
    "shape": "omniscience"
   },
-  "discharge": "BRACKETED IN THE LATTICE. Both edges are registered: `monotoneConvergence_of_em` bounds it ABOVE and `lpo_of_monotoneConvergence` bounds it BELOW, so `em -> monotoneconvergence -> lpo` stands and the node is not one-sided. WHAT IS OPEN is narrower: whether LPO ALONE suffices, which is the forward against this entry's `principle: lpo`. A third route, `monotoneConvergence_of_located`, takes the SCHEMA `forall x, x in Real -> Located x` rather than a nullary Prop. That schema is `CutLocated`, which is EQUIVALENT to `em`, so the route derives through the `em` edge rather than adding one. It spends its hypothesis at exactly one step, obtaining a member and a non-member of the supremum within `e`; everything before is `seqSup_spec` and everything after is arithmetic. Demanding locatedness at ONE real per sequence rather than at every real is not a weakening: the constant sequence at any real `x` is monotone and bounded by `x`, its range is `{x}` and its union is `x`, so the schema hands back `Located x` for an arbitrary real. The two are equivalent and the upper bracket stays at EM-strength. The forward reduces to one condition: term-locatedness whose non-member witness misses EVERY term rather than the one it was found at, which under monotonicity is a tail condition. On the staircase family that condition and LPO are equivalent, both directions. That does not discharge the forward: one family is not all sequences, and the staircase is the family the lower bracket was built on.",
+  "discharge": "Bracketed in the lattice. Both edges are registered: `monotoneConvergence_of_em` bounds it above and `lpo_of_monotoneConvergence` bounds it below, so `em -> monotoneconvergence -> lpo` stands and the node is not one-sided. What is open is narrower: whether LPO alone suffices, which is the forward against this entry's `principle: lpo`. A third route, `monotoneConvergence_of_located`, takes the schema `forall x, x in Real -> Located x` rather than a nullary Prop. That schema is `CutLocated`, which is equivalent to `em`, so the route derives through the `em` edge rather than adding one. It spends its hypothesis at exactly one step, obtaining a member and a non-member of the supremum within `e`; everything before is `seqSup_spec` and everything after is arithmetic. Demanding locatedness at one real per sequence rather than at every real is not a weakening: the constant sequence at any real `x` is monotone and bounded by `x`, its range is `{x}` and its union is `x`, so the schema hands back `Located x` for an arbitrary real. The two are equivalent and the upper bracket stays at EM-strength. The forward reduces to one condition: term-locatedness whose non-member witness misses every term rather than the one it was found at, which under monotonicity is a tail condition. On the staircase family that condition and LPO are equivalent, both directions. That does not discharge the forward: one family is not all sequences, and the staircase is the family the lower bracket was built on.",
   "kind": "principle",
   "meaning": "a monotone sequence bounded above converges"
  },
@@ -137,7 +194,7 @@
    "reverse": "n/a",
    "shape": "modulus"
   },
-  "discharge": "NOT a lattice strength in either direction: the gap over ContinuousAtOn is the UNIVERSE, not a principle. Its own docstring says it -- the modulus is a Lean FUNCTION on the point, so a proof may evaluate it, and no amount of improving ContinuousAtOn's proof would produce one. continuousAtOn_of_pointwiseModulus forgets it and recovers pointwise continuity, so the carrier is a strengthening rather than a change of subject. Same shape as BoundedLocated over exists_rat_bound; n/a follows FuncGraphs, the existing structural entry with no strength either way",
+  "discharge": "Not a lattice strength in either direction: the gap over ContinuousAtOn is the universe, not a principle. Its own docstring says it -- the modulus is a Lean function on the point, so a proof may evaluate it, and no amount of improving ContinuousAtOn's proof would produce one. continuousAtOn_of_pointwiseModulus forgets it and recovers pointwise continuity, so the carrier is a strengthening rather than a change of subject. Same shape as BoundedLocated over exists_rat_bound; n/a follows FuncGraphs, the existing structural entry with no strength either way",
   "kind": "structural",
   "meaning": "a per-point modulus of continuity, supplied as a function rather than existentially",
   "verdict": "never",
@@ -150,7 +207,7 @@
    "reverse": "SetTheory.em_of_subset_finite",
    "shape": "omniscience"
   },
-  "discharge": "no, and it is an EQUIVALENCE: a subset of a finite set being finite IS excluded middle. The registry recorded forward as n/a while subsetFinite_of_em was already proved",
+  "discharge": "no, and it is an equivalence: a subset of a finite set being finite is excluded middle. The registry recorded forward as n/a while subsetFinite_of_em was already proved",
   "kind": "principle",
   "meaning": "a subset of a finite set is finite"
  },
@@ -242,309 +299,1284 @@
   "forward: theorem deriving the hypothesis from the principle; reverse:",
   "theorem recovering the principle from the hypothesis schema; 'open' marks",
   "a direction owed, 'n/a' one that does not apply. _uncalibrated counts",
-  "entries owing (no block, or an open direction) and must be met exactly.",
-  "",
-  "_uncalibrated RAISED 5 -> 6 on 2026-09-03, for HasBaireSelectorsAll's",
-  "reverse. Its FORWARD is now proved --- Topology.hasBaireSelectorsAll_of_",
-  "setChoice, the incoming edge that took the row off undischarged-allow.txt",
-  "--- and the reverse, recovering SetChoice from a Baire selector, is a",
-  "question that ARISES and is unanswered. 'n/a' would say it does not, so",
-  "the budget is spent rather than bought with a wrong field. WWKLBool is the",
-  "precedent and its own entry records the same trade at 4 -> 5. Raising this",
-  "is two edits on purpose: the entry, and this line.",
-  "",
-  "_uncalibrated RAISED 6 -> 7 on 2026-09-04, for UnstraddledBundles'",
-  "FORWARD. Its REVERSE is proved --- Analysis.cutAtRat_of_unstraddledBundles,",
-  "the bundle giving CutAtRat --- and the forward, building a bundle FROM the",
-  "decision, asks for an OBJECT where the node gives a DECISION. That question",
-  "arises and is unanswered, so 'n/a' would be false and the budget is spent",
-  "rather than bought with a wrong field. Same trade as WWKLBool at 4 -> 5 and",
-  "HasBaireSelectorsAll at 5 -> 6.",
-  "",
-  "AND THE RAISE IS THE POINT, NOT A COST. This entry came off criterion 1's",
-  "unregistered list, where `_uncalibrated` could not see it: that counter",
-  "reads only what the registry HOLDS. So registering moved one hypothesis",
-  "from INVISIBLE to COUNTED, and the budget going up is the debt becoming",
-  "legible rather than new debt. Criterion 2 is unmoved: it counts entries",
-  "with NEITHER direction proved, and this one has its reverse.",
-  "",
-  "_uncalibrated RAISED 7 -> 8 on 2026-09-04, for OuterAttained's REVERSE.",
-  "Its FORWARD is proved and was proved BEFORE the name existed ---",
-  "Analysis.outerApproached_of_em has exactly this type once the definition",
-  "is unfolded, which `proves.py` reported as ALREADY PROVED when a wrapper",
-  "was queried, so the wrapper was dropped rather than landed. The reverse,",
-  "recovering EM from the attainment, is a question that ARISES and is",
-  "unanswered: nothing here says the passage from an infimum to an attained",
-  "cover is as strong as excluded middle. 'n/a' would say the question does",
-  "not arise, so the budget is spent rather than bought with a wrong field.",
-  "Same trade as WWKLBool at 4 -> 5, HasBaireSelectorsAll at 5 -> 6 and",
-  "UnstraddledBundles at 6 -> 7.",
-  "",
-  "AND THIS ONE IS A ROW'S WHOLE RESIDUE, which is why it is worth a name",
-  "and a counted debt rather than staying prose. The integral row is pinned",
-  "at `unitLowerBound_iff_bundle_outerApproached_below`, and a bundle's",
-  "`measure_outer` field supplies `LebesgueOuter` at every index, so this",
-  "passage is the only thing between the landmark and `UnitLowerBound` ---",
-  "`unitLowerBound_of_hasIntegralOn_of_outerAttained` is that reversal. The",
-  "row spent three days pricing side conditions that turned out to be free",
-  "while the one clause that was never free had no declaration to price.",
-  "",
-  "_uncalibrated RAISED 8 -> 12 on 2026-09-04, in FOUR steps and written at",
-  "the `reversal` merge rather than when each landed. The convention above says",
-  "the raise is TWO edits, the entry and this line; four raises made only the",
-  "first, so the counter moved and the prose did not. Nothing catches that:",
-  "`hypotheses.py --check` tests the SCALAR against the entries, and no check",
-  "reads this paragraph. That is exactly why the second edit is the one that",
-  "rots.",
-  "",
-  "8  -> 9   IccDetachable          (master)    forward `open`",
-  "9  -> 10  UnstraddledBundlesRat  (master)    forward `open`",
-  "10 -> 11  PieceApproached        (reversal)  reverse `open`",
-  "11 -> 12  PositiveUnitFloor      (reversal)  reverse `open`",
-  "",
-  "THE ORDER IS THE MERGED ARITHMETIC, NOT A HISTORY. The two branches raised",
-  "concurrently and the merge summed them; numbering them 8..12 is bookkeeping",
-  "and does not say either pair came first.",
-  "",
-  "MASTER'S TWO are the bracketed rows registered that day: both have their",
-  "REVERSE landed and choice-free, and both forwards ask for an OBJECT where",
-  "the node gives a DECISION -- the same trade as UnstraddledBundles at 6 -> 7.",
-  "",
-  "REVERSAL'S TWO are recorded from their own calibration fields and nothing",
-  "else: `PieceApproached` forward `Analysis.pieceApproached_of_outerAttained`",
-  "against `outerattained`, `PositiveUnitFloor` forward",
-  "`Analysis.positiveUnitFloor_of_unitLowerBound` against `unitlowerbound`,",
-  "each with the reverse `open`. No reason is supplied for those two here",
-  "because master did not make those adjudications, and writing one would put",
-  "an invented justification in the register another track is measured by.",
-  "",
-  "AND THE RAISE IS STILL NOT THE DEBT. Criterion 2 counts entries with NEITHER",
-  "direction proved and is unmoved at 1 (`BDN`) across all four. What grew is",
-  "the ONE-DIRECTION-OWED population, which is registration making debt legible",
-  "-- and it grew `opendirection-allow.txt` 9 -> 12, a shrink-only ratchet,",
-  "accepted deliberately with `--record --grow` rather than by a blanket",
-  "`--record`.",
-  "",
-  "_uncalibrated RAISED 17 -> 20 on 2026-09-07, for THREE rows master",
-  "registered across one session and the `generalize-analysis` merge:",
-  "",
-  "17 -> 18  BisectionChain   reverse `open`",
-  "18 -> 19  BisectionLimit   reverse `open`",
-  "19 -> 20  HalveLimitAll    reverse `open`",
-  "",
-  "ALL THREE HAVE THEIR FORWARD LANDED AND CHOICE-FREE, so none is criterion",
-  "2 debt and that criterion stays at 1 (`BDN`), unmoved as it was across the",
-  "8 -> 12 raise. `bisectionChain_of_binaryDCOn`, `bisectionLimit_of_",
-  "bisectionChain` and `halveLimitAll_of_signDisjunction_bisectionChain` are",
-  "the forwards; each reverse is a question that ARISES and is unanswered, so",
-  "'n/a' would be false and the budget is spent rather than bought with a",
-  "wrong field. Same trade as WWKLBool at 4 -> 5 and every raise since.",
-  "",
-  "AND THE THIRD IS WHY REGISTRATION IS THE POINT. `HalveLimitAll` arrived on",
-  "the merge with TWO consumers -- `exactIVT01_of_halveLimitAll` and",
-  "`sharedStraddlePoint_of_halveLimitAll` -- and NO row, while its sibling",
-  "`SharedStraddlePoint` was registered. It is a closed `Prop`, so it is",
-  "exactly what criterion 1 counts, and `_uncalibrated` could not see it: that",
-  "counter reads only what the registry HOLDS. Registering moved it from",
-  "INVISIBLE to COUNTED, which is the debt becoming legible rather than new",
-  "debt.",
-  "",
-  "IT WAS FOUND BY ENUMERATION, NOT BY THE TOOL. `hypotheses.py --unregistered`",
-  "needs the elaborated export and a build was in flight; matching",
-  "`def NAME : Prop :=` against the registry over the SOURCES answers the same",
-  "question and still runs. That is weaker -- a hypothesis spelled INLINE is",
-  "invisible to it exactly as it is to `hypcost.py` -- and it is what was",
-  "available.",
-  "",
-  "_uncalibrated RAISED 20 -> 21 on 2026-09-07, for ConvexChoice1, registered",
-  "by master on the `generalize-analysis` port:",
-  "",
-  "20 -> 21  ConvexChoice1    (master)    forward `open`",
-  "",
-  "THE SECOND EDIT, made in the same command as the entry, because the",
-  "paragraph above says this is the one that rots and names four raises that",
-  "moved the counter and not the prose.",
-  "",
-  "ITS REVERSE IS LANDED AND CHOICE-FREE --- `Constructive.signDisjunction_of_",
-  "convexChoice1`, which its own arc landed to prove the definition has",
-  "content --- so it is a FLOOR against `signdisjunction` and NOT criterion 2",
-  "debt; that criterion stays at 1 (`BDN`), unmoved as it was across 8 -> 12",
-  "and 17 -> 20. The forward asks for a POINT where the node gives a DECISION,",
-  "the same trade recorded at 6 -> 7 and 8 -> 10.",
-  "",
-  "AND IT IS CRITERION 1's OWN CASE, WHICH IS WHY IT WAS FOUND AT ALL: a",
-  "closed `Prop` taken as a binder by two declarations while no registry held",
-  "it. `hypaudit.py` named it the moment the export refreshed, having reported",
-  "0 in no registry an hour earlier against an export that predated the ports",
-  "-- the count was about a tree nobody had.",
-  "",
-  "AND THE RAISE IS FOUR EDITS, NOT THE TWO THIS PARAGRAPH DESCRIBES. Measured",
-  "on the ConvexChoice1 raise above by making them one at a time and letting each",
-  "check catch the next:",
-  "",
-  "1  the ENTRY                      no check reads it as missing",
-  "2  this LEDGER PARAGRAPH          no check reads it at all",
-  "3  the `_uncalibrated` SCALAR     `hypotheses.py --check` fails:",
-  "*21 entries owe calibration; says 20*",
-  "4  `opendirection-allow.txt`      the GATE fails, not the registry tool:",
-  "*STALE -- not what this tool computes now*",
-  "via `undischarged.py --write`, then",
-  "`ratchets.py --record --grow` for it",
-  "",
-  "SO THE CONVENTION ABOVE UNDERSTATES ITSELF BY HALF, and the two it omits are",
-  "the two that DO fail loudly --- which is the opposite of the hazard it warns",
-  "about. The paragraph's own point stands and sharpens: edits 1 and 2 are the",
-  "ones nothing catches, and 2 is the one that rots. Edits 3 and 4 cannot rot,",
-  "because a check fails until they are made.",
-  "",
-  "THE FOURTH IS NOT REGISTRY BOOKKEEPING AND THAT IS WHY IT WAS MISSED. It is a",
-  "GENERATED list, and a registration with an `open` direction adds a row to it by",
-  "construction. Reading its diff is the step that separates a newly DISCLOSED",
-  "debt from a newly INCURRED one --- for ConvexChoice1 the diff was one line,",
-  "`ConvexChoice1 [forward]`, with criterion 2 unmoved at 1 (`BDN`).",
-  "",
-  "_uncalibrated RAISED 22 -> 23 on 2026-09-08, for MidpointSignLocated,",
-  "registered by master at the moment it was landed:",
-  "",
-  "22 -> 23  MidpointSignLocated  (master)    reverse `open`",
-  "",
-  "THE FOUR EDITS ABOVE WERE FOLLOWED AS A LIST THIS TIME rather than",
-  "rediscovered, which is what that paragraph is for. Criterion 2 stays at 1",
-  "(`BDN`): the FORWARD is landed and choice-free ---",
-  "`Metamath.midpointSignLocated_of_signDisjunction` --- so this is one-side-",
-  "proved debt and not a hypothesis with neither direction.",
-  "",
-  "AND THE REVERSE IS NOT A NEW OPEN QUESTION, which is the thing to read",
-  "before pricing it as one. This row and `MidpointSignDecided` are the SAME",
-  "restriction of two bracketed nodes --- `signdisjunction <= exactivt01 <=",
-  "nonnegdecision` --- so closing `signdisjunction -> nonnegdecision` closes",
-  "both reverses at once. The counter reads two independent debts where the",
-  "question is one, which is the `OuterApproached`/`OuterAttained` shape",
-  "recorded above and now has a second instance.",
-  "",
-  "REGISTERING IT WAS NOT OPTIONAL: it is a closed `Prop`, so leaving it out",
-  "violates criterion 1, which counts exactly that population. The budget",
-  "growth is the honest price of the criterion and not a slipped ratchet.",
-  "",
-  "_uncalibrated RAISED 25 -> 26 on 2026-09-08, for MonoIVT01, registered by",
-  "`generalize-analysis` at the moment it was landed:",
-  "",
-  "25 -> 26  MonoIVT01  (generalize-analysis)  reverse `open`",
-  "",
-  "THE FOUR EDITS WERE FOLLOWED AS A LIST, in the order the paragraph above",
-  "gives them, and edit 2 is this. Criterion 2 stays at 1 (`BDN`): the",
-  "FORWARD is landed and choice-free.",
-  "",
-  "AND THE OPEN DIRECTION HERE IS THE POINT OF THE ENTRY RATHER THAN ITS",
-  "COST. Every other residue on the intermediate value row registers with",
-  "the forward landed and the reverse open BECAUSE the forward was the",
-  "reachable half; this one has the forward free by construction --- it is",
-  "the landmark with a hypothesis dropped --- so the single open direction",
-  "IS the row's whole remaining debt rather than a side question. That is",
-  "why the raise buys something: a counted debt that, when paid, closes a",
-  "pin, against four earlier raises that each disclosed an independent one.",
-  "",
-  "AND EDIT 4 CAME BACK WITH THREE ROWS, NOT ONE, on the MonoIVT01 raise, and",
-  "the two extra are the interesting half:",
-  "",
-  "ClosePairPoint          # reverse   registered 2026-09-08, open since",
-  "NonnegDecisionOnNonpos  # reverse   registered earlier, open since",
-  "",
-  "NEITHER IS NEW DEBT AND NEITHER WAS INCURRED HERE. Both entries already",
-  "carried `reverse: open` in this registry; what was missing was the",
-  "GENERATED list catching up, so `undischarged.py --write` disclosed two",
-  "debts that `_uncalibrated` had been counting all along. That is the",
-  "distinction the paragraph above draws --- read the diff to separate a",
-  "newly DISCLOSED debt from a newly INCURRED one --- and this is the first",
-  "raise where the diff was not one line.",
-  "",
-  "WHAT IT SAYS ABOUT EDIT 4. It is the edit that goes stale WITHOUT",
-  "failing, unlike edit 3: the scalar is checked against the entries, and a",
-  "registration that never ran `undischarged.py --write` leaves the list",
-  "short with the gate still green until someone else regenerates it. So the",
-  "four-edit list understates the hazard a second way --- edit 4 fails loudly",
-  "only for the CURRENT registration, and silently for every earlier one it",
-  "was skipped on.",
-  "",
-  "_uncalibrated RAISED 26 -> 27 on 2026-09-08, for BelowZeroSetLub, registered by",
-  "`generalize-analysis` the day it was landed:",
-  "",
-  "26 -> 27  BelowZeroSetLub  (generalize-analysis)  forward `open`",
-  "",
-  "CRITERION 2 STAYS AT 1 (`BDN`): the REVERSE is landed and choice-free",
-  "(`Analysis.monoIVT01_of_belowZeroSetLub`), so this is one-side-proved debt",
-  "and not a hypothesis with neither direction. The forward asks whether",
-  "`monoivt01` gives the supremum back, and nobody has asked --- `n/a` would",
-  "say the question does not arise, so the budget is spent rather than bought",
-  "with a wrong field. Same trade as WWKLBool at 4 -> 5 and every raise since.",
-  "",
-  "AND `hypaudit.py` IS WHAT FOUND IT, WHICH IS THE PART WORTH KEEPING. It was",
-  "1 of 229 nullary Prop-defs taken as a binder and the ONLY one in no registry",
-  "at all --- and also the only one on its second list, ASSUMED AND NEVER",
-  "CONCLUDED. `_uncalibrated` could not see it, because that counter reads only",
-  "what the registry HOLDS. Registering moved it from INVISIBLE to COUNTED, so",
-  "the budget rising is the debt becoming legible rather than new debt. That is",
-  "the same shape as `HalveLimitAll` at 19 -> 20 and `ConvexChoice1` at",
-  "20 -> 21, and it is the third time the finder was an audit rather than the",
-  "author remembering.",
-  "",
-  "_uncalibrated RAISED 29 -> 30 on 2026-09-09, for ClosePairPointLeft,",
-  "registered by master on the `generalize-analysis` port the same evening:",
-  "",
-  "29 -> 30  ClosePairPointLeft  (master)  reverse `open`",
-  "",
-  "CRITERION 2 STAYS AT 1 (`BDN`). The FORWARD is landed and choice-free",
-  "(`Metamath.closePairPointLeft_of_closePairPoint`), so this is one-side-proved",
-  "debt; the reverse asks whether the LEFT restriction recovers the unrestricted",
-  "`closepairpoint`, which arises and is unanswered. `n/a` would say it does not",
-  "arise, so the budget is spent rather than bought with a wrong field. Same",
-  "trade as WWKLBool at 4 -> 5 and every raise since.",
-  "",
-  "THE ENTRY PATH WAS A PORT, NOT A NULL, AND THAT IS THE NEW PART. Every raise",
-  "above was found by an audit or by its own author at landing. This one arrived",
-  "in a MERGE: `ClosePairPointLeft` is a closed Prop that was in none of the",
-  "three registers when it crossed, so master's criterion 1 went 0 -> 1 on the",
-  "merge and back to 0 on registering it. No `proves.py` null could have found",
-  "it, because nothing here was asking a question --- only re-running the",
-  "registry check AFTER a port catches this class at all.",
-  "",
-  "NO LATTICE NODE, on the `SupAttainedOn` / `SeqStable` / `SeqUpgrade`",
-  "precedent: a restriction calibrated against a node inherits that node's",
-  "position, and minting a node with one edge in and nothing out moves the",
-  "question `what implies this` rather than closing it. It sits at",
-  "`closepairpoint` and the open direction is recorded in",
-  "opendirection-allow.txt, which the same evening's `ratchets.py --record",
-  "--grow` took 29 -> 30 on its own line.",
-  "",
-  "_uncalibrated RAISED 31 -> 32 on 2026-09-09, for GridCrossingThreshold,",
-  "registered by master after the four inbound ports:",
-  "",
-  "31 -> 32  GridCrossingThreshold  (master)  forward `open`",
-  "",
-  "CRITERION 2 STAYS AT 1 (`BDN`). The REVERSE is landed and choice-free ---",
-  "`Metamath.lpo_of_gridCrossingThreshold` derives LPO from the principle alone",
-  "--- so this is one-side-proved debt and never reaches undischarged-allow.txt.",
-  "The forward asks what derives the principle, and its own docstring refuses to",
-  "guess: not claimed weaker than `ClosePairPoint`, not claimed to follow from",
-  "`SignDisjunction`. `open` rather than `n/a`, because the question arises.",
-  "",
-  "IT IS THE LAST NAME ON CRITERION 1's LIST, so registering it takes",
-  "`hypaudit`'s `in no registry at all` from 1 to 0 --- and that is bookkeeping",
-  "on the `HeadSupLevelSplit` / `unboundedsplit` precedent, NOT a new strength:",
-  "the reverse edge existed before this row did. The roadmap note's warning",
-  "applies to itself here, so it is worth restating: `None` reaching 0 is not the",
-  "target, and criterion 2 is untouched by this edit.",
-  "",
-  "WHAT MADE IT VISIBLE IS THE SAME INSTRUMENT THE LAST RAISE NAMES. It sat",
-  "unregistered while being TAKEN by two declarations in the file that defines",
-  "it, and no `proves.py` null could have found it, because nothing was asking.",
-  "`hypaudit.py` reads the export for binders and answers `who is taking a closed",
-  "Prop that no register prices`, which is the only question that surfaces this",
-  "class.",
-  "",
-  "NO LATTICE NODE, on the `ClosePairPointLeft` precedent one entry above and for",
-  "the same reason: it is calibrated against `lpo`, and minting a node with one",
-  "edge out and nothing in moves `what implies this` rather than closing it."
+  "entries owing (no block, or an open direction) and must be met exactly."
  ],
- "_uncalibrated": 2
+ "_uncalibrated": 2,
+ "IsZeroLocator": {
+  "calibration": {
+   "forward": "n/a",
+   "free_at": "Constructive.isZeroLocator_of_isLocator",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject",
+   "the_principle_is": "haszerolocators"
+  },
+  "discharge": "Subject matter. `HasZeroLocators`, `forall L U, IsLocated L U -> exists b, IsZeroLocator L U b`, is the node; one locator for one real is not the principle that every located real has one. Possessing a locator costs nothing, so a binder `(hb : IsZeroLocator L U b)` asserts a property of the `b` the caller already has, on the same footing as `IsRing R add mul zero one`. The strength is in the existential: a map choosing a locator for each real implies `WLPO` (Booij, *Extensional constructive real analysis via locators*, MSCS 31(1):64-88, 2021, Lemma 3.10.1).",
+  "kind": "structural",
+  "meaning": "a given bit sequence b is a zero locator for the cut (L, U): at every scale it reports the real outside 1/(n+1) or inside 1/n",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Vanishing.lean"
+ },
+ "realLLe": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `def realLLe (a b) : Prop := not (realLLt b a)` is the order relation on located reals: a binder `(h : realLLe x y)` says the caller has handed over two reals in that relation. What costs something is deciding the order at every pair, which is `SignDisjunction`, a node; the property is registered structural so the existential keeps the charge it already carries.",
+  "kind": "structural",
+  "meaning": "one located real is at most another, as the negation of the strict order",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "realLLt": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `def realLLt (x y) : Prop := exists p, p in snd x and p in fst y` is the strict order on located reals, and it is positive: a binder supplies a rational separating the two cuts. Supplying one is data the caller has; producing one at an arbitrary pair is the principle, and that is the node, not this.",
+  "kind": "structural",
+  "meaning": "a rational lies in the upper cut of one located real and the lower cut of another",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "ratLe": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `ratLe` unfolds to an integer cross-multiplication under representatives, and integer order here is decidable outright -- so not only is the binder a property of supplied data, the quantified form costs nothing either and there is no principle for it to reverse to.",
+  "kind": "structural",
+  "meaning": "one rational is at most another, via the cross-multiplied integer order",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Rational.lean"
+ },
+ "Equinumerous": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `Equinumerous x y := exists f, IsInjection f x y and IsSurjection f x y`. It is an existential and that is not enough to make it a principle: as a hypothesis it says the caller already holds a bijection, which is a witness handed over, not an assertion that one can be found. The claim that carries strength is the one quantifying over sets -- comparability, or a choice of bijection for every pair -- and that is a different statement this head does not make.",
+  "kind": "structural",
+  "meaning": "the caller holds a bijection between the two sets",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Cardinal.lean"
+ },
+ "realLApart": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `realLApart x y := realLLt x y or realLLt y x`. The separation is handed over, including which side: a binder gives the disjunction already resolved, so nothing decides anything here. Getting apartness from a mere inequality is what costs, and that is a separate principle, where the charge belongs.",
+  "kind": "structural",
+  "meaning": "two located reals are strictly ordered one way or the other, with the side supplied",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "IsGroup": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, not strength -- the group is the thing under study, exactly as `IsRing` is. It is a `structure . Extends IsMonoid` over the carrier and operations the caller supplies.",
+  "kind": "structural",
+  "meaning": "the carrier with its operation and unit is a group",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "IsPolyOver": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsPolyOver R zero f` says `f` is a function on omega into `R` that is eventually `zero`, with the cutoff supplied as part of the hypothesis. The eventual-vanishing clause is an existential over `Nat` whose witness the caller hands over; asking for a cutoff at an arbitrary coefficient sequence would be a search, and no binder of this head performs one.",
+  "kind": "structural",
+  "meaning": "a coefficient sequence over the ring with a supplied degree bound past which it is zero",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "IsRingHom": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter. `IsRingHom` is three equations about a map the caller supplies -- additive homomorphy, multiplicativity, and the unit -- and asserts the existence of nothing.",
+  "kind": "structural",
+  "meaning": "a supplied map between two rings preserves addition, multiplication and the unit",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsOrderOf": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsOrderOf m op e a` fixes `m` as a parameter and asserts minimality of that `m` -- a bounded, decidable condition on data already in hand. The statement that carries weight is that an order exists, which quantifies `m` existentially and is not this head.",
+  "kind": "structural",
+  "meaning": "a supplied natural number is the least positive exponent returning the element to the unit",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "Divides": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `Divides d n := exists k, n = d * k` is over `Nat`, where the quotient is bounded by `n` and the search is a decidable finite one -- so even the quantified form is free here and there is no principle to calibrate against.",
+  "kind": "structural",
+  "meaning": "one natural number is a multiple of another",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "IsIdeal": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, not strength -- the ideal is the thing under study. `IsIdeal I R add mul zero` is containment plus closure clauses about the subset `I` the caller supplies; its one existential is the additive inverse inside `I`, whose witness the hypothesis carries.",
+  "kind": "structural",
+  "meaning": "a supplied subset is closed under addition, contains inverses and absorbs ring multiplication",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "WithinOf": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `WithinOf z eps := realLLe (realLNeg eps) z and realLLe z eps` is a conjunction of two `realLLe` facts, which is registered structural directly above for the same reason: the window and the point are both supplied.",
+  "kind": "structural",
+  "meaning": "a located real lies in the symmetric window of a supplied radius",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "IsSubring": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsRing` and `IsIdeal` are. A `structure` of closure clauses about a subset the caller supplies.",
+  "kind": "structural",
+  "meaning": "a supplied subset of a ring is itself a ring under the inherited operations",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsFunction": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter. `IsFunction f` is single-valuedness of a supplied set of ordered pairs -- a universally quantified equation about data in hand, asserting the existence of nothing.",
+  "kind": "structural",
+  "meaning": "a supplied set of ordered pairs is single-valued",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Relation.lean"
+ },
+ "IsCancellative": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsCancellative R mul zero` is a ring axiom -- multiplication by a non-zero cancels -- quantified over the carrier's own elements and asserting the existence of nothing. It is the premise the fraction field is built over, not a decision procedure: the hypothesis `c /= zero` is handed over at every use, so no apartness is ever decided here.",
+  "kind": "structural",
+  "meaning": "multiplication by a non-zero element of the supplied ring is injective",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Fraction.lean"
+ },
+ "IsDegOf": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsDegOf zero f d` fixes `d` as a parameter and says it is the least bound -- a bounded, decidable condition on data in hand. The strength is in the existential, that a polynomial has a degree, because producing one is what costs. This head asks for a supplied `d` and so asks for strictly less.",
+  "kind": "structural",
+  "meaning": "a supplied natural number is the least bound on a coefficient sequence's support",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "Close": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `Close x y delta := WithinOf (realLAdd x (realLNeg y)) delta` is `WithinOf` on the difference, and `WithinOf` is registered structural directly above for the same reason: the two points and the radius are all supplied.",
+  "kind": "structural",
+  "meaning": "two located reals differ by at most a supplied radius",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "IsRegularElt": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsRegularElt R mul zero a` says the supplied element `a` is a non-zero-divisor -- a universally quantified equation about the carrier, with `a` a parameter and nothing existential. It is the same shape as `IsCancellative` one element at a time.",
+  "kind": "structural",
+  "meaning": "a supplied ring element annihilates only zero",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "polyDvd": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `polyDvd R add mul zero e g := exists q, q in PolyRing R zero and g = q * e` is divisibility in the polynomial ring. The existential is a witness handed over by the binder -- the quotient -- not a search the theorem performs; Deciding divisibility at an arbitrary pair would be the principle and no binder of this head asks for it.",
+  "kind": "structural",
+  "meaning": "one polynomial is a multiple of another, with the quotient supplied",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "StableVanishing": {
+  "calibration": {
+   "forward": "Algebra.stableVanishing_of_decidableVanishing",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Per carrier, and the tree discharges it at every carrier it uses. `StableVanishing R zero := forall a, a in R -> not a /= zero -> a = zero` quantifies over the carrier, so it is not plain subject matter; the tree proves it outright at each carrier it instantiates, the located reals among them, and where the carrier is abstract `Algebra.stableVanishing_of_decidableVanishing` derives it from the stronger supplied decision. The reverse is `n/a` as a claim about the mathematics: `DecidableVanishing RealL` is floored at `WLPO` while stability holds at `RealL` outright, so no principle is recoverable from this head. `principle` is `none` because the strength varies with the carrier.",
+  "kind": "structural",
+  "meaning": "a doubly negated vanishing is a vanishing, at the supplied carrier",
+  "verdict": "per_instance",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsLocated": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, as `IsZeroLocator` is. `IsLocated L U` is a ten-field `structure` over a supplied cut pair, and its `located` field hands the disjunction `p in L or q in U` over already resolved, so nothing here decides anything. The principle that asserts such a pair exists is a different declaration; registering this head at that node would overcharge every binder, since holding one located real is not the claim that every real is located.",
+  "kind": "structural",
+  "meaning": "a supplied pair of rational cuts is a located real",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "IsIntegralDomain": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsRing` is -- the domain is the thing under study. A `structure` over the carrier and operations the caller supplies.",
+  "kind": "structural",
+  "meaning": "the supplied carrier with its operations is an integral domain",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Fraction.lean"
+ },
+ "IsIndep": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsIndep R zero vadd smul vzero vs` is linear independence of the supplied list `vs`: a universally quantified implication over coefficient lists of matching length, with no existential and no search. Producing an independent family, or a basis, is what would cost; asserting a supplied list is independent does not.",
+  "kind": "structural",
+  "meaning": "a supplied list of vectors admits only the trivial vanishing combination",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Module.lean"
+ },
+ "IsFinite": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsFinite x := exists n, Equinumerous x (ofNat n)` is `Equinumerous` at a natural number, and that head is registered structural above for the reason that decides this one too: as a hypothesis the bijection and the count are handed over, so the existential is a witness the caller holds rather than a claim that one can be found.\n\nThat a subgroup of a finite group is finite is excluded middle, and a claim about every subgroup; this head is a property of one supplied set.",
+  "kind": "structural",
+  "meaning": "a supplied set is in bijection with a supplied natural number",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Cardinal.lean"
+ },
+ "IsCommMonoid": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsRing` and `IsGroup` are. A `structure` of the monoid axioms plus commutativity over the carrier the caller supplies.",
+  "kind": "structural",
+  "meaning": "the supplied carrier with its operation and unit is a commutative monoid",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/FinProd.lean"
+ },
+ "IsSurjection": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsSurjection f x y` is a property of the supplied function `f`: single-valued, with the right domain and range, and hitting every point of `y`. The existential is under a universal and that is the case to watch -- `forall b in y, exists a in x, f a = b` -- but the preimage is read off `f`, which the binder supplies, rather than chosen; what would cost is sectioning it, choosing an `a` for every `b` uniformly, and that is choice and a different statement.",
+  "kind": "structural",
+  "meaning": "a supplied function from one set onto another hits every point of the target",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Relation.lean"
+ },
+ "IsInjection": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, the companion of `IsSurjection` above. Universally quantified equations about a supplied function, asserting the existence of nothing.",
+  "kind": "structural",
+  "meaning": "a supplied function between two sets identifies no two points",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Relation.lean"
+ },
+ "IsPrimeIdeal": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsPrimeIdeal I R add mul zero one` ends `forall a b in R, a*b in I -> a in I or b in I`, and a universally quantified disjunction is the shape a principle usually wears. It is the hypothesis that supplies the branch, not the theorem that decides it: a binder of this head hands over a function from the product's membership to the resolved disjunction, and no binder of it searches for which side holds. The statement that would carry strength is that a proper ideal extends to a prime one, which is a different declaration.",
+  "kind": "structural",
+  "meaning": "a supplied proper ideal is prime, with the branch of the divisibility disjunction supplied",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsModule": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsRing` and `IsGroup` are. A `structure` of the module axioms over the ring, carrier and scalar action the caller supplies.",
+  "kind": "structural",
+  "meaning": "the supplied carrier with its addition and scalar action is a module over the supplied ring",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Module.lean"
+ },
+ "IsEquivRel": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter. Reflexivity, symmetry and transitivity of a supplied relation, and nothing else.",
+  "kind": "structural",
+  "meaning": "a supplied relation on a supplied set is an equivalence",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/EquivClass.lean"
+ },
+ "IsContentOn": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsContentOn R add zero nonneg m A` is six fields about the supplied set function `m` --- functionhood, domain, range, non-negativity, the empty set, and finite additivity on disjoint pairs. Finite is what keeps it structural: the strength of a measure lies in countable additivity, which is carried separately.",
+  "kind": "structural",
+  "meaning": "a supplied set function on a supplied algebra is a finitely additive non-negative content",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Measure.lean"
+ },
+ "IsAlgebra": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsAlgebra A X` is closure of the supplied family `A` under the finite Boolean operations. The cost sits in closure under countable unions, and the strong-law chain runs over an algebra instead.",
+  "kind": "structural",
+  "meaning": "a supplied family of subsets is closed under the finite Boolean operations",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Measure.lean"
+ },
+ "IsPolyIrreducible": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, and it is the same reading as `IsPrimeIdeal` directly above. `IsPolyIrreducible` ends in a universally quantified disjunction over divisors, and the binder supplies the branch rather than any theorem deciding it.\n\nDeciding reducibility over a field is a different principle, at `em`; charging this head there would overcharge every binder that merely holds an irreducible polynomial.",
+  "kind": "structural",
+  "meaning": "a supplied polynomial is a non-unit whose divisors are units or associates, with the branch supplied",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "IsEmbedding": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, the injective case of `IsRingHom` above. Equations and an injectivity clause about a supplied map.",
+  "kind": "structural",
+  "meaning": "a supplied ring homomorphism is injective",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsBasis": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsBasis R zero V vadd vzero smul vs` is spanning plus independence of the supplied list `vs`, and `IsIndep` is registered structural above on the same ground. That every module has a basis is the principle and it is a different statement --- classically it is a choice principle, and no binder of this head makes it, since the list is handed over.",
+  "kind": "structural",
+  "meaning": "a supplied list of vectors spans the module and is independent",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Module.lean"
+ },
+ "HasDerivOn": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `HasDerivOn F F' p q` takes the derivative `F'` as a parameter and states the uniform estimate with a modulus the binder supplies --- the same shape as `TendsToL` above, where the value is given and the property asserted of it. Producing a derivative, or a modulus for one, is what would cost.",
+  "kind": "structural",
+  "meaning": "a supplied function is the derivative of another on the supplied interval, with a modulus",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Deriv.lean"
+ },
+ "intLe": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `intLe z w := intNonneg (intAdd w (intNeg z))` is the integer order, and integer order is decidable outright in this tree --- so, like `ratLe` above, not only is the binder a property of supplied data, the quantified form costs nothing either and there is no principle for it to reverse to.",
+  "kind": "structural",
+  "meaning": "one integer is at most another",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Integer.lean"
+ },
+ "IsSubmodule": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsSubring` and `IsIdeal` are. Closure clauses about a subset the caller supplies.",
+  "kind": "structural",
+  "meaning": "a supplied subset of a module is closed under its addition and scalar action",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Module.lean"
+ },
+ "IsSubgroup": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsSubgroup H G op e` is containment plus closure, with the inverse's existential a witness the binder carries.\n\nThat a subgroup of a finite group is finite is excluded middle, and quantifies over every subgroup; this head is a property of one supplied subset.",
+  "kind": "structural",
+  "meaning": "a supplied subset of a group contains the unit and is closed under the operation and inverses",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "IsMonoid": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, as `IsRing`, `IsGroup` and `IsCommMonoid` are --- and `IsGroup` literally `extends` it.",
+  "kind": "structural",
+  "meaning": "the supplied carrier with its operation and unit is a monoid",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "IsHom": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, the group-level case of `IsRingHom` above. Equations about a supplied map, asserting the existence of nothing.",
+  "kind": "structural",
+  "meaning": "a supplied map between two groups preserves the operation",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "IsCongruence": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter. `IsEquivRel` --- registered structural above --- together with compatibility with the operation, both about a relation the caller supplies.",
+  "kind": "structural",
+  "meaning": "a supplied equivalence relation on a group is compatible with its operation",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "IsAbelian": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter --- one equation quantified over the supplied carrier's own elements.",
+  "kind": "structural",
+  "meaning": "the supplied group operation commutes",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Group.lean"
+ },
+ "ClosedUnder": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter for the first-order semantics. `ClosedUnder D F` says the supplied interpretation `F` keeps the supplied domain `D` closed --- one universally quantified membership fact, with no existential.",
+  "kind": "structural",
+  "meaning": "a supplied domain is closed under a supplied family of interpreted function symbols",
+  "verdict": "never",
+  "where": "FromAxioms/Metamath/FirstOrder.lean"
+ },
+ "Or": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, for the same reason as its neighbour `Not`. A binder `(h : Or P Q)` hands over a proof that names which side holds, since the type is an inductive with `inl` and `inr`; what costs something is being handed the disjunction for every pair of propositions, and that is `logicem`, a registered node carrying six landed outgoing edges.",
+  "kind": "structural",
+  "meaning": "this tree's own disjunction, an inductive with two constructors",
+  "verdict": "never",
+  "where": "FromAxioms/Logic/Connectives.lean"
+ },
+ "IsContinuous": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The definition is `IsFunction f` with its domain and range conditions plus the preimage condition: every member of the target topology pulls back into the source one. A binder `(hf : IsContinuous f X Y S T)` says the caller already holds such a function, which is data. The strength in this layer is elsewhere: turning a topological hypothesis into a uniform one is what costs.",
+  "kind": "structural",
+  "meaning": "a function between two spaces pulls every open set back to an open set",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "IdealEquiv": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The definition is an existential over two non-zero ring elements whose principal multiples of `I` and `J` agree -- the ideal class relation, which is the object the class-group arc studies rather than an assumption about the universe. A binder carrying it hands over the two cofactors. It sits beside the already-registered `IsIdeal` and `IsInvertibleIdeal`, both structural for the same reason.",
+  "kind": "structural",
+  "meaning": "two ideals agree after multiplication by non-zero principal ideals",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "OnLine": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `OnLine a b c P` is the single equation `a*x + b*y = c` at a given point, in `realLAdd` and `realLMul` -- nothing quantified, nothing decided.",
+  "kind": "structural",
+  "meaning": "a point satisfies a line's equation",
+  "verdict": "never",
+  "where": "FromAxioms/Geometry/GeomIncidence.lean"
+ },
+ "IsPolyUnit": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. `IsPolyUnit` asserts a polynomial inverse exists for a given `p` -- the caller hands over the cofactor. The strength in that neighbourhood is deciding irreducibility, not carrying a factorisation.",
+  "kind": "structural",
+  "meaning": "a polynomial has a polynomial inverse",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "IsUniformBar": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, and it is `IsBar`'s conclusion rather than a separate assumption: the same property with the depth bounded. A binder carrying it hands over the bound `N`. What costs is getting from one to the other at a decidable bar, and that is the fan theorem, already a lattice node as `fan\u0394`.",
+  "kind": "structural",
+  "meaning": "a predicate on finite bit strings is met by every infinite path at a bounded depth",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "IsCauchy": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, and it is the textbook case of the property/principle split this registry is built on. Being Cauchy is a property of a supplied sequence and assuming it spends nothing; what costs is the conversion --- extracting a modulus from `forall eps, exists N` over a family is `ACOmega`, and `every Cauchy sequence converges` is the completeness statement. Both of those live at their own nodes. The docstring records only that the statement is one-sided because the other side is the same statement with `m` and `n` swapped, which is a spelling and not a strength.",
+  "kind": "structural",
+  "meaning": "the terms of the sequence eventually differ by less than any positive rational",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Cauchy.lean"
+ },
+ "BinaryDCOnAt": {
+  "calibration": {
+   "forward": "NumberTheory.binaryDCOnAt_of_binaryDCOn",
+   "principle": "binarydcon",
+   "reverse": "n/a",
+   "shape": "choice"
+  },
+  "discharge": "The lattice node `binarydcon` at one supplied carrier and relation, filed per instance. The quantified form is the node: `dc` reaches it by `binaryDCOn_of_dc`, and `binaryDCOnAt_of_binaryDCOn` is the forward from it to this head. The backward direction does not arise: `halve_limit_of_binaryDCOn` opens the quantified form at a single instance, a set of coded rational intervals, while the universal statement speaks of every carrier including `powerset RealL`; naming the instance is what makes the reversals aimable, as `DCOmega` does for `DCOn`.",
+  "kind": "principle",
+  "meaning": "dependent choice along a two-valued step, at one supplied carrier and relation",
+  "verdict": "per_instance",
+  "where": "FromAxioms/NumberTheory/Halving.lean"
+ },
+ "HasDerivAt": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, and its `forall n, exists m` is the analytic statement itself rather than a choice: at a single supplied `F`, `a` and `L` a caller discharges it by exhibiting the scale, and the docstring reads it out in those terms --- *for every scale `n` there is a scale `m` such that a point within a rational of `a` has its value within `w/(n+1)` of the linear approximation*. The choice appears one level up and is already priced: turning `forall k, forall n, exists m` into a function over a family of maps is `ACOmega`, a lattice node, and the tree's cheap alternative is the data form, exactly as `LipschitzOn` carries its constant as a parameter. Differentiability at a named point of a named map is none of that.",
+  "kind": "structural",
+  "meaning": "the map has the supplied derivative at a point of the supplied interval",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Deriv.lean"
+ },
+ "IsTopIndex": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Two fields about a supplied coefficient function and a supplied index: every coefficient above `d` is zero and the one at `d` is not. The strength in this neighbourhood is finding the top index of an arbitrary polynomial, which needs a zero test on coefficients and is where `DecidableVanishing` enters; this head receives `d` as data and assumes nothing about locating it. The docstring records that `exists_top` witnesses it immediately, so it is inhabited on arrival.",
+  "kind": "structural",
+  "meaning": "the supplied index is the top nonzero coefficient of the supplied polynomial",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "realLt": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter, and it is this tree's own strict order on Dedekind reals, whose docstring prices the classical alternative exactly: *`x subseteq y and x /= y` would not do -- from `x /= y` one cannot produce the rational that separates them without excluded middle*. So the order carries its witness as the definition, and the `em` the subset form would need is the thing avoided. A strict inequality between supplied reals is subject matter at every consumer.",
+  "kind": "structural",
+  "meaning": "some rational lies in the second cut and not the first",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "realNonneg": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. It is `realLe realZero x` under a name, one line and no docstring, so it carries exactly what the non-strict order carries at a supplied real, which is nothing: the non-strict order is the negative, choice-free one, and the omniscience in this area is in comparing two reals, registered at its own nodes.",
+  "kind": "structural",
+  "meaning": "the supplied real is at least zero",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Real.lean"
+ },
+ "HasHalveLimit": {
+  "calibration": {
+   "forward": "n/a",
+   "free_at": "NumberTheory.hasHalveLimit_sqrtTwo",
+   "principle": "binarydcon",
+   "reverse": "n/a",
+   "shape": "choice"
+  },
+  "discharge": "Per instance. The bisection machine's conclusion at one supplied predicate, *a real of the unit interval that every stage brackets*, named because three theorems state it. At a single `P` the price depends entirely on `P`: for the sqrt-2 straddle it is free, and other predicates spend `WEM`, or `SignDisjunction` with a `BinaryDCOnAt` instance. A head whose instances range from free to a choice node is the per-instance shape by definition.",
+  "kind": "principle",
+  "meaning": "some real of the unit interval is bracketed at every scale by a rational interval satisfying the supplied predicate",
+  "verdict": "per_instance",
+  "where": "FromAxioms/NumberTheory/Halving.lean"
+ },
+ "ContinuousAtOn": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The docstring says it is `UniformlyContinuousOn` with the second argument pinned: a modulus-style epsilon-delta statement about a supplied function at a supplied point, every quantifier ranging over `Nat` indices and rational widths. Nothing in it decides a real or selects from a family; a caller discharges it by exhibiting the modulus for the function in hand.",
+  "kind": "structural",
+  "meaning": "the supplied function is continuous at one point of a closed interval, in modulus form",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Deriv.lean"
+ },
+ "Cong": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The docstring states the whole case: *an equation between computed values, so every fact about it is a computation*. An equality of two `Nat` remainders is decidable by evaluation and costs nothing to discharge or to refute.",
+  "kind": "structural",
+  "meaning": "two naturals leave the same remainder modulo n",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Congruence.lean"
+ },
+ "Dominates": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. An injection from one supplied set into another, exhibited. It is the cardinal comparison the file is about, not a principle it spends; the Schroder-Bernstein decisions it would need are registered separately.",
+  "kind": "structural",
+  "meaning": "some injection maps the first supplied set into the second",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Cardinal.lean"
+ },
+ "Enum": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied `Nat`-indexed family that maps into, injects into and covers a supplied set: an explicit enumeration handed over by the caller, which is exactly what makes a finite product over the set choice-free.",
+  "kind": "structural",
+  "meaning": "the supplied family enumerates the supplied set bijectively by the first n naturals",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/FinProd.lean"
+ },
+ "IsNested": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Two supplied rational sequences are monotone, bracketed and of shrinking width, with the index for each width witnessed. Rational comparisons about supplied data.",
+  "kind": "structural",
+  "meaning": "the supplied rational sequences form nested intervals of shrinking width",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Nested.lean"
+ },
+ "IsSemiring": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The semiring axioms on supplied carrier and operations; every field is an equation or a function fact. The docstring's note that `zeroMul` and `mulZero` are axioms rather than theorems is a statement about the algebra, not a principle.",
+  "kind": "structural",
+  "meaning": "the supplied carrier and operations form a semiring",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsStrictOrderOn": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Irreflexivity and transitivity of a supplied relation on a supplied set. The docstring records why it exists: without it the extreme value theorem over an arbitrary `lt` is false at a one-point example, so this is the order axiom the statement needs, not a principle.",
+  "kind": "structural",
+  "meaning": "the supplied relation is a strict order on the supplied set",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "realLe": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The order on Dedekind cuts as inclusion of two supplied cuts; the relation the real line is about.",
+  "kind": "structural",
+  "meaning": "the first supplied cut is contained in the second",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Real.lean"
+ },
+ "straddleSignP": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Two located-real comparisons of a supplied function at two supplied rationals: the payload the bisection carries. The docstring names it so the instance of `BinaryDCOn` can be written, which is the per-instance filing `BinaryDCOnAt` already carries; this head is the predicate, not the choice.",
+  "kind": "structural",
+  "meaning": "the supplied function is nonpositive at a and nonnegative at b",
+  "verdict": "never",
+  "where": "FromAxioms/Metamath/Calibrate.lean"
+ },
+ "Dvd": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Divisibility in the Eisenstein integers, witnessed by a cofactor; a relation between supplied elements.",
+  "kind": "structural",
+  "meaning": "the supplied Eisenstein integer d divides the supplied x",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "HasPath": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A witnessed infinite branch through a supplied tree. The strength lives in the principles that produce a path from a tree condition, which quantify over trees and are lattice nodes; a binder holding one tree's path decides nothing.",
+  "kind": "structural",
+  "meaning": "some Boolean sequence has every prefix in the supplied tree",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "HasSum": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Convergence of a supplied series' partial sums to a supplied value, the registered `TendsTo` at `seriesSeq`.",
+  "kind": "structural",
+  "meaning": "the partial sums of the supplied series converge to S",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Limit.lean"
+ },
+ "IdealEquivReg": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The ideal class relation of the registered `IdealEquiv` with both scaling factors regular rather than merely nonzero: an existential over two ring elements whose principal multiples of `I` and `J` agree. A binder carrying it hands over the two cofactors; it is the object the class-group arc studies, not an assumption about the universe.",
+  "kind": "structural",
+  "meaning": "two ideals agree after multiplication by principal ideals of regular elements",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "Iff": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The biconditional connective of the from-axioms logic layer, an inductive bundling two implications between its two argument propositions. A binder of it carries exactly its arguments' content; it is a connective, not a principle.",
+  "kind": "structural",
+  "meaning": "the biconditional connective between two propositions",
+  "verdict": "never",
+  "where": "FromAxioms/Logic/Connectives.lean"
+ },
+ "IsBounded": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied binary tree is empty at some depth. A binder carrying it hands over the depth bound for its tree argument; the principles that turn a tree fact into this bound (the fan-theorem family) are separate lattice nodes, and this predicate only names the property.",
+  "kind": "structural",
+  "meaning": "a binary tree has no node at some depth",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "IsClosed": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied subset has open complement in a supplied topology. A binder carrying it is a fact about its set argument.",
+  "kind": "structural",
+  "meaning": "a subset of a topological space is closed",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "IsCommSemiring": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The commutative-semiring axioms on supplied carrier and operations, beside the already structural ring predicates. A binder carrying it is a fact about its arguments.",
+  "kind": "structural",
+  "meaning": "a carrier with operations is a commutative semiring",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsContent": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied function on a supplied family is a nonnegative, empty-null, finitely additive real content. A binder carrying it is a fact about its arguments, beside the structural `IsAlgebra` it is defined over.",
+  "kind": "structural",
+  "meaning": "a function on a family of sets is a finitely additive content",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Measure.lean"
+ },
+ "IsCountablyAdditive": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied content sums over disjoint sequences whose union lies in the family. A binder carrying it is a fact about its content argument.",
+  "kind": "structural",
+  "meaning": "a content is countably additive",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Limit.lean"
+ },
+ "IsCut": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The Dedekind-cut conditions on a supplied set of rationals. A binder carrying it is a fact about its set argument.",
+  "kind": "structural",
+  "meaning": "a set of rationals is a Dedekind cut",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Real.lean"
+ },
+ "IsEisenstein": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The Eisenstein data for a supplied candidate factorisation `g h` and a supplied element `d`: both factors are polynomials, divisibility of `g`'s coefficients by `d` is decided index by index, `d` is prime in divisibility form, and `d` does not divide `h`'s constant term. The decidability and primality clauses are about the arguments `d` and `g`, not about every ring, so a binder carrying it is a fact about its data and charges nothing to the universe.",
+  "kind": "structural",
+  "meaning": "a candidate polynomial factorisation satisfies the Eisenstein conditions at an element",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/PolyRing.lean"
+ },
+ "IsFactorization": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied list of primes multiplies to a supplied natural number. A binder carrying it is a fact about its arguments.",
+  "kind": "structural",
+  "meaning": "a list of primes is a factorisation of a natural number",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "IsInfiniteTree": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied binary tree has a node at every length. A binder carrying it is a fact about its tree argument; the principles that turn this into a path (the Konig and fan family) are separate lattice nodes.",
+  "kind": "structural",
+  "meaning": "a binary tree has a node of every length",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "IsInnerProduct": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The inner-product axioms for a supplied form on a supplied module, with positivity carried by a supplied set and no totality clause. A binder carrying it is a fact about its arguments.",
+  "kind": "structural",
+  "meaning": "a bilinear form on a module is a symmetric positive inner product",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/InnerSpace.lean"
+ },
+ "IsIrreducible": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied Eisenstein integer is a nonzero nonunit with no nontrivial factorisation. A binder carrying it is a fact about its element argument.",
+  "kind": "structural",
+  "meaning": "an Eisenstein integer is irreducible",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "IsLocatedSubset": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied subset of a supplied ordered carrier straddles every ordered pair: some member lies above the lower point or none lies above the upper. It is the per-subset data a located real supplies and an arbitrary subset does not; a binder carrying it is a fact about its subset argument, not an omniscience principle.",
+  "kind": "structural",
+  "meaning": "a subset of an ordered carrier is located at every ordered pair",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "IsPeano": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied set with a supplied zero and successor satisfies the Peano axioms. A binder carrying it is a fact about its arguments.",
+  "kind": "structural",
+  "meaning": "a set with zero and successor is a Peano system",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Relation.lean"
+ },
+ "IsRecApprox": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied function on a supplied n obeys the recursion clauses inside n. A binder carrying it is a fact about its function argument.",
+  "kind": "structural",
+  "meaning": "a function is a finite approximation to a recursion",
+  "verdict": "never",
+  "where": "FromAxioms/SetTheory/Relation.lean"
+ },
+ "IsRingNC": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The unital ring axioms, not assumed commutative, for supplied operations on a supplied set. A binder carrying it is a fact about its arguments.",
+  "kind": "structural",
+  "meaning": "a set with operations is a (not necessarily commutative) ring",
+  "verdict": "never",
+  "where": "FromAxioms/Algebra/Ring.lean"
+ },
+ "IsTopology": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied family of subsets of a supplied set satisfies the topology axioms. A binder carrying it is a fact about its family argument.",
+  "kind": "structural",
+  "meaning": "a family of subsets is a topology",
+  "verdict": "never",
+  "where": "FromAxioms/Topology/Topology.lean"
+ },
+ "IsTree": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied predicate on binary strings is prefix-closed. A binder carrying it is a fact about its tree argument.",
+  "kind": "structural",
+  "meaning": "a predicate on binary strings is a tree",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "IsUnit": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied Eisenstein integer has a multiplicative inverse. A binder carrying it is a fact about its element argument.",
+  "kind": "structural",
+  "meaning": "an Eisenstein integer is a unit",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Prime.lean"
+ },
+ "Located": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. A supplied cut has a member and a non-member within every positive rational. A binder carrying it is a fact about its cut argument.",
+  "kind": "structural",
+  "meaning": "a Dedekind cut is located",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Real.lean"
+ },
+ "PathsDieOut": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Every infinite path leaves the tree T. A binder carrying it is the bar condition on its tree argument; the principle that turns it into a uniform bound is the fan theorem, which is a separate registered node and stays charged where it is spent.",
+  "kind": "structural",
+  "meaning": "every infinite path leaves a given tree",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "TendsTo": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. f is eventually within every positive rational of L, with witnessed bounds. A binder carrying it is a convergence fact about its sequence and limit.",
+  "kind": "structural",
+  "meaning": "a sequence of Dedekind reals tends to L",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Limit.lean"
+ },
+ "TendsToZero": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The rational widths w eventually fall below every positive rational. A binder carrying it is a convergence fact about its width sequence.",
+  "kind": "structural",
+  "meaning": "a rational width sequence tends to zero",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Cauchy.lean"
+ },
+ "Ubar": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Every infinite extension of s meets B below one depth bound. A binder carrying it is a uniform-bar fact about its bar and node, which the caller proves for its own B; the fan theorem, which produces it for every bar, is the separately registered `FAN\u0394` family and is charged where spent.",
+  "kind": "structural",
+  "meaning": "a finite path is uniformly barred by B",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "Unbounded": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. The subtree of T above s is extendable to every depth. A binder carrying it is a fact about its tree and node.",
+  "kind": "structural",
+  "meaning": "the subtree above a node reaches every depth",
+  "verdict": "never",
+  "where": "FromAxioms/Constructive/Omniscience.lean"
+ },
+ "intNonneg": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. z is the class of a pair (a, b) of naturals with b at most a. A binder carrying it is an order fact about its integer.",
+  "kind": "structural",
+  "meaning": "an integer is nonnegative",
+  "verdict": "never",
+  "where": "FromAxioms/NumberTheory/Integer.lean"
+ },
+ "pairLe": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "Subject matter. Inclusion of two sets. A binder carrying it is an order fact about its arguments.",
+  "kind": "structural",
+  "meaning": "one lower cut is contained in another",
+  "verdict": "never",
+  "where": "FromAxioms/Analysis/Located.lean"
+ }
 }

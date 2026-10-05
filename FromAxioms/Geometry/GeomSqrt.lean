@@ -25,6 +25,7 @@ inequality by exhibiting a corner, and `realLLe_antisymm` closes it.
 -/
 
 import FromAxioms.Analysis.Located
+import FromAxioms.NumberTheory.RatRing
 
 universe u
 
@@ -48,15 +49,8 @@ square's. -/
 theorem sq_shift {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u}) :
     ratMul (ratAdd a b) (ratAdd a b)
       = ratAdd (ratMul a a) (ratMul b (ratAdd (ratAdd a a) b)) := by
-  have hab := ratAdd_mem_Rat ha hb
-  have haa := ratMul_mem_Rat ha ha
-  have hba := ratMul_mem_Rat hb ha
-  have hbb := ratMul_mem_Rat hb hb
-  rw [ratAdd_mul ha hb hab, ratMul_add ha ha hb, ratMul_add hb ha hb,
-      ratMul_add hb (ratAdd_mem_Rat ha ha) hb, ratMul_add hb ha ha,
-      ratAdd_assoc haa (ratMul_mem_Rat ha hb) (ratAdd_mem_Rat hba hbb),
-      ratMul_comm ha hb,
-      ← ratAdd_assoc hba hba hbb]
+  rat_ring!
+  exact NumberTheory.ratAll_cons ha (NumberTheory.ratAll_cons hb NumberTheory.ratAll_nil)
 
 /-- A positive step, below a given bound, whose product with `c` stays under
 `d`. The bound is what keeps the step's higher powers under control once it is

@@ -19,3 +19,5 @@ import FromAxioms.NumberTheory.Fraction
 import FromAxioms.NumberTheory.Halving
 import FromAxioms.NumberTheory.CycPowerBasis
 import FromAxioms.NumberTheory.IntLean
+import FromAxioms.NumberTheory.RatReflect
+import FromAxioms.NumberTheory.RatRing

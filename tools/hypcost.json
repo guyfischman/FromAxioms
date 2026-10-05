@@ -10,8 +10,14 @@
   "FromAxioms/Constructive/Vanishing.lean::dcOn_of_dc",
   "FromAxioms/NumberTheory/Halving.lean::binaryDCOn_of_dc"
  ],
+ "DCOnACStates": [
+  "FromAxioms/Constructive/Vanishing.lean::acOmega_of_dcOn"
+ ],
  "DyadicApprox": [
-  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_dyadicApprox"
+  "FromAxioms/Constructive/Vanishing.lean::dyadicApproxDepthOne_of_dyadicApprox"
+ ],
+ "DyadicApproxDepthOne": [
+  "FromAxioms/Constructive/Vanishing.lean::dichotomy_of_depthOne"
  ],
  "EM": [
   "FromAxioms/Analysis/Extreme.lean::exists_rat_between_two",
@@ -33,10 +39,6 @@
  ],
  "FANΔ": [
   "FromAxioms/Constructive/Omniscience.lean::isBounded_of_fanΔ"
- ],
- "FamilyLocated": [
-  "FromAxioms/Analysis/Located.lean::isLocated_sup_of_familyLocated",
-  "FromAxioms/Analysis/Located.lean::lub_of_familyLocated"
  ],
  "LLPO": [
   "FromAxioms/Constructive/Omniscience.lean::exists_unbounded_child_of_llpo",
@@ -64,12 +66,21 @@
  "PathSelection": [
   "FromAxioms/Constructive/Omniscience.lean::llpo_of_pathSelection"
  ],
+ "RealRatSplit": [
+  "FromAxioms/Analysis/Measure.lean::lpo_of_realLt_or_realLe"
+ ],
  "SignDisjunction": [
-  "FromAxioms/Constructive/Vanishing.lean::llpo_of_signDisjunction",
+  "FromAxioms/Constructive/Vanishing.lean::ternaryComparison_of_signDisjunction",
   "FromAxioms/Metamath/Calibrate.lean::attainment_of_signDisjunction_binaryDCOnAt_le"
  ],
  "SubsetFinite": [
   "FromAxioms/SetTheory/Cardinal.lean::em_of_subset_finite"
+ ],
+ "SupLocated": [
+  "FromAxioms/Constructive/Reverse.lean::em_of_sup_located"
+ ],
+ "TernaryComparison": [
+  "FromAxioms/Constructive/Vanishing.lean::llpo_of_ternaryComparison"
  ],
  "TernaryDecidable": [
   "FromAxioms/Constructive/Omniscience.lean::lpo_of_ternary_decidable"

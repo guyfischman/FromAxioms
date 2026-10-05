@@ -52,6 +52,38 @@ end Analysis
 
 namespace Metamath
 
+/-- A decider for every predicate is refutable, so `HalveDecider` cannot be
+calibrated the way the readouts are. Take `P a b` to be `a = 0 ∧ b = 1`: it
+holds at the starting interval, and whichever way `decided` goes, `keepsL` or
+`keepsR` asserts it of a halved interval, where the midpoint would have to be
+an endpoint.
+
+A readout is data about an object and can be demanded of every object. A
+decider carries a promise about `P`, so demanding one for every `P` demands the
+promise of predicates that cannot keep it, and its calibration is relative to a
+`P`. -/
+theorem not_halveDecider_forall :
+    (∀ P : ZFSet.{u} → ZFSet.{u} → Prop, HalveDecider P) → False := by
+  intro h
+  have hm0 := lt_ratMid ratZero_mem_Rat ratOne_mem_Rat ratZero_lt_one
+  have hm1 := ratMid_lt ratZero_mem_Rat ratOne_mem_Rat ratZero_lt_one
+  have hP : (fun a b => a = ratZero.{u} ∧ b = ratOne.{u}) ratZero.{u} ratOne.{u} :=
+    ⟨rfl, rfl⟩
+  rcases (h (fun a b => a = ratZero.{u} ∧ b = ratOne.{u})).decided
+      ratZero.{u} ratOne.{u} ratZero_mem_Rat ratOne_mem_Rat with hgo | hgo
+  · have hstep := (h (fun a b => a = ratZero.{u} ∧ b = ratOne.{u})).keepsL
+      ratZero.{u} ratOne.{u} ratZero_mem_Rat ratOne_mem_Rat
+      (ratLe_refl ratZero_mem_Rat) ratZero_lt_one (ratLe_refl ratOne_mem_Rat)
+      hP hgo
+    rw [hstep.right] at hm1
+    exact ratLt_irrefl hm1
+  · have hstep := (h (fun a b => a = ratZero.{u} ∧ b = ratOne.{u})).keepsR
+      ratZero.{u} ratOne.{u} ratZero_mem_Rat ratOne_mem_Rat
+      (ratLe_refl ratZero_mem_Rat) ratZero_lt_one (ratLe_refl ratOne_mem_Rat)
+      hP hgo
+    rw [hstep.left] at hm0
+    exact ratLt_irrefl hm0
+
 /-- Exact IVT on the unit interval: every uniformly continuous function
 strictly straddling zero has a root. -/
 def ExactIVT01 : Prop :=
@@ -636,6 +668,7 @@ theorem exactIVT_of_llpo_binaryDC_binaryDCOn (hllpo : LLPO) (hbdc : BinaryDC)
   attainment_of_signDisjunction_binaryDCOn
     (signDisjunction_of_llpo_binaryDC hllpo hbdc) hbdcon
 
+#print axioms Metamath.not_halveDecider_forall
 #print axioms Metamath.signDisjunction_read
 #print axioms Metamath.clamp_third_strict
 #print axioms Metamath.signDisjunction_of_exact_ivt
@@ -651,5 +684,5 @@ end Metamath
 #print axioms Metamath.ExactIVT01
 #print axioms Metamath.ExactIVT01Top
 namespace ZFSet
-export Metamath (ExactIVT01 ExactIVT01Top attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le clamp_third_strict exactIVT01_of_top exactIVT_of_llpo_binaryDC_binaryDCOn isOrderTopology_realLOpens signDisjunction_of_exact_ivt signDisjunction_of_llpo_binaryDC signDisjunction_read straddleSignP)
+export Metamath (ExactIVT01 ExactIVT01Top attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le clamp_third_strict exactIVT01_of_top exactIVT_of_llpo_binaryDC_binaryDCOn isOrderTopology_realLOpens not_halveDecider_forall signDisjunction_of_exact_ivt signDisjunction_of_llpo_binaryDC signDisjunction_read straddleSignP)
 end ZFSet

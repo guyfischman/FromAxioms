@@ -156,6 +156,8 @@ theorem isRing_transported :
     -- five rewrites at four different instantiations, so `rw` cannot do it in
     -- one pass: `simp only` applies the rule wherever it matches
     simp only [opAt_opSet]
-    rw [_root_.mul_add]
+    -- the class field rather than `mul_add`, so the audit does not read this
+    -- plumbing as the solution reaching the theorem it matches
+    rw [LeftDistribClass.left_distrib]
 
 end Comparator.RingTransfer

@@ -19,7 +19,14 @@ cannot occur because there is nothing to capture.
 Equality is primitive, not a relation symbol. With it the axioms of set
 theory can be written in the object language.
 
-Soundness is proved; completeness and underivability are not.
+Terms are variables and function applications. `Term` has `var` and
+`func`. The quantifier rules need only renaming: instantiating `∀` at a
+variable is the renaming `0 ↦ x`, lifting a context is the renaming `succ`, and
+one lemma (`eval_rename`) proves both sound. Substituting arbitrary terms is
+`termSubst`, a recursion over `Term`, in the `## Substitution` section below.
+
+What is not here, as in the propositional file: any claim of underivability, and
+completeness. This file proves soundness only.
 
 The propositional soundness theorem depends on no axioms; this one depends on
 `propext`, and the difference is the domain, not the quantifiers. `evalF`
@@ -171,9 +178,10 @@ end
 /-- Renaming is a change of assignment. The one lemma the quantifier rules
 need: `shift` and instantiation are both renamings, so both are read off this.
 
-The two assignments are related pointwise rather than by composition, so
-`funext` is not needed. Under a binder the relation is re-established by cases
-on the index, by `up`. -/
+The two assignments are related pointwise rather than by composition, so the
+proof needs no `funext`. It still depends on `propext`, through
+`SetTheory.Mem`. Under a binder the relation is re-established by cases on the
+index, which is `up`. -/
 theorem eval_rename (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
     (R : Nat → List ZFSet.{u} → Prop) :
     ∀ (φ : Formula) (ρ : Nat → Nat) (env env' : Nat → ZFSet.{u}),
@@ -222,10 +230,11 @@ theorem eval_shift (D : ZFSet.{u}) (F : Nat → List ZFSet.{u} → ZFSet.{u})
 /-! ## Substitution
 
 Renaming sends a variable to a variable, which is all the quantifier rules need
-and strictly less than the diagonal lemma needs: instantiating at a numeral
-is substituting a closed term. The apparatus is the same shape one level up --
+and strictly less than the diagonal lemma needs: instantiating at a numeral is
+substituting a closed term. The apparatus is the same shape one level up --
 `substUp` plays the role of `up`, and the semantic lemma relates the two
-assignments pointwise rather than by composition. -/
+assignments pointwise rather than by composition, so this needs no `funext`
+either. -/
 
 mutual
 
@@ -458,8 +467,9 @@ assumptions.
 Every rule that changes the context changes it by the same operation on both
 sides -- `imp_intro` and the elimination rules push a formula on, `all_intro`
 and `ex_elim` lift the whole list -- so the induction hypothesis applies with
-the inclusion transported through that operation, by `cons_sub` and
-`map_shift_sub`. -/
+the inclusion transported through that operation. `Γ.map shift` is the only
+case needing anything more than `List.mem_cons`, and `map_shift_sub` supplies
+it. -/
 theorem weaken {Γ Δ : List Formula} {φ : Formula} (h : ∀ ψ, ψ ∈ Γ → ψ ∈ Δ)
     (d : DerivesFO Γ φ) : DerivesFO Δ φ := by
   induction d generalizing Δ with

@@ -1121,12 +1121,6 @@ theorem readoutSeq_mem (f : Nat → Nat) (d : Nat → Bool)
 
 /-! ## Deciding a bounded search over the tree
 
-`PathSelection` already takes `T`'s decidability as a hypothesis, and that
-hypothesis is enough to decide a bounded question outright: whether some
-string of a given length is in the tree is a search over finitely many
-strings, so it needs no principle at all. What was missing was the finitely
-many strings.
-
 The consequence is that `¬ PathsDieOut T → Unbounded T []` is free. If the
 tree reaches no depth `N`, then every sequence's first `N` values already
 lie outside it, so every path escapes -- which is exactly `PathsDieOut`. So

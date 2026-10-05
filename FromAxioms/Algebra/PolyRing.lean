@@ -1933,6 +1933,12 @@ The finite sum over an arbitrary carrier is new here. Before it there was only
 `Core.prodUpto`, a product over `Nat`, so the theorem could not even be stated
 over a Lean type.
 
+No ring is assumed and none is needed: no `neg` appears among the hypotheses.
+Coefficients enter through `nsmulT`, repeated addition, which is the only way a
+semiring can scale by a natural --- and `nsmulT` is `sumUptoT` at a constant
+summand rather than a second recursion, so its lemmas cannot drift from the
+sum's.
+
 `NumberTheory.choose` is cited rather than copied, and a private `chooseT` here
 would be pure duplication. The tempting reason to write one is a belief that
 `Prime.lean` is outside this file's cone. It is not: `Algebra.Field` imports it
@@ -2072,6 +2078,11 @@ theorem evalAt_mem {R add mul zero one x f : ZFSet.{u}} (hR : IsRing R add mul z
   obtain ⟨N, hN⟩ := hf.right.right.right
   rw [evalAt_eq hR hx hf hN]
   exact evalUpTo_mem hR hx hf N
+
+/-! ## Evaluation of a polynomial stays inside a subring
+
+A polynomial with coefficients in a subring, evaluated at a point of it, lands
+in it. `evalAt_mem` is the case `S = R`; `gpow_subring` keeps the powers inside. -/
 
 /-- A product's support bound is the sum of the factors'. The content is
 `convCoeff_eq_zero`, which `isPolyOver_polyMul` already uses at `Nf + Ng` and
@@ -3107,6 +3118,32 @@ theorem polyMul_top {R add mul zero one g h : ZFSet.{u}} (hR : IsRing R add mul 
     (hdom _ (coeff_mem hg (ofNat_mem_omega dg)) _
       (coeff_mem hh (ofNat_mem_omega dh)) hgne hhne)
 
+/-- A prime that does not square-divide a product misses one factor.
+
+Over any commutative ring, with divisibility by `d` decidable and `d` prime as
+an element. The integer form `not_both_dvd_of_sq_not_dvd` is this with
+`intDvd_decidable` supplying the decision. -/
+theorem not_both_dvd_of_sq_not_dvd_ring {R add mul zero one d a b : ZFSet.{u}}
+    (hR : IsRing R add mul zero one) (hd : d ∈ R) (ha : a ∈ R) (hb : b ∈ R)
+    (hdec : ∀ x, x ∈ R → (∃ c, c ∈ R ∧ x = opAt mul d c)
+      ∨ ¬ (∃ c, c ∈ R ∧ x = opAt mul d c))
+    (hsq : ¬ ∃ c, c ∈ R ∧ opAt mul a b = opAt mul (opAt mul d d) c) :
+    (¬ ∃ c, c ∈ R ∧ a = opAt mul d c)
+      ∨ (¬ ∃ c, c ∈ R ∧ b = opAt mul d c) := by
+  rcases hdec a ha with ⟨c₁, hc₁, he₁⟩ | hna
+  · rcases hdec b hb with ⟨c₂, hc₂, he₂⟩ | hnb
+    · refine absurd ?_ hsq
+      refine ⟨opAt mul c₁ c₂, mulAt_mem hR hc₁ hc₂, ?_⟩
+      rw [he₁, he₂,
+        hR.mulAssoc _ hd _ hc₁ _ (mulAt_mem hR hd hc₂),
+        ← hR.mulAssoc _ hc₁ _ hd _ hc₂, hR.mulComm _ hc₁ _ hd,
+        hR.mulAssoc _ hd _ hc₁ _ hc₂,
+        ← hR.mulAssoc _ hd _ hd _ (mulAt_mem hR hc₁ hc₂)]
+    · exact Or.inr hnb
+  · exact Or.inl hna
+
+#print axioms Algebra.not_both_dvd_of_sq_not_dvd_ring
+
 /-- Eisenstein's criterion: one factor is constant.
 
 `f = g·h` vanishing above `n`, with `d` prime dividing every coefficient of `f`
@@ -3729,7 +3766,6 @@ theorem polyNeg_eq_ringNeg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add
   rw [opAt_polyAddOp hR hfm hnm]
   exact polyAdd_neg hR hf
 
-
 /-- `polySub` is the ring's subtraction on `PolyRing`. Two spellings of one
 operation, and until this existed nothing joined them: `app_polySub` gives the
 coefficient formula for the first, and the quotient's relation produces the
@@ -3800,6 +3836,12 @@ theorem evalAt_polyX {R add mul zero one x : ZFSet.{u}}
 
 #print axioms evalAt_polyX
 
+/-! ## R[x] over a semiring: monomials, the decomposition, and uniqueness of homs
+
+The pieces of the universal property that live at the polynomial level.
+`polyRing_hom_ext_semi` is uniqueness with a semiring source and no structure
+on the target: the monomial fold starts at `polyZero = monomial zero 0`, which
+the constants clause already covers, so neither hom needs a zero clause. -/
 
 theorem evalAt_polyZero {R add mul zero one x : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (hx : x ∈ R) : evalAt R add mul zero one x (polyZero R zero) = zero := by
@@ -4448,6 +4490,77 @@ theorem eisenstein_factor_constant_int {f : ZFSet.{u}} {p : Nat} (hp : IsPrime p
     rw [← hgh]
     exact hfa i hi
 
+/-- Eisenstein's criterion over any commutative ring.
+
+`d` is a prime element dividing every coefficient of `f` below the top, not the
+top, and `d²` not the constant term; then `f` has no factorisation into two
+non-constant polynomials.
+
+The whole argument was already general --- `eisenstein_factor_constant` and
+`eisenstein_witness_of_convCoeff` both take an arbitrary `IsRing`. Only the
+integer wrapper existed, and this is that wrapper with `intDvd_decidable` and
+the primality of `p` taken as hypotheses, exactly as `IsEisenstein` records
+them. -/
+theorem eisenstein_irreducible {R add mul zero one d f : ZFSet.{u}} {n : Nat}
+    (hR : IsRing R add mul zero one) (hd : d ∈ R)
+    (hdom : ∀ a, a ∈ R -> ∀ b, b ∈ R -> a ≠ zero -> b ≠ zero ->
+      opAt mul a b ≠ zero)
+    (hdec : ∀ x, x ∈ R → (∃ c, c ∈ R ∧ x = opAt mul d c)
+      ∨ ¬ (∃ c, c ∈ R ∧ x = opAt mul d c))
+    (hprime : ∀ a b, a ∈ R -> b ∈ R ->
+      (∃ c, c ∈ R ∧ opAt mul a b = opAt mul d c) ->
+      (∃ c, c ∈ R ∧ a = opAt mul d c) ∨ (∃ c, c ∈ R ∧ b = opAt mul d c))
+    (hlow : ∀ i, i < n -> ∃ c, c ∈ R ∧ app f (ofNat.{u} i) = opAt mul d c)
+    (htop : ¬ ∃ c, c ∈ R ∧ app f (ofNat.{u} n) = opAt mul d c)
+    (hfa : ∀ i : Nat, n < i -> app f (ofNat.{u} i) = zero)
+    (hsq : ¬ ∃ c, c ∈ R ∧
+      app f (ofNat.{u} 0) = opAt mul (opAt mul d d) c)
+    {g h : ZFSet.{u}}
+    (hg : IsPolyOver R zero g) (hh : IsPolyOver R zero h)
+    {dg dh : Nat}
+    (hgT : IsTopIndex zero g dg) (hhT : IsTopIndex zero h dh)
+    (hgh : f = polyMul R add mul zero g h) :
+    dg = 0 ∨ dh = 0 := by
+  obtain ⟨hga, hgne⟩ := hgT
+  obtain ⟨hha, hhne⟩ := hhT
+  have hg0 : app g (ofNat.{u} 0) ∈ R := coeff_mem hg (ofNat_mem_omega _)
+  have hh0 : app h (ofNat.{u} 0) ∈ R := coeff_mem hh (ofNat_mem_omega _)
+  have hconv : ∀ k : Nat, app f (ofNat.{u} k) = convCoeff R add mul zero g h k := by
+    intro k
+    rw [hgh]
+    exact app_polyMul hR hg hh k
+  have hsq' : ¬ ∃ c, c ∈ R ∧
+      opAt mul (app g (ofNat.{u} 0)) (app h (ofNat.{u} 0))
+        = opAt mul (opAt mul d d) c := by
+    rw [← convCoeff_at_zero hR hg hh, ← hconv 0]
+    exact hsq
+  have hstep : ∀ (g' h' : ZFSet.{u}), IsPolyOver R zero g' → IsPolyOver R zero h' →
+      ∀ dg' dh' : Nat, (∀ i : Nat, dg' < i -> app g' (ofNat.{u} i) = zero) →
+      app g' (ofNat.{u} dg') ≠ zero →
+      (∀ i : Nat, dh' < i -> app h' (ofNat.{u} i) = zero) →
+      app h' (ofNat.{u} dh') ≠ zero →
+      f = polyMul R add mul zero g' h' →
+      (¬ ∃ c, c ∈ R ∧ app h' (ofNat.{u} 0) = opAt mul d c) → dh' = 0 := by
+    intro g' h' hg' hh' dg' dh' hga' hgne' hha' hhne' hgh' hconst'
+    have he : IsEisenstein R mul zero d g' h' :=
+      { polyG := hg', polyH := hh', dec := fun i => hdec _
+          (coeff_mem hg' (ofNat_mem_omega i)), prime := hprime, const := hconst' }
+    have hconv' : ∀ k : Nat, app f (ofNat.{u} k)
+        = convCoeff R add mul zero g' h' k := fun k => by
+      rw [hgh']; exact app_polyMul hR hg' hh' k
+    obtain ⟨N, hN⟩ := eisenstein_witness_of_convCoeff hR hd he n
+      (by rw [← hconv' n]; exact htop)
+    refine eisenstein_factor_constant hR hd hdom he hga' hgne' hha' hhne'
+      (n := n) (fun i hi => by rw [← hconv' i]; exact hlow i hi)
+      (fun i hi => by rw [← hgh']; exact hfa i hi) hN
+  rcases not_both_dvd_of_sq_not_dvd_ring hR hd hg0 hh0 hdec hsq' with hng | hnh
+  · refine Or.inl (hstep h g hh hg dh dg hha hhne hga hgne ?_ hng)
+    rw [hgh, polyMul_comm hR ((mem_polyRing_iff _ _ _).mpr hg)
+      ((mem_polyRing_iff _ _ _).mpr hh)]
+  · exact Or.inr (hstep g h hg hh dg dh hga hgne hha hhne hgh hnh)
+
+#print axioms Algebra.eisenstein_irreducible
+
 /-- Eisenstein's criterion over `ℤ`, in the form a caller wants.
 
 `f` has degree `n`, a prime `p` divides every coefficient below the top and not
@@ -4458,7 +4571,11 @@ The four clauses are exactly what `cyclotomicShift_eisenstein` produces, and the
 domain and decidability conditions are discharged here rather than carried.
 Which factor plays the criterion's `const` role is a decision `intDvd_decidable`
 makes for free, and `polyMul_comm` makes the second case the first with the
-factors swapped. -/
+factors swapped.
+
+Proved through the general criterion: `eisenstein_irreducible` at `isRing_int`,
+with `dec` and `prime` discharged at `ℤ` and `p²` converted between
+`intOfNat (p * p)` and `opAt mul` applied twice. -/
 theorem eisenstein_irreducible_int {f : ZFSet.{u}} {p n : Nat} (hp : IsPrime p)
     (hlow : ∀ i, i < n -> ∃ c, c ∈ NumberTheory.Int.{u} ∧
       app f (ofNat.{u} i) = opAt intMulOp.{u} (intOfNat.{u} p) c)
@@ -4474,22 +4591,39 @@ theorem eisenstein_irreducible_int {f : ZFSet.{u}} {p n : Nat} (hp : IsPrime p)
     (hhT : IsTopIndex intZero.{u} h dh)
     (hgh : f = polyMul NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZero.{u} g h) :
     dg = 0 ∨ dh = 0 := by
-  obtain ⟨hga, hgne⟩ := hgT
-  obtain ⟨hha, hhne⟩ := hhT
-  have hg0 : app g (ofNat.{u} 0) ∈ NumberTheory.Int.{u} := coeff_mem hg (ofNat_mem_omega _)
-  have hh0 : app h (ofNat.{u} 0) ∈ NumberTheory.Int.{u} := coeff_mem hh (ofNat_mem_omega _)
-  have hsq' : ¬ ∃ c, c ∈ NumberTheory.Int.{u} ∧
-      opAt intMulOp.{u} (app g (ofNat.{u} 0)) (app h (ofNat.{u} 0))
-        = opAt intMulOp.{u} (intOfNat.{u} (p * p)) c := by
-    rw [← convCoeff_at_zero isRing_int hg hh, ← app_polyMul isRing_int hg hh 0, ← hgh]
-    exact hsq
-  rcases not_both_dvd_of_sq_not_dvd hg0 hh0 hsq' with hng | hnh
-  · refine Or.inl (eisenstein_factor_constant_int hp (g := h) (h := g)
-      hlow htop hfa hh hg ⟨hha, hhne⟩ ⟨hga, hgne⟩ ?_ hng)
-    rw [hgh, polyMul_comm isRing_int
-      ((mem_polyRing_iff _ _ _).mpr hg) ((mem_polyRing_iff _ _ _).mpr hh)]
-  · exact Or.inr (eisenstein_factor_constant_int hp hlow htop hfa hg hh
-      ⟨hga, hgne⟩ ⟨hha, hhne⟩ hgh hnh)
+  have hpI : intOfNat.{u} p ∈ NumberTheory.Int.{u} := intOfNat_mem_Int _
+  refine eisenstein_irreducible isRing_int hpI
+    (fun a ha b hb ha0 hb0 => by
+      rw [opAt_intMulOp ha hb]; exact intMul_ne_zero ha hb ha0 hb0)
+    (fun x hx => by
+      have hcv : ∀ c, c ∈ NumberTheory.Int.{u} ->
+          opAt intMulOp.{u} (intOfNat.{u} p) c = intMul (intOfNat.{u} p) c :=
+        fun c hc => opAt_intMulOp hpI hc
+      rcases intDvd_decidable (a := p) hx with hy | hn
+      · exact Or.inl (by
+          obtain ⟨c, hc, he⟩ := hy
+          exact ⟨c, hc, by rw [hcv c hc, he]⟩)
+      · exact Or.inr (fun hy => hn (by
+          obtain ⟨c, hc, he⟩ := hy
+          exact ⟨c, hc, by rw [he, hcv c hc]⟩)))
+    (fun a b ha hb hab => by
+      have hcv : ∀ c, c ∈ NumberTheory.Int.{u} ->
+          opAt intMulOp.{u} (intOfNat.{u} p) c = intMul (intOfNat.{u} p) c :=
+        fun c hc => opAt_intMulOp hpI hc
+      have hab' : ∃ c, c ∈ NumberTheory.Int.{u} ∧
+          intMul a b = intMul (intOfNat.{u} p) c := by
+        obtain ⟨c, hc, he⟩ := hab
+        exact ⟨c, hc, by rw [← opAt_intMulOp ha hb, he, hcv c hc]⟩
+      exact (intPrime_divides_mul hp ha hb hab').imp
+        (fun ⟨c, hc, he⟩ => ⟨c, hc, by rw [he, hcv c hc]⟩)
+        (fun ⟨c, hc, he⟩ => ⟨c, hc, by rw [he, hcv c hc]⟩))
+    hlow htop hfa ?_ hg hh hgT hhT hgh
+  · intro hc
+    refine hsq ?_
+    obtain ⟨c, hcI, he⟩ := hc
+    refine ⟨c, hcI, ?_⟩
+    rw [he, opAt_intMulOp hpI hpI, opAt_intMulOp (intMul_mem_Int hpI hpI) hcI,
+      opAt_intMulOp (intOfNat_mem_Int (p * p)) hcI, ← intOfNat_mul]
 
 /-- Vanishing is decidable in `ℤ`: `int_eq_or_ne` reduces it to an equality of
 naturals, so the degree arguments that take this as a hypothesis are free
@@ -10395,5 +10529,5 @@ namespace ZFSet
 -- name while resolving this very conflict.
 export Algebra (exists_dirichlet_collision)
 
-export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detT detT_succ detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMinorT matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_congr_left matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_neg_right matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_add matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_add monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_eq_zero_of_matMulOn_scalar ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step sumUptoT sumUptoT_congr_lt sumUptoT_mul_right sumUptoT_succ swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi weierPoly weierX prodUptoT prodUptoT_succ matMulOnT idMatT idMatT_diag idMatT_off ringSignT prodPrefixT permProdT prodPrefixT_eq_permProdT mixRowsT mixRowsT_lt mixRowsT_ge leibSumT skipAtT skipAtT_lt skipAtT_ge skipAtT_origAt skipAtT_skipAtT_origAt survPairT_pairs sumUptoT_skip sumUptoT_peel_pair sumUptoT_peel_pair_collapse sumUptoT_involution sumUptoT_split sumUptoT_flatten detT_congr detTermT detT_congr_lt prodUptoT_congr_lt sumUptoT_pointwise_add sumUptoT_mul_left rowAtT rowAtT_at rowAtT_other detT_row0_add detT_rowk_add detT_row_smul detT_row_zero detT_row_sumUptoT detT_mixRowsT_step detT_rowAtT_smul mixRowsT_rowAtT_succ prodPrefixT_low expandTermT expandTermT_zero detSumT matMinor2T matMinor2T_swap ringSignT_succ ringSignT_add detSumT_norm detSumT_swap detSumT_pair detT_double sumUptoT_zeros detT_rows01 detT_rows_adj rowsAdjT rowsAdjT_at rowsAdjT_succ rowsAdjT_other rowsAdjT_self detT_rowsAdj_add_at detT_rowsAdj_add_succ detT_antisym_adj detT_swap_adj detT_rows_eq detT_repeatOn rows_swapValT negT_eq_of_add_eq_zero detT_perm detT_permOn ringSignT_mul_left ringSignT_mul_right ringSignT_mul_one sumUptoT_single matMinorT_idMatT_zero detT_idMatT matMulOnT_idMatT sumUptoT_const_zero sumUptoT_swap expandTermT_step expandSumT leibSumT_eq_detT detT_mul)
+export Algebra (InjUpto IsBoundOf IsDegOf IsEisenstein IsEvalOf IsPolyIrreducible IsPolyOver IsPolyUnit IsTopIndex PolyRing adjEntry adjEntry_eq adjEntry_subst adjMat adjMat_mem anyEqBelow anyEqBelow_of_true anyEqBelow_true anyRepeat anyRepeat_of_injUptoB_false anyRepeat_of_true anyRepeat_true app_evalPoint app_foldF_polyAdd app_linearPoly app_matMulOn_deg_one app_matMulOn_zero app_monomial app_polyAdd app_polyAdd_semi app_polyMul app_polyMul_const app_polyMul_semi app_polyNeg app_polyOfList app_polyOfSeq app_polyOfTuple app_polyOne app_polyOne_semi app_polySub app_polyZero app_polyZero_semi app_shift_ge app_shift_one binomShift binomShift_mem binomShift_mem_semi binomSum binomSum_mem binomSum_mem_semi binomSum_mul binomSum_mul_semi binomSum_recombine binomSum_recombine_semi binomSum_succ binomSum_succ_semi binomTerm binomTerm_eq_zero_of_gt binomTerm_mem binomTerm_mem_semi binomTerm_mul_left binomTerm_mul_left_semi binomTerm_mul_right binomTerm_mul_right_semi binomTerm_split binomTerm_split_semi binomTerm_succ binomTerm_succ_semi binomUp binomUp_mem binomUp_mem_semi binomUp_succ binomUp_succ_semi binomial binomial_semi cls_polyOfTuple_succ coeff_mem coeffs_linearPoly convCoeff convCoeff_above convCoeff_assoc_semi convCoeff_at_zero convCoeff_comm convCoeff_deg_one convCoeff_distrib convCoeff_distrib_right_semi convCoeff_distrib_semi convCoeff_eq_zero convCoeff_eq_zero_semi convCoeff_eq_zero_sharp convCoeff_mem convCoeff_mem_semi convCoeff_monomial convCoeff_mul_left_semi convCoeff_mul_right_semi convCoeff_multiple convCoeff_one convCoeff_one_left convCoeff_one_left_semi convCoeff_one_semi convCoeff_split convCoeff_top convCoeff_zero_left_semi convCoeff_zero_right_semi convTerm convTerm_mem_semi cycShiftPoly cycShiftPoly_const cycShiftPoly_deg cycShiftPoly_low cycShiftPoly_top cycShiftPoly_tupleCoeff cycShiftPoly_tupleCoeff_zero cycleUp cycleUpInv cycleUpInv_cycleUp cycleUp_high cycleUp_lt cycleUp_mid cycleUp_ne_of_pos cycleUp_zero decidableVanishing_int decidableVanishing_of_finite decidableVanishing_polyQuot det2 det2_cramer det2_mem det2_swap detN detN_antisym detN_antisym_adj detN_congr detN_congr_lt detN_double detN_idMat detN_mem detN_mixRows_step detN_mul detN_of_unitriangular detN_of_unitriangular_below detN_of_zero_column detN_perm detN_permOn detN_repeatOn detN_row0_add detN_rowAt_smul detN_row_foldF detN_row_smul detN_row_zero detN_rowk_add detN_rows01 detN_rowsAdj_add_at detN_rowsAdj_add_succ detN_rows_adj detN_rows_eq detN_scalar detN_subring detN_succ detN_succ_succ detN_swap_adj detPair detPair_ge detPair_invol detPair_lt detPair_maps detPair_nofix detSum detSum_mem detSum_norm detSum_pair detSum_swap detT detT_succ detTerm detTerm_eq dvd_of_addAt_dvd eisenstein_factor_constant eisenstein_factor_constant_int eisenstein_irreducible eisenstein_irreducible_int eisenstein_least_index eisenstein_nonzero_high eisenstein_witness_of_convCoeff eq_polyZero_of_coeffs eq_polyZero_of_monic_mul eq_self_of_no_descent equinumerous_polyQuot equinumerous_powSet evalAt evalAt_eq evalAt_linearPoly evalAt_mem evalAt_monomial evalAt_polyAdd evalAt_polyMul evalAt_polyOfList evalAt_polyOne evalAt_polyZero evalPoint evalTerm evalUpTo evalUpTo_mem evalUpTo_stable exists_deg exists_descent exists_lead exists_least_not_dvd exists_polyBezout exists_polyDiv exists_polyQuot_rep_below exists_top exists_tuple exists_tuple_cls expandSum expandTerm expandTerm_mem expandTerm_step expandTerm_zero flat_decomp foldF_extend foldF_last foldF_last_semi foldF_matPow_peel foldF_mul_left foldF_mul_left_lt foldF_mul_left_semi foldF_mul_right foldF_mul_right_lt foldF_mul_right_semi foldF_multiple foldF_neg foldF_pair_below foldF_ringSign foldF_single foldF_single_below foldF_sub foldF_telescope foldF_zeros foldF_zeros_semi gpow_above_eq_neg_shifted gpow_eq_neg_evalUpTo_of_monic_root idMat idMat_diag idMat_matMulOn idMat_mem idMat_off injUptoB injUptoB_iff intOfNat_natSumUpto invBelow invBelow_eq invCount invCount_below invCount_succ invRow invRow_above invRow_at_swap invRow_below invRow_cycleUp invRow_eq_invCount invRow_succ invRow_succ_id invRow_succ_swap inversions inversions_below inversions_cycleUp inversions_descent inversions_eq_zero_of_adj inversions_ne_zero_of_descent inversions_swapVal isAbelian_polyAdd isAbelian_polyAdd_semi isCommMonoid_polyAdd_semi isCommMonoid_ringAdd isCommMonoid_ringMul isEisenstein_int isField_polyQuot isFunction_polyOfSeq isGroup_polyAdd isIdeal_polyIdeal isMonoid_ringMul isPolyOver_cycShiftPoly isPolyOver_linearPoly isPolyOver_mono isPolyOver_monomial isPolyOver_polyAdd isPolyOver_polyAdd_semi isPolyOver_polyMul isPolyOver_polyMul_semi isPolyOver_polyNeg isPolyOver_polyOfList isPolyOver_polyOfSeq isPolyOver_polyOfTuple isPolyOver_polyOne isPolyOver_polyOne_semi isPolyOver_polySub isPolyOver_polyX isPolyOver_polyZero isPolyOver_polyZero_semi isPrimeIdeal_polyIdeal isRingHom_evalPoint isRing_polyQuot isRing_polyRing isSemiring_polyRing lead_mul leibSum leibSum_eq_detN leibTerm linearPoly listCoeff listCoeff_eq_zero listCoeff_mem matMinor matMinor2 matMinor2_swap matMinor_idMat matMinor_mem matMinorT matMulOn matMulOn_adjMat_diag matMulOn_adjMat_off matMulOn_assoc matMulOn_congr_left matMulOn_foldF_right matMulOn_idMat matMulOn_mem matMulOn_mul_right matMulOn_neg_left matMulOn_neg_right matMulOn_row matMulOn_scaleIdMat matMulOn_sub matPow matPow_add matPow_injective matPow_mem matPow_one matPow_succ_left matTrace matTrace_mul_comm mem_polyIdeal_iff mem_polyOfSeq_iff mem_polyRing_iff mixAssign mixRows mixRows_ge mixRows_lt mixRows_mem mixRows_rowAt_succ mixRows_zero mono_of_adj monomial monomialCoeff monomialCoeff_mem monomial_add monomial_mul_monomial monomial_one_zero monomial_zero monomial_zero_add monomial_zero_eq_polyOne monomial_zero_eq_polyZero natDigit natDigit_at_high natDigit_below_high natDigit_lt natSumUpto natSumUpto_choose not_both_dvd_of_sq_not_dvd not_both_dvd_of_sq_not_dvd_ring not_dvd_convCoeff opAt_polyAddOp opAt_polyAddOp_semi opAt_polyMulOp opAt_polyMulOp_semi permProd permProd_mem polyAdd polyAddOp polyAdd_neg polyDeriv polyDvd polyDvd_add polyDvd_mul polyDvd_mul_of_irreducible polyDvd_or_not polyDvd_refl polyDvd_trans polyDvd_zero polyIdeal polyMul polyMulOp polyMul_assoc polyMul_bound polyMul_bound_sharp polyMul_comm polyMul_mem polyMul_mem_semi polyMul_one_left polyMul_top polyMul_top_of_top polyNeg polyNeg_eq_ringNeg polyNeg_mem polyOfList polyOfSeq polyOfTuple polyOfTuple_injective polyOfTuple_succ polyOfTuple_tupleOfPoly polyOne polyOne_mem polyOne_mem_semi polyOver_eq_polyZero_or_ne polyQuot polyQuotBy polyQuotRel polyQuot_eq_or_ne polySub polySub_add_cancel polySub_eq_ringSub polySub_zero_iff polyUnit_const polyUnit_of_const polyUnit_of_dvd_unit polyX polyZero poly_eq_zero_of_cls_zero poly_ext poly_ext_coeff powSet powSet_ext prodPrefix prodPrefix_low prodPrefix_mem prodPrefix_succ recurrence_fold_eq remainder_eq_sub_mul remainder_unique remainder_unique_domain remainder_unique_monic ringNeg_polyRing ringNsmul_foldF ringPow_bound ringPow_bound_sharp ringPow_eq_zero_of_matMulOn_scalar ringPow_mul_evalUpTo ringSign ringSign_add ringSign_addAt ringSign_mem ringSign_mul ringSign_mul_left ringSign_mul_right ringSign_succ ringSign_zero rowAt rowAt_at rowAt_mem rowAt_other rows01 rows01_mem rowsAdj rowsAdj_at rowsAdj_congr_at rowsAdj_congr_succ rowsAdj_mem rowsAdj_other rowsAdj_self rowsAdj_succ rows_swapVal shiftPow_bound shiftPow_monic strictMono_step sumUptoT sumUptoT_congr_lt sumUptoT_mul_right sumUptoT_succ swapVal swapVal_at swapVal_inv swapVal_maps swapVal_other swapVal_succ tupleCoeff tupleCoeff_mem tupleCoeff_tupleOf tupleOf tupleOfPoly tupleOfPoly_mem tupleOf_mem unitCoeff unitCoeff_mem unitCoeff_mem_semi weierPoly weierX prodUptoT prodUptoT_succ matMulOnT idMatT idMatT_diag idMatT_off ringSignT prodPrefixT permProdT prodPrefixT_eq_permProdT mixRowsT mixRowsT_lt mixRowsT_ge leibSumT skipAtT skipAtT_lt skipAtT_ge skipAtT_origAt skipAtT_skipAtT_origAt survPairT_pairs sumUptoT_skip sumUptoT_peel_pair sumUptoT_peel_pair_collapse sumUptoT_involution sumUptoT_split sumUptoT_flatten detT_congr detTermT detT_congr_lt prodUptoT_congr_lt sumUptoT_pointwise_add sumUptoT_mul_left rowAtT rowAtT_at rowAtT_other detT_row0_add detT_rowk_add detT_row_smul detT_row_zero detT_row_sumUptoT detT_mixRowsT_step detT_rowAtT_smul mixRowsT_rowAtT_succ prodPrefixT_low expandTermT expandTermT_zero detSumT matMinor2T matMinor2T_swap ringSignT_succ ringSignT_add detSumT_norm detSumT_swap detSumT_pair detT_double sumUptoT_zeros detT_rows01 detT_rows_adj rowsAdjT rowsAdjT_at rowsAdjT_succ rowsAdjT_other rowsAdjT_self detT_rowsAdj_add_at detT_rowsAdj_add_succ detT_antisym_adj detT_swap_adj detT_rows_eq detT_repeatOn rows_swapValT negT_eq_of_add_eq_zero detT_perm detT_permOn ringSignT_mul_left ringSignT_mul_right ringSignT_mul_one sumUptoT_single matMinorT_idMatT_zero detT_idMatT matMulOnT_idMatT sumUptoT_const_zero sumUptoT_swap expandTermT_step expandSumT leibSumT_eq_detT detT_mul)
 end ZFSet

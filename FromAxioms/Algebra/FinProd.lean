@@ -1190,6 +1190,8 @@ theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 
 #print axioms IsCommMonoid.toMonoid
 #print axioms gpow_add_of_commMonoid
+/-! ## The `n`-torsion of a commutative group is a subgroup -/
+
 /-- A fold whose summand depends only on `t % f` collapses to a power.
 
     fold over t < g*f of H (t % f)  =  (fold over a < f of H a) ^ g

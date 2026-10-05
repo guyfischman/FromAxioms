@@ -59,6 +59,10 @@
   {
    "principle": "NumberTheory.Eis.SplitDecision",
    "note": "PROVED, not assumed: `NumberTheory.Eis.splitDecision` derives it with no hypothesis, so it is not a lattice node and no edge places it. `exists_irreducible_factor` still takes it as a hypothesis, which the theorem that discharges it makes unnecessary."
+  },
+  {
+   "principle": "Constructive.FANstable",
+   "note": "No incoming edge. The published `WLPO -> stable fan theorem` does not supply one: stable here is double-negation stability, the literature's is a \u03a3\u2070\u2081-definable bar, and the two are incomparable in this tree, by `nnStable_forall` and `mp_iff_sigma01_stable`, both axiom-free."
   }
  ],
  "_equivalences": [

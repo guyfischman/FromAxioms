@@ -94,6 +94,103 @@ theorem mem_limUpper_iff (f q : ZFSet.{u}) :
       ∃ N, N ∈ omega.{u} ∧ ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt (ratAdd (app f n) ε) q :=
   mem_sep_iff _ _ _
 
+/-! ## The same pair as the cut of a margin-free predicate
+
+The margin and the cut's witness are the same device, written twice. `cutLower`
+is the open downset of a predicate --- `q` is in it when some `q' > q`
+satisfies the predicate --- and that interior witness is what makes
+`lower_open` free in `Located.lean`. `limLower` supplies its own interior
+witness instead, as the margin `ε`, so its `lower_open` clause had to halve `ε`
+through `exists_mul_lt`. Dropping the margin to plain `p' < f n` and letting
+the cut carry the witness names the same set and retires the halving.
+
+A bridge rather than a redefinition. Spelling `limLower` as `cutLower` of the
+predicate outright would make the bridge `rfl`, as it is for `acosLower`,
+`piCut` and `integralCut`, but `mem_limUpper_iff` would stop being
+`mem_sep_iff`: its forward direction needs `app f n ∈ NumberTheory.Rat`, which
+only `hf` supplies, so the `iff` would grow a hypothesis at every unfolding
+site in this file and `Limit.lean`. The bridge pays that cost once, here, where
+`hf` is in scope. -/
+
+/-- `limLower` is a generic cut, over the predicate *eventually below every
+term*. The margin is recovered as `p' - q` one way and supplied as
+`p' := q + ε` the other; no halving in either direction.
+
+Takes no `hf`: both directions move only `q` and `p'` about, and never have to
+know that `app f n` is rational; `limUpper_eq_cut` does. -/
+theorem limLower_eq_cut (f : ZFSet.{u}) :
+    limLower f = cutLower (fun p' => ∃ N, N ∈ omega.{u} ∧
+      ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt p' (app f n)) := by
+  apply ZFSet.ext
+  intro q
+  rw [mem_limLower_iff, mem_cutLower_iff]
+  constructor
+  · rintro ⟨hqQ, ε, hεQ, hε, N, hN, h⟩
+    refine ⟨hqQ, ratAdd q ε, ratAdd_mem_Rat hqQ hεQ, ?_, N, hN, h⟩
+    have hstep := (ratAdd_lt_add_left_iff hqQ ratZero_mem_Rat hεQ).mpr hε
+    rwa [ratAdd_zero hqQ] at hstep
+  · rintro ⟨hqQ, p', hp'Q, hqp', N, hN, h⟩
+    refine ⟨hqQ, ratAdd p' (ratNeg q), ratAdd_mem_Rat hp'Q (ratNeg_mem_Rat hqQ),
+      ?_, N, hN, fun n hn hNn => ?_⟩
+    · have hstep := (ratAdd_lt_add_right_iff (ratNeg_mem_Rat hqQ) hqQ hp'Q).mpr hqp'
+      rwa [ratAdd_neg hqQ] at hstep
+    · rw [ratAdd_comm hp'Q (ratNeg_mem_Rat hqQ),
+        ← ratAdd_assoc hqQ (ratNeg_mem_Rat hqQ) hp'Q, ratAdd_neg hqQ,
+        ratZero_add hp'Q]
+      exact h n hn hNn
+
+/-- `limUpper` is a generic cut, the mirror of `limLower_eq_cut`, with
+`r' := q - ε` forward and `ε := q - r'` back.
+
+Takes `hf` where the lower bridge does not, because both directions compare
+`app f n` against a shifted `q` and every order lemma in this tree is
+membership-guarded. -/
+theorem limUpper_eq_cut {f : ZFSet.{u}} (hf : f ∈ ratSeqs.{u}) :
+    limUpper f = cutUpper (fun r' => ∃ N, N ∈ omega.{u} ∧
+      ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt (app f n) r') := by
+  apply ZFSet.ext
+  intro q
+  rw [mem_limUpper_iff, mem_cutUpper_iff]
+  constructor
+  · rintro ⟨hqQ, ε, hεQ, hε, N, hN, h⟩
+    have hnε := ratNeg_mem_Rat hεQ
+    refine ⟨hqQ, ratAdd q (ratNeg ε), ratAdd_mem_Rat hqQ hnε, ?_, N, hN,
+      fun n hn hNn => ?_⟩
+    · have hneg : ratLt (ratNeg ε) ratZero.{u} := by
+        have hs2 := (ratNeg_lt_neg_iff hεQ ratZero_mem_Rat).mpr hε
+        rwa [ratNeg_zero] at hs2
+      have hstep := (ratAdd_lt_add_left_iff hqQ hnε ratZero_mem_Rat).mpr hneg
+      rwa [ratAdd_zero hqQ] at hstep
+    · have hfn := app_mem_Rat hf hn
+      refine (ratAdd_lt_add_right_iff hεQ hfn (ratAdd_mem_Rat hqQ hnε)).mp ?_
+      rw [sub_add_cancel hqQ hεQ]
+      exact h n hn hNn
+  · rintro ⟨hqQ, r', hr'Q, hr'q, N, hN, h⟩
+    have hnr := ratNeg_mem_Rat hr'Q
+    have hEQ := ratAdd_mem_Rat hqQ hnr
+    refine ⟨hqQ, ratAdd q (ratNeg r'), hEQ, ?_, N, hN, fun n hn hNn => ?_⟩
+    · have hstep := (ratAdd_lt_add_right_iff hnr hr'Q hqQ).mpr hr'q
+      rwa [ratAdd_neg hr'Q] at hstep
+    · have hfn := app_mem_Rat hf hn
+      have hstep := (ratAdd_lt_add_right_iff hEQ hfn hr'Q).mpr (h n hn hNn)
+      rwa [ratAdd_comm hr'Q hEQ, sub_add_cancel hqQ hr'Q] at hstep
+
+/-- Separation at the margin-free pair: pass to a common stage and chain.
+
+Needs no Cauchy hypothesis: two eventual bounds are compared at any index past
+both, and `exists_upper_omega` supplies one without a maximum. The twin of
+`realLim_sep`. -/
+theorem lim_sep {f : ZFSet.{u}} (hf : f ∈ ratSeqs.{u})
+    {p' r' : ZFSet.{u}} (hp' : p' ∈ NumberTheory.Rat.{u})
+    (hr' : r' ∈ NumberTheory.Rat.{u})
+    (hL : ∃ N, N ∈ omega.{u} ∧ ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt p' (app f n))
+    (hR : ∃ M, M ∈ omega.{u} ∧ ∀ n, n ∈ omega.{u} → M ⊆ n → ratLt (app f n) r') :
+    ratLt p' r' := by
+  obtain ⟨N, hN, h1⟩ := hL
+  obtain ⟨M, hM, h2⟩ := hR
+  obtain ⟨k, hk, hkN, hkM⟩ := exists_upper_omega hN hM
+  exact ratLt_trans hp' (app_mem_Rat hf hk) hr' (h1 k hk hkN) (h2 k hk hkM)
+
 private theorem two_nonneg : ratLe ratZero.{u} (ratAdd ratOne.{u} ratOne.{u}) := by
   have hstep := (ratAdd_le_add_left_iff ratOne_mem_Rat ratZero_mem_Rat
     ratOne_mem_Rat).mpr ratZero_lt_one.left
@@ -103,156 +200,125 @@ private theorem two_nonneg : ratLe ratZero.{u} (ratAdd ratOne.{u} ratOne.{u}) :=
 
 /-- A Cauchy sequence determines a located pair: the rationals eventually below
 its terms by a margin, and those eventually above by one. This is the embedding
-of the Cauchy reals into the Dedekind reals, and it needs no choice. -/
+of the Cauchy reals into the Dedekind reals, and it needs no choice.
+
+Proved through `isLocated_cut`: seven of the ten clauses --- both subsets, both
+`_down`/`_up` monotonicities, both `_open`s and `ordered` --- are properties of
+`cutLower` and `cutUpper` themselves, so the two bridges above discharge them,
+and `ordered` is `lim_sep`. The two inhabitedness witnesses and the disjunction
+are proved below and carried across the bridges, which turn membership into the
+interior witness `isLocated_cut` wants. The disjunction is the `3D` split
+against the Cauchy modulus, deciding by `ratLe_total` on a rational comparison
+rather than a real one. -/
 theorem isLocated_lim {f : ZFSet.{u}} (hf : f ∈ ratSeqs.{u}) (hc : IsCauchy f) :
-    IsLocated (limLower f) (limUpper f) where
-  lower_subset q hq := ((mem_limLower_iff f q).mp hq).left
-  upper_subset q hq := ((mem_limUpper_iff f q).mp hq).left
-  lower_inhabited := by
-    obtain ⟨N, hN, hcau⟩ := hc ratOne.{u} ratOne_mem_Rat ratZero_lt_one
-    have hfN := app_mem_Rat hf hN
-    have hn1 := ratNeg_mem_Rat ratOne_mem_Rat
-    refine ⟨ratAdd (ratAdd (app f N) (ratNeg ratOne.{u})) (ratNeg ratOne.{u}),
-      (mem_limLower_iff f _).mpr ⟨ratAdd_mem_Rat (ratAdd_mem_Rat hfN hn1) hn1,
-        ratOne.{u}, ratOne_mem_Rat, ratZero_lt_one, N, hN, fun n hn hNn => ?_⟩⟩
-    have hfn := app_mem_Rat hf hn
-    rw [sub_add_cancel (ratAdd_mem_Rat hfN hn1) ratOne_mem_Rat]
-    -- `f N - f n < 1` gives `f N - 1 < f n`
-    have hstep := hcau N hN n hn (fun _ h => h) hNn
-    rw [sub_lt_iff_lt_add hfN hfn ratOne_mem_Rat] at hstep
-    rw [sub_lt_iff_lt_add hfN ratOne_mem_Rat hfn, ratAdd_comm ratOne_mem_Rat hfn]
-    exact hstep
-  upper_inhabited := by
-    obtain ⟨N, hN, hcau⟩ := hc ratOne.{u} ratOne_mem_Rat ratZero_lt_one
-    have hfN := app_mem_Rat hf hN
-    refine ⟨ratAdd (ratAdd (app f N) ratOne.{u}) ratOne.{u},
-      (mem_limUpper_iff f _).mpr ⟨ratAdd_mem_Rat (ratAdd_mem_Rat hfN ratOne_mem_Rat)
-        ratOne_mem_Rat, ratOne.{u}, ratOne_mem_Rat, ratZero_lt_one, N, hN,
-        fun n hn hNn => ?_⟩⟩
-    have hfn := app_mem_Rat hf hn
-    -- `f n - f N < 1` gives `f n + 1 < (f N + 1) + 1`
-    have hstep := hcau n hn N hN hNn (fun _ h => h)
-    rw [sub_lt_iff_lt_add hfn hfN ratOne_mem_Rat] at hstep
-    have hgoal := (ratAdd_lt_add_right_iff ratOne_mem_Rat hfn
-      (ratAdd_mem_Rat hfN ratOne_mem_Rat)).mpr hstep
-    exact hgoal
-  ordered q hq r hr := by
-    obtain ⟨hqQ, ε₁, hε₁Q, hε₁, N₁, hN₁, h₁⟩ := (mem_limLower_iff f q).mp hq
-    obtain ⟨hrQ, ε₂, hε₂Q, hε₂, N₂, hN₂, h₂⟩ := (mem_limUpper_iff f r).mp hr
-    obtain ⟨k, hk, hk₁, hk₂⟩ := exists_upper_omega hN₁ hN₂
-    have hfk := app_mem_Rat hf hk
-    have hlow := h₁ k hk hk₁
-    have hhigh := h₂ k hk hk₂
-    -- `q < q + ε₁ < f k < f k + ε₂ < r`
-    have hq1 : ratLt q (ratAdd q ε₁) := by
-      have hstep := (ratAdd_lt_add_left_iff hqQ ratZero_mem_Rat hε₁Q).mpr hε₁
-      rwa [ratAdd_zero hqQ] at hstep
-    have hk2 : ratLt (app f k) (ratAdd (app f k) ε₂) := by
-      have hstep := (ratAdd_lt_add_left_iff hfk ratZero_mem_Rat hε₂Q).mpr hε₂
-      rwa [ratAdd_zero hfk] at hstep
-    exact ratLt_trans hqQ hfk hrQ
-      (ratLt_trans hqQ (ratAdd_mem_Rat hqQ hε₁Q) hfk hq1 hlow)
-      (ratLt_trans hfk (ratAdd_mem_Rat hfk hε₂Q) hrQ hk2 hhigh)
-  lower_down q hq p hpQ hlt := by
-    obtain ⟨hqQ, ε, hεQ, hε, N, hN, h⟩ := (mem_limLower_iff f q).mp hq
-    refine (mem_limLower_iff f p).mpr ⟨hpQ, ε, hεQ, hε, N, hN, fun n hn hNn => ?_⟩
-    exact ratLt_trans (ratAdd_mem_Rat hpQ hεQ) (ratAdd_mem_Rat hqQ hεQ)
-      (app_mem_Rat hf hn) ((ratAdd_lt_add_right_iff hεQ hpQ hqQ).mpr hlt) (h n hn hNn)
-  upper_up q hq p hpQ hlt := by
-    obtain ⟨hqQ, ε, hεQ, hε, N, hN, h⟩ := (mem_limUpper_iff f q).mp hq
-    refine (mem_limUpper_iff f p).mpr ⟨hpQ, ε, hεQ, hε, N, hN, fun n hn hNn => ?_⟩
-    exact ratLt_trans (ratAdd_mem_Rat (app_mem_Rat hf hn) hεQ) hqQ hpQ (h n hn hNn) hlt
-  lower_open q hq := by
-    obtain ⟨hqQ, ε, hεQ, hε, N, hN, h⟩ := (mem_limLower_iff f q).mp hq
-    obtain ⟨D, hDQ, hD0, hDlt⟩ := exists_mul_lt (ratAdd_mem_Rat ratOne_mem_Rat
-      ratOne_mem_Rat) hεQ two_nonneg hε
-    have hDD : ratLt (ratAdd D D) ε := by
-      rwa [ratAdd_mul ratOne_mem_Rat ratOne_mem_Rat hDQ, ratOne_mul hDQ] at hDlt
-    refine ⟨ratAdd q D, (mem_limLower_iff f _).mpr ⟨ratAdd_mem_Rat hqQ hDQ, D, hDQ, hD0,
-      N, hN, fun n hn hNn => ?_⟩, ?_⟩
-    · rw [ratAdd_assoc hqQ hDQ hDQ]
-      exact ratLt_trans (ratAdd_mem_Rat hqQ (ratAdd_mem_Rat hDQ hDQ))
-        (ratAdd_mem_Rat hqQ hεQ) (app_mem_Rat hf hn)
-        ((ratAdd_lt_add_left_iff hqQ (ratAdd_mem_Rat hDQ hDQ) hεQ).mpr hDD) (h n hn hNn)
-    · have hstep := (ratAdd_lt_add_left_iff hqQ ratZero_mem_Rat hDQ).mpr hD0
-      rwa [ratAdd_zero hqQ] at hstep
-  upper_open q hq := by
-    obtain ⟨hqQ, ε, hεQ, hε, N, hN, h⟩ := (mem_limUpper_iff f q).mp hq
-    obtain ⟨D, hDQ, hD0, hDlt⟩ := exists_mul_lt (ratAdd_mem_Rat ratOne_mem_Rat
-      ratOne_mem_Rat) hεQ two_nonneg hε
-    have hDD : ratLt (ratAdd D D) ε := by
-      rwa [ratAdd_mul ratOne_mem_Rat ratOne_mem_Rat hDQ, ratOne_mul hDQ] at hDlt
-    refine ⟨ratAdd q (ratNeg D), (mem_limUpper_iff f _).mpr
-      ⟨ratAdd_mem_Rat hqQ (ratNeg_mem_Rat hDQ), D, hDQ, hD0, N, hN, fun n hn hNn => ?_⟩, ?_⟩
-    · -- `f n + D < q - D` because `f n + (D + D) < f n + ε < q`
+    IsLocated (limLower f) (limUpper f) := by
+  rw [limLower_eq_cut f, limUpper_eq_cut hf]
+  refine isLocated_cut
+    (Left := fun p' => ∃ N, N ∈ omega.{u} ∧
+      ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt p' (app f n))
+    (Right := fun r' => ∃ N, N ∈ omega.{u} ∧
+      ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt (app f n) r')
+    (fun hp' hr' hL hR => lim_sep hf hp' hr' hL hR) ?_ ?_ ?_
+  · -- `f N - 1 - 1` is in the lower set, by the Cauchy bound at `ε = 1`
+    have hlow : ∃ p, p ∈ limLower f := by
+      obtain ⟨N, hN, hcau⟩ := hc ratOne.{u} ratOne_mem_Rat ratZero_lt_one
+      have hfN := app_mem_Rat hf hN
+      have hn1 := ratNeg_mem_Rat ratOne_mem_Rat
+      refine ⟨ratAdd (ratAdd (app f N) (ratNeg ratOne.{u})) (ratNeg ratOne.{u}),
+        (mem_limLower_iff f _).mpr ⟨ratAdd_mem_Rat (ratAdd_mem_Rat hfN hn1) hn1,
+          ratOne.{u}, ratOne_mem_Rat, ratZero_lt_one, N, hN, fun n hn hNn => ?_⟩⟩
       have hfn := app_mem_Rat hf hn
-      refine (ratAdd_lt_add_right_iff hDQ (ratAdd_mem_Rat hfn hDQ)
-        (ratAdd_mem_Rat hqQ (ratNeg_mem_Rat hDQ))).mp ?_
-      rw [sub_add_cancel hqQ hDQ, ratAdd_assoc hfn hDQ hDQ]
-      exact ratLt_trans (ratAdd_mem_Rat hfn (ratAdd_mem_Rat hDQ hDQ))
-        (ratAdd_mem_Rat hfn hεQ) hqQ
-        ((ratAdd_lt_add_left_iff hfn (ratAdd_mem_Rat hDQ hDQ) hεQ).mpr hDD) (h n hn hNn)
-    · have hstep := (ratAdd_lt_add_left_iff hqQ (ratNeg_mem_Rat hDQ) ratZero_mem_Rat).mpr
-        (by
-          have hs2 := (ratNeg_lt_neg_iff hDQ ratZero_mem_Rat).mpr hD0
-          rwa [ratNeg_zero] at hs2)
-      rwa [ratAdd_zero hqQ] at hstep
-  located p hpQ s hsQ hps := by
-    have hnp := ratNeg_mem_Rat hpQ
-    have hε : ratLt ratZero.{u} (ratAdd s (ratNeg p)) := by
-      have hstep := (ratAdd_lt_add_right_iff hnp hpQ hsQ).mpr hps
-      rwa [ratAdd_neg hpQ] at hstep
-    -- `D` with `3D < s - p`
-    obtain ⟨D, hDQ, hD0, hDlt⟩ := exists_mul_lt
-      (ratAdd_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat)
-      (ratAdd_mem_Rat hsQ hnp)
-      (ratLe_trans ratZero_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)
-        (ratAdd_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat)
-        two_nonneg (by
-          have hstep := (ratAdd_le_add_left_iff (ratAdd_mem_Rat ratOne_mem_Rat
-            ratOne_mem_Rat) ratZero_mem_Rat ratOne_mem_Rat).mpr ratZero_lt_one.left
-          rwa [ratAdd_zero (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)] at hstep))
-      hε
-    have h3D : ratLt (ratAdd (ratAdd D D) D) (ratAdd s (ratNeg p)) := by
-      rwa [ratAdd_mul (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat hDQ,
-          ratAdd_mul ratOne_mem_Rat ratOne_mem_Rat hDQ, ratOne_mul hDQ] at hDlt
-    have hP3Q := ratAdd_mem_Rat (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hDQ
-    have hP3 : ratLt (ratAdd (ratAdd (ratAdd p D) D) D) s := by
-      have hassoc : ratAdd (ratAdd (ratAdd p D) D) D
-          = ratAdd p (ratAdd (ratAdd D D) D) := by
-        rw [ratAdd_assoc hpQ hDQ hDQ, ratAdd_assoc hpQ (ratAdd_mem_Rat hDQ hDQ) hDQ]
-      rw [hassoc]
-      have hstep := (ratAdd_lt_add_left_iff hpQ (ratAdd_mem_Rat (ratAdd_mem_Rat hDQ hDQ) hDQ)
-        (ratAdd_mem_Rat hsQ hnp)).mpr h3D
-      rwa [ratAdd_sub_cancel hsQ hpQ] at hstep
-    obtain ⟨N, hN, hcau⟩ := hc D hDQ hD0
-    have hfN := app_mem_Rat hf hN
-    -- does the sequence stay above `p + 2D`, or below it?
-    rcases ratLe_total (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hfN with hle | hle
-    · refine Or.inl ((mem_limLower_iff f p).mpr ⟨hpQ, D, hDQ, hD0, N, hN,
-        fun n hn hNn => ?_⟩)
-      have hfn := app_mem_Rat hf hn
-      -- `f N < f n + D`, and `(p + D) + D ≤ f N`
+      rw [sub_add_cancel (ratAdd_mem_Rat hfN hn1) ratOne_mem_Rat]
+      -- `f N - f n < 1` gives `f N - 1 < f n`
       have hstep := hcau N hN n hn (fun _ h => h) hNn
-      rw [sub_lt_iff_lt_add hfN hfn hDQ] at hstep
-      refine (ratAdd_lt_add_right_iff hDQ (ratAdd_mem_Rat hpQ hDQ) hfn).mp ?_
-      exact ratLt_of_le_of_lt (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hfN
-        (ratAdd_mem_Rat hfn hDQ) hle hstep
-    · refine Or.inr ((mem_limUpper_iff f s).mpr ⟨hsQ,
-        ratAdd s (ratNeg (ratAdd (ratAdd (ratAdd p D) D) D)),
-        ratAdd_mem_Rat hsQ (ratNeg_mem_Rat hP3Q), ?_, N, hN, fun n hn hNn => ?_⟩)
-      · have hstep := (ratAdd_lt_add_right_iff (ratNeg_mem_Rat hP3Q) hP3Q hsQ).mpr hP3
-        rwa [ratAdd_neg hP3Q] at hstep
-      · have hfn := app_mem_Rat hf hn
-        -- `f n < f N + D ≤ ((p + D) + D) + D`, so `f n + (s - that) < s`
-        have hstep := hcau n hn N hN hNn (fun _ h => h)
-        rw [sub_lt_iff_lt_add hfn hfN hDQ] at hstep
-        have hlt3 : ratLt (app f n) (ratAdd (ratAdd (ratAdd p D) D) D) :=
-          ratLt_of_lt_of_le hfn (ratAdd_mem_Rat hfN hDQ) hP3Q hstep
-            ((ratAdd_le_add_right_iff hDQ hfN (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ)).mpr hle)
-        have hgoal := (ratAdd_lt_add_right_iff (ratAdd_mem_Rat hsQ (ratNeg_mem_Rat hP3Q))
-          hfn hP3Q).mpr hlt3
-        rwa [ratAdd_sub_cancel hsQ hP3Q] at hgoal
+      rw [sub_lt_iff_lt_add hfN hfn ratOne_mem_Rat] at hstep
+      rw [sub_lt_iff_lt_add hfN ratOne_mem_Rat hfn, ratAdd_comm ratOne_mem_Rat hfn]
+      exact hstep
+    obtain ⟨p, hp⟩ := hlow
+    rw [limLower_eq_cut f, mem_cutLower_iff] at hp
+    obtain ⟨hpQ, p', hp'Q, hpp', hL⟩ := hp
+    exact ⟨p, p', hpQ, hp'Q, hpp', hL⟩
+  · -- `f N + 1 + 1` is in the upper set, the same way
+    have hup : ∃ r, r ∈ limUpper f := by
+      obtain ⟨N, hN, hcau⟩ := hc ratOne.{u} ratOne_mem_Rat ratZero_lt_one
+      have hfN := app_mem_Rat hf hN
+      refine ⟨ratAdd (ratAdd (app f N) ratOne.{u}) ratOne.{u},
+        (mem_limUpper_iff f _).mpr ⟨ratAdd_mem_Rat (ratAdd_mem_Rat hfN ratOne_mem_Rat)
+          ratOne_mem_Rat, ratOne.{u}, ratOne_mem_Rat, ratZero_lt_one, N, hN,
+          fun n hn hNn => ?_⟩⟩
+      have hfn := app_mem_Rat hf hn
+      -- `f n - f N < 1` gives `f n + 1 < (f N + 1) + 1`
+      have hstep := hcau n hn N hN hNn (fun _ h => h)
+      rw [sub_lt_iff_lt_add hfn hfN ratOne_mem_Rat] at hstep
+      exact (ratAdd_lt_add_right_iff ratOne_mem_Rat hfn
+        (ratAdd_mem_Rat hfN ratOne_mem_Rat)).mpr hstep
+    obtain ⟨r, hr⟩ := hup
+    rw [limUpper_eq_cut hf, mem_cutUpper_iff] at hr
+    obtain ⟨hrQ, r', hr'Q, hr'r, hR⟩ := hr
+    exact ⟨r, r', hrQ, hr'Q, hr'r, hR⟩
+  · -- the located disjunction, then across the bridges
+    intro p s hpQ hsQ hps
+    have hset : p ∈ limLower f ∨ s ∈ limUpper f := by
+      have hnp := ratNeg_mem_Rat hpQ
+      have hε : ratLt ratZero.{u} (ratAdd s (ratNeg p)) := by
+        have hstep := (ratAdd_lt_add_right_iff hnp hpQ hsQ).mpr hps
+        rwa [ratAdd_neg hpQ] at hstep
+      -- `D` with `3D < s - p`
+      obtain ⟨D, hDQ, hD0, hDlt⟩ := exists_mul_lt
+        (ratAdd_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat)
+        (ratAdd_mem_Rat hsQ hnp)
+        (ratLe_trans ratZero_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)
+          (ratAdd_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat)
+          two_nonneg (by
+            have hstep := (ratAdd_le_add_left_iff (ratAdd_mem_Rat ratOne_mem_Rat
+              ratOne_mem_Rat) ratZero_mem_Rat ratOne_mem_Rat).mpr ratZero_lt_one.left
+            rwa [ratAdd_zero (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)] at hstep))
+        hε
+      have h3D : ratLt (ratAdd (ratAdd D D) D) (ratAdd s (ratNeg p)) := by
+        rwa [ratAdd_mul (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratOne_mem_Rat hDQ,
+            ratAdd_mul ratOne_mem_Rat ratOne_mem_Rat hDQ, ratOne_mul hDQ] at hDlt
+      have hP3Q := ratAdd_mem_Rat (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hDQ
+      have hP3 : ratLt (ratAdd (ratAdd (ratAdd p D) D) D) s := by
+        have hassoc : ratAdd (ratAdd (ratAdd p D) D) D
+            = ratAdd p (ratAdd (ratAdd D D) D) := by
+          rw [ratAdd_assoc hpQ hDQ hDQ, ratAdd_assoc hpQ (ratAdd_mem_Rat hDQ hDQ) hDQ]
+        rw [hassoc]
+        have hstep := (ratAdd_lt_add_left_iff hpQ (ratAdd_mem_Rat (ratAdd_mem_Rat hDQ hDQ) hDQ)
+          (ratAdd_mem_Rat hsQ hnp)).mpr h3D
+        rwa [ratAdd_sub_cancel hsQ hpQ] at hstep
+      obtain ⟨N, hN, hcau⟩ := hc D hDQ hD0
+      have hfN := app_mem_Rat hf hN
+      -- does the sequence stay above `p + 2D`, or below it?
+      rcases ratLe_total (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hfN with hle | hle
+      · refine Or.inl ((mem_limLower_iff f p).mpr ⟨hpQ, D, hDQ, hD0, N, hN,
+          fun n hn hNn => ?_⟩)
+        have hfn := app_mem_Rat hf hn
+        -- `f N < f n + D`, and `(p + D) + D ≤ f N`
+        have hstep := hcau N hN n hn (fun _ h => h) hNn
+        rw [sub_lt_iff_lt_add hfN hfn hDQ] at hstep
+        refine (ratAdd_lt_add_right_iff hDQ (ratAdd_mem_Rat hpQ hDQ) hfn).mp ?_
+        exact ratLt_of_le_of_lt (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ) hfN
+          (ratAdd_mem_Rat hfn hDQ) hle hstep
+      · refine Or.inr ((mem_limUpper_iff f s).mpr ⟨hsQ,
+          ratAdd s (ratNeg (ratAdd (ratAdd (ratAdd p D) D) D)),
+          ratAdd_mem_Rat hsQ (ratNeg_mem_Rat hP3Q), ?_, N, hN, fun n hn hNn => ?_⟩)
+        · have hstep := (ratAdd_lt_add_right_iff (ratNeg_mem_Rat hP3Q) hP3Q hsQ).mpr hP3
+          rwa [ratAdd_neg hP3Q] at hstep
+        · have hfn := app_mem_Rat hf hn
+          -- `f n < f N + D ≤ ((p + D) + D) + D`, so `f n + (s - that) < s`
+          have hstep := hcau n hn N hN hNn (fun _ h => h)
+          rw [sub_lt_iff_lt_add hfn hfN hDQ] at hstep
+          have hlt3 : ratLt (app f n) (ratAdd (ratAdd (ratAdd p D) D) D) :=
+            ratLt_of_lt_of_le hfn (ratAdd_mem_Rat hfN hDQ) hP3Q hstep
+              ((ratAdd_le_add_right_iff hDQ hfN (ratAdd_mem_Rat (ratAdd_mem_Rat hpQ hDQ) hDQ)).mpr hle)
+          have hgoal := (ratAdd_lt_add_right_iff (ratAdd_mem_Rat hsQ (ratNeg_mem_Rat hP3Q))
+            hfn hP3Q).mpr hlt3
+          rwa [ratAdd_sub_cancel hsQ hP3Q] at hgoal
+    rcases hset with h | h
+    · rw [limLower_eq_cut f, mem_cutLower_iff] at h
+      exact Or.inl h.right
+    · rw [limUpper_eq_cut hf, mem_cutUpper_iff] at h
+      exact Or.inr h.right
 
 /-! ## Where the converse would need choice
 
@@ -575,6 +641,9 @@ theorem hasApprox_of_ACOmega (hac : ACOmega.{u}) : HasApprox.{u} := by
 #print axioms app_mem_Rat
 #print axioms exists_upper_omega
 #print axioms isLocated_lim
+#print axioms limLower_eq_cut
+#print axioms limUpper_eq_cut
+#print axioms lim_sep
 #print axioms brackets_inhabited
 #print axioms isCauchy_of_brackets
 #print axioms limLower_of_brackets
@@ -597,5 +666,5 @@ theorem hasApprox_of_ACOmega (hac : ACOmega.{u}) : HasApprox.{u} := by
 end Analysis
 
 namespace ZFSet
-export Analysis (ACOmega HasApprox IsCauchy IsCauchyWith TendsToZero app_mem_Rat app_widthSeq bracketFam brackets brackets_inhabited brackets_mem_powerset exists_upper_omega hasApprox_of_ACOmega isCauchy_of_brackets isLocated_lim limLower limLower_of_brackets limUpper limUpper_of_brackets mem_brackets_iff mem_limLower_iff mem_limUpper_iff mem_ratSeqs_iff natSeq_mem_ratSeqs ratSeqs sub_lt_of_bracket tendsToZero_widthSeq widthSeq widthSeq_mem_ratSeqs)
+export Analysis (ACOmega HasApprox IsCauchy IsCauchyWith TendsToZero app_mem_Rat app_widthSeq bracketFam brackets brackets_inhabited brackets_mem_powerset exists_upper_omega hasApprox_of_ACOmega isCauchy_of_brackets isLocated_lim lim_sep limLower limLower_eq_cut limLower_of_brackets limUpper limUpper_eq_cut limUpper_of_brackets mem_brackets_iff mem_limLower_iff mem_limUpper_iff mem_ratSeqs_iff natSeq_mem_ratSeqs ratSeqs sub_lt_of_bracket tendsToZero_widthSeq widthSeq widthSeq_mem_ratSeqs)
 end ZFSet

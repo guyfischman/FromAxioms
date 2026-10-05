@@ -11,3 +11,4 @@ The Core area. This file is generated; it imports every module in
 import FromAxioms.Core.CoreShim
 import FromAxioms.Core.NatSearch
 import FromAxioms.Core.NatPair
+import FromAxioms.Core.Principles

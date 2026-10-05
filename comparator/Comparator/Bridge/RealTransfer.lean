@@ -21,6 +21,17 @@ So the floor is that the supremum exists, which is `IsCut.nonempty` and
 `IsCut.proper` read through rung 3. Making `proper`'s outside rational into an
 upper bound in `ℚ` is exactly `toRat_le`, so that lemma is the last rung below
 this file.
+
+This file carries both directions and the full ring structure:
+
+    ofRL / ofRL_mem            R -> RealL, landing in the carrier
+    toRL / toRL_ofRL           RealL -> R, and the round trip
+    toRL_add, toRL_mul,        the ring laws
+      toRL_neg, toRL_zero,
+      toRL_one, toRL_realLPow
+    toRL_le_iff, toRL_lt_iff,  the order, as an iff
+      toRL_injective
+    toRL_realLInv              and the inverse
 -/
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 -- `bernsteinPolynomial`, for `toRL_bernTerm` at the end of this file.

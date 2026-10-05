@@ -321,6 +321,10 @@ theorem withinOf_mul {x y a b : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Re
       (ratMul_mem_Rat hqQ hrQ) c₁
       ((ratNeg_lt_neg_iff (ratMul_mem_Rat hqQ hrQ) hpQ).mp hlt))
 
+/-! ## The triangle inequality
+
+In the rational-bound form every estimate below uses. -/
+
 /-- The triangle inequality, in the rational-bound form: two reals each near
 `A` are near each other. -/
 theorem close_of_close_close {A B C c d : ZFSet.{u}} (hA : A ∈ RealL.{u})
@@ -774,9 +778,7 @@ theorem hasDerivAt_comp {F G : ZFSet.{u} → ZFSet.{u}} {p q p' q' a L M : ZFSet
   rw [← ratAdd_mul hiQ hiQ hwQ]
   exact ratMul_le_mul_right (ratAdd_mem_Rat hiQ hiQ) hεQ hwQ hi2.left hw0.left
 
-
-
-
+/-! ## Derivatives on an interval -/
 
 /-- `F'` is a slope function for `F` on `[p, q]`, uniformly in the base point. -/
 def HasDerivOn (F F' : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) : Prop :=
@@ -819,14 +821,7 @@ theorem hasDerivOn_step {F F' : ZFSet.{u} → ZFSet.{u}} {p q K : ZFSet.{u}}
     (realLAdd_mem hxM (realLNeg_mem hyM)) hK hwQ hK0 hw0.left (hbd y hy) hclose
     (hm w x y hwQ hw0 hwle hx hy hclose)
 
-/-! ## The mean value inequality
-
-What survives is the inequality, `|F d - F c| ≤ K·(d - c)` when `K` bounds
-the slope, and applications of the mean value theorem need no more. Nothing is
-located: the estimate is chained along the grid of `IVT.lean`, each step
-bounded in terms of its own width rather than the mesh, so the widths telescope
-to `d - c` exactly. The scale `1/(n+1)` left over at each step is then sent to
-zero, which `withinOf_of_margins` does. -/
+/-! ## The mean value inequality -/
 
 theorem ratSub_add_sub {a b c : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u})
     (hc : c ∈ NumberTheory.Rat.{u}) :
@@ -2912,7 +2907,7 @@ theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
 #print axioms le_add_radius_of_close
 
 /-- From `X - Y ≤ W`, shift `W` across: `X - W ≤ Y`. Pure rearrangement. -/
-private theorem realLLe_sub_of_sub_le {X Y W : ZFSet.{u}} (hX : X ∈ RealL.{u})
+theorem realLLe_sub_of_sub_le {X Y W : ZFSet.{u}} (hX : X ∈ RealL.{u})
     (hY : Y ∈ RealL.{u}) (hW : W ∈ RealL.{u})
     (h : realLLe (realLAdd X (realLNeg Y)) W) :
     realLLe (realLAdd X (realLNeg W)) Y := by

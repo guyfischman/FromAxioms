@@ -21,6 +21,7 @@ meet because a divisor of a number `≥ 2` is `0`, `1`, or `≥ 2`, and `0` is
 excluded by the bound.
 -/
 import Mathlib.Data.Nat.Prime.Basic
+import Mathlib.Data.Nat.Factorial.Basic
 import FromAxioms
 
 open NumberTheory
@@ -55,3 +56,11 @@ theorem prime_of_isPrime {p : ℕ} (hp : IsPrime p) : Nat.Prime p := by
 /-- The two spellings agree. -/
 theorem isPrime_iff_prime {p : ℕ} : IsPrime p ↔ Nat.Prime p :=
   ⟨prime_of_isPrime, isPrime_of_prime⟩
+
+/-- The tower's factorial is Lean's. Both are the same two-line recursion on
+`Nat`; the induction is what makes that a theorem rather than an assumption. -/
+theorem fact_eq_factorial : ∀ k : ℕ, NumberTheory.fact k = Nat.factorial k := by
+  intro k
+  induction k with
+  | zero => rfl
+  | succ i ih => rw [NumberTheory.fact, Nat.factorial_succ, ih]

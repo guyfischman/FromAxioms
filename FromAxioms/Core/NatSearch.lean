@@ -144,15 +144,7 @@ theorem listMax_mem : ∀ (l : List Nat), l ≠ [] → listMax l ∈ l
         exact List.Mem.tail _
           (listMax_mem (b :: r) (fun h => List.noConfusion h))
 
-/-! ## Unbounded search over a decidable sequence
-
-`Nat.find` is not in core against this toolchain, and BD-N's diagonal needs the
-witness as data: from `∃ n, α n = true` alone, compute the least such `n`.
-The recursion is on accessibility of the walk upward from `0`, and the
-existential steers it through `Acc` -- the one place a `Prop` may drive a
-computation without choice. The interface takes `α : Nat → Bool`, not a
-`Prop`-valued disjunction, because a `Prop`-level `Or` cannot eliminate into
-data. -/
+/-! ## Unbounded search over a decidable sequence -/
 
 /-- One step up the walk, allowed only over a miss. -/
 def seekStep (α : Nat → Bool) (a b : Nat) : Prop :=
@@ -268,6 +260,7 @@ theorem length_below : ∀ n : Nat, (below n).length = n
   | n + 1 => by rw [below, List.length_cons, length_below n]
 
 #print axioms Core.mem_below
+
 #print axioms Core.length_below
 
 /-- The smallest of `a` and the members of `l`. Seeded with a member rather
@@ -432,6 +425,7 @@ def BoolReadout1 : Prop :=
     ∃ K : Nat → Bool, ∀ i, (K i = true ↔ P i)
 #print axioms seekStep_acc
 #print axioms forall_lt_succ
+
 end Core
 
 #print axioms Core.exists_lt_or_not

@@ -2295,15 +2295,6 @@ theorem idealEquiv_prod {R add mul zero one I I' J J' : ZFSet.{u}}
 
 
 
-/-! ## Cancellation: what the monoid laws give, and where they stop
-
-`(a)·I = (a)·J` does not yield `I = J` from the monoid laws alone.
-
-The general case needs `(a)` to have an inverse among the ideals, and a
-commutative monoid does not supply inverses. That is ideal invertibility, a
-Dedekind-domain property, and it is the missing step between *the identity class
-contains the principal ideals* and the identity class consists of them. -/
-
 /-- The product congruence, with no domain hypothesis.
 
 `idealEquiv_prod` takes the domain hypothesis and spends it in the same place `idealEquiv_trans`

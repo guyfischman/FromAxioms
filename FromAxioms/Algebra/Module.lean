@@ -2702,6 +2702,7 @@ theorem dim_unique_of_detN {K add mul zero one V vadd vzero smul : ZFSet.{u}}
 #print axioms all_zero_or_exists_ne
 #print axioms lincomb_map_split
 #print axioms isModule_of_subring
+
 end Algebra
 
 

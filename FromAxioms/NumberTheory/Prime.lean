@@ -177,6 +177,35 @@ theorem isPrime_minFac {n : Nat} (hn : 2 ≤ n) : IsPrime (minFac n) := by
   · have := divides_le (by have := minFac_ge hn; omega) hdvd
     omega
 
+#print axioms NumberTheory.isPrime_minFac
+
+/-- Primality, decidably. `minFac` is computable and returns the least
+divisor at least two, so a number at least two is prime exactly when it is its
+own least divisor. -/
+theorem isPrime_iff_minFac_self {k : Nat} (hk : 2 ≤ k) :
+    IsPrime k ↔ minFac k = k := by
+  constructor
+  · intro hp
+    exact hp.right (minFac k) (minFac_ge hk) (minFac_divides hk)
+  · intro h
+    have hmf := isPrime_minFac hk
+    rwa [h] at hmf
+
+#print axioms NumberTheory.isPrime_iff_minFac_self
+
+/-- Primality is decided, through `minFac` and the bridge above.
+
+The `dite` is not avoidable: `isPrime_iff_minFac_self` needs `2 ≤ k`, and below
+that `IsPrime`'s own first conjunct is what refutes it. With this in scope a
+literal primality fact is `by decide`. -/
+instance isPrime_decidable (p : Nat) : Decidable (IsPrime p) :=
+  if h : 2 ≤ p then
+    decidable_of_iff (minFac p = p) (Iff.symm (isPrime_iff_minFac_self h))
+  else
+    isFalse (fun hp => h hp.left)
+
+#print axioms NumberTheory.isPrime_decidable
+
 /-! ## Euclid -/
 
 def fact : Nat → Nat
@@ -623,6 +652,9 @@ theorem prime_divides_prodList {p : Nat} (hp : IsPrime p) : ∀ l : List Nat,
 /-- Primes dividing primes are equal, so the factor found is the prime itself. -/
 theorem prime_eq_of_divides {p q : Nat} (hp : IsPrime p) (hq : IsPrime q)
     (h : Divides p q) : p = q := hq.right p hp.left h
+
+/-! ## The radical of a natural
+-/
 
 /-- The product is a permutation invariant, by induction on the permutation. -/
 theorem prodList_perm {l₁ l₂ : List Nat} (h : l₁.Perm l₂) : prodList l₁ = prodList l₂ := by
@@ -1092,24 +1124,11 @@ theorem sumOver_congr {g h : Nat → Nat} :
 #print axioms sumOver_congr
 
 /-- `2` is prime: a divisor at least `2` cannot exceed it. -/
-theorem isPrime_two : IsPrime 2 := by
-  refine ⟨by omega, fun d hd hdvd => ?_⟩
-  obtain ⟨c, hc⟩ := hdvd
-  rcases Nat.eq_zero_or_pos c with h0 | hcp
-  · rw [h0, Nat.mul_zero] at hc; omega
-  · have : d * 1 ≤ d * c := Nat.mul_le_mul_left d hcp
-    omega
+theorem isPrime_two : IsPrime 2 := by decide
 
 #print axioms isPrime_two
 /-- `3` is prime. -/
-theorem isPrime_three : IsPrime 3 := by
-  refine ⟨by omega, fun d hd hdvd => ?_⟩
-  obtain ⟨k, hk⟩ := hdvd
-  have hle : d ≤ 3 := divides_le (by omega) ⟨k, hk⟩
-  rcases Nat.lt_or_ge d 3 with hlt | hge
-  · obtain rfl : d = 2 := by omega
-    omega
-  · omega
+theorem isPrime_three : IsPrime 3 := by decide
 
 #print axioms isPrime_three
 
@@ -2166,20 +2185,6 @@ theorem prime_pow_split_unique {p a b z w : Nat} (hp : IsPrime p)
   · exact (key b a w z hgt hw h.symm).elim
 
 
-/-- Primality, decidably. `minFac` is computable and returns the least
-divisor at least two, so a number at least two is prime exactly when it is its
-own least divisor. So a search over primes can use a `Bool` predicate without a
-`Decidable (IsPrime k)` instance --- which matters, because `by_cases` is
-choice-free here only under such an instance. -/
-theorem isPrime_iff_minFac_self {k : Nat} (hk : 2 ≤ k) :
-    IsPrime k ↔ minFac k = k := by
-  constructor
-  · intro hp
-    exact hp.right (minFac k) (minFac_ge hk) (minFac_divides hk)
-  · intro h
-    have hmf := isPrime_minFac hk
-    rwa [h] at hmf
-
 /-- The search terminates. Hoisted into its own lemma rather than inlined
 twice: `natFind` takes the existence proof as an argument, so the definition
 and its specification have to hand it the same term. -/
@@ -2721,7 +2726,6 @@ end NumberTheory
 namespace ZFSet
 export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_mul_fact choose_one choose_self choose_succ_succ choose_zero conj_index_complement coprime_divides cyclotomicShift_eisenstein divides_fact divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_sub divides_trans divisorsBelow dvd_of_mod_zero eq_one_of_divides_one exists_factorization exists_fibre_split exists_mul_mod_one exists_orderedPrime_pow_of_lt exists_primeTest_above exists_prime_ge exists_prime_gt exists_prime_pow_not_divides exists_prodUpto_pow fact fact_pos factorization_perm fallNat fallNat_mul_fact fallNat_succ_back choose_mul_fact_mul_fact gcd_eq_one_of_prime_not_divides gcd_prime_pow_eq_one isPrime_iff_minFac_self isPrime_minFac isPrime_three isPrime_two leastPrimeAbove leastPrimeAbove_least leastPrimeAbove_spec lt_minFac_fact_succ minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides mul_mod_inj_of_gcd_one mul_mod_of_split nthPrime one_divides orderedPrime orderedPrime_complete orderedPrime_ge orderedPrime_isPrime orderedPrime_lt_succ orderedPrime_ne orderedPrime_strictMono prime_divides_mul prime_divides_pow prime_divides_prodList prime_divides_sq prime_dvd_choose prime_eq_of_divides prime_pow_split prime_pow_split_unique prime_sq_irrational prodList prodList_perm prodUpto_congr prodUpto_factor_le prodUpto_le_of_le prodUpto_mod_ne_zero prodUpto_pos prodUpto_pow_inj succ_mul_choose sumOver sumOver_add sumOver_congr sumOver_zero upto)
 #print axioms NumberTheory.prime_pow_split_unique
-#print axioms NumberTheory.isPrime_iff_minFac_self
 #print axioms NumberTheory.exists_primeTest_above
 #print axioms NumberTheory.leastPrimeAbove_spec
 #print axioms NumberTheory.prodUpto_mod_ne_zero

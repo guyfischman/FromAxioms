@@ -105,8 +105,8 @@ pairs:
     date: 1921
     rows:
       - "the ⟨a,b⟩ = {{a},{a,b}} encoding"
-    mathlib: none --- the challenge is discharged from Lean CORE
-    ours: ZFSet.opair_eq_opair_iff
+    mathlib: none
+    ours: SetTheory.opair_eq_opair_iff
     status: complete
     note: >
       NO MATHLIB THEOREM IS NAMED BECAUSE THERE IS NONE TO NAME, and
@@ -238,8 +238,8 @@ pairs:
   - id: fan-theorem
     rows:
       - "Brouwer's fan theorem"
-    mathlib: "(none --- unnamed, derivable classically from compactness)"
-    ours: Constructive.fanDelta_of_decider
+    mathlib: none
+    ours: Constructive.fanΔ_of_decider
     status: complete
     note: >
       THE COST IS ON THE CHALLENGE SIDE HERE, which is unusual on this track.
@@ -256,7 +256,7 @@ pairs:
     date: 1914
     rows:
       - "ordered pair from sets"
-    mathlib: none --- the challenge is discharged from Lean CORE
+    mathlib: none
     ours: SetTheory.opair_eq_opair_iff
     status: complete
     note: >
@@ -273,7 +273,7 @@ pairs:
     date: 1930
     rows:
       - "intuitionistic logic as a formal system"
-    mathlib: none --- the challenge is discharged from Lean CORE
+    mathlib: none
     ours: Algebra.soundness
     status: complete
     note: >

@@ -13,7 +13,8 @@ constructive: an arbitrary union is `sUnion` of a subfamily, which the axioms
 already provide, and no separation axiom is assumed unless it is named.
 -/
 
-import FromAxioms.Constructive.Reverse
+import FromAxioms.Analysis.Located
+import FromAxioms.Core.Principles
 
 universe u
 
@@ -424,6 +425,16 @@ theorem isTopology_realOpens : IsTopology realOpens.{u} Real.{u} where
       exact ⟨p, hp, q, hq, hpx, hxq, fun w hw =>
         (mem_sUnion_iff w F).mpr ⟨U, hU, hsub _ hw⟩⟩
 
+/-! ## Apartness on ℝ -/
+
+/-- Every cut real is compared with every rational,
+`∀ x ∈ Real, ∀ q ∈ Rat, ratCut q < x ∨ x ≤ ratCut q`.
+
+Named so that its consumers can bind it rather than spell it out. -/
+def RealRatSplit : Prop :=
+  ∀ x, x ∈ Real.{u} → ∀ q, q ∈ NumberTheory.Rat.{u} →
+    realLt (ratCut q) x ∨ realLe x (ratCut q)
+
 /-! ## Audit -/
 
 #print axioms isTopology_realOpens
@@ -673,6 +684,7 @@ theorem maxAttainmentTop_of_located (h : MaxAttainmentTopLocated.{u}) :
 end Topology
 #print axioms Topology.isClosed_union
 #print axioms Topology.isClosed_inter_of_detachable
+
 #print axioms Topology.IsCompact
 #print axioms Topology.CoverData
 #print axioms Topology.IsStrictOrderOn
@@ -688,5 +700,5 @@ end Topology
 #print axioms Topology.isLocatedSubset_of_em
 #print axioms Topology.isConditionallyComplete_of_located_of_em
 namespace ZFSet
-export Topology (CoverData IsClosed IsCompact IsConditionallyComplete IsConditionallyCompleteLocated IsContinuous IsLocatedSubset IsOrderTopology IsStrictOrderOn IsTopology MaxAttainmentTop MaxAttainmentTopLocated exists_mem_of_lt_sup exists_realLt_around isClosed_inter_of_detachable isClosed_union isConditionallyCompleteLocated_of_isConditionallyComplete isConditionallyComplete_of_located_of_em isLocatedSubset_of_em isTopology_realOpens isTopology_subspaceOpens maxAttainmentTop_of_located mem_preimageIn_iff mem_realInterval_iff mem_realOpens_iff mem_subspaceOpens_iff preimageIn realInterval realLt realLt_realMax realLt_realMin realMax realMax_mem_Real realMin realMin_mem_Real realOpens spec subspaceOpens)
+export Topology (CoverData RealRatSplit IsClosed IsCompact IsConditionallyComplete IsConditionallyCompleteLocated IsContinuous IsLocatedSubset IsOrderTopology IsStrictOrderOn IsTopology MaxAttainmentTop MaxAttainmentTopLocated exists_mem_of_lt_sup exists_realLt_around isClosed_inter_of_detachable isClosed_union isConditionallyCompleteLocated_of_isConditionallyComplete isConditionallyComplete_of_located_of_em isLocatedSubset_of_em isTopology_realOpens isTopology_subspaceOpens maxAttainmentTop_of_located mem_preimageIn_iff mem_realInterval_iff mem_realOpens_iff mem_subspaceOpens_iff preimageIn realInterval realLt realLt_realMax realLt_realMin realMax realMax_mem_Real realMin realMin_mem_Real realOpens spec subspaceOpens)
 end ZFSet

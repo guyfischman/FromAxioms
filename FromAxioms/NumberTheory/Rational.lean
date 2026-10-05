@@ -82,7 +82,7 @@ def Rat : ZFSet.{u} := quotientSet ratRel.{u} ratPairs.{u}
 /-- `a / b` as a rational. -/
 def ratOf (a b : ZFSet.{u}) : ZFSet.{u} := cls ratRel.{u} ratPairs.{u} (opair a b)
 
-theorem ratOf_mem_Rat {a b : ZFSet.{u}} (ha : a ∈ Int.{u}) (hb : b ∈ intPositive.{u}) :
+@[simp] theorem ratOf_mem_Rat {a b : ZFSet.{u}} (ha : a ∈ Int.{u}) (hb : b ∈ intPositive.{u}) :
     ratOf a b ∈ Rat.{u} :=
   cls_mem_quotientSet (opair_mem_prod ha hb)
 
@@ -206,7 +206,7 @@ theorem ratNeg_ratOf {a b : ZFSet.{u}} (ha : a ∈ Int.{u}) (hb : b ∈ intPosit
     exact ⟨ratOf_subset _ _ p hmem, a, b,
       mem_cls_self ratRel_isEquivRel (opair_mem_prod ha hb), hmem⟩
 
-theorem ratAdd_mem_Rat {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
+@[simp] theorem ratAdd_mem_Rat {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratAdd r s ∈ Rat.{u} := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
   obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Rat_iff s).mp hs
@@ -216,7 +216,7 @@ theorem ratAdd_mem_Rat {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u
       (intMul_mem_Int hc (intPositive_subset _ hb)))
     (intMul_mem_intPositive hb hd)
 
-theorem ratNeg_mem_Rat {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) : ratNeg r ∈ Rat.{u} := by
+@[simp] theorem ratNeg_mem_Rat {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) : ratNeg r ∈ Rat.{u} := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
   rw [ratNeg_ratOf ha hb]
   exact ratOf_mem_Rat (intNeg_mem_Int ha) hb
@@ -298,7 +298,7 @@ theorem ratMul_ratOf {a b c d : ZFSet.{u}} (ha : a ∈ Int.{u}) (hb : b ∈ intP
       mem_cls_self ratRel_isEquivRel (opair_mem_prod ha hb),
       mem_cls_self ratRel_isEquivRel (opair_mem_prod hc hd), hmem⟩
 
-theorem ratMul_mem_Rat {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
+@[simp] theorem ratMul_mem_Rat {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratMul r s ∈ Rat.{u} := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
   obtain ⟨c, hc, d, hd, rfl⟩ := (mem_Rat_iff s).mp hs
@@ -339,7 +339,7 @@ theorem ratOf_cancel {k a b : ZFSet.{u}} (hk : k ∈ intPositive.{u}) (ha : a �
 /-- Zero. -/
 def ratZero : ZFSet.{u} := ratOf intZero.{u} intOne.{u}
 
-theorem ratZero_mem_Rat : ratZero.{u} ∈ Rat.{u} :=
+@[simp] theorem ratZero_mem_Rat : ratZero.{u} ∈ Rat.{u} :=
   ratOf_mem_Rat intZero_mem_Int one_mem_intPositive
 
 @[simp] theorem ratAdd_zero {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
@@ -368,7 +368,7 @@ The right form above is genuinely absent; only the left one was the duplicate.
 /-- One. -/
 def ratOne : ZFSet.{u} := ratOf intOne.{u} intOne.{u}
 
-theorem ratOne_mem_Rat : ratOne.{u} ∈ Rat.{u} :=
+@[simp] theorem ratOne_mem_Rat : ratOne.{u} ∈ Rat.{u} :=
   ratOf_mem_Rat intOne_mem_Int one_mem_intPositive
 
 @[simp] theorem ratMul_one {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
@@ -500,7 +500,7 @@ theorem ratMul_inv {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) (h0 : r ≠ ratZero.{u})
       intOne_mem_Int one_mem_intPositive).mpr ?_
     rw [intMul_one (intMul_mem_Int ha hnb), intOne_mul (intMul_mem_Int hbI hna), key]
 
-theorem ratInv_mem_Rat {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) (h0 : r ≠ ratZero.{u}) :
+@[simp] theorem ratInv_mem_Rat {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) (h0 : r ≠ ratZero.{u}) :
     ratInv r ∈ Rat.{u} := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
   have hbI := intPositive_subset _ hb
@@ -897,7 +897,12 @@ theorem ratAdd_left_cancel {t r s : ZFSet.{u}} (ht : t ∈ Rat.{u}) (hr : r ∈ 
     rw [← ratAdd_assoc hnt ht hv, ratAdd_comm hnt ht, ratAdd_neg ht, ratZero_add hv]
   rw [← key hr, h, key hs]
 
-/-- The two half-widths of a split cell add to the whole. -/
+/-- The two half-widths of a split cell add to the whole: `(e - a) + (b - e)`
+is `b - a`.
+
+The analysis layer uses it at a tagged cell, where `e` is the tag: it turns the
+factored two-cell residue into a bound quadratic in `b - a`, and a landmark's
+two one-sided radius conditions into a single bound on the cell. -/
 theorem width_split {a b e : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (he : e ∈ Rat.{u}) :
     ratAdd (ratAdd e (ratNeg a)) (ratAdd b (ratNeg e)) = ratAdd b (ratNeg a) := by
@@ -2270,7 +2275,7 @@ a `Nat` inequality. -/
 /-- The rational `p/q`. -/
 def ratNat (p q : Nat) : ZFSet.{u} := ratOf (intOfNat.{u} p) (intOfNat.{u} q)
 
-theorem ratNat_mem_Rat {p q : Nat} (hq : 0 < q) : ratNat.{u} p q ∈ Rat.{u} :=
+@[simp] theorem ratNat_mem_Rat {p q : Nat} (hq : 0 < q) : ratNat.{u} p q ∈ Rat.{u} :=
   ratOf_mem_Rat (intOfNat_mem_Int p) (intOfNat_mem_intPositive hq)
 
 /-- The reciprocal of a whole number is its unit fraction, in the numerals.
@@ -2682,6 +2687,15 @@ theorem ratPow_mem {q : ZFSet.{u}} (hq : q ∈ Rat.{u}) :
 theorem ratPow_succ {q : ZFSet.{u}} (n : Nat) :
     ratPow q (n + 1) = ratMul (ratPow q n) q := rfl
 
+/-- `ratOne` to any power is `ratOne`. -/
+theorem ratPow_ratOne : ∀ k : Nat, ratPow ratOne.{u} k = ratOne.{u}
+  | 0 => rfl
+  | k + 1 => by
+    show ratMul (ratPow ratOne.{u} k) ratOne.{u} = ratOne.{u}
+    rw [ratPow_ratOne k, ratMul_one ratOne_mem_Rat]
+
+#print axioms NumberTheory.ratPow_ratOne
+
 /-- `(a/b)^k = a^k / b^k`. -/
 theorem ratPow_ratNat_gen (a b : Nat) (hb : 0 < b) : ∀ k : Nat,
     ratPow (ratNat.{u} a b) k = ratNat.{u} (a ^ k) (b ^ k)
@@ -2866,6 +2880,13 @@ theorem ratPow_mul_one_add_ratNatMul_le_one {c d : ZFSet.{u}} (hc : c ∈ Rat.{u
   rw [(ratPow_mul hc hbase n).symm] at h2
   exact ratLe_trans (ratMul_mem_Rat hcn hlin) (ratPow_mem hprod n) hone h2
     (ratPow_le_one hprod hprod0 hcd n)
+/-- Both signs flipped is no sign flipped; the mixed corners are `ratNeg_mul`
+and `ratMul_neg`. -/
+theorem ratMul_neg_neg {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+    ratMul (ratNeg a) (ratNeg b) = ratMul a b := by
+  rw [ratNeg_mul ha (ratNeg_mem_Rat hb), ratMul_comm ha (ratNeg_mem_Rat hb),
+    ratNeg_mul hb ha, ratNeg_ratNeg (ratMul_mem_Rat hb ha), ratMul_comm hb ha]
+
 #print axioms ratNatMul_nonneg
 #print axioms one_add_ratNatMul_le_ratPow
 #print axioms ratPow_mem
@@ -3420,7 +3441,7 @@ theorem ratMul_two {x : ZFSet.{u}} (hx : x ∈ Rat.{u}) :
     ratMul x ratTwo.{u} = ratAdd x x := by
   rw [ratTwo, ratMul_add hx ratOne_mem_Rat ratOne_mem_Rat, ratMul_one hx]
 
-theorem ratTwo_mem_Rat : ratTwo.{u} ∈ Rat.{u} :=
+@[simp] theorem ratTwo_mem_Rat : ratTwo.{u} ∈ Rat.{u} :=
   ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat
 
 theorem ratTwo_pos : ratLt ratZero.{u} ratTwo.{u} := by
@@ -3436,7 +3457,7 @@ theorem ratTwo_ne_zero : ratTwo.{u} ≠ ratZero.{u} :=
 def ratMid (a b : ZFSet.{u}) : ZFSet.{u} :=
   ratMul (ratAdd a b) (ratInv ratTwo.{u})
 
-theorem ratMid_mem_Rat {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
+@[simp] theorem ratMid_mem_Rat {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
     ratMid a b ∈ Rat.{u} :=
   ratMul_mem_Rat (ratAdd_mem_Rat ha hb)
     (ratInv_mem_Rat ratTwo_mem_Rat ratTwo_ne_zero)
@@ -3479,7 +3500,7 @@ theorem ratMid_sub_right {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.
 
 def ratThree : ZFSet.{u} := ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})
 
-theorem ratThree_mem_Rat : ratThree.{u} ∈ Rat.{u} :=
+@[simp] theorem ratThree_mem_Rat : ratThree.{u} ∈ Rat.{u} :=
   ratAdd_mem_Rat ratOne_mem_Rat (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)
 
 theorem ratThree_pos : ratLt ratZero.{u} ratThree.{u} := by
@@ -3850,6 +3871,7 @@ theorem ratNat_sub_same_denom {a b q : Nat} (hba : b ≤ a) (hq : 0 < q) :
 #print axioms invWidth_ofNat
 #print axioms invWidth_half
 #print axioms invWidth_antitone
+
 #print axioms invWidth_lt_of_lt
 #print axioms exists_invWidth_lt
 
@@ -4274,6 +4296,7 @@ theorem ratInv_ratNat_gen {p q : Nat} (hp : 0 < p) (hq : 0 < q) :
 #print axioms intOf_ofNat_eq_intOfNat
 #print axioms ratPow_succ
 #print axioms ratNatMul_mem
+#print axioms ratMul_neg_neg
 #print axioms ratNat_nonneg
 #print axioms ratThree_mem_Rat
 #print axioms ratThree_ne_zero
@@ -4335,5 +4358,5 @@ end NumberTheory
 #print axioms NumberTheory.ratInv_ratNat
 
 namespace ZFSet
-export NumberTheory (ratOf_ne_empty not_ratLe_empty_right not_ratLe_empty_left ratUpper_empty Rat corner_above_of_neg corner_close corner_le_mul diffPow_even_step diffPow_lower diffPow_nonneg diffPow_over_factor diffPow_succ diffSq_pos diffTerm_two_lt_one diff_bounds diff_self_bounds exists_add_self_lt exists_between_two exists_between_two' exists_bracket_width exists_bracket_width_gt exists_clear_denom exists_common_denom exists_contraction_margin exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_invWidth_lt exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_ratNatMul_gt exists_ratNat_of_pos exists_ratPow_lt exists_ratPow_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intOfRat intOfRat_intToRat intOfRat_mem intOf_ofNat_eq_intOfNat intPositive_num intToRat intToRat_add intToRat_inj intToRat_intOfRat intToRat_mem_Rat intToRat_mul invWidth invWidth_add_self_lt_invWidth invWidth_antitone invWidth_half invWidth_lt_of_lt invWidth_mem_Rat invWidth_ofNat invWidth_pos lt_mul_add_of_lt lt_ratMid lt_two_pow mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add not_contains_of_short not_ratLt_of_ratLe num_ne_zero of_one_of_four one_add_ratNatMul_le_ratPow one_sub_mul_ratGeomSum ratAdd ratAdd_assoc ratAdd_comm ratAdd_interchange ratAdd_le_add ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_self_inj ratAdd_self_lt_of_lt_mid ratAdd_sub_cancel ratAdd_zero ratFlank_le ratFlank_length ratFlank_lo_lt ratGeomSum ratGeomSum_mem ratInv ratInv_le_ratInv ratInv_lt_mul_inv ratInv_lt_ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratInv ratInv_ratNat ratInv_ratNat_gen ratInv_ratOf ratLe ratLe_add_of_le_sub ratLe_antisymm ratLe_of_lt ratLe_of_not_lt ratLe_or_not ratLe_ratOf ratLe_refl ratLe_self_add ratLe_sub_of_add_le ratLe_total ratLe_trans ratLt ratLt_add_pos ratLt_iff_not_ratLe ratLt_irrefl ratLt_mul_of_corners ratLt_of_double_three ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_or_not ratLt_ratOf ratLt_trans ratLt_trichotomy ratMid ratMid_add_self ratMid_double ratMid_lt ratMid_mem_Rat ratMid_sub_left ratMid_sub_right ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_inv_lt_inv ratMul_le_cancel_right ratMul_le_mul_of_le ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_cancel_right ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_nonpos_of_neg_of_nonneg ratMul_one ratMul_pos ratMul_ratOf ratMul_self_nonneg ratMul_shuffle_pair ratMul_swap_right ratMul_two ratMul_zero ratNat ratNatMul ratNatMul_eq_ratNat_mul ratNatMul_mem ratNatMul_mul ratNatMul_nonneg ratNatMul_ratNat ratNat_add ratNat_add_same_denom ratNat_double ratNat_eq_iff ratNat_eq_of_mul_eq ratNat_le_iff ratNat_lt_iff ratNat_mem_Rat ratNat_mul ratNat_one_one ratNat_one_pos ratNat_pos ratNat_scale ratNat_sq_bridge ratNat_sq_bridge_one ratNat_sub ratNat_sub_neg ratNat_sub_same_denom ratNat_width ratNat_zero ratNeg ratNeg_add ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_mul ratNeg_nonpos ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_add_ratOne ratOne_le_three ratOne_mem_Rat ratOne_mul ratPairs ratPow ratPow_add ratPow_add_two ratPow_base_mono ratPow_half ratPow_half_add_self ratPow_half_le_invWidth_of_le ratPow_half_le_one ratPow_half_pos ratPow_le_one ratPow_le_ratPow_of_le ratPow_mem ratPow_mul ratPow_mul_one_add_ratNatMul_le_one ratPow_nonneg ratPow_pos ratPow_ratNat ratPow_ratNat_gen ratPow_succ ratPow_two ratQuarter ratRel ratRel_isEquivRel ratSub_pos ratSub_sub_cancel ratThree ratThree_add_neg_one ratThree_add_neg_two ratThree_eq_ratNat ratThree_mem_Rat ratThree_ne_zero ratThree_pos ratTwo ratTwo_mem_Rat ratTwo_ne_zero ratTwo_pos ratZero ratZero_add ratZero_eq_ratNat ratZero_le_mul ratZero_le_three ratZero_le_three_sub_one ratZero_lt_one ratZero_lt_three ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_of_pos small_scale_mono sq_le_four sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add two_pow_pos width_le_one width_split)
+export NumberTheory (ratOf_ne_empty not_ratLe_empty_right not_ratLe_empty_left ratUpper_empty Rat corner_above_of_neg corner_close corner_le_mul diffPow_even_step diffPow_lower diffPow_nonneg diffPow_over_factor diffPow_succ diffSq_pos diffTerm_two_lt_one diff_bounds diff_self_bounds exists_add_self_lt exists_between_two exists_between_two' exists_bracket_width exists_bracket_width_gt exists_clear_denom exists_common_denom exists_contraction_margin exists_gt_of_lt_mul₂ exists_gt_of_mul_lt₂ exists_gt_two exists_invWidth_lt exists_lt_of_lt_mul₂ exists_lt_of_mul_lt₂ exists_lt_two exists_max_four exists_max_pair exists_min_four exists_min_pair exists_mul_lt exists_ratNatMul_gt exists_ratNat_of_pos exists_ratPow_lt exists_ratPow_mul_lt exists_scale_above exists_scale_above_one exists_scale_above_upper exists_scale_below exists_scale_below_one exists_scale_below_upper exists_small_scale intOfRat intOfRat_intToRat intOfRat_mem intOf_ofNat_eq_intOfNat intPositive_num intToRat intToRat_add intToRat_inj intToRat_intOfRat intToRat_mem_Rat intToRat_mul invWidth invWidth_add_self_lt_invWidth invWidth_antitone invWidth_half invWidth_lt_of_lt invWidth_mem_Rat invWidth_ofNat invWidth_pos lt_mul_add_of_lt lt_ratMid lt_two_pow mem_Rat_iff mem_ratOf_iff mem_ratPairs_iff mem_ratRel_iff mul_add_lt_of_lt mul_le_corner mul_le_of_bounds mul_shift_le neg_le_sub_iff_le_add not_contains_of_short not_ratLt_of_ratLe num_ne_zero of_one_of_four one_add_ratNatMul_le_ratPow one_sub_mul_ratGeomSum ratAdd ratAdd_assoc ratAdd_comm ratAdd_interchange ratAdd_le_add ratAdd_le_add_left_iff ratAdd_le_add_right_iff ratAdd_left_cancel ratAdd_lt_add ratAdd_lt_add_left_iff ratAdd_lt_add_right_iff ratAdd_mem_Rat ratAdd_mul ratAdd_neg ratAdd_ratOf ratAdd_self_inj ratAdd_self_lt_of_lt_mid ratAdd_sub_cancel ratAdd_zero ratFlank_le ratFlank_length ratFlank_lo_lt ratGeomSum ratGeomSum_mem ratInv ratInv_le_ratInv ratInv_lt_mul_inv ratInv_lt_ratInv ratInv_mem_Rat ratInv_neg ratInv_pos ratInv_ratInv ratInv_ratNat ratInv_ratNat_gen ratInv_ratOf ratLe ratLe_add_of_le_sub ratLe_antisymm ratLe_of_lt ratLe_of_not_lt ratLe_or_not ratLe_ratOf ratLe_refl ratLe_self_add ratLe_sub_of_add_le ratLe_total ratLe_trans ratLt ratLt_add_pos ratLt_iff_not_ratLe ratLt_irrefl ratLt_mul_of_corners ratLt_of_double_three ratLt_of_le_of_lt ratLt_of_lt_of_le ratLt_or_not ratLt_ratOf ratLt_trans ratLt_trichotomy ratMid ratMid_add_self ratMid_double ratMid_lt ratMid_mem_Rat ratMid_sub_left ratMid_sub_right ratMul ratMul_add ratMul_assoc ratMul_comm ratMul_inv ratMul_inv_lt_inv ratMul_le_cancel_right ratMul_le_mul_of_le ratMul_le_mul_right ratMul_le_mul_right_of_nonpos ratMul_left_cancel ratMul_lt_cancel_right ratMul_lt_mul_right ratMul_lt_mul_right_of_nonpos ratMul_lt_of_corners ratMul_mem_Rat ratMul_neg ratMul_neg_neg ratMul_nonpos_of_neg_of_nonneg ratMul_one ratMul_pos ratMul_ratOf ratMul_self_nonneg ratMul_shuffle_pair ratMul_swap_right ratMul_two ratMul_zero ratNat ratNatMul ratNatMul_eq_ratNat_mul ratNatMul_mem ratNatMul_mul ratNatMul_nonneg ratNatMul_ratNat ratNat_add ratNat_add_same_denom ratNat_double ratNat_eq_iff ratNat_eq_of_mul_eq ratNat_le_iff ratNat_lt_iff ratNat_mem_Rat ratNat_mul ratNat_nonneg ratNat_one_one ratNat_one_pos ratNat_pos ratNat_scale ratNat_sq_bridge ratNat_sq_bridge_one ratNat_sub ratNat_sub_neg ratNat_sub_same_denom ratNat_width ratNat_zero ratNeg ratNeg_add ratNeg_injective ratNeg_le_neg_iff ratNeg_lt_neg_iff ratNeg_mem_Rat ratNeg_mul ratNeg_nonpos ratNeg_ratNeg ratNeg_ratOf ratNeg_zero ratOf ratOf_add_congr ratOf_add_same_denom ratOf_cancel ratOf_eq_ratOf_iff ratOf_intOfNat_succ ratOf_intZero ratOf_mem_Rat ratOf_mul_congr ratOf_neg_congr ratOf_one_le ratOf_one_pos ratOf_subset ratOne ratOne_add_ratOne ratOne_le_three ratOne_mem_Rat ratOne_mul ratPairs ratPow ratPow_add ratPow_add_two ratPow_base_mono ratPow_half ratPow_half_add_self ratPow_half_le_invWidth_of_le ratPow_half_le_one ratPow_half_pos ratPow_le_one ratPow_le_ratPow_of_le ratPow_mem ratPow_mul ratPow_mul_one_add_ratNatMul_le_one ratPow_nonneg ratPow_pos ratPow_ratNat ratPow_ratNat_gen ratPow_succ ratPow_two ratQuarter ratRel ratRel_isEquivRel ratSub_pos ratSub_sub_cancel ratThree ratThree_add_neg_one ratThree_add_neg_two ratThree_eq_ratNat ratThree_mem_Rat ratThree_ne_zero ratThree_pos ratTwo ratTwo_mem_Rat ratTwo_ne_zero ratTwo_pos ratZero ratZero_add ratZero_eq_ratNat ratZero_le_mul ratZero_le_three ratZero_le_three_sub_one ratZero_lt_one ratZero_lt_three ratZero_mem_Rat ratZero_mul rat_archimedean rat_dense rat_eq_or_ne rat_no_greatest rat_no_least small_of_pos small_scale_mono sq_le_four sub_add_cancel sub_le_iff_le_add sub_lt_iff_lt_add two_pow_pos width_le_one width_split)
 end ZFSet

@@ -26,14 +26,12 @@ and `1` therefore decides `p`.
 -/
 
 import FromAxioms.Analysis.Located
+import FromAxioms.Core.Principles
 
 universe u
 
 open Analysis NumberTheory SetTheory
 namespace Constructive
-
-/-- Excluded middle, stated inside this development so it can be a conclusion. -/
-def EM : Prop := ∀ p : Prop, p ∨ ¬ p
 
 /-- The family `{0} ∪ {1 | p}`: inhabited and bounded above however `p` turns
 out, with supremum `0` or `1` accordingly. -/
@@ -45,15 +43,20 @@ private theorem mem_propFamily_iff (p : Prop) (c : ZFSet.{u}) :
       c ∈ Real.{u} ∧ (c = realZero.{u} ∨ (p ∧ c = ratCut ratOne.{u})) :=
   mem_sep_iff _ c _
 
+/-- Suprema of bounded inhabited families of located cuts are located, named as
+a Prop. Equivalent to `EM`: `em_of_sup_located` and `supLocated_of_em`. -/
+def SupLocated : Prop :=
+  ∀ S : ZFSet.{u}, S ⊆ Real.{u} → (∃ c, c ∈ S) →
+    (∃ b, b ∈ Real.{u} ∧ ∀ c, c ∈ S → realLe c b) →
+    (∀ c, c ∈ S → Located c) → Located (sUnion S)
+
+
 /-- The trade-off, made precise. Completeness on the located encoding would
 have to produce a located supremum, and that decides `p` for the two-element
 family `{0} ∪ {1 | p}`. So the two encodings cannot both be free: one-sided cuts
 buy completeness and lose the additive group, located pairs buy the
 group and lose completeness. -/
-theorem em_of_sup_located
-    (h : ∀ S : ZFSet.{u}, S ⊆ Real.{u} → (∃ c, c ∈ S) →
-      (∃ b, b ∈ Real.{u} ∧ ∀ c, c ∈ S → realLe c b) →
-      (∀ c, c ∈ S → Located c) → Located (sUnion S)) : EM := by
+theorem em_of_sup_located (h : SupLocated.{u}) : EM := by
   intro p
   obtain ⟨t, htQ, h0t, ht1⟩ := rat_dense ratZero_mem_Rat ratOne_mem_Rat ratZero_lt_one
   have hzeroLoc : Located realZero.{u} :=
@@ -99,10 +102,6 @@ theorem em_of_sup_located
       (hmemS _).mpr ⟨ratCut_mem_Real ratOne_mem_Rat, Or.inr ⟨hp, rfl⟩⟩,
       (mem_ratCut_iff ratOne.{u} s).mpr ⟨hsQ, hs1⟩⟩
 
-
-/-- Weak excluded middle, the target for `sdiff_inter`, which is de Morgan's
-third law and strictly weaker than `EM`. -/
-def WEM : Prop := ∀ p : Prop, ¬ p ∨ ¬ ¬ p
 
 /-- `EM` gives `WEM`, which the prose has asserted since the two names appeared
 and nothing proved. The lattice check wants a witness for every edge, and this
@@ -191,15 +190,12 @@ theorem familyLocated_of_em (hem : EM) {S : ZFSet.{u}} (hS : S ⊆ RealL.{u}) :
     · exact absurd ⟨z, hz, L, U, heq, hp⟩ hnex
     · exact hqU
 
-
-#print axioms EM
 #print axioms em_of_sup_located
 #print axioms regularity_of_em
 #print axioms Regularity
 #print axioms em_of_decider
 
 #print axioms familyLocated_of_em
-
 #print axioms mem_propFamily_iff
 #print axioms wem_of_em
 #print axioms dne_of_em

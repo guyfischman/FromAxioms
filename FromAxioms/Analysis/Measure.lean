@@ -263,8 +263,7 @@ splitting endpoint, which is a decision -- the same detachability
 comparing it with a rational is `LPO`: the ternary real of a bit sequence is
 above `0` exactly when some bit fires. -/
 theorem lpo_of_realLt_or_realLe
-    (h : ∀ x, x ∈ Real.{u} → ∀ q, q ∈ NumberTheory.Rat.{u} →
-      realLt (ratCut q) x ∨ realLe x (ratCut q)) : LPO := by
+    (h : Topology.RealRatSplit.{u}) : LPO := by
   refine lpo_of_ternary_decidable (fun α => ?_)
   have hx : nestLower (tlowSeq.{u} (boolDigit α)) ∈ Real.{u} :=
     lower_mem_Real (isLocated_nest (isNested_ternary (boolDigit_le_one α)))

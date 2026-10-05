@@ -8,7 +8,7 @@ Authors: Guy Fischman
 The Constructive area. This file is generated; it imports every module in
 `FromAxioms/Constructive/`.
 -/
-import FromAxioms.Constructive.Reverse
 import FromAxioms.Constructive.Omniscience
 import FromAxioms.Constructive.Vanishing
 import FromAxioms.Constructive.ContentLocated
+import FromAxioms.Constructive.Reverse

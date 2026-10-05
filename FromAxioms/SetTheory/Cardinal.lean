@@ -28,7 +28,8 @@ The finite product `prodFam C n` of a family nests left, exactly as `powSet`
 does, so `equinumerous_powSet`'s induction transplants to count it.
 -/
 
-import FromAxioms.Constructive.Reverse
+import FromAxioms.Core.Principles
+import FromAxioms.SetTheory.Relation
 
 universe u
 
@@ -1150,9 +1151,7 @@ theorem subset_eq_of_card_eq {S Y : ZFSet.{u}} {n : Nat} (hsub : S ⊆ Y)
       · rw [(mem_singleton_iff _ _).mp h]
         exact hy
 
-/-! ## Sets named by a list
-
-A duplicate-free list of length `n` names a set of size `n`. -/
+/-! ## Sets named by a list -/
 
 def listToSet : List ZFSet.{u} → ZFSet.{u}
   | [] => empty.{u}
@@ -1209,31 +1208,12 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 #print axioms isFinite_of_detachable
 #print axioms subsetFinite_of_em
 
-/-! ## The same theorem over a Lean type
-
-`SubsetFinite` above is stated over `ZFSet`, and the usual statement over a
-Lean type, where `Set α` is `α → Prop`. No `ZFSet` is the `α` that statement
-quantifies over, so the ZFSet form cannot discharge one about it.
-
-A classical proof of the same theorem is free, because the decision that
-selects the subset is ambient. This one carries it, and `subsetFinite_of_em`
-above says where --- `isFinite_of_detachable … (fun a _ => hem (a ∈ x))`. The
-principle buys detachability of the subset.
-
-And `List.filter` is unavailable, which is the constructive content rather
-than an inconvenience. `filter` wants a `Decidable` instance --- `Type`-valued
---- and `Constructive.EM` is a `Prop`. Eliminating a `Prop` disjunction into
-`Type` is large elimination and is refused. So the selecting list cannot be
-computed from `EM` at all; it has to be produced inside a proof, where the goal
-is a `Prop` and case analysis on `hem (s a)` is ordinary. That is why
-`exists_sublist_of_em` returns an existential and recurses on the ambient list
-rather than being a function.
--/
-
 #print axioms exists_or_not_of_finite
 #print axioms isFinite_imageIn
 #print axioms equinumerous_prod_ofNat
 #print axioms equinumerous_singleton_one
+
+/-! ## A list with decided equality names a set of at most its length -/
 
 /-- An injective enumeration gives a duplicate-free list.
 
@@ -1294,6 +1274,7 @@ theorem foldr_ext_mem {f g : ZFSet.{u} → ZFSet.{u} → ZFSet.{u}} {e : ZFSet.{
 #print axioms mem_or_not_mem_of_subset
 #print axioms subset_eq_of_card_eq
 #print axioms mem_listToSet_iff
+
 end SetTheory
 namespace ZFSet
 export SetTheory (Distinct Dominates Equinumerous IsFinite SubsetFinite app_compOn app_invOn app_mem_of_isInjection card_unique compOn distinct_map_range_of_inj dominates_ofNat_le dominates_ofNat_of_subset dominates_of_equinumerous dominates_trans em_of_subset_finite eq_or_ne_of_finite equinumerous_erase equinumerous_insert equinumerous_natImage equinumerous_prod equinumerous_prod_ofNat equinumerous_refl equinumerous_sdiff_singleton equinumerous_singleton_one equinumerous_symm equinumerous_trans equinumerous_union_disjoint exists_or_all_of_equinumerous exists_or_not_of_finite finite_choice finite_choice_ofNat foldr_ext_mem graphOn_range invApp invApp_eq invApp_mem invOn isFinite_imageIn isFinite_ofNat isFinite_of_detachable isInjection_compOn isInjection_idOn isInjection_invOn isSurjection_idOn isSurjection_invOn listToSet mem_listToSet_iff mem_or_not_mem_of_subset mem_pairNumeral_iff pairNumeral sdiff_singleton_union subsetFinite_of_em subset_eq_of_card_eq)

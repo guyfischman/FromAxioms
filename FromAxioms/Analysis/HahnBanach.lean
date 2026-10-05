@@ -27,6 +27,7 @@ from uniform continuity on a bounded interval, so the extreme value theorem and
 this one need the same constructive ingredient -- and only one of them has a
 source for it.
 -/
+import FromAxioms.Analysis.Located
 import FromAxioms.SetTheory.Cardinal
 
 universe u

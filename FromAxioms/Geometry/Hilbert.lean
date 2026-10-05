@@ -77,11 +77,7 @@ theorem HDerives.scheme {A : Formula → Prop} {T : List Formula}
 
 variable {A : Formula → Prop}
 
-/-! ## Reasoning with implications
-
-`S` and `K` are what a Hilbert system has instead of tactics. These two are the
-shapes the translation needs: composing implications, and pushing one under a
-common antecedent. -/
+/-! ## Reasoning with implications -/
 
 /-- Under a common antecedent. -/
 theorem hmono (hA : ∀ φ, HAxiom φ → A φ) {T : List Formula} {φ ψ χ : Formula}

@@ -79,6 +79,99 @@ theorem isLocated_ratCut {q : ZFSet.{u}} (hq : q ∈ NumberTheory.Rat.{u}) :
     · exact Or.inr ((mem_sep_iff _ r _).mpr ⟨hr, h ▸ hlt⟩)
     · exact Or.inr ((mem_sep_iff _ r _).mpr ⟨hr, ratLt_trans hq hp hr h hlt⟩)
 
+/-! ## A located pair from a pair of predicates
+
+The sets are the open downsets: `p` is in the lower cut when some `p' > p`
+satisfies `Left`, so `lower_open` is free; the trig cuts already use this
+spelling (`acosLower y = cutLower (AcosLeft y)` by `rfl`). -/
+
+/-- The lower cut of a predicate: the rationals strictly below some rational
+satisfying `Left`. Open by construction. -/
+def cutLower (Left : ZFSet.{u} → Prop) : ZFSet.{u} :=
+  sep (fun p => ∃ p', p' ∈ NumberTheory.Rat.{u} ∧ ratLt p p' ∧ Left p') NumberTheory.Rat.{u}
+
+/-- The upper cut of a predicate: the rationals strictly above some rational
+satisfying `Right`. Open by construction. -/
+def cutUpper (Right : ZFSet.{u} → Prop) : ZFSet.{u} :=
+  sep (fun r => ∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt r' r ∧ Right r') NumberTheory.Rat.{u}
+
+/-- Membership in `cutLower`, unfolded. -/
+theorem mem_cutLower_iff (Left : ZFSet.{u} → Prop) (p : ZFSet.{u}) :
+    p ∈ cutLower Left ↔ p ∈ NumberTheory.Rat.{u} ∧
+      ∃ p', p' ∈ NumberTheory.Rat.{u} ∧ ratLt p p' ∧ Left p' :=
+  mem_sep_iff _ _ _
+
+#print axioms Analysis.mem_cutLower_iff
+
+/-- Membership in `cutUpper`, unfolded. -/
+theorem mem_cutUpper_iff (Right : ZFSet.{u} → Prop) (r : ZFSet.{u}) :
+    r ∈ cutUpper Right ↔ r ∈ NumberTheory.Rat.{u} ∧
+      ∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt r' r ∧ Right r' :=
+  mem_sep_iff _ _ _
+
+#print axioms Analysis.mem_cutUpper_iff
+
+/-- A located pair from a separated, inhabited, located pair of predicates.
+
+`hloc` carries interior slack. The bare disjunction `Left p ∨ Right q` fails at
+the `acos` instance: `AcosLeft y s` at `s = 0` asks for `y < cos 0`, which is
+the comparison locatedness was supposed to supply. What the construction
+affords instead is a witness strictly inside `(p, q)` on one side, obtained by
+shrinking to `ratMid`, as `isLocated_acos` does in its own `located` clause. -/
+theorem isLocated_cut {Left Right : ZFSet.{u} → Prop}
+    (hsep : ∀ {p' r'}, p' ∈ NumberTheory.Rat.{u} → r' ∈ NumberTheory.Rat.{u} →
+      Left p' → Right r' → ratLt p' r')
+    (hL : ∃ p p', p ∈ NumberTheory.Rat.{u} ∧ p' ∈ NumberTheory.Rat.{u} ∧
+      ratLt p p' ∧ Left p')
+    (hR : ∃ r r', r ∈ NumberTheory.Rat.{u} ∧ r' ∈ NumberTheory.Rat.{u} ∧
+      ratLt r' r ∧ Right r')
+    (hloc : ∀ {p q}, p ∈ NumberTheory.Rat.{u} → q ∈ NumberTheory.Rat.{u} → ratLt p q →
+      (∃ p', p' ∈ NumberTheory.Rat.{u} ∧ ratLt p p' ∧ Left p') ∨
+      (∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt r' q ∧ Right r')) :
+    IsLocated (cutLower Left) (cutUpper Right) where
+  lower_subset := fun _ hp => ((mem_cutLower_iff Left _).mp hp).left
+  upper_subset := fun _ hr => ((mem_cutUpper_iff Right _).mp hr).left
+  lower_inhabited := by
+    obtain ⟨p, p', hp, hp', hpp', hLp⟩ := hL
+    exact ⟨p, (mem_cutLower_iff Left _).mpr ⟨hp, p', hp', hpp', hLp⟩⟩
+  upper_inhabited := by
+    obtain ⟨r, r', hr, hr', hr'r, hRr⟩ := hR
+    exact ⟨r, (mem_cutUpper_iff Right _).mpr ⟨hr, r', hr', hr'r, hRr⟩⟩
+  ordered := by
+    rintro q hq r hr
+    obtain ⟨hqQ, q', hq'Q, hqq', hLq⟩ := (mem_cutLower_iff Left q).mp hq
+    obtain ⟨hrQ, r', hr'Q, hr'r, hRr⟩ := (mem_cutUpper_iff Right r).mp hr
+    exact ratLt_trans hqQ hr'Q hrQ
+      (ratLt_of_lt_of_le hqQ hq'Q hr'Q hqq'
+        (ratLe_of_lt hq'Q hr'Q (hsep hq'Q hr'Q hLq hRr))) hr'r
+  lower_down := by
+    rintro q hq p hp hpq
+    obtain ⟨hqQ, q', hq'Q, hqq', hLq⟩ := (mem_cutLower_iff Left q).mp hq
+    exact (mem_cutLower_iff Left p).mpr ⟨hp, q', hq'Q, ratLt_trans hp hqQ hq'Q hpq hqq', hLq⟩
+  upper_up := by
+    rintro r hr p hp hrp
+    obtain ⟨hrQ, r', hr'Q, hr'r, hRr⟩ := (mem_cutUpper_iff Right r).mp hr
+    exact (mem_cutUpper_iff Right p).mpr ⟨hp, r', hr'Q, ratLt_trans hr'Q hrQ hp hr'r hrp, hRr⟩
+  lower_open := by
+    rintro q hq
+    obtain ⟨hqQ, q', hq'Q, hqq', hLq⟩ := (mem_cutLower_iff Left q).mp hq
+    exact ⟨ratMid q q', (mem_cutLower_iff Left _).mpr
+      ⟨ratMid_mem_Rat hqQ hq'Q, q', hq'Q, ratMid_lt hqQ hq'Q hqq', hLq⟩,
+      lt_ratMid hqQ hq'Q hqq'⟩
+  upper_open := by
+    rintro r hr
+    obtain ⟨hrQ, r', hr'Q, hr'r, hRr⟩ := (mem_cutUpper_iff Right r).mp hr
+    exact ⟨ratMid r' r, (mem_cutUpper_iff Right _).mpr
+      ⟨ratMid_mem_Rat hr'Q hrQ, r', hr'Q, lt_ratMid hr'Q hrQ hr'r, hRr⟩,
+      ratMid_lt hr'Q hrQ hr'r⟩
+  located := by
+    intro p hp q hq hpq
+    rcases hloc hp hq hpq with ⟨p', hp'Q, hpp', hLp⟩ | ⟨r', hr'Q, hr'q, hRr⟩
+    · exact Or.inl ((mem_cutLower_iff Left p).mpr ⟨hp, p', hp'Q, hpp', hLp⟩)
+    · exact Or.inr ((mem_cutUpper_iff Right q).mpr ⟨hq, r', hr'Q, hr'q, hRr⟩)
+
+#print axioms Analysis.isLocated_cut
+
 /-! ## Locatedness, constructively
 
 The same ladder as `cut_located`, and the same walk up it. The difference is the
@@ -1038,7 +1131,7 @@ def realLMul (z w : ZFSet.{u}) : ZFSet.{u} :=
   opair (mulLower (fst z) (snd z) (fst w) (snd w))
     (mulUpper (fst z) (snd z) (fst w) (snd w))
 
-theorem realLAdd_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
+@[simp] theorem realLAdd_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
     realLAdd z w ∈ RealL.{u} := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
   obtain ⟨L₂, U₂, rfl, h₂⟩ := (mem_RealL_iff w).mp hw
@@ -1046,14 +1139,14 @@ theorem realLAdd_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.
   · rw [realLAdd, fst_opair, fst_opair, snd_opair, snd_opair]
   · exact isLocated_add h₁ h₂
 
-theorem realLNeg_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
+@[simp] theorem realLNeg_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     realLNeg z ∈ RealL.{u} := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
   refine (mem_RealL_iff _).mpr ⟨negLower U₁, negUpper L₁, ?_, ?_⟩
   · rw [realLNeg, fst_opair, snd_opair]
   · exact isLocated_neg h₁
 
-theorem realLMul_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
+@[simp] theorem realLMul_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
     realLMul z w ∈ RealL.{u} := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
   obtain ⟨L₂, U₂, rfl, h₂⟩ := (mem_RealL_iff w).mp hw
@@ -1069,7 +1162,7 @@ def realLZero : ZFSet.{u} := realLOf ratZero.{u}
 
 def realLOne : ZFSet.{u} := realLOf ratOne.{u}
 
-theorem realLOf_mem {q : ZFSet.{u}} (hq : q ∈ NumberTheory.Rat.{u}) : realLOf q ∈ RealL.{u} :=
+@[simp] theorem realLOf_mem {q : ZFSet.{u}} (hq : q ∈ NumberTheory.Rat.{u}) : realLOf q ∈ RealL.{u} :=
   (mem_RealL_iff _).mpr ⟨_, _, rfl, isLocated_ratCut hq⟩
 
 /-- The scale `1/(n+1)`, as a real. -/
@@ -1084,9 +1177,9 @@ theorem invScale_mem (n : Nat) : invScale.{u} n ∈ RealL.{u} :=
 #print axioms Analysis.RealL
 #print axioms invScale_mem
 
-theorem realLZero_mem : realLZero.{u} ∈ RealL.{u} := realLOf_mem ratZero_mem_Rat
+@[simp] theorem realLZero_mem : realLZero.{u} ∈ RealL.{u} := realLOf_mem ratZero_mem_Rat
 
-theorem realLOne_mem : realLOne.{u} ∈ RealL.{u} := realLOf_mem ratOne_mem_Rat
+@[simp] theorem realLOne_mem : realLOne.{u} ∈ RealL.{u} := realLOf_mem ratOne_mem_Rat
 
 /-! ## The additive laws
 
@@ -3473,7 +3566,7 @@ theorem isLocated_min {L₁ U₁ L₂ U₂ : ZFSet.{u}} (h₁ : IsLocated L₁ U
 def realLMin (z w : ZFSet.{u}) : ZFSet.{u} :=
   opair (fst z ∩ fst w) (snd z ∪ snd w)
 
-theorem realLMin_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
+@[simp] theorem realLMin_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
     realLMin z w ∈ RealL.{u} := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
   obtain ⟨L₂, U₂, rfl, h₂⟩ := (mem_RealL_iff w).mp hw
@@ -3675,7 +3768,7 @@ theorem isLocated_max {L₁ U₁ L₂ U₂ : ZFSet.{u}} (h₁ : IsLocated L₁ U
 def realLMax (z w : ZFSet.{u}) : ZFSet.{u} :=
   opair (fst z ∪ fst w) (snd z ∩ snd w)
 
-theorem realLMax_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
+@[simp] theorem realLMax_mem {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u}) :
     realLMax z w ∈ RealL.{u} := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
   obtain ⟨L₂, U₂, rfl, h₂⟩ := (mem_RealL_iff w).mp hw
@@ -4258,7 +4351,6 @@ theorem realLAdd_cancel_two {P Q R S T : ZFSet.{u}} (hP : P ∈ RealL.{u})
     realLAdd_zero (realLAdd_mem (realLAdd_mem hP hQ) (realLAdd_mem hR hS))]
 
 #print axioms realLAdd_cancel_two
-
 
 /-- The difference of squares: `a² - b² = (a-b)(a+b)`, as located reals. -/
 theorem realLSub_sq {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
@@ -4916,7 +5008,6 @@ theorem realLOf_le_realLOf {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (
   · intro h hlt
     exact ratLt_irrefl (ratLt_of_le_of_lt ha hb ha h ((realLOf_lt_realLOf hb ha).mp hlt))
 
-
 /-- A located real is dominated by a natural. Every `x` has an `n : Nat`
 with `x < n`.
 
@@ -5054,7 +5145,6 @@ theorem realLMul_le_left {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ 
     realLLe (realLMul c u) (realLMul c v) := by
   rw [realLMul_comm hc hu, realLMul_comm hc hv]
   exact realLMul_le_right hu hv hc huv hc0
-
 
 /-! ## Differentiability on an interval
 
@@ -6037,6 +6127,7 @@ theorem realLLt_realLOf_of_mem_upper {L Ll Lu v : ZFSet.{u}} (hLeq : L = opair L
   · rw [realLOf, fst_opair]
     exact (mem_ratCut_iff v r).mpr ⟨hloc.upper_subset r hrU, hrlt⟩
 
+
 /-- The reals satisfying `P`, as a set.
 
 The infimum machinery below takes the bound predicate as a parameter rather than
@@ -6320,7 +6411,7 @@ theorem realLOf_ratNat_mul (a b : Nat) :
 Every use is at denominator `1`, where `ratNat_mem_Rat`'s hypothesis is the
 constant `0 < 1`. Stating it here removes that `have h1 : (0:Nat) < 1` from the
 call sites, which is the only thing the inline form was ever carrying. -/
-theorem realLOf_ratNat_mem (k : Nat) : realLOf (ratNat.{u} k 1) ∈ RealL.{u} :=
+@[simp] theorem realLOf_ratNat_mem (k : Nat) : realLOf (ratNat.{u} k 1) ∈ RealL.{u} :=
   realLOf_mem (ratNat_mem_Rat (by omega : (0:Nat) < 1))
 
 #print axioms realLOf_ratNat_mem
@@ -6383,7 +6474,6 @@ def DecidableRealLLt : Prop :=
     realLLt x y ∨ ¬ realLLt x y
 
 #print axioms Analysis.DecidableRealLLt
-
 
 #print axioms add_window
 #print axioms larger_mem
@@ -6456,5 +6546,5 @@ end Analysis
 #print axioms Analysis.realLOf_ratNat_pos
 
 namespace ZFSet
-export Analysis (BoundedLocated Close DecidableRealLLt FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_eq_realAdd addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart approached_of_inf approx_diff block_split boundsOf boundsOf_subset cauchySchwarz_realL cell_split chain_slack close_add_real close_realLMax close_stable close_symm_real close_trans_real corners_of_refinement corners_of_refinement' disp_sub dyadicHi dyadicLeft dyadicLo eq_zero_of_add_eq_zero eq_zero_of_add_self_eq_zero eq_zero_of_sq_zero exists_between_of_realLApart exists_natBound_below exists_natBound_realL exists_pos_lower exists_rat_bracket exists_realLLt_ratOf familyLocatedInf_of_lowerBound_of_approx glb_of_familyLocatedInf glb_of_familyLocatedInf_set gridPt infLower infUpper inf_realLLe_of_mem invLower invScale invScale_antitone invScale_mem invUpper isCut_lower isLocated_add isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_max isLocated_min isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_add_of_neg_le_sub' le_add_of_sub_le le_realLMin le_sup le_sup_realLLe located_bracket located_bracket_width located_eq_of_subset located_of_isLocated lowerBound_boundsOf lower_mem_Real lower_of_le_of_lower lower_pair_bound lt_of_sub_pos lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_eq_realMulNonneg mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_nonneg_witnesses mulLower_one mulLower_sub_realMulNonneg mulLower_tight mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_tight mulUpper_zero mul_eq_zero_absurd_of_apart mul_located negLower negUpper nonneg_of_withinOf not_min_lt_both not_not_apart_of_ne pairLe neg_of_mul_neg_left pairLe_antisymm pos_of_mul_pos_left pos_or_pos_of_add_pos realLAdd realLAdd_assoc realLAdd_cancel_two realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_middle_pair realLAdd_mul realLAdd_neg realLAdd_nonneg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_right_comm realLAdd_sub_add realLAdd_sub_cancel_left realLAdd_swap_inner realLAdd_zero realLApart realLApart_add_self realLApart_iff_sub realLApart_irrefl realLApart_mul_left realLApart_symm realLApart_tight realLApart_zero_of_max_pos realLApart_zero_one realLDouble realLIco realLInv realLInvApart realLInvApart_mem realLInv_antitone realLInv_eq_of_mul_one realLInv_le_of_le realLInv_mem realLInv_one realLInv_pos realLInv_realLOf realLLe realLLe_add realLLe_add_right realLLe_add_right_cancel realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_max_left realLLe_max_right realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_of_mul_le_mul_right realLLe_refl realLLe_self_add_nonneg realLLe_sub_nonneg realLLe_sub_sub_of_add_le realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_max_cases realLLt_max_of_right realLLt_min realLLt_min_cases realLLt_min_pair realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_realLOf_of_mem_upper realLLt_self_add_pos realLLt_sub_neg realLLt_sub_pos realLLt_sub_pos_self realLLt_trans realLMax realLMaxList realLMax_add_dist realLMax_comm realLMax_eq_left_of_le realLMax_le realLMax_lt realLMax_lt_pair realLMax_mem realLMax_shift_le realLMin realLMinList realLMin_add_le realLMin_le_left realLMin_le_right realLMin_lt_of_left realLMin_mem realLMin_pos realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_le_left realLMul_le_right realLMul_left_cancel_apart realLMul_left_comm realLMul_lt_right realLMul_mem realLMul_neg realLMul_neg_neg realLMul_neg_of_neg_of_pos realLMul_nonneg realLMul_one realLMul_pos realLMul_ratInv_cancel realLMul_shuffle_pair realLMul_sq_swap realLMul_sub_mul realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_sub_iff realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOf_mul realLOf_ratNat_add realLOf_ratNat_le realLOf_ratNat_mem realLOf_ratNat_nonneg realLOf_ratNat_one_nonneg realLOf_ratNat_pos realLOf_ratNat_succ_pos realLOne realLOne_le_realLInv_of_le_one realLOne_mem realLOne_mul realLSq_le_of_within realLSq_lt_sq realLSq_nonneg realLSq_pos realLSub_add_cancel realLSub_add_sub realLSub_eq_zero_iff realLSub_le_iff realLSub_mul realLSub_nonpos_of_le realLSub_sq realLSub_sub realLSub_sub_cancel realLTwo_mem realLTwo_pos realLZero realLZero_add realLZero_le_realLNeg realLZero_lt_one realLZero_mem realLZero_mul realL_add_mul_add realL_eq_opair realL_inv_unique realL_inverses realL_mul_ne_zero reflect_step_eq riemann_step_eq shift_sub slack_add_lin sq_le_sq_of_bracket sq_le_sq_of_le sq_sub_expand sq_sum sub_add_sub_eq_zero sub_pos_of_lt sub_shift_cancel supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_add toCut_injective toCut_le toCut_mem toCut_mul upper_eq_of_lower upper_eq_of_lower_eq upper_of_le_ratOf upper_pair_bound upper_pos_of_witness withinOf_add_real withinOf_neg_real withinOf_of_cases withinOf_realLMul withinOf_stable)
+export Analysis (realLLt_sub_swap BoundedLocated Close DecidableRealLLt FamilyLocated FamilyLocatedInf IsLocated LocatedReadout RealL WithinOf addLower addLower_assoc addLower_comm addLower_eq_realAdd addLower_neg addLower_zero addUpper addUpper_assoc addUpper_comm addUpper_neg addUpper_zero apart_mul_apart approached_of_inf approx_diff block_split boundsOf boundsOf_subset cauchySchwarz_realL cell_split chain_slack close_add_real close_realLMax close_stable close_symm_real close_trans_real corners_of_refinement corners_of_refinement' cutLower cutUpper disp_sub dyadicHi dyadicLeft dyadicLo eq_zero_of_add_eq_zero eq_zero_of_add_self_eq_zero eq_zero_of_sq_zero exists_between_of_realLApart exists_natBound_below exists_natBound_realL exists_pos_lower exists_rat_bracket exists_realLLt_ratOf familyLocatedInf_of_lowerBound_of_approx glb_of_familyLocatedInf glb_of_familyLocatedInf_set gridPt infLower infUpper inf_realLLe_of_mem invLower invScale invScale_antitone invScale_mem invUpper isCut_lower isLocated_add isLocated_cut isLocated_inf_of_familyLocatedInf isLocated_inv isLocated_max isLocated_min isLocated_mul isLocated_mul_of_located isLocated_neg isLocated_of_mem_RealL isLocated_ratCut isLocated_sup_of_familyLocated le_add_of_neg_le_sub' le_add_of_sub_le le_realLMin le_sup le_sup_realLLe located_bracket located_bracket_width located_eq_of_subset located_of_isLocated lowerBound_boundsOf lower_mem_Real lower_of_le_of_lower lower_pair_bound lt_of_sub_pos lt_realLOf_iff_mem_upper lub_of_familyLocated mem_RealL_iff mem_addLower_iff mem_addUpper_iff mem_boundsOf_iff mem_cutLower_iff mem_cutUpper_iff mem_infLower_iff mem_infUpper_iff mem_invLower_iff mem_invUpper_iff mem_lower_of_neg_of_nonneg mem_mulLower_iff mem_mulUpper_iff mem_negLower_iff mem_negUpper_iff mem_supLower_iff mem_supUpper_iff mem_upper_iff mulLower mulLower_assoc_le mulLower_comm mulLower_const mulLower_distrib_le mulLower_eq_realMulNonneg mulLower_inv mulLower_inv_ge mulLower_inv_le mulLower_nonneg_witnesses mulLower_one mulLower_sub_realMulNonneg mulLower_tight mulLower_zero mulUpper mulUpper_assoc_le mulUpper_comm mulUpper_const mulUpper_distrib_le mulUpper_inv mulUpper_inv_ge mulUpper_inv_le mulUpper_one mulUpper_tight mulUpper_zero mul_eq_zero_absurd_of_apart mul_located negLower negUpper nonneg_of_withinOf not_min_lt_both not_not_apart_of_ne pairLe neg_of_mul_neg_left pairLe_antisymm pos_of_mul_pos_left pos_or_pos_of_add_pos realLAdd realLAdd_assoc realLAdd_cancel_two realLAdd_comm realLAdd_interchange realLAdd_mem realLAdd_middle_pair realLAdd_mul realLAdd_neg realLAdd_nonneg realLAdd_pos_of_nonneg realLAdd_right_cancel realLAdd_right_comm realLAdd_sub_add realLAdd_sub_cancel_left realLAdd_swap_inner realLAdd_zero realLApart realLApart_add_self realLApart_iff_sub realLApart_irrefl realLApart_mul_left realLApart_symm realLApart_tight realLApart_zero_of_max_pos realLApart_zero_one realLDouble realLIco realLInv realLInvApart realLInvApart_mem realLInv_antitone realLInv_eq_of_mul_one realLInv_le_of_le realLInv_mem realLInv_one realLInv_pos realLInv_realLOf realLLe realLLe_add realLLe_add_right realLLe_add_right_cancel realLLe_antisymm realLLe_inf_of_forall realLLe_lower_subset realLLe_max_left realLLe_max_right realLLe_neg_of_le_add realLLe_of_lower_subset realLLe_of_lt realLLe_of_mul_le_mul_right realLLe_refl realLLe_self_add_nonneg realLLe_sub_nonneg realLLe_sub_sub_of_add_le realLLe_trans realLLt realLLt_add realLLt_add_right realLLt_add_right_cancel realLLt_cotrans realLLt_irrefl realLLt_max_cases realLLt_max_of_right realLLt_min realLLt_min_cases realLLt_min_pair realLLt_of_le_of_lt realLLt_of_lt_of_le realLLt_of_neg_lt_neg realLLt_of_neg_of_nonneg realLLt_realLOf_of_mem_upper realLLt_self_add_pos realLLt_sub_neg realLLt_sub_pos realLLt_sub_pos_self realLLt_trans realLMax realLMaxList realLMax_add_dist realLMax_comm realLMax_eq_left_of_le realLMax_le realLMax_lt realLMax_lt_pair realLMax_mem realLMax_shift_le realLMin realLMinList realLMin_add_le realLMin_le_left realLMin_le_right realLMin_lt_of_left realLMin_mem realLMin_pos realLMul realLMul_assoc realLMul_comm realLMul_distrib realLMul_inv realLMul_invApart realLMul_le_left realLMul_le_right realLMul_left_cancel_apart realLMul_left_comm realLMul_lt_right realLMul_mem realLMul_neg realLMul_neg_neg realLMul_neg_of_neg_of_pos realLMul_nonneg realLMul_one realLMul_pos realLMul_ratInv_cancel realLMul_shuffle_pair realLMul_sq_swap realLMul_sub_mul realLMul_zero realLNeg realLNeg_le_neg realLNeg_le_sub_iff realLNeg_le_zero realLNeg_lt_neg realLNeg_mem realLNeg_neg_of_pos realLNeg_pos realLNeg_realLAdd realLNeg_realLMul realLNeg_realLNeg realLNeg_sub realLNeg_zero realLOf realLOf_add realLOf_le_realLOf realLOf_lt_iff_mem_lower realLOf_lt_realLOf realLOf_lt_zero realLOf_mem realLOf_mul realLOf_ratNat_add realLOf_ratNat_le realLOf_ratNat_mem realLOf_ratNat_nonneg realLOf_ratNat_one_nonneg realLOf_ratNat_pos realLOf_ratNat_succ_pos realLOne realLOne_le_realLInv_of_le_one realLOne_mem realLOne_mul realLSq_le_of_within realLSq_lt_sq realLSq_nonneg realLSq_pos realLSub_add_cancel realLSub_add_sub realLSub_eq_zero_iff realLSub_le_iff realLSub_mul realLSub_nonpos_of_le realLSub_sq realLSub_sub realLSub_sub_cancel realLTwo_mem realLTwo_pos realLZero realLZero_add realLZero_le_realLNeg realLZero_lt_one realLZero_mem realLZero_mul realL_add_mul_add realL_eq_opair realL_inv_unique realL_inverses realL_mul_ne_zero reflect_step_eq riemann_step_eq shift_sub slack_add_lin sq_le_sq_of_bracket sq_le_sq_of_le sq_sub_expand sq_sum sub_add_sub_eq_zero sub_pos_of_lt sub_shift_cancel supLower supUpper sup_le sup_realLLe_of_forall sup_realLLe_of_forall_le toCut toCut_add toCut_injective toCut_le toCut_mem toCut_mul upper_eq_of_lower upper_eq_of_lower_eq upper_of_le_ratOf upper_pair_bound upper_pos_of_witness withinOf_add_real withinOf_neg_real withinOf_of_cases withinOf_realLMul withinOf_stable)
 end ZFSet

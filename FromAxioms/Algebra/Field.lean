@@ -16,6 +16,7 @@ elements, and a field when `n` is prime.
 
 import FromAxioms.Algebra.Ring
 import FromAxioms.NumberTheory.Prime
+import FromAxioms.NumberTheory.Rational
 
 universe u
 
@@ -229,8 +230,8 @@ theorem opair_mem_modRel_iff {n a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Int.{u
   · intro hmul
     exact ⟨opair_mem_prod ha hb, a, ha, b, hb, rfl, hmul⟩
 
-/-- Congruence mod `n` is a congruence for addition. Each clause comes from
-writing a difference as `n·z`. -/
+/-- Congruence mod `n` is a congruence for integer addition. Every clause
+comes from writing a difference as `n·z`, read through `opair_mem_modRel_iff`. -/
 theorem isCongruence_modRel {n : ZFSet.{u}} (hn : n ∈ NumberTheory.Int.{u}) :
     IsCongruence (modRel n) NumberTheory.Int.{u} intAddOp.{u} := by
   constructor
@@ -775,11 +776,18 @@ theorem last_mem_modUnits {p : Nat} (hp : IsPrime p) :
   exact (mem_units_iff _ _ _ _).mpr ⟨cls_mem_quotientSet (intOfNat_mem_Int _),
     cls_intOfNat_ne_zero hp2 (by omega) (by omega)⟩
 
+/-! ## The field ℚ and the ring ℤ: audit, then integer lemmas
+
+The four prints below are the audit: nothing classical, and nothing new about
+ℚ, since every clause is a `Rational.lean` lemma read through `app`. The
+declarations after them, from `ringNeg_int` on, read `Int`'s own operations
+through the ring structure. -/
 
 #print axioms isGroup_ratAdd
 #print axioms isRing_rat
 #print axioms isField_rat
 #print axioms isRing_int
+
 #print axioms isCongruence_modRel
 
 #print axioms isRing_intMod
@@ -1012,7 +1020,8 @@ theorem intAbs_intOne : intAbs intOne.{u} = intOne.{u} := by
 
 The multiplicativity of `intAbs` splits `z * w = 1` into `|z| * |w| = 1`, and
 `natUnit_step` closes it. No sign is decided: `intAbs` takes the larger and the
-smaller by the lattice operations rather than by a comparison. -/
+smaller by the lattice operations rather than by a comparison, and the one case
+split in this proof is in a `Prop`. -/
 theorem intAbs_eq_one_of_unit {z : ZFSet.{u}}
     (hz : z ∈ unitsOf NumberTheory.Int.{u} intMulOp.{u} intOne.{u}) :
     intAbs z = intOne.{u} := by

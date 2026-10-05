@@ -193,6 +193,7 @@ theorem realLOf_neg {a : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) :
     have := (ratNeg_lt_neg_iff (ratNeg_mem_Rat hpQ) htQ).mpr htp
     rwa [ratNeg_ratNeg hpQ] at this
 
+
 /-- A real between a rational and that rational plus `ε` is within `ε`
 of it: both halves of the bracket, from the two order bounds. -/
 theorem close_realLOf_of_between {x r ε : ZFSet.{u}} (hx : x ∈ RealL.{u})
@@ -1094,11 +1095,7 @@ theorem isNested_bisectB (bit : ZFSet.{u} → ZFSet.{u})
     rw [bisectLoSeqB, bisectHiSeqB, app_natSeq hlo N, app_natSeq hhi N]
     exact hN
 
-/-! ### Within every scale is zero
-
-The Archimedean step, in the form the root needs: a real bracketed by `±1/(n+1)`
-for every `n` is zero. Both halves find a rational strictly between the value
-and zero, and then a scale below it. -/
+/-! ### Within every scale is zero -/
 
 theorem eq_zero_of_within_all {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (h : ∀ n : Nat, WithinOf z (invScale.{u} n)) : z = realLZero.{u} := by
@@ -1141,7 +1138,7 @@ Everything is in place: the intervals nest, their widths shrink, the limit sits
 inside every one of them, and uniform continuity carries the endpoint bounds to
 the limit. -/
 
-private theorem sub_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
+theorem sub_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (h : realLLe b a) : realLLe realLZero.{u} (realLAdd a (realLNeg b)) := by
   have := realLLe_add_right hb ha (realLNeg_mem hb) h
   rwa [realLAdd_neg hb] at this
@@ -1660,6 +1657,7 @@ theorem exists_index_mul_le_invScale_gen {C : ZFSet.{u}} (hC : C ∈ RealL.{u})
 #print axioms bisect_step
 #print axioms bisectRoot_mem
 #print axioms gridPoint_between
+
 end Analysis
 
 #print axioms Analysis.left_mem_realLIcc

@@ -89,9 +89,6 @@ def sqrtTwo : ZFSet.{u} := nestLower sqLowSeq.{u}
 
 /-! ## √2 is not a rational
 
-If the cut of the walk were the cut of a rational `r`, then `r` would sit inside
-every interval, and cross-multiplying gives, for every `n`,
-
     kₙ·q ≤ p·2ⁿ ≤ (kₙ+1)·q
 
 with `r = p/q`. The invariant then squeezes `p² ` against `2q²` and the two can

@@ -24,6 +24,7 @@ the operation is given, not chosen.
 -/
 
 import FromAxioms.Core.NatSearch
+import FromAxioms.NumberTheory.Integer
 import FromAxioms.SetTheory.Cardinal
 
 universe u
@@ -1031,10 +1032,7 @@ theorem restrictOp_range {op S : ZFSet.{u}} : range (restrictOp op S) ⊆ S := b
   obtain ⟨p, hp⟩ := (mem_range_iff v _).mp hv
   exact mem_prod_right ((mem_sep_iff _ _ _).mp hp).left
 
-/-! ## Restricting one side
-
-The same restriction with the left factor cut down further: an action of `S` on
-`T` carved out of an operation on the ambient set. -/
+/-! ## Restricting one side -/
 
 def restrictLeft (op S T : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun z => z ∈ op) (prod (prod S T) T)
@@ -1140,6 +1138,7 @@ theorem length_powerList (op e a : ZFSet.{u}) (n : Nat) :
 #print axioms gpow_mul_bare
 #print axioms gpow_mul_eq_id_bare
 #print axioms gpow_mod_bare
+
 #print axioms gpow_eq_id_iff_bare
 #print axioms intAdd_maps
 

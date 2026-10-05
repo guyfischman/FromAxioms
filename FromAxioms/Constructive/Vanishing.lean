@@ -362,10 +362,21 @@ private def acStep (F : ZFSet.{u}) : ZFSet.{u} :=
         p = opair a b ∧ fst b = succ (fst a))
     (prod (acState F) (acState F))
 
+/-- Dependent choice at every countable-choice state set, `∀ F, DCOn (acState F)`.
+
+Between `dc` (`dcOnACStates_of_dc`) and `acomega` (`acOmega_of_dcOn`), as
+`Topology.DCOnBaireStates` sits between `dc` and `baireall`. -/
+def DCOnACStates : Prop := ∀ F : ZFSet.{u}, DCOn.{u} (acState F)
+
+/-- `DC` gives dependent choice at every state set at once: `DCOn`'s body is
+`DC`'s with the carrier as a parameter. -/
+theorem dcOnACStates_of_dc (hdc : DC.{u}) : DCOnACStates.{u} :=
+  fun F => dcOn_of_dc hdc (acState F)
+
 /-- Countable choice from dependent choice on the state sets. The
 hypothesis is `DCOn` at each `acState F` rather than `DC`, because that is
 all the proof reaches for. -/
-theorem acOmega_of_dcOn (hdc : ∀ F : ZFSet.{u}, DCOn.{u} (acState F)) :
+theorem acOmega_of_dcOn (hdc : DCOnACStates.{u}) :
     ACOmega.{u} := by
   intro F hF hdom hinh
   have hmemS : ∀ n y, n ∈ omega.{u} → y ∈ app F n → opair n y ∈ acState F := by
@@ -414,7 +425,21 @@ theorem acOmega_of_dcOn (hdc : ∀ F : ZFSet.{u}, DCOn.{u} (acState F)) :
 statement is a corollary. Kept because it is the lattice edge's
 witness. -/
 theorem acOmega_of_dc (hdc : DC.{u}) : ACOmega.{u} :=
-  acOmega_of_dcOn fun F => dcOn_of_dc hdc (acState F)
+  acOmega_of_dcOn (dcOnACStates_of_dc hdc)
+
+/-! ## The factorisation
+
+    DecidableVanishing RealL realLZero  ⟸  countable choice  +  WLPO
+    DecidableVanishing RealL realLZero  ⟹  WLPO
+
+Whether the choice half is needed is not a reversal but an independence, and
+this development can state it without settling it.
+-/
+
+/-- `ratTwo` as a `ratNat`. `Analysis.ratTwo_eq_ratNat`'s twin, kept here
+because `Caratheodory.lean` is not reachable from this file and cannot be. -/
+theorem ratTwo_as_ratNat : ratTwo.{u} = ratNat.{u} 2 1 := by
+  rw [ratTwo, ← ratNat_one_one, ratNat_add_same_denom (by omega : 0 < 1)]
 
 /-! ## The sign disjunction is `LLPO`
 
@@ -458,6 +483,15 @@ private theorem le_of_sub_le_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
   refine h ?_
   exact sub_pos_of_lt hb ha hlt
 
+/-- Any two ternary reals are comparable, `∀ α β, t α ≤ t β ∨ t β ≤ t α`.
+
+Named so `llpo_of_ternaryComparison` can bind it: the sharp object this file's
+refinement of `llpo_of_signDisjunction` reaches. -/
+def TernaryComparison : Prop :=
+  ∀ α β : Nat → Bool,
+    realLLe (ternaryReal.{u} α) (ternaryReal.{u} β) ∨
+      realLLe (ternaryReal.{u} β) (ternaryReal.{u} α)
+
 /-- `LLPO` from comparing ternary reals alone, which is all
 `llpo_of_signDisjunction` ever used.
 
@@ -477,8 +511,7 @@ Why it matters here: `ternary_dichotomy` derives that comparison from
 through the unrefined form, which would demand a sign for reals the readout says
 nothing about. -/
 theorem llpo_of_ternaryComparison
-    (hcmp : ∀ α β : Nat → Bool, realLLe (ternaryReal.{u} α) (ternaryReal.{u} β) ∨
-      realLLe (ternaryReal.{u} β) (ternaryReal.{u} α)) : LLPO := by
+    (hcmp : TernaryComparison.{u}) : LLPO := by
   refine llpo_of_ternary_llpo.{u} fun α β hdisj => ?_
   have key : ∀ x y : Nat → Bool, realLLe (ternaryReal.{u} x) (ternaryReal.{u} y) →
       ¬ ((∃ n, x n = true) ∧ (∃ n, y n = true)) →
@@ -501,19 +534,24 @@ theorem llpo_of_ternaryComparison
 
 #print axioms Constructive.llpo_of_ternaryComparison
 
+/-- A sign for every real compares any two ternary reals, the in-edge
+`TernaryComparison` lacked. The principle is spent in one place: on the
+difference of the two ternary reals, read back as a comparison. -/
+theorem ternaryComparison_of_signDisjunction (h : SignDisjunction.{u}) :
+    TernaryComparison.{u} := fun α β => by
+  have hα := ternaryReal_mem.{u} α
+  have hβ := ternaryReal_mem.{u} β
+  rcases h _ (realLAdd_mem hα (realLNeg_mem hβ)) with hle | hge
+  · exact Or.inl (le_of_sub_le_zero hα hβ hle)
+  · refine Or.inr (fun hlt => hge ?_)
+    have := realLLt_add_right hα hβ (realLNeg_mem hβ) hlt
+    rwa [realLAdd_neg hβ] at this
+
 /-- A sign for every real is `LLPO`. -/
 theorem llpo_of_signDisjunction (h : SignDisjunction.{u}) : LLPO :=
-  -- Routed through `llpo_of_ternaryComparison`, which carries the comparison
-  -- block. The principle is spent in one place: on the difference of the two
-  -- ternary reals, read back as a comparison.
-  llpo_of_ternaryComparison fun α β => by
-    have hα := ternaryReal_mem.{u} α
-    have hβ := ternaryReal_mem.{u} β
-    rcases h _ (realLAdd_mem hα (realLNeg_mem hβ)) with hle | hge
-    · exact Or.inl (le_of_sub_le_zero hα hβ hle)
-    · refine Or.inr (fun hlt => hge ?_)
-      have := realLLt_add_right hα hβ (realLNeg_mem hβ) hlt
-      rwa [realLAdd_neg hβ] at this
+  -- Routed through `ternaryComparison_of_signDisjunction` and
+  -- `llpo_of_ternaryComparison`, which carries the comparison block.
+  llpo_of_ternaryComparison (ternaryComparison_of_signDisjunction h)
 
 /-! ## Apartness from zero, and what it yields
 
@@ -599,9 +637,6 @@ def DCOmega : Prop :=
 
 /-! ### BIKN's level recursion, on positions
 
-Berger-Ishihara-Kihara-Nemoto, Theorem 12, `WKL_c => IVT` (page 14): from
-`a_n, b_n` at depth `n` the next level's bounds are
-
     a_{n+1} := the greatest child in S-, else a_n * 0
     b_{n+1} := one before the least child of S+ past a_{n+1}, else b_n * 1
 
@@ -613,6 +648,31 @@ So it is stated over an arbitrary `cls`, proved once, and instantiated
 afterwards; the four facts `Analysis.IntervalTree` wants of the bounds and the
 two facts the sign invariant wants of the classes are the lemmas here.
 -/
+
+/-- The one-cell dyadic readout at depth one, as a named principle.
+
+`SetTheory.DyadicApprox` with `n` fixed at `1`. At depth one the one-cell
+window is `2 * (1/2)^1 = 1` and the grid is `{0, 1}`, so the existential is a
+dichotomy: `llpo_of_depthOne` prices exactly this instance at `LLPO`, which the
+full `DyadicApprox` would also give but strictly more of. Binding the instance
+rather than the principle is what keeps those results sharp. -/
+def DyadicApproxDepthOne : Prop :=
+  ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
+    realLLe (realLOf ratZero.{u}) x →
+    realLLe x (realLOf (ratNat.{u} 2 1)) →
+    ∃ s : List Bool, s.length = 1 ∧
+      realLLe (realLOf (dyadicOf.{u} s)) x ∧
+      realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
+        (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) 1))))
+
+#print axioms Constructive.DyadicApproxDepthOne
+
+/-- The edge to the full principle, which is the instantiation at `1`. -/
+theorem dyadicApproxDepthOne_of_dyadicApprox (h : SetTheory.DyadicApprox.{u}) :
+    DyadicApproxDepthOne.{u} :=
+  fun x hx h0 h2 => h x hx h0 h2 1
+
+#print axioms Constructive.dyadicApproxDepthOne_of_dyadicApprox
 
 /-- The one-cell readout at depth one decides which side of `1` a real lies on.
 
@@ -631,13 +691,7 @@ places a real relative to a single point.
 prices it at `LLPO`. This is the same shape at `1` on `[0,2]`, which is where a
 route from the one-cell readout to that principle would start. -/
 theorem dichotomy_of_depthOne
-    (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
-      realLLe (realLOf ratZero.{u}) x →
-      realLLe x (realLOf (ratNat.{u} 2 1)) →
-      ∃ s : List Bool, s.length = 1 ∧
-        realLLe (realLOf (dyadicOf.{u} s)) x ∧
-        realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
-          (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) 1)))))
+    (h : DyadicApproxDepthOne.{u})
     {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (h0 : realLLe (realLOf ratZero.{u}) x)
     (h2 : realLLe x (realLOf (ratNat.{u} 2 1))) :
@@ -668,7 +722,7 @@ theorem dichotomy_of_dyadicApprox (h : SetTheory.DyadicApprox.{u})
     (h0 : realLLe (realLOf ratZero.{u}) x)
     (h2 : realLLe x (realLOf (ratNat.{u} 2 1))) :
     realLLe x (realLOf ratOne.{u}) ∨ realLLe (realLOf ratOne.{u}) x :=
-  dichotomy_of_depthOne (fun y hy hy0 hy2 => h y hy hy0 hy2 1) hx h0 h2
+  dichotomy_of_depthOne (dyadicApproxDepthOne_of_dyadicApprox h) hx h0 h2
 #print axioms Constructive.dichotomy_of_dyadicApprox
 
 /-- The depth-one readout gives a sign for every real in `[-1,1]`.
@@ -686,13 +740,7 @@ distance between the one-cell readout and that principle is exactly the offset
 --- reaching an arbitrary real --- which is the same forall-exists gap in its
 third appearance, and not anything about deciding signs. -/
 theorem boundedSign_of_depthOne
-    (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
-      realLLe (realLOf ratZero.{u}) x →
-      realLLe x (realLOf (ratNat.{u} 2 1)) →
-      ∃ s : List Bool, s.length = 1 ∧
-        realLLe (realLOf (dyadicOf.{u} s)) x ∧
-        realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
-          (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) 1)))))
+    (h : DyadicApproxDepthOne.{u})
     {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (hlo : realLLe (realLNeg (realLOf ratOne.{u})) z)
     (hhi : realLLe z (realLOf ratOne.{u})) :
@@ -741,13 +789,7 @@ parallel development can go.
 `realLLe_sub_nonneg` does the forward reading directly; the backward one adds `a`
 to both sides, where `realLSub_add_cancel` collapses the left. -/
 theorem boundedDichotomy
-    (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
-      realLLe (realLOf ratZero.{u}) x →
-      realLLe x (realLOf (ratNat.{u} 2 1)) →
-      ∃ s : List Bool, s.length = 1 ∧
-        realLLe (realLOf (dyadicOf.{u} s)) x ∧
-        realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
-          (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) 1)))))
+    (h : DyadicApproxDepthOne.{u})
     {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (ha0 : realLLe realLZero.{u} a) (ha1 : realLLe a (realLOf ratOne.{u}))
     (hb0 : realLLe realLZero.{u} b) (hb1 : realLLe b (realLOf ratOne.{u})) :
@@ -793,13 +835,7 @@ commutation. The range bounds go the same way.
 `1 + a` and `2 + b` are the only terms that appear, so the whole argument stays
 inside the abelian-group laws the tree already has. -/
 theorem ternary_dichotomy
-    (h : ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
-      realLLe (realLOf ratZero.{u}) x →
-      realLLe x (realLOf (ratNat.{u} 2 1)) →
-      ∃ s : List Bool, s.length = 1 ∧
-        realLLe (realLOf (dyadicOf.{u} s)) x ∧
-        realLLe x (realLOf (ratAdd (dyadicOf.{u} s)
-          (ratMul (ratNat.{u} 2 1) (ratPow (ratNat.{u} 1 2) 1))))) (α β : Nat → Bool) :
+    (h : DyadicApproxDepthOne.{u}) (α β : Nat → Bool) :
     realLLe (ternaryReal.{u} α) (ternaryReal.{u} β) ∨
       realLLe (ternaryReal.{u} β) (ternaryReal.{u} α) :=
   boundedDichotomy h (ternaryReal_mem α) (ternaryReal_mem β)
@@ -810,6 +846,7 @@ theorem ternary_dichotomy
 #print axioms Constructive.ternary_dichotomy
 #print axioms neg_pos_lt_zero
 #print axioms mem_acState_iff
+#print axioms ratTwo_as_ratNat
 #print axioms le_of_sub_le_zero
 
 
@@ -832,12 +869,14 @@ end Constructive
 #print axioms Constructive.eq_zero_or_apart_of_lpo
 #print axioms Constructive.DCOn
 #print axioms Constructive.dcOn_of_dc
+#print axioms Constructive.dcOnACStates_of_dc
 #print axioms Constructive.acOmega_of_dcOn      -- the premise the proof spends
 #print axioms Constructive.acOmega_of_dc
+#print axioms Constructive.ternaryComparison_of_signDisjunction
 #print axioms Constructive.realLZero_lt_iff_mem_lower
 #print axioms Constructive.llpo_of_signDisjunction
 #print axioms Constructive.DCOmega
 
 namespace ZFSet
-export Constructive (DC DCOmega DCOn HasZeroLocators IsZeroLocator SignDisjunction acOmega_of_dc acOmega_of_dcOn apart_of_mp_of_ne_zero apart_of_zeroLocator_fires dcOn_of_dc eq_zero_iff_of_zeroLocator eq_zero_or_apart_of_lpo exists_true_of_ternary_apart exists_true_of_tnum_pos llpo_of_signDisjunction lower_eq_ratCut_zero_of_locator realLZero_lt_iff_mem_lower ternaryReal ternaryReal_eq_zero_iff ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg tlow_eq_zero_of_tnum_zero toCut_realLZero toCut_ternaryReal)
+export Constructive (TernaryComparison DC DCOmega DCOn DCOnACStates dcOnACStates_of_dc HasZeroLocators IsZeroLocator SignDisjunction acOmega_of_dc acOmega_of_dcOn apart_of_mp_of_ne_zero apart_of_zeroLocator_fires dcOn_of_dc eq_zero_iff_of_zeroLocator eq_zero_or_apart_of_lpo exists_true_of_ternary_apart exists_true_of_tnum_pos llpo_of_signDisjunction ternaryComparison_of_signDisjunction lower_eq_ratCut_zero_of_locator realLZero_lt_iff_mem_lower ternaryReal ternaryReal_eq_zero_iff ternaryReal_le_one ternaryReal_mem ternaryReal_nonneg tlow_eq_zero_of_tnum_zero toCut_realLZero toCut_ternaryReal)
 end ZFSet
