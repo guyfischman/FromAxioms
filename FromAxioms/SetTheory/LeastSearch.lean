@@ -170,12 +170,11 @@ theorem firedBy_true_iff {α : Nat → Bool} :
       · have : k = n + 1 := by omega
         subst this
         exact Bool.or_eq_true_iff.mpr (Or.inr hα)
-/-- `firedBy` is monotone: what has fired stays fired. -/
+/-- `firedBy α` is monotone. -/
 theorem firedBy_mono {α : Nat → Bool} {m n : Nat} (h : m ≤ n)
     (hm : firedBy α m = true) : firedBy α n = true := by
   obtain ⟨k, hk, hα⟩ := (firedBy_true_iff m).mp hm
   exact (firedBy_true_iff n).mpr ⟨k, by omega, hα⟩
-/-- Silence up to `n` is silence at every index below it. -/
 theorem not_firedBy_iff {α : Nat → Bool} {n : Nat} :
     firedBy α n = false ↔ ∀ k, k ≤ n → α k = false := by
   constructor
@@ -235,7 +234,6 @@ theorem firstFire_stable {α : Nat → Bool} {n : Nat} (hn : firedBy α n = true
       exact ih (by omega)
     · have : n = k + 1 := by omega
       rw [this]
-/-- Silence pushes the first firing strictly later. -/
 theorem firstFire_gt_of_silent {α : Nat → Bool} {m n : Nat}
     (hm : firedBy α m = false) (hn : firedBy α n = true) :
     m + 1 ≤ firstFire α n := by
@@ -256,12 +254,7 @@ separately lets its monotonicity be proved before any sequence is built on it.
 def fireStage (α : Nat → Bool) (n : Nat) : Nat :=
   if firedBy α n then firstFire α n else n
 
-/-- Silent at `N` puts every later sampling stage at or beyond `N`.
-
-One half of the case split a Cauchy estimate on the sampled sequence needs.
-If `α` has not fired by `N`, then at a later `j` either it still has not ---
-and the stage is `j` itself --- or it has, and the first firing was pushed
-strictly past `N`. -/
+/-- If `firedBy α N = false` and `N ≤ j`, then `N ≤ fireStage α j`. -/
 theorem fireStage_ge_of_silent {α : Nat → Bool} {N j : Nat}
     (hN : firedBy α N = false) (h : N ≤ j) : N ≤ fireStage α j := by
   rw [fireStage]
@@ -272,11 +265,8 @@ theorem fireStage_ge_of_silent {α : Nat → Bool} {N j : Nat}
   · rw [if_neg hj]
     exact h
 
-/-- Fired by `N` fixes every later sampling stage at the same index.
-
-The other half. Once the predicate has fired, `firstFire` has stabilised, so
-the sampled sequence is constant from `N` on --- so the Cauchy
-estimate is trivial in this case rather than needing a width bound. -/
+/-- If `firedBy α N = true` and `N ≤ j`, then `fireStage α j = firstFire α N`.
+-/
 theorem fireStage_eq_of_fired {α : Nat → Bool} {N j : Nat}
     (hN : firedBy α N = true) (h : N ≤ j) :
     fireStage α j = firstFire α N := by

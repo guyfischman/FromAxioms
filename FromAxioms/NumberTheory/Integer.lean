@@ -78,8 +78,7 @@ theorem intOf_mem_Int {a b : ZFSet.{u}} (ha : a ∈ omega.{u}) (hb : b ∈ omega
     intOf a b ∈ Int.{u} :=
   cls_mem_quotientSet (opair_mem_prod ha hb)
 
-/-- The defining property: two pairs name the same integer exactly when they
-differ by the same amount. -/
+/-- `intOf a b = intOf c d` if and only if `a + d = c + b`. -/
 theorem intOf_eq_intOf_iff {a b c d : ZFSet.{u}}
     (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
     (hc : c ∈ omega.{u}) (hd : d ∈ omega.{u}) :
@@ -564,7 +563,6 @@ theorem intMul_neg {x y : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈ Int.{u}) :
     intMul x (intNeg y) = intNeg (intMul x y) := by
   rw [intMul_comm hx (intNeg_mem_Int hy), intNeg_mul hy hx, intMul_comm hy hx]
 
-/-- The four-factor rearrangement the order on ℚ is proved well defined by. -/
 theorem intMul_mul_comm {x y z w : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈ Int.{u})
     (hz : z ∈ Int.{u}) (hw : w ∈ Int.{u}) :
     intMul (intMul x y) (intMul z w) = intMul (intMul x z) (intMul y w) := by
@@ -768,8 +766,7 @@ theorem intPositive_ofNat {np nq : Nat}
       rw [add_empty, empty_add (ofNat_mem_omega nq)]) hne
   · exact hlt
 
-/-- The converse of `intPositive_ofNat`: a numeral representative certifies
-positivity. -/
+/-- If `nq < np`, then the integer `np - nq` is positive. -/
 theorem ofNat_mem_intPositive {np nq : Nat} (h : nq < np) :
     intOf (ofNat.{u} np) (ofNat.{u} nq) ∈ intPositive.{u} := by
   refine (mem_intPositive_iff _).mpr
@@ -899,8 +896,8 @@ theorem intPositive_of_intZero_le {z : ZFSet.{u}} (hz : z ∈ Int.{u})
       exact congrArg ofNat (by omega)) hne
   · omega
 
-/-- Archimedes for ℤ: every integer is strictly below some `n · d` with `d`
-positive and `n` a natural number. -/
+/-- The Archimedean property of the integers: for `d` positive, every integer is
+strictly below `n * d` for some natural `n`. -/
 theorem int_lt_intOfNat_mul {z d : ZFSet.{u}} (hz : z ∈ Int.{u}) (hd : d ∈ intPositive.{u}) :
     ∃ n : Nat, intLe z (intMul (intOfNat.{u} n) d) ∧ z ≠ intMul (intOfNat.{u} n) d := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp hz
@@ -990,8 +987,7 @@ theorem intPositive_or_neg {z : ZFSet.{u}} (hz : z ∈ Int.{u}) (h : z ≠ intZe
     exact Or.inr (ofNat_mem_intPositive hlt)
   · exact Or.inl (ofNat_mem_intPositive (by omega))
 
-/-- Multiplying by a non-negative integer preserves `≤`. Only the strictly
-positive case can reflect it, which is `intMul_le_mul_right_iff` below. -/
+/-- Multiplication by a non-negative integer preserves `≤`. -/
 theorem intMul_le_mul_right {x y k : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈ Int.{u})
     (hk : k ∈ Int.{u}) (hk0 : intLe intZero.{u} k) (h : intLe x y) :
     intLe (intMul x k) (intMul y k) := by
@@ -1020,8 +1016,6 @@ theorem intMul_le_mul_right {x y k : ZFSet.{u}} (hx : x ∈ Int.{u}) (hy : y ∈
   simp only [Nat.mul_add] at hm
   omega
 
-/-- Multiplying by a positive integer both preserves and reflects `≤`, which is
-what the order on ℚ is defined by. -/
 theorem intMul_le_mul_right_iff {x y k : ZFSet.{u}} (hx : x ∈ Int.{u})
     (hy : y ∈ Int.{u}) (hk : k ∈ intPositive.{u}) :
     intLe (intMul x k) (intMul y k) ↔ intLe x y := by
@@ -1145,10 +1139,7 @@ theorem intOfNat_injective {m n : Nat} (h : intOfNat.{u} m = intOfNat.{u} n) :
 
 #print axioms not_intPositive_intNeg_intOfNat
 
-/-- Adding one to a negative numeral: `-(m+1) + 1 = -m`.
-
-Mixed signs are not reachable by `intOfNat_add`, so this goes through the pair
-representation directly. -/
+/-- `-(m + 1) + 1 = -m` in the integers. -/
 theorem intNeg_succ_add_one (m : Nat) :
     intAdd (intNeg (intOfNat.{u} (m + 1))) (intOfNat.{u} 1)
       = intNeg (intOfNat.{u} m) := by
@@ -1169,11 +1160,7 @@ theorem intNeg_succ_add_one (m : Nat) :
 
 
 
-/-- A positive integer is a positive numeral.
-
-`intPositive_ofNat` reads the inequality off a representative someone already
-holds; this produces the representative, which is what a proof descending from
-`Int` to `Nat` needs and what nothing here supplied. -/
+/-- A positive integer is `intOfNat n` for some `0 < n`. -/
 theorem exists_intOfNat_of_intPositive {z : ZFSet.{u}} (hz : z ∈ intPositive.{u}) :
     ∃ n : Nat, 0 < n ∧ z = intOfNat.{u} n := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Int_iff z).mp (intPositive_subset _ hz)
@@ -1273,9 +1260,7 @@ theorem mem_boundedInts_iff (B : Nat) (z : ZFSet.{u}) :
 theorem boundedInts_subset (B : Nat) : boundedInts.{u} B ⊆ Int.{u} :=
   fun _ h => ((mem_boundedInts_iff B _).mp h).left
 
-/-- And every shifted numeral below `2B + 1` is bounded.
-
-The other half, so the two together say the set is the image. -/
+/-- If `k < 2 * B + 1`, then `k - B` lies in `boundedInts B`. -/
 theorem shift_mem_boundedInts {B k : Nat} (hk : k < 2 * B + 1) :
     intAdd (intOfNat.{u} k) (intNeg (intOfNat.{u} B)) ∈ boundedInts.{u} B := by
   have hB := intOfNat_mem_Int.{u} B

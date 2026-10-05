@@ -347,9 +347,7 @@ def ExactIVT01Top : Prop :=
     realLLt realLZero.{u} (G (realLOf ratOne.{u})) →
     ∃ c, And (c ∈ realLIcc ratZero.{u} ratOne.{u}) (G c = realLZero.{u})
 
-/-- The topological form is the stronger statement. Its hypothesis is the
-weaker one, because the bridge manufactures topological continuity from a
-modulus and not the other way round. -/
+/-- `ExactIVT01Top` implies `ExactIVT01`. -/
 theorem exactIVT01_of_top (h : ExactIVT01Top.{u}) : ExactIVT01.{u} :=
   fun G hmaps hUC hlo hhi =>
     h G hmaps (isContinuous_of_uniformlyContinuousOn ratZero_mem_Rat
@@ -466,9 +464,7 @@ theorem signDisjunction_of_llpo_binaryDC (hllpo : LLPO)
 /-- The payload the bisection carries, named so that the instance of
 `BinaryDCOn` this file actually uses can be written down.
 
-It was a lambda inside the proof below until now, so the seven rows' debt could
-only ever be stated in the quantified form: a hypothesis about `halveS P` needs
-a `P`.
+A hypothesis about `halveS P` needs a `P`.
 
 An `abbrev` rather than a `def` -- `halve_limit_of_binaryDCOnAt` unifies its
 `P` against this, and a `def` makes that unification the caller's problem. -/
@@ -489,10 +485,11 @@ halving limit for the straddle payload. Everything after that object -- nesting
 the endpoints, and pinning `G c` to zero by uniform continuity -- is a theorem of
 the ambient axioms, which is what this signature makes visible.
 
-So the rows' debt is `HasHalveLimit (straddleSignP G)`, not two principles. The
-two corollaries below reach it two ways, and neither is a special case of the
-other: `SignDisjunction` supplies the step and the chain principle supplies the
-iteration, while a `HalveDecider` supplies both at once. -/
+So what these theorems need is `HasHalveLimit (straddleSignP G)`, not two
+principles. The two corollaries below reach it two ways, and neither is a
+special case of the other: `SignDisjunction` supplies the step and the chain
+principle supplies the iteration, while a `HalveDecider` supplies both at once.
+-/
 theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
     (hlim : HasHalveLimit (straddleSignP G))
     (hGm : ∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u})
@@ -558,46 +555,41 @@ theorem attainment_of_halveLimit_le {G : ZFSet.{u} → ZFSet.{u}}
       (realLLe_trans realLZero_mem (hGm _ hbIcc)
         (realLAdd_mem (hGm _ hcIcc) (realLOf_mem hnQ)) hpay.right hGble)
 
-/-! ### and the ceiling comes down again, to one node in the row's own vocabulary
+/-! ### The ceiling, at one node
 
-It is bounded on both sides by nodes already named here, so it is worth a
-name rather than an inline binder:
+It is bounded on both sides by principles already named:
 
     Constructive.SignDisjunction  ≤  NonnegDecision  ≤  Constructive.WEM
                                      NonnegDecision  ≤  DecidableRealLLt
                                      NonnegDecision  ≤  Constructive.ZeroOrApart
                                      NonnegDecision  ≤  Constructive.EqOrApart
 
-And the gap to the floor is now one double negation, written out. Unfolding
-`realLLe`, whose definition is a negation, the two ends of the bracket read
+The gap to the floor is one double negation. Unfolding `realLLe`, whose
+definition is a negation, the two ends of the bracket read
 
     SignDisjunction    ¬ (0 < z)  ∨  ¬ (z < 0)
     NonnegDecision     ¬ (z < 0)  ∨  ¬ ¬ (z < 0)
 
-so what the row still owes is exactly whether the landmark can stabilise its own
-sign disjunction. That is a sharper question than *is some chain principle
-reversible*, and it is asked in one vocabulary rather than in two.
+so what remains is whether the theorem can stabilise its own sign disjunction.
 
-Why the midpoint is clamped, and it is not decoration. `HalveDecider.decided`
-is quantified over all rational pairs, with only `a, b ∈ Rat` in hand --- no
-`0 ≤ a` and no `b ≤ 1`. `WEM` did not care, taking any `Prop`; a principle
-restricted to `z ∈ RealL` does, because `G` is only known to take real values on
-`[0,1]`. So `goLeft` tests `G` at `max 0 (min m 1)`, which lies in `[0,1]` for
-every rational `m` and equals `m` at every stage the recursion actually reaches
-(`ratMid_facts` supplies the two bounds there). `ratMin` and `ratMax` decide a
-comparison of rationals, which is free. -/
+Why the midpoint is clamped. `HalveDecider.decided` is quantified over all
+rational pairs, with only `a, b ∈ Rat` in hand --- no `0 ≤ a` and no `b ≤ 1`.
+`WEM` did not care, taking any `Prop`; a principle restricted to `z ∈ RealL`
+does, because `G` is only known to take real values on `[0,1]`. So `goLeft`
+tests `G` at `max 0 (min m 1)`, which lies in `[0,1]` for every rational `m`
+and equals `m` at every stage the recursion actually reaches (`ratMid_facts`
+supplies the two bounds there). `ratMin` and `ratMax` decide a comparison of
+rationals, which is free. -/
 
 /-- The chain principle at one carrier, plus the sign disjunction for the
 step. The halving machine's payload is the pair of endpoint signs; the sign
 disjunction at the midpoint keeps one half's pair intact; the chain iterates.
 
-Why the instance is the statement and the quantified form was not. Those rows'
-reversal target read `<landmark> -> BinaryDCOn`: a chain in an arbitrary set,
-`powerset RealL` included, derived from landmarks that conclude only about
-`RealL`. Here the carrier is `halveS (straddleSignP G)` -- coded pairs of
-rationals carrying `G`'s two endpoint signs, which is the landmarks' own
-subject. The target shrinks to a statement about the very object the landmark
-speaks of.
+Why the instance is the statement. A reversal to the quantified form would have
+to conclude a chain in an arbitrary set, `powerset RealL` included, from
+theorems that conclude only about `RealL`. Here the carrier is
+`halveS (straddleSignP G)` -- coded pairs of rationals carrying `G`'s two
+endpoint signs, which is those theorems' own subject.
 
 Not claimed: that the instance is cheaper. `binaryDCOnAt_of_binaryDCOn` fixes the
 direction and nothing here derives the quantified form back, so this is an upper
@@ -626,14 +618,8 @@ theorem attainment_of_signDisjunction_binaryDCOnAt_le (hsd : SignDisjunction.{u}
   exact attainment_of_halveLimit_le
     (halve_limit_of_binaryDCOnAt hbdc hstep ⟨hG0, hG1⟩) hGm hGuc
 
-/-- The same from the quantified principle, kept with its signature intact
-because seventeen theorems and seven registry rows cite it. The whole difference
-is `binaryDCOnAt_of_binaryDCOn`, and its subset side condition is discharged by
-`halveR` being a `sep` of `prod (halveS _) (halveS _)`.
-
-So the proof no longer uses `BinaryDCOn` at all -- it uses one instance of it,
-and this line takes the instance. So a reader asking what these theorems spend
-finds the answer in a signature rather than in a proof body. -/
+/-- A uniformly continuous `G` on `[0, 1]` with `G 0 ≤ 0 ≤ G 1` has a zero, from
+`SignDisjunction` and `BinaryDCOn`. -/
 theorem attainment_of_signDisjunction_binaryDCOn_le (hsd : SignDisjunction.{u})
     (hbdc : BinaryDCOn.{u}) {G : ZFSet.{u} → ZFSet.{u}}
     (hGm : ∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u})

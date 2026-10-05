@@ -55,10 +55,7 @@ fundamental theorem into a Taylor statement: subtracting the constant `F' a`
 from the integrand replaces the increment by the increment past the tangent,
 which is the order-one remainder. -/
 
-/-- Below every scale is below zero: the Archimedean closer. This is the
-method of exhaustion in its modern form -- Archimedes exhausts a quantity by
-showing it is smaller than every member of a shrinking family, and concludes it
-is zero rather than merely small. -/
+/-- A real that is at most `invWidth n` for every `n` is at most zero. -/
 theorem realLLe_zero_of_forall_invWidth {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (h : ∀ n : Nat, realLLe x (realLOf (invWidth (ofNat.{u} n)))) :
     realLLe x realLZero.{u} := by
@@ -76,7 +73,7 @@ theorem realLLe_zero_of_forall_invWidth {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
     ((realLOf_lt_realLOf hpQ
       (invWidth_mem_Rat (ofNat_mem_omega.{u} j))).mp hchain) hNp)
 
-/-- Above every negated scale is above zero: the mirror closer. -/
+/-- A real that is at least `-invWidth n` for every `n` is at least zero. -/
 theorem zero_le_of_forall_neg_invWidth {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (h : ∀ n : Nat, realLLe (realLOf (ratNeg (invWidth (ofNat.{u} n)))) x) :
     realLLe realLZero.{u} x := by
@@ -345,10 +342,7 @@ theorem ratThree_mul_five_ninths :
     ratMul_comm (ratNeg_mem_Rat ratOne_mem_Rat) hinv3Q,
     ratMul_neg hinv3Q ratOne_mem_Rat, ratMul_one hinv3Q]
 
-/-- The positive exclusion: a positive clamp forbids mean attainment
-above `4/9`. Past that threshold the window's top `3c-1` clears `1/3`, the
-most the mean can be, while the clamp itself exceeds its own third -- so
-the gadget sits strictly above the mean it is supposed to equal. -/
+/-- If `0 < L ≤ 1` and `4/9 < c`, then `mvGadget L c ≠ L / 3`. -/
 theorem mvGadget_exclusion_pos {L c : ZFSet.{u}} (hL : L ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hL0 : realLLt realLZero.{u} L)
     (hL1 : realLLe L realLOne.{u})
@@ -432,10 +426,7 @@ theorem mvGadget_exclusion_pos {L c : ZFSet.{u}} (hL : L ∈ RealL.{u})
   rw [heq] at hfinal
   exact realLLt_irrefl hu hfinal
 
-/-- The negative exclusion: a negative clamp forbids mean attainment
-below `5/9` -- the mirror. Under that threshold the window's bottom `3c-2`
-stays beneath `-1/3`, the least the mean can be, and the clamp undercuts
-its own third. -/
+/-- If `-1 ≤ L < 0` and `c < 5/9`, then `mvGadget L c ≠ L / 3`. -/
 theorem mvGadget_exclusion_neg {L c : ZFSet.{u}} (hL : L ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hL0 : realLLt L realLZero.{u})
     (hlo : realLLe (realLNeg realLOne.{u}) L)
@@ -535,8 +526,7 @@ theorem mvGadget_exclusion_neg {L c : ZFSet.{u}} (hL : L ∈ RealL.{u})
   rw [heq] at hfinal
   exact realLLt_irrefl hu hfinal
 
-/-- The gadget starts at `-1`: at `t = 0` the window is `[-2, -1]` and
-the clamp from `[-1, 1]` pins to its top. -/
+/-- `mvGadget L 0 = -1` when `-1 ≤ L`. -/
 theorem mvGadget_at_zero {L : ZFSet.{u}} (hL : L ∈ RealL.{u})
     (hlo : realLLe (realLNeg realLOne.{u}) L) :
     mvGadget L (realLOf ratZero.{u}) = realLOf (ratNeg ratOne.{u}) := by
@@ -583,8 +573,7 @@ theorem mvGadget_at_zero {L : ZFSet.{u}} (hL : L ∈ RealL.{u})
   exact realLLe_antisymm (realLMax_mem hn2R hn1R) hn1R
     (realLMax_le hn21 (realLLe_refl hn1R)) (realLLe_max_right hn1R)
 
-/-- The gadget ends at `1`: at `t = 1` the window is `[1, 2]` and the
-clamp pins to its bottom. -/
+/-- `mvGadget L 1 = 1` when `L ≤ 1`. -/
 theorem mvGadget_at_one {L : ZFSet.{u}} (hL : L ∈ RealL.{u})
     (hhi : realLLe L realLOne.{u}) :
     mvGadget L (realLOf ratOne.{u}) = realLOf ratOne.{u} := by

@@ -89,8 +89,7 @@ theorem not_and_or {a b : Prop} (h : Not (And a b)) : Or (Not a) (Not b) :=
     (fun ha => Or.inr (fun hb => h (And.intro ha hb)))
     (fun hna => Or.inl hna)
 
-/-- Deferred from `Quantifiers.lean`: from the failure of a universal, produce
-an actual counterexample. Nothing in the hypothesis contains one. -/
+/-- If `¬ ∀ a, p a`, then `∃ a, ¬ p a`. -/
 theorem exists_not_of_not_forall {α : Sort u} {p : α → Prop}
     (h : Not ((a : α) → p a)) : Exists (fun a => Not (p a)) :=
   byContradiction (fun hne =>

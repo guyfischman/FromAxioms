@@ -50,8 +50,8 @@ theorem app_mem_Rat {f : ZFSet.{u}} (hf : f ∈ ratSeqs.{u}) {n : ZFSet.{u}}
   have hmem := opair_app_mem hfun (hdom ▸ hn)
   exact mem_prod_right (hsub _ hmem)
 
-/-- A rational sequence from a Lean-level family; `natSeq` itself is in
-`Relation.lean`. -/
+/-- The sequence `natSeq Rat K` of a family `K` of rationals is a rational
+sequence. -/
 theorem natSeq_mem_ratSeqs {K : Nat → ZFSet.{u}} (hK : ∀ m, K m ∈ NumberTheory.Rat.{u}) :
     natSeq NumberTheory.Rat.{u} K ∈ ratSeqs.{u} :=
   (mem_ratSeqs_iff _).mpr ⟨graphOn_subset _ _ _, graphOn_isFunction _ _ _,
@@ -112,12 +112,8 @@ only `hf` supplies, so the `iff` would grow a hypothesis at every unfolding
 site in this file and `Limit.lean`. The bridge pays that cost once, here, where
 `hf` is in scope. -/
 
-/-- `limLower` is a generic cut, over the predicate *eventually below every
-term*. The margin is recovered as `p' - q` one way and supplied as
-`p' := q + ε` the other; no halving in either direction.
-
-Takes no `hf`: both directions move only `q` and `p'` about, and never have to
-know that `app f n` is rational; `limUpper_eq_cut` does. -/
+/-- `limLower f` is the lower cut of the rationals eventually below every term
+of `f`. No hypothesis on `f` is needed. -/
 theorem limLower_eq_cut (f : ZFSet.{u}) :
     limLower f = cutLower (fun p' => ∃ N, N ∈ omega.{u} ∧
       ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt p' (app f n)) := by
@@ -139,12 +135,8 @@ theorem limLower_eq_cut (f : ZFSet.{u}) :
         ratZero_add hp'Q]
       exact h n hn hNn
 
-/-- `limUpper` is a generic cut, the mirror of `limLower_eq_cut`, with
-`r' := q - ε` forward and `ε := q - r'` back.
-
-Takes `hf` where the lower bridge does not, because both directions compare
-`app f n` against a shifted `q` and every order lemma in this tree is
-membership-guarded. -/
+/-- `limUpper f` is the upper cut of the rationals eventually above every term
+of `f`. -/
 theorem limUpper_eq_cut {f : ZFSet.{u}} (hf : f ∈ ratSeqs.{u}) :
     limUpper f = cutUpper (fun r' => ∃ N, N ∈ omega.{u} ∧
       ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt (app f n) r') := by
@@ -383,10 +375,8 @@ def TendsToZero (w : ZFSet.{u}) : Prop :=
   ∀ ε, ε ∈ NumberTheory.Rat.{u} → ratLt ratZero.{u} ε → ∃ N, N ∈ omega.{u} ∧
     ∀ n, n ∈ omega.{u} → N ⊆ n → ratLt (app w n) ε
 
-/-- The estimate both Cauchy forms are made of, with the width bound supplied
-rather than searched for: `f m < r < f n + w n < f n + δ`, so `f m - f n < δ`.
-Whether `δ` came from an arbitrary `ε` or from a scale is the only difference
-between the two theorems below. -/
+/-- Let `f` take values in the lower half of a located pair, with `f n + w n`
+above a member of the upper half. If `w n < δ`, then `f m - f n < δ`. -/
 theorem sub_lt_of_bracket {L U f w : ZFSet.{u}} (h : IsLocated L U)
     (hf : f ∈ ratSeqs.{u}) (hw : w ∈ ratSeqs.{u})
     (hlow : ∀ n, n ∈ omega.{u} → app f n ∈ L)
@@ -424,10 +414,8 @@ theorem isCauchy_of_brackets {L U f w : ZFSet.{u}} (h : IsLocated L U)
   exact ⟨N, hN, fun m hm n hn _ hNn =>
     sub_lt_of_bracket h hf hw hlow hbr hεQ hm hn (hwN n hn hNn)⟩
 
-/-- And its limit pair is the one it brackets, in the lower half: a rational
-below some term is in `L`, and a rational in `L` is eventually below the terms
-by a margin. The second direction uses the brackets twice: `lower_open` twice,
-then a width small enough to fit inside the gap. -/
+/-- Let `f` take values in `L`, with `f n + w n` above a member of `U`. If `w`
+tends to zero, then `limLower f = L`. -/
 theorem limLower_of_brackets {L U f w : ZFSet.{u}} (h : IsLocated L U)
     (hf : f ∈ ratSeqs.{u}) (hw : w ∈ ratSeqs.{u})
     (hlow : ∀ n, n ∈ omega.{u} → app f n ∈ L)
@@ -485,9 +473,8 @@ theorem limLower_of_brackets {L U f w : ZFSet.{u}} (h : IsLocated L U)
       rw [hrw2]
       exact hq'fn
 
-/-- The upper half, likewise. One direction needs no brackets at all -- every
-term is in `L`, so every term is below everything in `U` -- and the other picks
-a width below the margin. -/
+/-- Let `f` take values in `L`, with `f n + w n` above a member of `U`. If `w`
+tends to zero, then `limUpper f = U`. -/
 theorem limUpper_of_brackets {L U f w : ZFSet.{u}} (h : IsLocated L U)
     (hf : f ∈ ratSeqs.{u}) (hw : w ∈ ratSeqs.{u})
     (hlow : ∀ n, n ∈ omega.{u} → app f n ∈ L)

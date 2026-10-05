@@ -41,21 +41,8 @@ namespace ZFSet
 
 open SetTheory NumberTheory
 
-/-- # filtering `upto N` by divisibility of `N+1` gives the proper divisors.
-
-    (upto N).filter (fun e => (N+1) % e == 0)  =  divisorsBelow (N + 1)
-
-An equality of lists, not a permutation: `upto` descends, `divisorsBelow (N+1)`
-filters `upto ((N+1)/2)` with the same predicate, and `upto ((N+1)/2)` is a
-suffix of `upto N`. The entries the longer list carries in front --- those
-strictly above `(N+1)/2` --- all fail the test, because a divisor of `N+1` other
-than `N+1` itself is at most half of it. So the filter deletes exactly the
-prefix and the two results coincide entry for entry.
-
-At the cutoff step from `N` to `N+1`, the `d` whose inner range grows are the
-`d` in `upto N` dividing `N+1`, and this says that list is the proper-divisor
-list the convolution identity is stated over. So the Dirichlet rearrangement's
-increment is a divisor sum. -/
+/-- Filtering `upto N` by divisibility of `N + 1` gives `divisorsBelow (N + 1)`,
+as an equality of lists. -/
 theorem filter_upto_dvd_succ (N : Nat) :
     List.filter (fun e => (N + 1) % e == 0) (upto N) = divisorsBelow (N + 1) := by
   have hsplit : ∀ M : Nat, (N + 1) / 2 ≤ M → M ≤ N →

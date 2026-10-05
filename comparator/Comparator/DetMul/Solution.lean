@@ -32,10 +32,10 @@ can print `[propext, Quot.sound]` by any route. Anyone reading this file's
 `Comparator/Audit.lean`'s `surcharge` is the right one, and with mathlib's own
 cost in its baseline this pair reports no surcharge.
 
-What the re-siting buys is therefore smaller than a clean line and still real:
-six fewer modules between a reader and the proof, and a genuinely clean line for
-any future pair whose mathlib-side vocabulary is choice-free, where the encoding
-would otherwise have been the only thing spending it.
+The type-sited form therefore buys less than a clean line, and it is still
+real: six fewer modules between a reader and the proof, and a genuinely clean
+line for any future pair whose mathlib-side vocabulary is choice-free, where
+the encoding would otherwise have been the only thing spending it.
 
 The one step that is not a rewrite is still `detT_congr_lt`. `matMulOnT_mul`
 matches the tower's product with `(M * N)` only on the square --- off it both

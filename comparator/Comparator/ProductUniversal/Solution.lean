@@ -20,8 +20,8 @@ and that the factorisation is unique --- and this file instantiates it at
 mathlib's `Prod`.
 
 This pair measures something different from what it measured before, and that
-must be said rather than let through. It is the one re-siting of the seven
-where the trade is not free, so the change is written out here in full.
+must be said rather than let through. The trade is not free, so the change is
+written out here in full.
 
 The old pair routed uniqueness through `SetTheory.opair_eq_opair_iff` --- that
 the Kuratowski encoding `opair a b = {{a}, {a,b}}` determines its coordinates,

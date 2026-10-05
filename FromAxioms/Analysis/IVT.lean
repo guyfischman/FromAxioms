@@ -56,12 +56,10 @@ has to move.
 def realLIccR (p q : ZFSet.{u}) : ZFSet.{u} :=
   sep (fun x => realLLe p x ∧ realLLe x q) RealL.{u}
 
-/-- Its membership law, the same separation `realLIcc` uses. -/
 theorem mem_realLIccR_iff (p q x : ZFSet.{u}) :
     x ∈ realLIccR p q ↔ x ∈ RealL.{u} ∧ realLLe p x ∧ realLLe x q :=
   mem_sep_iff _ _ _
 
-/-- The rational-ended interval is this one at `realLOf` of its endpoints. -/
 theorem realLIcc_eq_realLIccR (p q : ZFSet.{u}) :
     realLIcc p q = realLIccR (realLOf p) (realLOf q) := rfl
 
@@ -107,7 +105,6 @@ theorem realLIcc_empty_empty : realLIcc.{u} empty.{u} empty.{u} = RealL.{u} := b
 
 #print axioms realLIcc_empty_empty
 
-/-- Reflection keeps a point in the unit interval. -/
 theorem refl_mem_Icc01 {z : ZFSet.{u}}
     (hz : z ∈ realLIcc ratZero.{u} ratOne.{u}) :
     realLAdd realLOne.{u} (realLNeg z) ∈ realLIcc ratZero.{u} ratOne.{u} := by
@@ -194,8 +191,7 @@ theorem realLOf_neg {a : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) :
     rwa [ratNeg_ratNeg hpQ] at this
 
 
-/-- A real between a rational and that rational plus `ε` is within `ε`
-of it: both halves of the bracket, from the two order bounds. -/
+/-- If `r ≤ x ≤ r + ε`, then `x` is within `ε` of `r`. -/
 theorem close_realLOf_of_between {x r ε : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hr : r ∈ NumberTheory.Rat.{u}) (hε : ε ∈ NumberTheory.Rat.{u}) (hε0 : ratLt ratZero.{u} ε)
     (hrx : realLLe (realLOf r) x)
@@ -278,12 +274,10 @@ theorem gridPoint_eq_right {p q : ZFSet.{u}} {m i : Nat}
     (h : ¬ ratLt (ladder p m i) q) : gridPoint p q m i = q := by
   rw [gridPoint, ratMin, condP_neg h]
 
-/-- The walk starts at `p`. -/
 theorem gridPoint_zero {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u})
     (h : ratLt p q) (m : Nat) : gridPoint p q m 0 = p := by
   rw [gridPoint_eq_ladder (by rw [ladder_zero hp m]; exact h), ladder_zero hp m]
 
-/-- Each step advances by the mesh, before clamping. -/
 theorem ladder_succ {p : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (m i : Nat) :
     ladder p m (i + 1) = ratAdd (ladder p m i) (invWidth (ofNat.{u} m)) := by
   rw [ladder, ladder, ratOf_intOfNat_succ (intOf_succ_pos (ofNat_mem_omega m)) i,
@@ -304,7 +298,6 @@ theorem ladder_ge {p : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (m : Nat) :
       (invWidth_pos (ofNat_mem_omega m)).left
     rwa [ratAdd_zero (ladder_mem hp m i)] at this
 
-/-- Every grid point lies in the interval. -/
 theorem gridPoint_mem_Icc {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u})
     (hpq : ratLe p q) (m i : Nat) : realLOf (gridPoint p q m i) ∈ realLIcc p q := by
   have hg := gridPoint_mem_Rat hp hq m i
@@ -313,7 +306,7 @@ theorem gridPoint_mem_Icc {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (h
       (le_ratMin (ladder_mem hp m i) hq (ladder_ge hp m i) hpq)
   · exact (realLOf_le_realLOf hg hq).mpr (ratMin_le_right (ladder_mem hp m i) hq)
 
-/-- Rearrangement, at the rational level: `b ≤ a + w` is `-w ≤ a - b`. -/
+/-- If `b ≤ a + w`, then `-w ≤ a - b`. -/
 private theorem neg_le_sub_of_le_add {a b w : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
     (hb : b ∈ NumberTheory.Rat.{u}) (hw : w ∈ NumberTheory.Rat.{u}) (h : ratLe b (ratAdd a w)) :
     ratLe (ratNeg w) (ratAdd a (ratNeg b)) := by
@@ -338,7 +331,6 @@ theorem ladder_le_succ {p : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (m i : 
     (invWidth_mem_Rat (ofNat_mem_omega m))).mpr (invWidth_pos (ofNat_mem_omega m)).left
   rwa [ratAdd_zero (ladder_mem hp m i)] at this
 
-/-- The walk is non-decreasing. -/
 theorem gridPoint_le_succ {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u})
     (m i : Nat) : ratLe (gridPoint p q m i) (gridPoint p q m (i + 1)) := by
   have hli := ladder_mem hp m i
@@ -584,7 +576,7 @@ theorem bisectPair_spec {F : ZFSet.{u} → ZFSet.{u}} (σ : SignReadout F)
 
 `bisectPair` above takes a `SignReadout`, but it reads only `sigma.bit` --- the
 sign clauses appear nowhere in the recursion, only in `bisectPair_spec`'s
-invariant. So the tower generalises for free, and rung 16 needs it to: the
+invariant. So the tower generalises for free, and it has to: the
 interval-preconnectedness bisection branches on a cover bit, not a sign bit,
 and rebuilding a second nested-interval tower for it would be the same
 machinery twice.
@@ -650,8 +642,7 @@ here is the halving identity, stated as a multiplication so that no division
 appears. -/
 
 
-/-- `2/1` is two; `ratTwo` is defined above this file's imports of
-`Rational.lean`, which is where `ratNat_one_one` sits. -/
+/-- `ratNat 2 1 = ratTwo`. -/
 theorem ratNat_two_one : ratNat.{u} 2 1 = ratTwo.{u} := by
   have h1 : intOfNat.{u} 1 = intOne.{u} := rfl
   rw [ratNat, ratTwo, ratOne, intOfNat_succ, h1,
@@ -779,7 +770,6 @@ theorem bisectWidthB_scaled (bit : ZFSet.{u} → ZFSet.{u})
         (ratNat_mem_Rat (show 0 < 1 by omega)), hhalf]
     exact hw
 
-/-- `k/k = 1`. -/
 theorem ratNat_self {k : Nat} (hk : 0 < k) : ratNat.{u} k k = ratOne.{u} := by
   have hkP := intOfNat_mem_intPositive.{u} hk
   rw [ratNat, ratOne, ← ratOf_cancel hkP intOne_mem_Int one_mem_intPositive,
@@ -795,7 +785,6 @@ theorem succ_mul_invWidth (n : Nat) :
   exact ratNat_self (by omega)
 
 
-/-- `n + 1 ≤ 2ⁿ`, as rationals. -/
 theorem ratNat_succ_le_pow2 (N : Nat) :
     ratLe (ratNat.{u} (N + 1) 1) (ratNat.{u} (pow2 N) 1) :=
   (ratNat_le_iff (by omega) (by omega)).mpr (by
@@ -929,7 +918,6 @@ theorem bisectB_step (bit : ZFSet.{u} → ZFSet.{u})
       fst_opair, snd_opair]
     exact ⟨ratLe_refl ha, (ratMid_lt ha hb hab).left⟩
 
-/-- The nesting is monotone, for any two-valued bit. -/
 theorem bisectB_mono (bit : ZFSet.{u} → ZFSet.{u})
     {p q : ZFSet.{u}}
     (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hpq : ratLt p q)
@@ -1353,18 +1341,16 @@ choice between two of them. Feeding it to `a' = c - d(b-a)/2`, `b' = b - d(b-a)/
 halves the interval whatever `d` is, so the sequence is definable outright and
 the whole `ACC` cost disappears.
 
-What it does not buy is exactness, and the two collapse lemmas below show why
-rather than argue it: the weight is `1` only once the value reaches `1/2` and
-`0` only once it reaches `-1/2`, so between those it slides, and a sliding
-weight leaves both endpoints of the next interval with an undecided sign. That
-is the trade: the interpolation is definable because it is allowed to take
-intermediate values, and an exact root needs it not to. Frank concludes the
-approximate theorem and says the exact one is out of reach [BR87, chapter 6.2].
+What it does not buy is exactness, and the two collapse lemmas below show why:
+the weight is `1` only once the value reaches `1/2` and `0` only once it
+reaches `-1/2`, so between those it slides, and a sliding weight leaves both
+endpoints of the next interval with an undecided sign. That is the trade: the
+interpolation is definable because it is allowed to take intermediate values,
+and an exact root needs it not to. Frank concludes the approximate theorem and
+says the exact one is out of reach [BR87, chapter 6.2].
 
-So this section is not a route to `ExactIVT01`. It is the measurement that
-separates the two costs the exact statement was being charged for, and it
-localises the residue in the window where the weight is strictly between `0` and
-`1`. -/
+So this section is not a route to `ExactIVT01`: the residue sits in the window
+where the weight is strictly between `0` and `1`. -/
 
 /-- Frank's interpolation weight at a value already divided by the scale:
 `max(0, min(1/2 + v, 1))`. A real in `[0, 1]`, not a bit, and definable with no
@@ -1553,21 +1539,11 @@ already lower.
 The `{0}` copies are left standing: retiring them is a move, and a move is
 master's. -/
 
-/-- `invScale j` is `1/(j+1)` as a rational, at every universe. `rfl`.
-
-Worth a name because nothing about `invScale`'s spelling says which rational it
-is, and a search for one form does not find the other. With it,
-`exists_scaled_invNat_le` reads as "any constant can be scaled below any
-modulus", which is what a product rule needs to place its three error terms. -/
+/-- `invScale j` is `1 / (j + 1)`, at every universe. -/
 theorem invScale_eq_ratNat_gen (j : Nat) :
     invScale.{u} j = realLOf (ratNat.{u} 1 (j + 1)) := rfl
 
-/-- The modulus as a formula, at every universe.
-
-    p * (n + 1) ≤ j  →  (p : RealL) * invScale j ≤ invScale n
-
-`invScale j` is `1/(j+1)`, so the claim reads `p/(j+1) ≤ 1/(n+1)`, which is
-`p * (n+1) ≤ j+1`; the hypothesis gives one more than that. -/
+/-- If `p * (n + 1) ≤ j`, then `p * invScale j ≤ invScale n`. -/
 theorem realLOf_natMul_invScale_le_gen (p n : Nat) :
     ∀ j : Nat, p * (n + 1) ≤ j →
       realLLe (realLMul (realLOf (ratNat.{u} p 1)) (invScale.{u} j))
@@ -1583,17 +1559,8 @@ theorem realLOf_natMul_invScale_le_gen (p n : Nat) :
   exact (ratNat_le_iff (by omega : 0 < 1 * (j + 1)) hn1).mpr
     (by simp only [Nat.mul_one, Nat.one_mul]; omega)
 
-/-- A real constant under a natural bound gets the same modulus.
-
-    C ≤ p,  p * (n + 1) ≤ j   ⟹   C * invScale j ≤ invScale n
-
-The form every consumer has: the constant is a real and what is known about it is
-a natural upper bound.
-
-No non-negativity. `DirichletChar`'s `{0}` copy binds `hC0 : 0 ≤ C` and its
-proof never mentions it. The bound `C ≤ p` and the positivity of `invScale`
-carry the argument, so a caller who knows `C ≤ p` but not `0 ≤ C` is refused
-there for no reason. Dropped. -/
+/-- If `C ≤ p` and `p * (n + 1) ≤ j`, then `C * invScale j ≤ invScale n`. No
+sign condition on `C` is needed. -/
 theorem realLMul_invScale_le_of_le_nat_gen {C : ZFSet.{u}} (hC : C ∈ RealL.{u})
     {p : Nat} (hCp : realLLe C (realLOf (ratNat.{u} p 1))) (n : Nat) :
     ∀ j : Nat, p * (n + 1) ≤ j →
@@ -1607,13 +1574,8 @@ theorem realLMul_invScale_le_of_le_nat_gen {C : ZFSet.{u}} (hC : C ∈ RealL.{u}
       (realLLe_of_lt realLZero_mem (invScale_mem j) (invScale_pos j)))
     (realLOf_natMul_invScale_le_gen p n j hj)
 
-/-- And the index form, which is what an estimate consumes.
-
-    (∀ j, b j ≤ invScale j)  ⟹  ∃ m, ∀ j ≥ m, C * b j ≤ invScale n
-
-A modulus sequence known to shrink, a fixed constant, and a demand to get under a
-named scale eventually. `exists_natBound_realL` supplies the natural bound, so the
-widening costs nothing at all. -/
+/-- If `0 ≤ C` and `b j ≤ invScale j` for every `j`, then `C * b j ≤ invScale n`
+for all large `j`. -/
 theorem exists_index_mul_le_invScale_gen {C : ZFSet.{u}} (hC : C ∈ RealL.{u})
     (hC0 : realLLe realLZero.{u} C) {b : Nat → ZFSet.{u}}
     (hb : ∀ j : Nat, b j ∈ RealL.{u})

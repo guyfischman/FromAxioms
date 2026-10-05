@@ -130,14 +130,7 @@ theorem mem_map_of_maps {α : Type v} {R : ZFSet.{u}} {F : α → ZFSet.{u}}
   obtain ⟨b, hb, rfl⟩ := List.mem_map.mp hw
   exact hF b hb
 
-/-- The same conclusion from a pointwise hypothesis, for the sites whose
-discharge never consults the membership proof.
-
-Measured over the rewrite sites of the idiom above: 53 of them prove `F a ∈ R`
-from the structure of `F a` alone, 32 using neither binder and 21 using the
-element without its membership. Serving those with `mem_map_of_maps` compiles
---- each site can discharge `a ∈ xs → F a ∈ R` from the stronger fact it holds
---- and proves something weaker than the site has at every one of them. -/
+/-- If `F a ∈ R` for every `a`, then every member of `xs.map F` lies in `R`. -/
 theorem mem_map_of_forall_mem {α : Type v} {R : ZFSet.{u}} {F : α → ZFSet.{u}}
     (xs : List α) (hF : ∀ a, F a ∈ R) :
     ∀ w, w ∈ xs.map F → w ∈ R :=
@@ -243,7 +236,6 @@ theorem fst_mem_of_mem_prod {P A B : ZFSet.{u}} (h : P ∈ prod A B) : fst P ∈
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_prod_iff P A B).mp h
   rwa [fst_opair]
 
-/-- And the second in the right factor. -/
 theorem snd_mem_of_mem_prod {P A B : ZFSet.{u}} (h : P ∈ prod A B) : snd P ∈ B := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_prod_iff P A B).mp h
   rwa [snd_opair]

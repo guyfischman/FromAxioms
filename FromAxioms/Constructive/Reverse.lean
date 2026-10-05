@@ -109,12 +109,8 @@ is the edge that had none. -/
 theorem wem_of_em (hem : EM) : WEM := fun p =>
   (hem p).elim (fun hp => Or.inr fun hnp => hnp hp) Or.inl
 
-/-- Regularity as a statement about sets, named as a Prop so the registry can
-reverse to it --- the `Zermelo-Fraenkel set theory` row's landmark.
-
-Every non-empty set has a member disjoint from it. `regularity_of_em` concluded
-it inline, so the row's two ends were not one identifier; naming it makes them
-one. -/
+/-- Regularity as a statement about sets: every non-empty set has a member
+disjoint from it. Named as a `Prop` so a reversal can conclude it. -/
 def Regularity : Prop :=
   ∀ x : ZFSet.{u}, x ≠ empty.{u} →
     ∃ y : ZFSet.{u}, y ∈ x ∧ ∀ z : ZFSet.{u}, z ∈ y → z ∉ x

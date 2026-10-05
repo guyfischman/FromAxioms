@@ -359,11 +359,6 @@ theorem ratAdd_neg {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
   refine (ratOf_eq_ratOf_iff intZero_mem_Int hbb intZero_mem_Int one_mem_intPositive).mpr ?_
   rw [intZero_mul (intPositive_subset _ one_mem_intPositive), intZero_mul (intPositive_subset _ hbb)]
 
-/-! The left form is already below, at `ratAdd_left_cancel`, and I landed a
-duplicate of it here before the build caught the clash.
-
-The right form above is genuinely absent; only the left one was the duplicate.
--/
 
 /-- One. -/
 def ratOne : ZFSet.{u} := ratOf intOne.{u} intOne.{u}
@@ -597,9 +592,7 @@ theorem ratLe_total {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) 
   · exact Or.inl ((ratLe_ratOf ha hb hc hd).mpr h)
   · exact Or.inr ((ratLe_ratOf hc hd ha hb).mpr h)
 
-/-- Transitivity is the step that cancels the denominators: the two
-hypotheses are multiplied up to a common denominator `b·d·f` and `intLe_trans`
-closes the chain, after which `d` divides back out. -/
+/-- `≤` on the rationals is transitive. -/
 theorem ratLe_trans {r s t : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u})
     (ht : t ∈ Rat.{u}) (h₁ : ratLe r s) (h₂ : ratLe s t) : ratLe r t := by
   obtain ⟨a, ha, b, hb, rfl⟩ := (mem_Rat_iff r).mp hr
@@ -645,7 +638,7 @@ matter because `realLOf` is total: it accepts any `ZFSet`, so every interval
 `realLIcc p q` is defined at junk endpoints too, and these fix what it means
 there. -/
 
-/-- `ratOf a b` is never `empty`: it holds `opair a b`. -/
+/-- `ratOf a b` is not the empty set. -/
 theorem ratOf_ne_empty {a b : ZFSet.{u}} (ha : a ∈ Int.{u})
     (hb : b ∈ intPositive.{u}) : ratOf a b ≠ empty.{u} := by
   intro h
@@ -654,12 +647,10 @@ theorem ratOf_ne_empty {a b : ZFSet.{u}} (ha : a ∈ Int.{u})
   rw [h] at hmem
   exact not_mem_empty _ hmem
 
-/-- Nothing is `≤ empty`, since the right side of `ratLe` must be a `ratOf`. -/
 theorem not_ratLe_empty_right {t : ZFSet.{u}} : ¬ ratLe t empty.{u} := by
   rintro ⟨-, -, c, d, -, -, hc, hd, -, hs, -⟩
   exact ratOf_ne_empty hc hd hs.symm
 
-/-- And `empty` is below nothing, since the left side must be one too. -/
 theorem not_ratLe_empty_left {t : ZFSet.{u}} : ¬ ratLe empty.{u} t := by
   rintro ⟨a, b, -, -, ha, hb, -, -, hr, -, -⟩
   exact ratOf_ne_empty ha hb hr.symm
@@ -686,21 +677,12 @@ theorem ratLt_ratOf {a b c d : ZFSet.{u}}
 
 theorem ratLt_irrefl {r : ZFSet.{u}} : ¬ ratLt r r := fun h => h.right rfl
 
-/-- A positive rational is nonzero.
-
-`ratLt_irrefl` needs no membership hypothesis, so neither does this. Written
-inline as `ratNe_zero_of_pos h` at 113 sites across 16 files, about
-half of them as an unnamed argument to `ratInv_mem_Rat`, where the `≠ ratZero`
-conclusion is demanded by the callee and never appears in the text. -/
+/-- A positive rational is non-zero. -/
 theorem ratNe_zero_of_pos {r : ZFSet.{u}} (h : ratLt ratZero.{u} r) :
     r ≠ ratZero.{u} :=
   fun he => ratLt_irrefl (he ▸ h)
 
-/-- A negative rational is nonzero.
-
-The mirror of `ratNe_zero_of_pos`. `he ▸ h` reaches `ratLt ratZero ratZero`
-from either direction, so both are one `ratLt_irrefl` away; they need separate
-statements only because the hypothesis types differ. -/
+/-- A negative rational is non-zero. -/
 theorem ratNe_zero_of_neg {r : ZFSet.{u}} (h : ratLt r ratZero.{u}) :
     r ≠ ratZero.{u} :=
   fun he => ratLt_irrefl (he ▸ h)
@@ -995,7 +977,6 @@ theorem ratLt_of_le_of_lt {a b c : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ R
   ⟨ratLe_trans ha hb hc h₁ h₂.left,
    fun he => h₂.right (ratLe_antisymm hb hc h₂.left (he ▸ h₁))⟩
 
-/-- A product of positives is positive. -/
 theorem ratMul_pos {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (ha0 : ratLt ratZero.{u} a) (hb0 : ratLt ratZero.{u} b) :
     ratLt ratZero.{u} (ratMul a b) := by
@@ -1003,7 +984,6 @@ theorem ratMul_pos {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (ratNe_zero_of_pos hb0) hb0.left ha0
   rwa [ratZero_mul hb] at this
 
-/-- Negation distributes over a sum, by cancelling the sum from both sides. -/
 theorem ratNeg_add {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratNeg (ratAdd r s) = ratAdd (ratNeg r) (ratNeg s) := by
   have hrs := ratAdd_mem_Rat hr hs
@@ -1023,8 +1003,7 @@ theorem ratMul_neg {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
       ratMul_ratOf ha hb hc hd, ratNeg_ratOf (intMul_mem_Int ha hc)
         (intMul_mem_intPositive hb hd), intMul_neg ha hc]
 
-/-- Negation in the left factor. `ratMul_neg` states it for the right one;
-this is that lemma with `ratMul_comm` on either side. -/
+/-- `(-r) * s = -(r * s)`. -/
 theorem ratNeg_mul {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.{u}) :
     ratMul (ratNeg r) s = ratNeg (ratMul r s) := by
   rw [ratMul_comm (ratNeg_mem_Rat hr) hs, ratMul_neg hs hr, ratMul_comm hs hr]
@@ -1199,7 +1178,6 @@ theorem ratOf_intOfNat_succ {b : ZFSet.{u}} (hb : b ∈ intPositive.{u}) (n : Na
       = ratAdd (ratOf (intOfNat.{u} n) b) (ratOf intOne.{u} b) := by
   rw [intOfNat_succ, ← ratOf_add_same_denom (intOfNat_mem_Int n) intOne_mem_Int hb]
 
-/-- `1/b` is positive. -/
 theorem ratOf_one_pos {b : ZFSet.{u}} (hb : b ∈ intPositive.{u}) :
     ratLt ratZero.{u} (ratOf intOne.{u} b) := by
   rw [ratZero]
@@ -1243,9 +1221,7 @@ theorem ratLt_trichotomy {r s : ZFSet.{u}} (hr : r ∈ Rat.{u}) (hs : s ∈ Rat.
     · exact Or.inl ⟨h, hne⟩
     · exact Or.inr (Or.inr ⟨h, fun he => hne he.symm⟩)
 
-/-- A negative times a non-negative is non-positive. Stated with the
-hypothesis as `¬ ratLt s ratZero` rather than `ratLe ratZero s`, because that
-is the form `ratLt_trichotomy` hands back at both call sites. -/
+/-- If `q < 0` and `¬ s < 0`, then `¬ 0 < q * s`. -/
 theorem ratMul_nonpos_of_neg_of_nonneg {q s : ZFSet.{u}} (hq : q ∈ Rat.{u})
     (hs : s ∈ Rat.{u}) (hqneg : ratLt q ratZero.{u})
     (hsnn : ¬ ratLt s ratZero.{u}) :
@@ -1338,15 +1314,11 @@ theorem ratLe_of_not_lt {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{
 Translating between `x - y ≤ d` and `x ≤ y + d`, which is how every bound on a
 bracket width gets used. -/
 
-/-- The weakening every order carries: `<` gives `≤`. Stated because
-`ratLe_of_not_lt` and `ratLt_of_lt_of_le` were both here and this was not, so
-callers open-coded irrefl-of-transitivity. -/
+/-- `a < b` implies `a ≤ b` on the rationals. -/
 theorem ratLe_of_lt {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (h : ratLt a b) : ratLe a b :=
   ratLe_of_not_lt ha hb (fun hc => ratLt_irrefl (ratLt_trans ha hb ha h hc))
 
-/-- A difference is positive exactly when the order holds, which is the form
-every bracket-width argument uses it in. -/
 theorem ratSub_pos {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (h : ratLt p q) : ratLt ratZero.{u} (ratAdd q (ratNeg p)) := by
   have := (ratAdd_lt_add_left_iff (ratNeg_mem_Rat hp) hp hq).mpr h
@@ -1435,10 +1407,7 @@ theorem ratInv_pos {x : ZFSet.{u}} (hx : x ∈ Rat.{u}) (h : ratLt ratZero.{u} x
     exact ratLt_irrefl (ratLt_of_lt_of_le ratZero_mem_Rat ratOne_mem_Rat
       ratZero_mem_Rat ratZero_lt_one hle)
 
-/-- A positive bound can always be undercut by scaling. Archimedes in the
-form the four-corner product wants: `a` is an upper witness already fixed, and
-`d` is chosen against it. The `a = 0` case is not padding -- it is the
-real-is-zero configuration, where the upper set is closed at its infimum. -/
+/-- For `0 ≤ a` and `0 < b`, some positive rational `d` has `d * a < b`. -/
 theorem small_of_pos {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (ha0 : ratLe ratZero.{u} a) (hb0 : ratLt ratZero.{u} b) :
     ∃ d, d ∈ Rat.{u} ∧ ratLt ratZero.{u} d ∧ ratLt (ratMul d a) b := by
@@ -1492,7 +1461,6 @@ theorem exists_mul_lt {c ε : ZFSet.{u}} (hc : c ∈ Rat.{u}) (hεQ : ε ∈ Rat
     rw [hthree]
     exact htwo
 
-/-- A factor bounded by `K` times one bounded by `D` is bounded by `K · D`. -/
 theorem mul_le_of_bounds {a e K D : ZFSet.{u}} (ha : a ∈ Rat.{u}) (he : e ∈ Rat.{u})
     (hK : K ∈ Rat.{u}) (hD : D ∈ Rat.{u})
     (h1 : ratLe (ratNeg K) a) (h2 : ratLe a K)
@@ -1616,8 +1584,7 @@ theorem exists_scale_below_one {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q �
     hone, ratMul_one hp] at hstep
   exact hstep
 
-/-- The inverse of a negative rational is negative: `q · q⁻¹ = 1 > 0`, so a
-non-negative inverse would put the product at or below zero. -/
+/-- The inverse of a negative rational is negative. -/
 theorem ratInv_neg {q : ZFSet.{u}} (hq : q ∈ Rat.{u}) (hq0 : ratLt q ratZero.{u}) :
     ratLt (ratInv q) ratZero.{u} := by
   have hne : q ≠ ratZero.{u} := ratNe_zero_of_neg hq0
@@ -1632,10 +1599,7 @@ theorem ratInv_neg {q : ZFSet.{u}} (hq : q ∈ Rat.{u}) (hq0 : ratLt q ratZero.{
     exact absurd (ratLe_antisymm ratOne_mem_Rat ratZero_mem_Rat this ratZero_lt_one.left)
       (ratNe_zero_of_pos ratZero_lt_one)
 
-/-- The mirror of `exists_scale_below_one`, for a negative bound: given
-`p < q < 0`, a scale strictly above one that keeps `q` above `p`. Dividing by a
-negative flips the inequality, so the non-positive monotonicity lemmas replace
-the others throughout. -/
+/-- If `p < q < 0`, then some rational `r > 1` has `p < q * r`. -/
 theorem exists_scale_above_one {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hpq : ratLt p q) (hq0 : ratLt q ratZero.{u}) :
     ∃ r, r ∈ Rat.{u} ∧ ratLt ratOne.{u} r ∧ ratLt p (ratMul q r) := by
@@ -1656,8 +1620,7 @@ theorem exists_scale_above_one {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q �
     ← ratMul_assoc hq hp hiQ, ratMul_comm hq hp, ratMul_assoc hp hq hiQ,
     hone, ratMul_one hp] at hstep
 
-/-- For a negative `p`, any scale strictly between zero and one keeps `q` above
-it, whichever sign `q` has: `q · r` lies between `q` and `0`. -/
+/-- If `p < 0`, `p < q` and `0 < r < 1`, then `p < q * r`. -/
 theorem corner_above_of_neg {p q r : ZFSet.{u}} (hpQ : p ∈ Rat.{u})
     (hqQ : q ∈ Rat.{u}) (hrQ : r ∈ Rat.{u}) (hp0 : ratLt p ratZero.{u})
     (hr0 : ratLt ratZero.{u} r) (hr1 : ratLt r ratOne.{u}) (hpq : ratLt p q) :
@@ -1672,8 +1635,8 @@ theorem corner_above_of_neg {p q r : ZFSet.{u}} (hpQ : p ∈ Rat.{u})
     have := ratMul_le_mul_right_of_nonpos hrQ ratOne_mem_Rat hqQ hr1.left hq0
     rwa [ratMul_comm hrQ hqQ, ratMul_comm ratOne_mem_Rat hqQ, ratMul_one hqQ] at this
 
-/-- The mirror of `ratLt_mul_of_corners`: a point above all four corner
-products is above every product from inside the two brackets. -/
+/-- If `p` is above the four corner products of `[q, q'] × [r, r']`, then `p` is
+above `x * y` for every `x ∈ [q, q']` and `y ∈ [r, r']`. -/
 theorem ratMul_lt_of_corners {p q q' r r' x y : ZFSet.{u}} (hp : p ∈ Rat.{u})
     (hq : q ∈ Rat.{u}) (hq' : q' ∈ Rat.{u}) (hr : r ∈ Rat.{u}) (hr' : r' ∈ Rat.{u})
     (hx : x ∈ Rat.{u}) (hy : y ∈ Rat.{u})
@@ -1759,10 +1722,7 @@ theorem exists_small_scale {c e : ZFSet.{u}} (hc : c ∈ Rat.{u}) (he : e ∈ Ra
       have := ratMul_lt_mul_right ratZero_mem_Rat hdQ hc hne hpos.left h0d
       rwa [ratMul_comm ratZero_mem_Rat hc, ratMul_zero hc, ratMul_comm hdQ hc] at this
 
-/-- Shrinking the scale keeps the bound. Needed because, unlike the unit law,
-the two bracket ends do not order by absolute value -- `q ≤ w` says nothing
-about `|q|` and `|w|` -- so the two scales must be found separately and the
-smaller used. -/
+/-- If `-e < c * d < e` and `0 < d' ≤ d`, then `-e < c * d' < e`. -/
 theorem small_scale_mono {c d d' e : ZFSet.{u}} (hc : c ∈ Rat.{u}) (hd : d ∈ Rat.{u})
     (hd' : d' ∈ Rat.{u}) (he : e ∈ Rat.{u}) (he0 : ratLt ratZero.{u} e)
     (h0d' : ratLt ratZero.{u} d') (hle : ratLe d' d)
@@ -1795,10 +1755,8 @@ theorem small_scale_mono {c d d' e : ZFSet.{u}} (hc : c ∈ Rat.{u}) (hd : d ∈
     have := ratMul_le_mul_right hd' hd hc hle hpos.left
     rwa [ratMul_comm hd' hc, ratMul_comm hd hc] at this
 
-/-- Two coefficients at once: one `s'` below `s` keeping both products above `p`.
-The two gaps give two steps and the smaller serves both, by `small_scale_mono`.
-This is the form distributivity needs -- a bracket has two ends, and the
-replacement of a bound by a member of the cut must work for both. -/
+/-- If `p < c * s` and `p < c' * s`, then some `s' < s` has `p < c * s'` and `p
+< c' * s'`. -/
 theorem exists_lt_of_mul_lt₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
     (hc' : c' ∈ Rat.{u}) (hs : s ∈ Rat.{u}) (h : ratLt p (ratMul c s))
     (h' : ratLt p (ratMul c' s)) :
@@ -1851,10 +1809,7 @@ theorem exists_lt_of_mul_lt₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc :
     rwa [ratNeg_zero] at this)
   rwa [ratAdd_zero hs] at this
 
-/-- The corner schema for distributivity: if `p` is below `a + b`, and `a` is
-below `e · f` while `b` is below `e · g`, then `p` is below `e · (f + g)`. All
-four corners of the distributed product are this lemma, with `e` ranging over the
-bracket's two ends and `f`, `g` over the two summands' matching ends. -/
+/-- If `p < a + b`, `a < e * f` and `b < e * g`, then `p < e * (f + g)`. -/
 theorem lt_mul_add_of_lt {p a b e f g : ZFSet.{u}} (hp : p ∈ Rat.{u}) (ha : a ∈ Rat.{u})
     (hb : b ∈ Rat.{u}) (he : e ∈ Rat.{u}) (hf : f ∈ Rat.{u}) (hg : g ∈ Rat.{u})
     (hab : ratLt p (ratAdd a b)) (haf : ratLt a (ratMul e f)) (hbg : ratLt b (ratMul e g)) :
@@ -1864,9 +1819,8 @@ theorem lt_mul_add_of_lt {p a b e f g : ZFSet.{u}} (hp : p ∈ Rat.{u}) (ha : a 
     (ratAdd_mem_Rat (ratMul_mem_Rat he hf) (ratMul_mem_Rat he hg)) hab
     (ratAdd_lt_add ha (ratMul_mem_Rat he hf) hb (ratMul_mem_Rat he hg) haf hbg)
 
-/-- The mirror of `exists_lt_of_mul_lt₂`, growing the argument instead of
-shrinking it. By negation: `p < c·s` is `p < (-c)·(-s)`, and a smaller `-s`
-is a larger `s`. -/
+/-- If `p < c * s` and `p < c' * s`, then some `s' > s` has `p < c * s'` and `p
+< c' * s'`. -/
 theorem exists_gt_of_mul_lt₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
     (hc' : c' ∈ Rat.{u}) (hs : s ∈ Rat.{u}) (h : ratLt p (ratMul c s))
     (h' : ratLt p (ratMul c' s)) :
@@ -1888,7 +1842,6 @@ theorem exists_gt_of_mul_lt₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc :
   have := (ratNeg_lt_neg_iff (ratNeg_mem_Rat hs) huQ).mpr hus
   rwa [ratNeg_ratNeg hs] at this
 
-/-- The corner schema for the upper half. -/
 theorem mul_add_lt_of_lt {p a b e f g : ZFSet.{u}} (hp : p ∈ Rat.{u}) (ha : a ∈ Rat.{u})
     (hb : b ∈ Rat.{u}) (he : e ∈ Rat.{u}) (hf : f ∈ Rat.{u}) (hg : g ∈ Rat.{u})
     (hab : ratLt (ratAdd a b) p) (haf : ratLt (ratMul e f) a) (hbg : ratLt (ratMul e g) b) :
@@ -1898,8 +1851,6 @@ theorem mul_add_lt_of_lt {p a b e f g : ZFSet.{u}} (hp : p ∈ Rat.{u}) (ha : a 
     (ratAdd_mem_Rat ha hb) hp
     (ratAdd_lt_add (ratMul_mem_Rat he hf) ha (ratMul_mem_Rat he hg) hb haf hbg) hab
 
-/-- Shrinking the argument while keeping both products below a bound, by
-negation from `exists_gt_of_mul_lt₂`. -/
 theorem exists_lt_of_lt_mul₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
     (hc' : c' ∈ Rat.{u}) (hs : s ∈ Rat.{u}) (h : ratLt (ratMul c s) p)
     (h' : ratLt (ratMul c' s) p) :
@@ -1921,7 +1872,6 @@ theorem exists_lt_of_lt_mul₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc :
   have := (ratNeg_lt_neg_iff huQ (ratNeg_mem_Rat hs)).mpr hsu
   rwa [ratNeg_ratNeg hs] at this
 
-/-- Growing the argument while keeping both products below a bound. -/
 theorem exists_gt_of_lt_mul₂ {p c c' s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ Rat.{u})
     (hc' : c' ∈ Rat.{u}) (hs : s ∈ Rat.{u}) (h : ratLt (ratMul c s) p)
     (h' : ratLt (ratMul c' s) p) :
@@ -1957,9 +1907,8 @@ theorem exists_max_pair {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{
   · exact ⟨b, hb, h, ratLe_refl hb, Or.inr rfl⟩
   · exact ⟨a, ha, ratLe_refl ha, h, Or.inl rfl⟩
 
-/-- Transfer a property from four values to whichever of them was chosen. Paired
-with `exists_min_four`, this reduces "the bound holds for the least" to a
-single line rather than a four-way case split at each use. -/
+/-- If `w` is one of `a`, `b`, `c`, `d` and `P` holds of all four, then `P w`.
+-/
 theorem of_one_of_four {P : ZFSet.{u} → Prop} {w a b c d : ZFSet.{u}}
     (h : w = a ∨ w = b ∨ w = c ∨ w = d) (ha : P a) (hb : P b) (hc : P c) (hd : P d) : P w := by
   rcases h with rfl | rfl | rfl | rfl
@@ -2118,8 +2067,7 @@ theorem exists_bracket_width {p c : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c ∈ 
     (ratMul_mem_Rat hqQ hsub)).mpr h2
   rwa [h3] at hstep
 
-/-- From `p·s < q` with `q, s` positive, `p·q⁻¹ < s⁻¹`. Both sides multiplied by
-`q⁻¹s⁻¹`, which is positive. -/
+/-- If `p * s < q` with `q` and `s` positive, then `p * q⁻¹ < s⁻¹`. -/
 theorem ratMul_inv_lt_inv {p q s : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hs : s ∈ Rat.{u}) (hq0 : ratLt ratZero.{u} q) (hs0 : ratLt ratZero.{u} s)
     (h : ratLt (ratMul p s) q) : ratLt (ratMul p (ratInv q)) (ratInv s) := by
@@ -2177,7 +2125,6 @@ theorem exists_bracket_width_gt {p c : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hc : c �
     rwa [h2] at h1
   exact ratLt_trans hq'Q (ratAdd_mem_Rat hqQ heQ) (ratMul_mem_Rat hp hqQ) hq' hstep
 
-/-- From `q' < p·q` with `q, q'` positive, `q⁻¹ < p·q'⁻¹`. -/
 theorem ratInv_lt_mul_inv {p q q' : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hq' : q' ∈ Rat.{u}) (hq0 : ratLt ratZero.{u} q) (hq'0 : ratLt ratZero.{u} q')
     (h : ratLt q' (ratMul p q)) : ratLt (ratInv q) (ratMul p (ratInv q')) := by
@@ -2356,8 +2303,7 @@ theorem ratNat_width {p q : Nat} (hq : 0 < q) :
 
 theorem ratZero_eq_ratNat : ratZero.{u} = ratNat.{u} 0 1 := rfl
 
-/-- Every positive rational is a ratio of naturals. The numerator is positive
-because the rational is, and the denominator by construction. -/
+/-- If `n ≤ m`, then `intOf (ofNat m) (ofNat n) = intOfNat (m - n)`. -/
 theorem intOf_ofNat_eq_intOfNat {m n : Nat} (h : n ≤ m) :
     intOf (ofNat.{u} m) (ofNat.{u} n) = intOfNat.{u} (m - n) := by
   rw [intOfNat, ← ofNat_zero, intOf_eq_intOf_iff (ofNat_mem_omega m) (ofNat_mem_omega n)
@@ -2388,9 +2334,8 @@ theorem ratNat_add_same_denom {a c q : Nat} (hq : 0 < q) :
     ratOf_add_same_denom (intOfNat_mem_Int a) (intOfNat_mem_Int c)
       (intOfNat_mem_intPositive hq), intOfNat_add]
 
-/-- Addition of numerals at different scales. `ratNat_add_same_denom` covers
-the shared-denominator case, which is what this file's own proofs needed;
-anything comparing bracket endpoints built at two scales wants this one. -/
+/-- `a / b + c / d = (a * d + c * b) / (b * d)` for naturals with `b` and `d`
+positive. -/
 theorem ratNat_add {a b c d : Nat} (hb : 0 < b) (hd : 0 < d) :
     ratAdd (ratNat.{u} a b) (ratNat.{u} c d)
       = ratNat.{u} (a * d + c * b) (b * d) := by
@@ -2399,14 +2344,12 @@ theorem ratNat_add {a b c d : Nat} (hb : 0 < b) (hd : 0 < d) :
       (intOfNat_mem_Int c) (intOfNat_mem_intPositive hd),
     intOfNat_mul, intOfNat_mul, intOfNat_add, intOfNat_mul]
 
-/-- `1/1` and `2/1`, in the numeral form the width induction uses. -/
 theorem ratNat_one_one : ratNat.{u} 1 1 = ratOne.{u} := by
   rw [ratNat, intOfNat, ratOne, intOne]
 
 
 /-! ## Audit -/
 
-/-- Two inequalities add. -/
 theorem ratAdd_le_add {q q' r r' : ZFSet.{u}} (hq : q ∈ Rat.{u}) (hq' : q' ∈ Rat.{u})
     (hr : r ∈ Rat.{u}) (hr' : r' ∈ Rat.{u}) (h₁ : ratLe q q') (h₂ : ratLe r r') :
     ratLe (ratAdd q r) (ratAdd q' r') :=
@@ -2528,9 +2471,7 @@ theorem intOfRat_intToRat {a : ZFSet.{u}} (ha : a ∈ Int.{u}) :
     rw [intMul_one ha, intMul_one hx] at hcross
     exact hcross.symm
 
-/-- The description lands in `Int` whenever the rational really is an integer.
-The hypothesis is existential, so the witness is taken inside this proof and
-costs nothing. -/
+/-- If `r` is the image of an integer, then `intOfRat r` is an integer. -/
 theorem intOfRat_mem {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intToRat a) :
     intOfRat r ∈ Int.{u} := by
   obtain ⟨a, ha, rfl⟩ := h
@@ -2553,15 +2494,7 @@ theorem intToRat_intOfRat {r : ZFSet.{u}} (h : ∃ a, a ∈ Int.{u} ∧ r = intT
 #print axioms ratNat_mul
 #print axioms ratNat_sub
 
-/-- The same subtraction when it goes the other way.
-
-`ratNat_sub` needs `b <= a` because `ratNat` carries a natural numerator and
-has nowhere to put a negative one. When the difference is negative the answer
-still lives in the numerals, one `ratNeg` outside: negating both sides turns
-`a/d - b/d` into `b/d - a/d`, which `ratNat_sub` does handle.
-
-Without this an interval argument has to stop at the first bound that straddles
-zero, which for a window centred on `pi` is immediately. -/
+/-- If `a ≤ b`, then `a / d - b / d = -((b - a) / d)`. -/
 theorem ratNat_sub_neg {a b d : Nat} (hd : 0 < d) (h : a ≤ b) :
     ratAdd (ratNat.{u} a d) (ratNeg (ratNat.{u} b d))
       = ratNeg (ratNat.{u} (b - a) d) := by
@@ -2645,7 +2578,6 @@ theorem ratNat_sub_neg {a b d : Nat} (hd : 0 < d) (h : a ≤ b) :
 #print axioms exists_max_four
 #print axioms ratMul_lt_mul_right_of_nonpos
 
-/-- The width of a subinterval of `[0, 1]` is at most one. -/
 theorem width_le_one {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (h0a : ratLe ratZero.{u} a) (hb1 : ratLe b ratOne.{u}) :
     ratLe (ratAdd b (ratNeg a)) ratOne.{u} := by
@@ -2744,12 +2676,7 @@ theorem ratNatMul_nonneg {d : ZFSet.{u}} (hd : d ∈ Rat.{u})
         ratZero_mem_Rat hd (ratNatMul_nonneg hd hd0 k) hd0
       rwa [ratAdd_zero ratZero_mem_Rat] at h
 
-/-- Bernoulli's inequality: `1 + n*d` is a lower bound for `(1 + d)^n`.
-
-This is where a ratio's decay comes from -- the power grows at least linearly,
-so its reciprocal falls at least as fast as `1/(1 + n*d)`, and Archimedes
-finishes. The induction step is one inequality, `0 <= (n*d)*d`; everything else
-is the expansion of `(1 + n*d) * (1 + d)`. -/
+/-- Bernoulli's inequality: `1 + n * d ≤ (1 + d) ^ n` for `0 ≤ d`. -/
 theorem one_add_ratNatMul_le_ratPow {d : ZFSet.{u}} (hd : d ∈ Rat.{u})
     (hd0 : ratLe ratZero.{u} d) :
     ∀ n : Nat, ratLe (ratAdd ratOne.{u} (ratNatMul d n))
@@ -2831,7 +2758,6 @@ theorem ratPow_le_one {q : ZFSet.{u}} (hq : q ∈ Rat.{u})
       exact ratLe_trans (ratMul_mem_Rat (ratPow_mem hq k) hq)
         (ratMul_mem_Rat ratOne_mem_Rat hq) ratOne_mem_Rat h1 h2
 
-/-- A power distributes over a product, by the shuffle. -/
 theorem ratPow_mul {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
     ∀ n : Nat, ratPow (ratMul a b) n = ratMul (ratPow a n) (ratPow b n)
   | 0 => (ratOne_mul ratOne_mem_Rat).symm
@@ -2841,18 +2767,8 @@ theorem ratPow_mul {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
       rw [ratPow_mul ha hb k,
         ratMul_shuffle_pair (ratPow_mem ha k) (ratPow_mem hb k) ha hb]
 
-/-- Geometric decay, stated without an inverse anywhere.
-
-`c^n * (1 + n*d) <= 1` whenever `c * (1 + d) <= 1`. Bernoulli gives the first
-step, `ratPow_mul` collapses the middle, and `ratPow_le_one` closes it:
-
-    c^n * (1 + n*d)  <=  c^n * (1+d)^n  =  (c * (1+d))^n  <=  1
-
-The textbook route inverts Bernoulli into `c^n <= 1/(1 + n*d)`, which needs
-`ratInv` of a product -- and this library's inverse API is entirely
-order-theoretic, with no multiplicative lemma at all. A consumer wanting
-`c^n < eps` multiplies instead of dividing: choose `n` with
-`1 < eps * (1 + n*d)`. -/
+/-- If `c * (1 + d) ≤ 1` with `c` and `d` non-negative, then `c ^ n * (1 + n *
+d) ≤ 1`. -/
 theorem ratPow_mul_one_add_ratNatMul_le_one {c d : ZFSet.{u}} (hc : c ∈ Rat.{u})
     (hd : d ∈ Rat.{u}) (hc0 : ratLe ratZero.{u} c) (hd0 : ratLe ratZero.{u} d)
     (hcd : ratLe (ratMul c (ratAdd ratOne.{u} d)) ratOne.{u}) (n : Nat) :
@@ -2880,8 +2796,7 @@ theorem ratPow_mul_one_add_ratNatMul_le_one {c d : ZFSet.{u}} (hc : c ∈ Rat.{u
   rw [(ratPow_mul hc hbase n).symm] at h2
   exact ratLe_trans (ratMul_mem_Rat hcn hlin) (ratPow_mem hprod n) hone h2
     (ratPow_le_one hprod hprod0 hcd n)
-/-- Both signs flipped is no sign flipped; the mixed corners are `ratNeg_mul`
-and `ratMul_neg`. -/
+/-- `(-a) * (-b) = a * b`. -/
 theorem ratMul_neg_neg {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
     ratMul (ratNeg a) (ratNeg b) = ratMul a b := by
   rw [ratNeg_mul ha (ratNeg_mem_Rat hb), ratMul_comm ha (ratNeg_mem_Rat hb),
@@ -2949,11 +2864,7 @@ theorem ratNat_zero {q : Nat} (hq : 0 < q) : ratNat.{u} 0 q = ratZero.{u} := by
   rw [ratZero_eq_ratNat, ratNat_eq_iff hq (by omega)]
   omega
 
-/-- `k/1` is non-negative, for every `k`.
-
-`ratNat_pos` is the strict form and needs `0 < k`. This one holds at zero too
-and needs nothing. `realLOf_ratNat_one_nonneg` is the same fact one layer up.
--/
+/-- `0 ≤ k / 1` for every natural `k`. -/
 theorem ratNat_nonneg (k : Nat) : ratLe ratZero.{u} (ratNat.{u} k 1) := by
   rw [← ratNat_zero (q := 1) (Nat.succ_pos 0)]
   exact (ratNat_le_iff (Nat.succ_pos 0) (Nat.succ_pos 0)).mpr (by omega)
@@ -2971,11 +2882,7 @@ theorem ratNatMul_ratNat {p q : Nat} (hq : 0 < q) :
       show ratAdd (ratNatMul (ratNat.{u} p q) k) (ratNat.{u} p q) = _
       rw [ratNatMul_ratNat hq k, ratNat_add_same_denom hq, ← Nat.succ_mul]
 
-/-- `1/q` is positive for positive `q`. Stated in the `ratNat`
-vocabulary rather than through `invWidth`, the tower's other reciprocal:
-`invWidth n` is `1/(n+1)`, so writing `1/q` as `invWidth (ofNat (q - 1))` would
-make every consumer carry a `q - 1 + 1 = q` obligation. The two spellings meet
-at rational inequalities, which `ratLt` handles either way. -/
+/-- `0 < 1 / q` for a natural `0 < q`. -/
 theorem ratNat_one_pos {q : Nat} (hq : 0 < q) :
     ratLt ratZero.{u} (ratNat.{u} 1 q) := by
   rw [← ratNat_zero (q := 1) (by omega)]
@@ -3004,8 +2911,7 @@ theorem exists_ratNatMul_gt {d q : ZFSet.{u}} (hd : d ∈ Rat.{u}) (hq : q ∈ R
   · exact ⟨1, ratLt_of_le_of_lt hq ratZero_mem_Rat (ratNatMul_mem hdQ 1)
       (ratLe_of_not_lt hq ratZero_mem_Rat hqz) hone⟩
 
-/-- A scalar passes through the iteration: `n` copies of `e*d` is `e` times
-`n` copies of `d`. -/
+/-- `n • (e * d) = e * (n • d)`. -/
 theorem ratNatMul_mul {e d : ZFSet.{u}} (he : e ∈ Rat.{u}) (hd : d ∈ Rat.{u}) :
     ∀ n : Nat, ratNatMul (ratMul e d) n = ratMul e (ratNatMul d n)
   | 0 => (ratMul_zero he).symm
@@ -3059,11 +2965,7 @@ theorem exists_ratPow_lt {c d eps : ZFSet.{u}} (hc : c ∈ Rat.{u}) (hd : d ∈ 
     (ratLt_of_le_of_lt (ratMul_mem_Rat hcn hW) hone (ratMul_mem_Rat heps hW)
       hdecay hlt1)
 
-/-- The iteration is a multiplication: `n` copies of `e` is `(n/1) * e`.
-
-`ratNatMul` is defined by repeated addition so that its base case needs no
-numeral bridge; this is the bridge, proved once, for the callers that would
-rather multiply. -/
+/-- `n • e = (n / 1) * e`. -/
 theorem ratNatMul_eq_ratNat_mul {e : ZFSet.{u}} (he : e ∈ Rat.{u}) :
     ∀ n : Nat, ratNatMul e n = ratMul (ratNat.{u} n 1) e
   | 0 => by
@@ -3138,7 +3040,6 @@ theorem exists_contraction_margin {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
 #print axioms exists_ratNatMul_gt
 #print axioms exists_ratPow_lt
 #print axioms exists_contraction_margin
-/-- Powers add exponents. -/
 theorem ratPow_add {c : ZFSet.{u}} (hc : c ∈ Rat.{u}) :
     ∀ n m : Nat, ratPow c (n + m) = ratMul (ratPow c n) (ratPow c m)
   | n, 0 => by
@@ -3152,7 +3053,6 @@ theorem ratPow_add {c : ZFSet.{u}} (hc : c ∈ Rat.{u}) :
 
 #print axioms ratPow_add
 
-/-- Powers of a rational in `[0,1]` decrease in the exponent. -/
 theorem ratPow_le_ratPow_of_le {c : ZFSet.{u}} (hc : c ∈ Rat.{u})
     (hc0 : ratLe ratZero.{u} c) (hc1 : ratLe c ratOne.{u}) {m k : Nat} (hmk : m ≤ k) :
     ratLe (ratPow c k) (ratPow c m) := by
@@ -3235,9 +3135,7 @@ theorem ratFlank_lo_lt {x c : ZFSet.{u}} (hx : x ∈ Rat.{u}) (hc : c ∈ Rat.{u
   have hstep := (ratAdd_lt_add_left_iff hx (ratNeg_mem_Rat hc) ratZero_mem_Rat).mpr hneg
   rwa [ratAdd_zero hx] at hstep
 
-/-- A bound on a difference, moved across. `d` fits inside the gap from `v`
-up to `u` exactly when `v + d` still lies below `u`; this is the direction the
-margin argument uses, where the gap is an eighth of the width. -/
+/-- If `d ≤ u - v`, then `v + d ≤ u`. -/
 theorem ratLe_add_of_le_sub {u v d : ZFSet.{u}} (hu : u ∈ Rat.{u})
     (hv : v ∈ Rat.{u}) (hd : d ∈ Rat.{u})
     (h : ratLe d (ratAdd u (ratNeg v))) : ratLe (ratAdd v d) u := by
@@ -3249,8 +3147,7 @@ theorem ratLe_add_of_le_sub {u v d : ZFSet.{u}} (hu : u ∈ Rat.{u})
   rwa [hcollapse] at hstep
 
 #print axioms NumberTheory.ratLe_add_of_le_sub
-/-- The other direction of the same move: `v + d` below `u` says `v` is below
-`u` less `d`. -/
+/-- If `v + d ≤ u`, then `v ≤ u - d`. -/
 theorem ratLe_sub_of_add_le {u v d : ZFSet.{u}} (hu : u ∈ Rat.{u})
     (hv : v ∈ Rat.{u}) (hd : d ∈ Rat.{u})
     (h : ratLe (ratAdd v d) u) : ratLe v (ratAdd u (ratNeg d)) := by
@@ -3264,15 +3161,8 @@ theorem ratLe_sub_of_add_le {u v d : ZFSet.{u}} (hu : u ∈ Rat.{u})
 
 #print axioms NumberTheory.ratLe_sub_of_add_le
 
-/-- The same move at `<`, as an equivalence.
-
-    b - a < w   ↔   b < a + w
-
-Stated as an `iff`, like the neighbouring rearrangements: both directions hold.
-
-`sub_lt_iff_lt_add` above is this statement with the arguments in the other
-order; the proof is a citation of it, and both names stand, since callers use
-each. -/
+/-- `b - a < w` if and only if `b < a + w`. See `sub_lt_iff_lt_add` for the
+other argument order. -/
 theorem ratLt_sub_iff_lt_add {a b w : ZFSet.{u}} (ha : a ∈ Rat.{u})
     (hb : b ∈ Rat.{u}) (hw : w ∈ Rat.{u}) :
     ratLt (ratAdd b (ratNeg a)) w ↔ ratLt b (ratAdd a w) :=
@@ -3280,20 +3170,16 @@ theorem ratLt_sub_iff_lt_add {a b w : ZFSet.{u}} (ha : a ∈ Rat.{u})
 
 #print axioms NumberTheory.ratLt_sub_iff_lt_add
 
-/-- Move the last factor past the middle one. Named because the depth induction
-uses it at every step and inlining it there buries the argument in
-associativity. -/
+/-- `(a * b) * c = (a * c) * b`. -/
 theorem ratMul_swap_right {a b c : ZFSet.{u}} (ha : a ∈ Rat.{u})
     (hb : b ∈ Rat.{u}) (hc : c ∈ Rat.{u}) :
     ratMul (ratMul a b) c = ratMul (ratMul a c) b := by
   rw [ratMul_assoc ha hb hc, ratMul_comm hb hc, ratMul_assoc ha hc hb]
-/-- Two numerals name the same rational when they cross-multiply equal. -/
 theorem ratNat_eq_of_mul_eq {p q r s : Nat} (hq : 0 < q) (hs : 0 < s)
     (h : p * s = r * q) : ratNat.{u} p q = ratNat.{u} r s :=
   ratLe_antisymm (ratNat_mem_Rat hq) (ratNat_mem_Rat hs)
     ((ratNat_le_iff hq hs).mpr (Nat.le_of_eq h))
     ((ratNat_le_iff hs hq).mpr (Nat.le_of_eq h.symm))
-/-- `0 ≤ 3`. -/
 theorem ratZero_le_three : ratLe ratZero.{u}
     (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})) := by
   have h20 : ratLe ratZero.{u} (ratAdd ratOne.{u} ratOne.{u}) := by
@@ -3303,7 +3189,6 @@ theorem ratZero_le_three : ratLe ratZero.{u}
   have := ratAdd_le_add ratZero_mem_Rat ratOne_mem_Rat ratZero_mem_Rat
     (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat) ratZero_lt_one.left h20
   rwa [ratAdd_zero ratZero_mem_Rat] at this
-/-- `1 ≤ 3`. -/
 theorem ratOne_le_three : ratLe ratOne.{u}
     (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})) := by
   have h20 : ratLe ratZero.{u} (ratAdd ratOne.{u} ratOne.{u}) := by
@@ -3313,7 +3198,6 @@ theorem ratOne_le_three : ratLe ratOne.{u}
   have hstep := (ratAdd_le_add_left_iff ratOne_mem_Rat ratZero_mem_Rat
     (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat)).mpr h20
   rwa [ratAdd_zero ratOne_mem_Rat] at hstep
-/-- `3 + (-1) = 2`, in unit sums. -/
 theorem ratThree_add_neg_one :
     ratAdd (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u}))
       (ratNeg ratOne.{u}) = ratAdd ratOne.{u} ratOne.{u} := by
@@ -3352,8 +3236,7 @@ theorem not_contains_of_short {ai bi u v : ZFSet.{u}} (hai : ai ∈ Rat.{u})
     (ratAdd_mem_Rat hv hnu) (ratAdd_mem_Rat hbi hnai) hshort
     (ratLt_trans (ratAdd_mem_Rat hv hnu) (ratAdd_mem_Rat hbi hnu)
       (ratAdd_mem_Rat hbi hnai) h1 h2))
-/-- Bridging the squared denominator to the first moment's:
-`k/(m+2)² = 1/(m+2) · k/(m+2)`. -/
+/-- `k / (m + 2) ^ 2 = 1 / (m + 2) * (k / (m + 2))`. -/
 theorem ratNat_sq_bridge_one (m k : Nat) :
     ratNat.{u} k ((m + 2) * (m + 2))
     = ratMul (ratNat.{u} 1 (m + 2)) (ratNat.{u} k (m + 2)) := by
@@ -3378,12 +3261,10 @@ theorem exists_add_self_lt {ε : ZFSet.{u}} (hεQ : ε ∈ Rat.{u})
   refine ⟨δ, hδQ, hδ0, ?_⟩
   rwa [ratMul_comm htwo hδQ, ratMul_add hδQ ratOne_mem_Rat ratOne_mem_Rat,
     ratMul_one hδQ] at hlt
-/-- A rational is below itself plus a positive one. -/
 theorem ratLt_add_pos {a d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hd : d ∈ Rat.{u})
     (hd0 : ratLt ratZero.{u} d) : ratLt a (ratAdd a d) := by
   have := (ratAdd_lt_add_left_iff ha ratZero_mem_Rat hd).mpr hd0
   rwa [ratAdd_zero ha] at this
-/-- `k/1` is positive when `k` is. -/
 theorem ratNat_pos {k : Nat} (hk : 0 < k) : ratLt ratZero.{u} (ratNat.{u} k 1) := by
   rw [ratZero_eq_ratNat]
   exact (ratNat_lt_iff (show 0 < 1 by omega) (show 0 < 1 by omega)).mpr (by omega)
@@ -3398,14 +3279,13 @@ theorem ratPow_pos {q : ZFSet.{u}} (hq : q ∈ Rat.{u})
       show ratLt ratZero.{u} (ratMul (ratPow q k) q)
       exact ratMul_pos (ratPow_mem hq k) hq (ratPow_pos hq hq0 k) hq0
 
-/-- `0 < 3`. -/
 theorem ratZero_lt_three : ratLt ratZero.{u}
     (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u})) :=
   ratLt_of_lt_of_le ratZero_mem_Rat ratOne_mem_Rat
     (ratAdd_mem_Rat ratOne_mem_Rat
       (ratAdd_mem_Rat ratOne_mem_Rat ratOne_mem_Rat))
     ratZero_lt_one ratOne_le_three.{u}
-/-- `0 ≤ 3 - 1`: the read-off window's width is nonnegative. -/
+/-- `0 ≤ 3 - 1` in the rationals. -/
 theorem ratZero_le_three_sub_one : ratLe ratZero.{u}
     (ratAdd (ratAdd ratOne.{u} (ratAdd ratOne.{u} ratOne.{u}))
       (ratNeg ratOne.{u})) := by
@@ -3471,7 +3351,6 @@ theorem ratMid_double {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}
     ratMul_comm (ratInv_mem_Rat ratTwo_mem_Rat ratTwo_ne_zero) ratTwo_mem_Rat,
     ratMul_inv ratTwo_mem_Rat ratTwo_ne_zero, ratMul_one (ratAdd_mem_Rat ha hb)]
 
-/-- Half the gap, stated as a product so that nothing is divided. -/
 theorem ratMid_sub_left {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u}) :
     ratMul (ratAdd (ratMid a b) (ratNeg a)) ratTwo.{u} = ratAdd b (ratNeg a) := by
   have hmid := ratMid_mem_Rat ha hb
@@ -3556,9 +3435,7 @@ theorem lt_ratMid {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
   exact ratMul_lt_cancel_right ha (ratMid_mem_Rat ha hb) ratTwo_mem_Rat
     ratTwo_pos hsum
 
-/-- A midpoint of zero and `e` doubles back to `e`, as a sum rather than a
-product. `ratMid_double` gives the product form; this is the one a halving
-argument wants, and every `ε/2` bound is put back together with it. -/
+/-- `e / 2 + e / 2 = e`, with `e / 2` the midpoint of `0` and `e`. -/
 theorem ratMid_add_self {e : ZFSet.{u}} (he : e ∈ Rat.{u}) :
     ratAdd (ratMid ratZero.{u} e) (ratMid ratZero.{u} e) = e := by
   have hm := ratMid_mem_Rat ratZero_mem_Rat he
@@ -3582,14 +3459,12 @@ theorem invWidth_ofNat (n : Nat) : invWidth (ofNat.{u} n) = ratNat.{u} 1 (n + 1)
 def ratQuarter (e : ZFSet.{u}) : ZFSet.{u} :=
   ratMid ratZero.{u} (ratMid ratZero.{u} e)
 
-/-- The half is positive, so every power of it is. -/
 theorem ratPow_half_pos (k : Nat) :
     ratLt ratZero.{u} (ratPow (ratNat.{u} 1 2) k) := by
   have hq : ratNat.{u} 1 2 ∈ Rat.{u} := ratNat_mem_Rat (by omega)
   have hhalf : invWidth (ofNat.{u} 1) = ratNat.{u} 1 2 := invWidth_ofNat 1
   exact ratPow_pos hq (hhalf ▸ invWidth_pos (ofNat_mem_omega 1)) k
 
-/-- The half is at most one, so every power of it is. -/
 theorem ratPow_half_le_one (k : Nat) :
     ratLe (ratPow (ratNat.{u} 1 2) k) ratOne.{u} := by
   have hq : ratNat.{u} 1 2 ∈ Rat.{u} := ratNat_mem_Rat (by omega)
@@ -3605,9 +3480,7 @@ theorem ratPow_half_le_one (k : Nat) :
 theorem ratOne_add_ratOne : ratAdd ratOne.{u} ratOne.{u} = ratNat.{u} 2 1 := by
   rw [← ratNat_one_one, ratNat_add_same_denom (by omega)]
 
-/-- Twice something below the half is below the whole. The two moduli a
-pair of points contributes are each below `eps/2`, so their sum is read against
-`eps` without a division appearing. -/
+/-- If `a < e / 2`, then `a + a < e`. -/
 theorem ratAdd_self_lt_of_lt_mid {a e : ZFSet.{u}} (ha : a ∈ Rat.{u})
     (he : e ∈ Rat.{u}) (h : ratLt a (ratMid ratZero.{u} e)) :
     ratLt (ratAdd a a) e := by
@@ -3625,7 +3498,7 @@ theorem ratAdd_self_lt_of_lt_mid {a e : ZFSet.{u}} (ha : a ∈ Rat.{u})
       ((ratAdd_lt_add_left_iff hm ha hm).mpr h)
   rwa [hdouble] at hstep
 
-/-- The strict form: a positive eighth means a positive quantity. -/
+/-- If `8 * d < 8 * g`, then `d < g`. -/
 theorem ratLt_of_double_three {d g : ZFSet.{u}} (hd : d ∈ Rat.{u})
     (hg : g ∈ Rat.{u})
     (h : ratLt (ratMul (ratMul (ratMul d ratTwo.{u}) ratTwo.{u}) ratTwo.{u})
@@ -3676,14 +3549,7 @@ theorem ratPow_half : ∀ n : Nat, ratPow (ratNat.{u} 1 2) n = ratNat.{u} 1 (2 ^
       rw [ratPow_succ, ratPow_half k,
         ratNat_mul (two_pow_pos k) (by omega), Nat.pow_succ]
 
-/-- The geometric rate dominates the harmonic one, at every index past the one
-asked for: `(1/2)^n ≤ 1/(m+1)` for `m ≤ n` is `m + 1 ≤ n + 1 ≤ 2 ^ n`.
-
-`invScale` indexes a harmonic family and a geometric series shrinks
-geometrically; nothing related the two, so a geometric modulus could not be handed
-to anything expecting an `invWidth`. The `m ≤ n` form is the one a modulus needs --
-a caller holds an `m` and must bound every later index -- and the diagonal case is
-this lemma at `Nat.le_refl`, so it is not stated separately. -/
+/-- `(1 / 2) ^ n ≤ invWidth m` whenever `m ≤ n`. -/
 theorem ratPow_half_le_invWidth_of_le {m n : Nat} (hmn : m ≤ n) :
     ratLe (ratPow (invWidth (ofNat.{u} 1)) n) (invWidth (ofNat.{u} m)) := by
   rw [invWidth_ofNat, invWidth_ofNat, ratPow_half]
@@ -3710,9 +3576,7 @@ theorem ratSub_sub_cancel {c a b : ZFSet.{u}} (hc : c ∈ Rat.{u}) (ha : a ∈ R
 
 #print axioms ratSub_sub_cancel
 
-/-- Two halves at `k+1` make one at `k`. Over a common denominator this is
-`2 * 2^k = 2^(k+1)`, so no division appears. The halving in the geometric
-series is this identity. -/
+/-- `(1 / 2) ^ (k + 1) + (1 / 2) ^ (k + 1) = (1 / 2) ^ k`. -/
 theorem ratPow_half_add_self (k : Nat) :
     ratAdd (ratPow (ratNat.{u} 1 2) (k + 1)) (ratPow (ratNat.{u} 1 2) (k + 1))
       = ratPow (ratNat.{u} 1 2) k := by
@@ -3744,13 +3608,7 @@ theorem invWidth_antitone {m n : ZFSet.{u}} (hm : m ∈ omega.{u}) (hn : n ∈ o
   rw [← ofNat_succ, ← ofNat_succ, ← ofNat_zero, intLe_ofNat]
   omega
 
-/-- The widths shrink at a rate that is computed, not searched for.
-`exists_invWidth_lt` is Archimedes at an arbitrary positive rational, where the
-index has to be found; at the scales a modulus is stated over -- the `1/(k+1)`
-themselves -- the answer is `k + 1` and nothing is searched.
-
-So the moduli of this tower's own Cauchy sequences are explicit even though
-`IsCauchy` states them existentially. -/
+/-- If `k < m`, then `invWidth m < invWidth k`. -/
 theorem invWidth_lt_of_lt {k m : Nat} (h : k < m) :
     ratLt (invWidth (ofNat.{u} m)) (invWidth (ofNat.{u} k)) := by
   refine (ratLt_ratOf intOne_mem_Int (intOf_succ_pos (ofNat_mem_omega m))
@@ -3777,15 +3635,13 @@ repair is to bound the cell by the next finer width and spend the slack in the
 gap, which is positive because `invWidth` is strictly decreasing.
 -/
 
-/-- `a ≤ a + b` when `b` is non-negative: `ratAdd_le_add` at `a ≤ a` and
-`0 ≤ b`, with the `a + 0` normalised away. -/
+/-- If `0 ≤ b`, then `a ≤ a + b`. -/
 theorem ratLe_self_add {a b : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (hb0 : ratLe ratZero.{u} b) : ratLe a (ratAdd a b) := by
   have h := ratAdd_le_add ha ha ratZero_mem_Rat hb (ratLe_refl ha) hb0
   rwa [ratAdd_zero ha] at h
 
-/-- Two copies of a fine enough scale still fit inside a coarser one. Stated
-here with the other `invWidth` comparisons, since it names nothing else. -/
+/-- `invWidth (2 * n + 2) + invWidth (2 * n + 2) < invWidth n`. -/
 theorem invWidth_add_self_lt_invWidth (n : Nat) :
     ratLt (ratAdd (invWidth (ofNat.{u} (2 * n + 2)))
       (invWidth (ofNat.{u} (2 * n + 2)))) (invWidth (ofNat.{u} n)) := by
@@ -3875,8 +3731,7 @@ theorem ratNat_sub_same_denom {a b q : Nat} (hba : b ≤ a) (hq : 0 < q) :
 #print axioms invWidth_lt_of_lt
 #print axioms exists_invWidth_lt
 
-/-- Two-sided monotonicity of multiplication on nonnegatives: `ratMul_le_mul_right`
-twice, with a commutation between. -/
+/-- If `0 ≤ a ≤ b` and `0 ≤ c ≤ d`, then `a * c ≤ b * d`. -/
 theorem ratMul_le_mul_of_le {a b c d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b ∈ Rat.{u})
     (hc : c ∈ Rat.{u}) (hd : d ∈ Rat.{u})
     (ha0 : ratLe ratZero.{u} a) (hc0 : ratLe ratZero.{u} c)
@@ -3889,7 +3744,6 @@ theorem ratMul_le_mul_of_le {a b c d : ZFSet.{u}} (ha : a ∈ Rat.{u}) (hb : b �
   exact ratLe_trans (ratMul_mem_Rat ha hc) (ratMul_mem_Rat hb hc)
     (ratMul_mem_Rat hb hd) h1 h2
 
-/-- Cancelling a positive multiplier preserves the non-strict order. -/
 theorem ratMul_le_cancel_right {x y t : ZFSet.{u}} (hx : x ∈ Rat.{u})
     (hy : y ∈ Rat.{u}) (ht : t ∈ Rat.{u}) (ht0 : ratLt ratZero.{u} t)
     (h : ratLe (ratMul x t) (ratMul y t)) : ratLe x y := by
@@ -3898,8 +3752,8 @@ theorem ratMul_le_cancel_right {x y t : ZFSet.{u}} (hx : x ∈ Rat.{u})
     (ratMul_lt_mul_right hy hx ht (ratNe_zero_of_pos ht0)
       ht0.left hlt)
 
-/-- Powers are monotone in the base. `ratPow_le_ratPow_of_le` is monotone in
-the exponent; this is the other variable, and the tower had no lemma for it. -/
+/-- If `0 ≤ p ≤ q`, then `p ^ m ≤ q ^ m`. See `ratPow_le_ratPow_of_le` for
+monotonicity in the exponent. -/
 theorem ratPow_base_mono {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLe p q) : ∀ m : Nat,
     ratLe (ratPow p m) (ratPow q m)
@@ -3924,12 +3778,8 @@ theorem ratPow_add_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) (m : Nat) :
   rw [ratMul_assoc (ratPow_mem hr m) hr hr,
     ratMul_comm (ratPow_mem hr m) (ratMul_mem_Rat hr hr)]
 
-/-- The two-step recurrence for a difference of powers.
-
-    q^(m+2) - p^(m+2)  =  q²·(q^m - p^m)  +  (q² - p²)·p^m
-
-Four terms cancelling in pairs. No division and no geometric sum -- the route
-through `r = p/q` reaches the same estimate and needs both. -/
+/-- `q ^ (m + 2) - p ^ (m + 2) = q ^ 2 * (q ^ m - p ^ m) + (q ^ 2 - p ^ 2) * p ^
+m`. -/
 theorem diffPow_succ {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (m : Nat) :
     ratAdd (ratPow q (m + 2)) (ratNeg (ratPow p (m + 2)))
@@ -3953,7 +3803,6 @@ theorem diffPow_succ {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
   -- what is left is `q²·q^m - p²·p^m`; the powers associate the other way
   rw [ratPow_add_two hp, ratPow_add_two hq]
 
-/-- A difference of powers is non-negative, from base monotonicity. -/
 theorem diffPow_nonneg {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLe p q) (m : Nat) :
     ratLe ratZero.{u} (ratAdd (ratPow q m) (ratNeg (ratPow p m))) :=
@@ -3987,7 +3836,6 @@ theorem diffPow_lower {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u}
     (ratMul_mem_Rat hqq hD)).mpr hnn
   rwa [ratZero_add hT] at hstep
 
-/-- A square is at most four when the base is in `[0,2]`. -/
 theorem sq_le_four {x : ZFSet.{u}} (hx : x ∈ Rat.{u})
     (hx0 : ratLe ratZero.{u} x) (hx2 : ratLe x (ratNat.{u} 2 1)) :
     ratLe (ratMul x x) (ratNat.{u} 4 1) := by
@@ -4113,9 +3961,7 @@ theorem diffPow_over_factor {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ R
     ratMul_comm hD2 (ratMul_mem_Rat h8 hden), ratMul_comm hD2 hF']
   exact ratMul_le_mul_right (ratMul_mem_Rat h8 hden) hF' hD2 h8d hD20
 
-/-- A difference of squares is strictly positive when the bases are. The
-one strict fact the chain needs -- everything above it is `<=`, and a comparison
-test with only non-strict bounds proves nothing about a sign. -/
+/-- If `0 ≤ p < q`, then `0 < q ^ 2 - p ^ 2`. -/
 theorem diffSq_pos {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLt p q) :
     ratLt ratZero.{u} (ratAdd (ratMul q q) (ratNeg (ratMul p p))) := by
@@ -4139,15 +3985,7 @@ theorem ratPow_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
   show ratMul (ratMul ratOne.{u} r) r = _
   rw [ratOne_mul hr]
 
-/-- The first two terms of the difference series are strictly ordered.
-
-    D_4 / 24  <  D_2 / 2
-
-so `cos p - cos q > 0` rather than `>= 0`: the alternating bound gives
-`>= c_1 - c_2`, and only a strict gap there yields a sign.
-
-`diffPow_even_step` at `k = 0` supplies `D_4 <= 8·D_2`, and `diffSq_pos`
-supplies `D_2 > 0`, so `8·D_2 < 12·D_2` closes it. -/
+/-- If `0 ≤ p < q ≤ 2`, then `(q ^ 4 - p ^ 4) / 24 < (q ^ 2 - p ^ 2) / 2`. -/
 theorem diffTerm_two_lt_one {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hp0 : ratLe ratZero.{u} p) (hpq : ratLt p q)
     (hq2 : ratLe q (ratNat.{u} 2 1)) :

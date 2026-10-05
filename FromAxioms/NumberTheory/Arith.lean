@@ -151,7 +151,7 @@ theorem mem_add_iff (w x y : ZFSet.{u}) :
     · exact h
     · exact absurd hz (not_mem_empty z)
 
-/-- The recursive definition of `+`, second clause. -/
+/-- `x + succ y = succ (x + y)`. -/
 theorem add_succ (x y : ZFSet.{u}) : add x (succ y) = succ (add x y) :=
   ext _ _ fun w => by
     refine Iff.trans (mem_add_iff w x (succ y)) ?_
@@ -264,27 +264,23 @@ each reduced through the `ofNat` bridge exactly as `mul_add` above is. They
 exist because `omega` is the witness that the semiring forms reach an object
 the ring forms do not --- it has no negation at all. -/
 
-/-- `0 * x = 0`. The transpose of `mul_empty`. -/
+/-- `0 * x = 0`. -/
 @[simp] theorem empty_mul {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
     mul empty.{u} x = empty.{u} := by
   rw [mul_comm empty_mem_omega hx, mul_empty]
 
-/-- `x * 1 = x`. `ofNat 1` is `succ empty` definitionally, so this is
-`mul_succ` and the two unit laws. -/
+/-- `x * 1 = x`. -/
 @[simp] theorem mul_one {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
     mul x (ofNat.{u} 1) = x := by
   obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
   rw [mul_ofNat, Nat.mul_one]
 
-/-- `1 * x = x`, by commutation. -/
 @[simp] theorem one_mul {x : ZFSet.{u}} (hx : x ∈ omega.{u}) :
     mul (ofNat.{u} 1) x = x := by
   rw [mul_comm (ofNat_mem_omega 1) hx, mul_one hx]
 
 /-! ## Audit -/
 
-/-- `x ⊆ y` makes the union the larger and the intersection the smaller --
-which is `max` and `min` once the order is containment. -/
 theorem union_eq_right_of_subset {x y : ZFSet.{u}} (h : x ⊆ y) : x ∪ y = y :=
   ext _ _ fun w => ⟨fun hw => ((mem_union_iff _ _ _).mp hw).elim (fun a => h w a) id,
     fun hw => (mem_union_iff _ _ _).mpr (Or.inr hw)⟩
@@ -315,11 +311,8 @@ theorem ofNat_inter (m n : Nat) :
   · rw [inter_comm, inter_eq_left_of_subset ((ofNat_subset_iff n m).mpr h)]
     exact congrArg ofNat (Nat.min_eq_right h).symm
 
-/-- The comparison transfers to any representative.
-
-If `a - b = a' - b'` as integers and `a ⊆ b`, then `a' ⊆ b'`. So `intAbs` is
-well defined: the union and intersection resolve the same way on every
-representative, so the absolute value does not depend on which is chosen. -/
+/-- If `a + b' = a' + b` and `a ⊆ b`, then `a' ⊆ b'`. Hence `intAbs` does not
+depend on the representative. -/
 theorem subset_of_rel_of_subset {a b a' b' : ZFSet.{u}}
     (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
     (ha' : a' ∈ omega.{u}) (hb' : b' ∈ omega.{u})
@@ -333,7 +326,7 @@ theorem subset_of_rel_of_subset {a b a' b' : ZFSet.{u}}
   have hle := (ofNat_subset_iff na nb).mp h
   exact (ofNat_subset_iff na' nb').mpr (by omega)
 
-/-- The naturals are closed under union: it is the larger of the two. -/
+/-- The union of two naturals is a natural. -/
 theorem union_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u})
     (hy : y ∈ omega.{u}) : x ∪ y ∈ omega.{u} := by
   obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
@@ -341,7 +334,7 @@ theorem union_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u})
   rw [ofNat_union]
   exact ofNat_mem_omega _
 
-/-- The naturals are closed under intersection: it is the smaller. -/
+/-- The intersection of two naturals is a natural. -/
 theorem inter_mem_omega {x y : ZFSet.{u}} (hx : x ∈ omega.{u})
     (hy : y ∈ omega.{u}) : x ∩ y ∈ omega.{u} := by
   obtain ⟨m, rfl⟩ := (mem_omega_iff x).mp hx
@@ -355,13 +348,7 @@ theorem union_eq_left_of_subset {x y : ZFSet.{u}} (h : y ⊆ x) : x ∪ y = x :=
 theorem inter_eq_right_of_subset {x y : ZFSet.{u}} (h : y ⊆ x) : x ∩ y = y :=
   Eq.trans (inter_comm x y) (inter_eq_left_of_subset h)
 
-/-- The cross products are ordered by their factors.
-
-If `b ⊆ a` and `d ⊆ c` then `ad + bc ⊆ ac + bd`, the gap being the product of
-the two differences. The one nonlinear step in the arithmetic of an absolute
-value, and it closes because writing `a = b + p` and `c = d + q` turns every
-term into a sum of products of the base variables -- which `omega` compares as
-opaque atoms. -/
+/-- If `b ⊆ a` and `d ⊆ c`, then `a * d + b * c ⊆ a * c + b * d`. -/
 theorem cross_subset {a b c d : ZFSet.{u}}
     (ha : a ∈ omega.{u}) (hb : b ∈ omega.{u})
     (hc : c ∈ omega.{u}) (hd : d ∈ omega.{u})

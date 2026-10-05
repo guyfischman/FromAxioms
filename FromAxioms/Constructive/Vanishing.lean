@@ -45,8 +45,7 @@ theorem ternaryReal_mem (α : Nat → Bool) : ternaryReal.{u} α ∈ RealL.{u} :
   (mem_RealL_iff _).mpr ⟨_, _, rfl, isLocated_nest (isNested_ternary (boolDigit_le_one α))⟩
 
 
-/-- The walk never goes below zero: every rational above it is above one of
-the walk's upper endpoints, and those are positive. -/
+/-- `0 ≤ ternaryReal α`. -/
 theorem ternaryReal_nonneg (α : Nat → Bool) :
     realLLe realLZero.{u} (ternaryReal.{u} α) := by
   rintro ⟨p, hpU, hp0⟩
@@ -176,9 +175,8 @@ take this rather than a choice principle that only produces it. -/
 def HasZeroLocators : Prop :=
   ∀ L U : ZFSet.{u}, IsLocated L U → ∃ β : Nat → Bool, IsZeroLocator L U β
 
-/-- A number bracketed inside every `±1/(n+1)` has the cut of zero. Forward is
-`no_greatest` -- a `q = 0` in `L` is beaten by a positive one, which no bracket
-admits -- and back is the Archimedean `exists_invWidth_lt`. -/
+/-- A located pair whose zero locator is constantly `false` has the lower cut of
+zero. -/
 theorem lower_eq_ratCut_zero_of_locator {L U : ZFSet.{u}} (h : IsLocated L U)
     {β : Nat → Bool} (hβ : IsZeroLocator L U β) (hall : ∀ n, β n = false) :
     L = ratCut ratZero.{u} := by
@@ -333,8 +331,7 @@ def DCOn (S : ZFSet.{u}) : Prop :=
     ∃ g, IsFunction g ∧ domain g = omega.{u} ∧ app g empty.{u} = a₀ ∧
       ∀ n, n ∈ omega.{u} → opair (app g n) (app g (succ n)) ∈ R
 
-/-- `DC` is `DCOn` at every set, so it gives one at any particular set. The
-converse is exactly the quantifier, and nothing here proves it. -/
+/-- `DC` gives `DCOn S` at every set `S`. -/
 theorem dcOn_of_dc (hdc : DC.{u}) (S : ZFSet.{u}) : DCOn.{u} S :=
   fun R hR htotal a₀ ha₀ => hdc S R hR htotal a₀ ha₀
 
@@ -421,9 +418,7 @@ theorem acOmega_of_dcOn (hdc : DCOnACStates.{u}) :
   rw [app_graphOn hinto hn]
   exact hval n hn
 
-/-- `DC` gives the sharper hypothesis at every set, so the original
-statement is a corollary. Kept because it is the lattice edge's
-witness. -/
+/-- `DC` implies `ACOmega`. -/
 theorem acOmega_of_dc (hdc : DC.{u}) : ACOmega.{u} :=
   acOmega_of_dcOn (dcOnACStates_of_dc hdc)
 
@@ -456,7 +451,6 @@ of which fires, one can be named. -/
 def SignDisjunction : Prop :=
   ∀ z, z ∈ RealL.{u} → realLLe z realLZero.{u} ∨ realLLe realLZero.{u} z
 
-/-- Being above zero is having zero in the lower cut. -/
 theorem realLZero_lt_iff_mem_lower {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     realLLt realLZero.{u} x ↔ ratZero.{u} ∈ fst x := by
   obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff x).mp hx
@@ -475,7 +469,7 @@ theorem realLZero_lt_iff_mem_lower {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     · rw [fst_opair]
       exact hpL
 
-/-- Rearrangement: a difference at most zero is an inequality. -/
+/-- If `a - b ≤ 0`, then `a ≤ b`. -/
 private theorem le_of_sub_le_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (h : realLLe (realLAdd a (realLNeg b)) realLZero.{u}) :
     realLLe a b := by
@@ -534,9 +528,7 @@ theorem llpo_of_ternaryComparison
 
 #print axioms Constructive.llpo_of_ternaryComparison
 
-/-- A sign for every real compares any two ternary reals, the in-edge
-`TernaryComparison` lacked. The principle is spent in one place: on the
-difference of the two ternary reals, read back as a comparison. -/
+/-- `SignDisjunction` implies `TernaryComparison`. -/
 theorem ternaryComparison_of_signDisjunction (h : SignDisjunction.{u}) :
     TernaryComparison.{u} := fun α β => by
   have hα := ternaryReal_mem.{u} α
@@ -583,7 +575,6 @@ theorem exists_true_of_tnum_pos {α : Nat → Bool} :
       · rfl
     · exact exists_true_of_tnum_pos n hp
 
-/-- The walk's numerator is zero exactly when the lower endpoint is. -/
 theorem tlow_eq_zero_of_tnum_zero {α : Nat → Bool} {m : Nat}
     (hz : tnum (boolDigit α) m = 0) : tlow.{u} (boolDigit α) m = ratZero.{u} := by
   rw [tlow, hz, ratZero_eq_ratNat]
@@ -667,7 +658,6 @@ def DyadicApproxDepthOne : Prop :=
 
 #print axioms Constructive.DyadicApproxDepthOne
 
-/-- The edge to the full principle, which is the instantiation at `1`. -/
 theorem dyadicApproxDepthOne_of_dyadicApprox (h : SetTheory.DyadicApprox.{u}) :
     DyadicApproxDepthOne.{u} :=
   fun x hx h0 h2 => h x hx h0 h2 1
@@ -714,9 +704,7 @@ theorem dichotomy_of_depthOne
 
 #print axioms Constructive.dichotomy_of_depthOne
 
-/-- The same dichotomy from the full principle, which is the form a caller
-holding `DyadicApprox` wants. The content is `dichotomy_of_depthOne`; this only
-instantiates the depth, choosing the `1`. -/
+/-- `DyadicApprox` gives `x ≤ 1 ∨ 1 ≤ x` for every real `0 ≤ x ≤ 2`. -/
 theorem dichotomy_of_dyadicApprox (h : SetTheory.DyadicApprox.{u})
     {x : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (h0 : realLLe (realLOf ratZero.{u}) x)

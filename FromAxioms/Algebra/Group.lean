@@ -646,24 +646,8 @@ theorem gpow_id {G op e : ZFSet.{u}} (hG : IsGroup G op e) :
 theorem gpow_mul {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) (j : Nat) :
     ∀ k : Nat, gpow op e a (j * k) = gpow op e (gpow op e a j) k :=
   gpow_mul_bare hG.toMonoid ha j
-/-- Pigeonhole for a sequence in a finite set, with the bound. Two of the
-first `n+1` values coincide, and the later index is one of those `n+1`.
-
-The bound was proved here and discarded, and the docstring knew. The old
-statement returned `∃ j k, j < k ∧ F j = F k` while the sentence above it said
-two of the first `n+1` values --- the prose was right and the type was weaker.
-`exists_pair_or_inj` hands back `hj : j < n + 1` and `hk : k < n + 1`, and both
-branches of the final `rcases` dropped them.
-
-It is not a cosmetic strengthening. Dirichlet's theorem is this lemma with
-the bound: the difference of the two indices is the approximation's denominator,
-so `k <= n` is the whole quantitative content, and an unbounded collision carries
-none of it. `exists_dirichlet_collision` (`PolyRing`) was rewritten onto the weak
-form and inherited the defect --- true, green, and unusable by its own consumer.
-
-`exists_repeat_of_finite` below is this with the bound forgotten, for the callers
-that never wanted it.
--/
+/-- Pigeonhole: a sequence in a set of `n` elements has `F j = F k` for some `j
+< k < n + 1`. -/
 theorem exists_repeat_of_finite_lt {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     (hmaps : ∀ k : Nat, F k ∈ G) {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) :
     ∃ j k : Nat, j < k ∧ k < n + 1 ∧ F j = F k := by
@@ -698,9 +682,7 @@ theorem exists_repeat_of_finite_lt {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 
 #print axioms exists_repeat_of_finite_lt
 
-/-- Pigeonhole for a sequence in a finite set. Two of the first `n+1` values
-coincide. The bound on the later index is available from
-`exists_repeat_of_finite_lt`; this is the form for callers that do not need it. -/
+/-- Pigeonhole: a sequence in a finite set takes some value twice. -/
 theorem exists_repeat_of_finite {G : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     (hmaps : ∀ k : Nat, F k ∈ G) {n : Nat} (hGfin : Equinumerous G (ofNat.{u} n)) :
     ∃ j k : Nat, j < k ∧ F j = F k :=
@@ -761,7 +743,6 @@ theorem exists_gpow_eq_id {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a �
       exact op_left_cancel hG (hmaps k) (hmaps (j - k)) hG.mem_e hid
   · exact absurd hinj hnotinj
 
-/-- The first power is the element, as a fact about `gpow` alone. -/
 theorem gpow_one {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G) :
     gpow op e a 1 = a := hG.left_id a ha
 
@@ -932,11 +913,9 @@ theorem exists_order {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
         · exact Or.inr (fun hc => h hc.right)) m₀ ⟨hm₀, hme₀⟩
   exact ⟨m, hmpos, hmid, fun k hk hk0 he => hleast k hk ⟨hk0, he⟩⟩
 
-/-- Whole periods return the identity. -/
 theorem gpow_mul_eq_id {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
     {m : Nat} (hme : gpow op e a m = e) : ∀ j : Nat, gpow op e a (j * m) = e :=
   gpow_mul_eq_id_bare hG.toMonoid ha hme
-/-- An exponent returns the identity exactly when the order divides it. -/
 theorem gpow_eq_id_iff {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
     {m : Nat} (hm : IsOrderOf m op e a) (k : Nat) :
     gpow op e a k = e ↔ k % m = 0 :=
@@ -1096,9 +1075,7 @@ Nothing classical, and nothing new proved about `ℤ`: the group axioms are the
 -- Cons at the head, so the recursion matches `Distinct`'s own: a list built by
 -- appending needs a separate lemma before its head clause can be reached.
 
-/-- An element whose order is the group's size generates the group. The
-cyclic subgroup it spans is contained and equinumerous, so it is everything --
-no construction, just a count. -/
+/-- An element whose order is the cardinality of a finite group generates it. -/
 theorem cyclic_eq_of_order_card {G op e a : ZFSet.{u}} (hG : IsGroup G op e) (ha : a ∈ G)
     {n : Nat} (hfin : Equinumerous G (ofNat.{u} n)) (hord : IsOrderOf n op e a) :
     cyclic G op e a = G := by

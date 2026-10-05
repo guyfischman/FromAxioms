@@ -20,12 +20,11 @@ cut whenever `S` is a non-empty family of cuts with an upper bound, and
 Classical logic used to enter at exactly two places, and both were the same
 step: deciding a comparison that no witness has been produced for.
 `realLe_of_witness` -- a rational in `x` but not in `y` forces `y ⊆ x` -- is
-constructive, and it is the whole mathematical content of linearity; the retired
-`realLe_total` paid `em` only to decide that such a rational exists.
-Multiplication was the same story one level up: the four sign cases are each
-constructive, and choosing between them is not. On ℚ the corresponding
-trichotomy was free, because equality of rationals reduces to equality of
-naturals.
+constructive, and it is the whole mathematical content of linearity; a proof of
+totality pays `em` only to decide that such a rational exists. Multiplication
+was the same story one level up: the four sign cases are each constructive, and
+choosing between them is not. On ℚ the corresponding trichotomy was free,
+because equality of rationals reduces to equality of naturals.
 
 Neither place is in this file any more. The comparisons are stated in
 `Constructive/` with `EM` as a binder and reversed back to it, so each is priced
@@ -95,7 +94,6 @@ def realLe (x y : ZFSet.{u}) : Prop := x ⊆ y
 
 theorem realLe_refl (x : ZFSet.{u}) : realLe x x := fun _ h => h
 
-/-- A member of a cut is strictly below any rational that is not a member. -/
 theorem ratLt_of_mem_of_not_mem {c q p : ZFSet.{u}} (hc : IsCut c) (hq : q ∈ c)
     (hp : p ∈ NumberTheory.Rat.{u}) (hpc : p ∉ c) : ratLt q p := by
   have hqQ : q ∈ NumberTheory.Rat.{u} := hc.subset q hq
@@ -178,9 +176,7 @@ def realZero : ZFSet.{u} := ratCut ratZero.{u}
 
 theorem realZero_mem_Real : realZero.{u} ∈ Real.{u} := ratCut_mem_Real ratZero_mem_Rat
 
-/-- `x + 0 = x`. The inclusion that needs work is `⊇`: a member of `x` has to be
-written as a sum, and the summand above it is exactly what `no_greatest`
-provides. -/
+/-- `x + 0 = x`. -/
 theorem realAdd_zero {x : ZFSet.{u}} (hx : x ∈ Real.{u}) :
     realAdd x realZero.{u} = x := by
   have cx := (mem_Real_iff x).mp hx
@@ -235,7 +231,6 @@ hypothesis here rather than something to be decided. -/
 def realNonneg (x : ZFSet.{u}) : Prop := realLe realZero.{u} x
 
 
-/-- A rational outside a non-negative cut is itself non-negative. -/
 theorem ratZero_le_of_not_mem {x q : ZFSet.{u}} (hx0 : realNonneg x) (hq : q ∈ NumberTheory.Rat.{u})
     (hqx : q ∉ x) : ratLe ratZero.{u} q := by
   rcases ratLe_total ratZero_mem_Rat hq with h | h

@@ -47,10 +47,7 @@ private theorem four_sq (m : Nat) : (2 * m) * (2 * m) = 4 * (m * m) := by
 /-- The irrationality of √2, as the prime case at `2`.
 
 `prime_sq_irrational` runs the descent for an arbitrary prime modulus, and the
-only thing this row adds is `isPrime_two`. The descent was written out here once,
-with a private `odd_sq` and `even_of_sq_even` supplying `2 ∣ p² → 2 ∣ p` by
-expanding `(2r+1)²`; the general lemma gets that step from `prime_divides_sq` and
-needs no expansion, so the specialised proof and both helpers came out together.
+only thing added here is `isPrime_two`.
 
 The two case of `prime_sq_irrational`, whose type quantifies over `n` under
 `IsPrime n` and so is a different statement from this one. -/

@@ -51,8 +51,6 @@ theorem exists_lt_or_not {Q : Nat → Prop} (hdec : ∀ j, Q j ∨ ¬ Q j) :
         · exact hno j hlt
         · exact he ▸ h
 
-/-- Either two distinct indices below `n` are related, or the relation is
-injective there. -/
 theorem exists_pair_or_inj {P : Nat → Nat → Prop} (hdec : ∀ j k, P j k ∨ ¬ P j k) :
     ∀ n : Nat, (∃ j k, j < n ∧ k < n ∧ j ≠ k ∧ P j k) ∨
       ∀ j k, j < n → k < n → P j k → j = k
@@ -287,9 +285,7 @@ theorem minOf_le (a : Nat) : ∀ (l : List Nat) (e : Nat), e ∈ l → minOf a l
       have := minOf_le a r e ht
       omega
 
-/-- The seeded minimum is a member, or the seed. The rational step needs
-it: the window's lower end must be a selected position, or the strict
-inequality it has to supply has nothing to come from. -/
+/-- `minOf a l` is `a` or a member of `l`. -/
 theorem minOf_mem (a : Nat) : ∀ l : List Nat, minOf a l = a ∨ minOf a l ∈ l
   | [] => Or.inl rfl
   | b :: r => by
@@ -309,9 +305,7 @@ induction hands back the failing index -- which a negated universal cannot.
 `exists_top_fail` is the shape a degree argument wants: the largest index at
 which a predicate fails, given that it holds above a bound. -/
 
-/-- Extending a bounded universal by one index. The step every bounded
-search shares: below `n` the old hypothesis serves, and at `n` itself there is
-one new fact. -/
+/-- If `P i` for all `i < n` and `P n`, then `P i` for all `i < n + 1`. -/
 theorem forall_lt_succ {P : Nat → Prop} {n : Nat}
     (hall : ∀ i, i < n → P i) (hn : P n) : ∀ i, i < n + 1 → P i := by
   intro i hi

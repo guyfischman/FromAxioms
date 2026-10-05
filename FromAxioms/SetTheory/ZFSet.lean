@@ -56,9 +56,7 @@ namespace SetTheory
 /-- The class of a pre-set. -/
 def mk (x : PSet.{u}) : ZFSet.{u} := Quotient.mk PSet.setoid x
 
-/-- The defining property of the quotient: equality of classes is equivalence
-of representatives. Lean core has no `Quotient.eq`, so this is assembled from
-`Quotient.exact` and `Quotient.sound`. -/
+/-- `mk x = mk y` if and only if `x` and `y` are equivalent. -/
 theorem mk_eq_mk {x y : PSet.{u}} : mk x = mk y ↔ PSet.Equiv x y :=
   ⟨fun h => Quotient.exact (s := PSet.setoid) h,
    fun h => Quotient.sound (s := PSet.setoid) h⟩
@@ -80,9 +78,7 @@ instance : HasSubset ZFSet.{u} := ⟨fun x y => ∀ w : ZFSet.{u}, w ∈ x → w
 theorem subset_def (x y : ZFSet.{u}) : x ⊆ y ↔ ∀ w : ZFSet.{u}, w ∈ x → w ∈ y :=
   Iff.rfl
 
-/-- `ZFSet` is a `def` for a `Quotient`, so unification will happily unfold it
-and then fail to find the `Membership ZFSet ZFSet` instance. Supplying the
-motive explicitly, at type `ZFSet`, keeps instance resolution on the rails. -/
+/-- `mk w ⊆ mk x` if and only if `w ⊆ x`. -/
 theorem mk_subset_mk (w x : PSet.{u}) : mk w ⊆ mk x ↔ w ⊆ x := by
   constructor
   · intro h z hz
@@ -123,7 +119,6 @@ def insert : ZFSet.{u} → ZFSet.{u} → ZFSet.{u} :=
   Quotient.lift₂ (fun y x => mk (PSet.insert y x))
     (fun _ _ _ _ hy hx => Quotient.sound (PSet.insert_congr hy hx))
 
-/-- Note `w = y`, where the `PSet` version had `Equiv w y`. -/
 theorem mem_insert_iff (w y x : ZFSet.{u}) : w ∈ insert y x ↔ w = y ∨ w ∈ x :=
   Quotient.inductionOn₃ w y x fun w y x =>
     ⟨fun h => ((PSet.mem_insert_iff w y x).mp h).imp Quotient.sound id,

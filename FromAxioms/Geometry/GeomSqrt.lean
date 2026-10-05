@@ -73,7 +73,6 @@ theorem exists_small_step {c d b : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u})
         rwa [ratMul_comm hbQ hc, ratMul_comm hDQ hc] at hm)
       hDlt
 
-/-- Squaring is strictly monotone on the non-negatives. -/
 theorem ratSq_lt_sq {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u})
     (h0 : ratLe ratZero.{u} a) (h : ratLt a b) :
     ratLt (ratMul a a) (ratMul b b) := by
@@ -150,8 +149,7 @@ theorem exists_gt_sq_lt {p t : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (ht 
     rwa [← ratAdd_assoc hpp ht (ratNeg_mem_Rat hpp), ratAdd_comm hpp ht,
       ratAdd_assoc ht hpp (ratNeg_mem_Rat hpp), ratAdd_neg hpp, ratAdd_zero ht] at this
 
-/-- The mirror image, for the upper set: below a positive rational whose square
-is above `s`, there is a smaller positive one still above `s`. -/
+/-- If `0 < r` and `s < r ^ 2`, then some positive `r' < r` has `s < r' ^ 2`. -/
 theorem exists_lt_sq_gt {r s : ZFSet.{u}} (hr : r ∈ NumberTheory.Rat.{u}) (hs : s ∈ NumberTheory.Rat.{u})
     (hr0 : ratLt ratZero.{u} r) (h : ratLt s (ratMul r r)) :
     ∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt ratZero.{u} r' ∧ ratLt r' r ∧ ratLt s (ratMul r' r') := by
@@ -250,8 +248,6 @@ private theorem nonneg_or_neg {p : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) 
   · exact Or.inl (by rw [h]; exact ratLe_refl ratZero_mem_Rat)
   · exact Or.inl h.left
 
-/-- A non-negative member of the root's lower set is there because of its
-square, the other disjunct being refuted by its sign. -/
 private theorem sq_mem_of_nonneg {L q : ZFSet.{u}} (hq : q ∈ sqrtLower L)
     (hqQ : q ∈ NumberTheory.Rat.{u}) (h0 : ratLe ratZero.{u} q) : ratMul q q ∈ L := by
   rcases ((mem_sqrtLower_iff L q).mp hq).right with hneg | hsq
@@ -368,17 +364,7 @@ theorem realLSqrt_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
   · rw [realLSqrt, fst_opair, snd_opair]
   · exact isLocated_sqrt hloc (upper_pos_of_nonneg hloc hnn)
 
-/-- The root is nonnegative, whatever `z` was. No hypothesis on `z`: the
-lower cut of `realLSqrt z` admits no positive rational by construction, so this
-holds even where `z` is negative and the root means nothing.
-
-It is therefore not `realLSqrt_mem`'s hypothesis, and the two read alike
-enough to be swapped. `realLSqrt_mem` asks for `realLLe realLZero z` --- the
-argument nonnegative --- while this concludes `realLLe realLZero (realLSqrt z)`,
-the root. Passing this one there is ill-typed, and the elaborator reports it as a
-`whnf` timeout rather than a type error, so the message names no mismatch and
-sends the reader to look for a performance problem. Supply the argument's
-nonnegativity from wherever the value came from. -/
+/-- `0 ≤ realLSqrt z`, with no hypothesis on `z`. -/
 theorem realLSqrt_nonneg {z : ZFSet.{u}} :
     realLLe realLZero.{u} (realLSqrt z) := by
   rintro ⟨p, hpU, hpL⟩

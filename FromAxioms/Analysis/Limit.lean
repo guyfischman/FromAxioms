@@ -46,9 +46,7 @@ def TendsTo (f L : ZFSet.{u}) : Prop :=
       realLt (app f n) (realAdd L (ratCut ε)) ∧
         realLt (realAdd L (ratCut (ratNeg ε))) (app f n)
 
-/-- If `q` is in one limit then it is in the other: pick `s` above `q` inside the
-first cut, note the sequence is eventually above `s`, and the second limit's
-upper bound then puts `q` inside it. -/
+/-- If `f` tends to both `x` and `y`, then `x ⊆ y` as cuts. -/
 theorem tendsTo_subset {f x y : ZFSet.{u}} (hf : f ∈ realSeqs.{u}) (hx : x ∈ Real.{u})
     (hy : y ∈ Real.{u}) (hxt : TendsTo f x) (hyt : TendsTo f y) :
     ∀ q, q ∈ x → q ∈ y := by
@@ -209,11 +207,8 @@ expression is `empty` for every sequence a content is asked about, and
 `IsCountablyAdditive` built on it constrains the series alone. -/
 def seqUnion (E : ZFSet.{u}) : ZFSet.{u} := sUnion (range E)
 
-/-- A point is in the union exactly when it is in some term.
-
-Both directions need only that `E` is a function on `omega`: forward, a member
-of `range E` is `app E a` for an `a` in the domain; backward, each `app E n` is
-in the range by `app_mem_range`. -/
+/-- A point lies in the union of a sequence of sets if and only if it lies in
+some term. -/
 theorem mem_seqUnion_iff {A E : ZFSet.{u}} (hE : E ∈ setSeqs A) (z : ZFSet.{u}) :
     z ∈ seqUnion E ↔ ∃ n, n ∈ omega.{u} ∧ z ∈ app E n := by
   obtain ⟨-, hfun, hdom⟩ := (mem_setSeqs_iff A E).mp hE
@@ -391,8 +386,7 @@ theorem realPartial_of_zero {f : ZFSet.{u}} (h : ∀ n : Nat, app f (ofNat.{u} n
     rw [realPartial, realPartial_of_zero h n, h n]
     exact realAdd_zero realZero_mem_Real
 
-/-- A vanishing series sums to zero. `N` is `0`: the bound holds at every
-index at once, so no modulus is computed. -/
+/-- A series whose terms are all zero sums to zero. -/
 theorem hasSum_zero_of_vanishing {f : ZFSet.{u}} (hf : f ∈ realSeqs.{u})
     (h : ∀ n : Nat, app f (ofNat.{u} n) = realZero.{u}) :
     HasSum f realZero.{u} := by

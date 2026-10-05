@@ -39,8 +39,6 @@ theorem intOfLean_mem_Int (k : _root_.Int) : intOfLean.{u} k ∈ Int.{u} :=
 #print axioms intOfLean_mem_Int
 #print axioms intOfLean
 
-/-- The map is determined by any difference representing `k`, so the ring laws
-below are a matter of `omega` rather than of sign analysis. -/
 theorem intOfLean_eq_intOf {k : _root_.Int} {m n : Nat}
     (h : k = (m : _root_.Int) - (n : _root_.Int)) :
     intOfLean.{u} k = intOf (ofNat.{u} m) (ofNat.{u} n) := by
@@ -97,11 +95,7 @@ theorem intOfLean_injective {k l : _root_.Int}
 
 #print axioms intOfLean_injective
 
-/-- The map carries `0`.
-
-`intZero` is `intOf empty empty` and `intOfLean 0` is `intOf (ofNat 0)
-(ofNat 0)`; the two meet through `ofNat_zero`. Stated because a ring map that
-did not carry the unit would not be one. -/
+/-- `intOfLean 0 = intZero`. -/
 theorem intOfLean_zero : intOfLean.{u} 0 = intZero.{u} := by
   have h : intOfLean.{u} 0 = intOf (ofNat.{u} 0) (ofNat.{u} 0) :=
     intOfLean_eq_intOf (by omega)

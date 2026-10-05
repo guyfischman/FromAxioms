@@ -510,8 +510,8 @@ private partial def binderSpines : Expr → List (List String)
 
 /-- The type's *shape*: its structure with every library constant's name
 erased and core constants kept. Two statements that differ only in which
-construction they talk about -- `bisectR_step` and `halveR_step`, before the
-first was retired -- have the same shape and different types.
+construction they talk about have
+the same shape and different types.
 
 Erasing core constants too would collapse `∈` with `≤` and match everything,
 so the line is drawn at the library boundary: what this development names is

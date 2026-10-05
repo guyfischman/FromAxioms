@@ -46,7 +46,6 @@ def RatExpr.eval (env : Nat → ZFSet.{u}) : RatExpr → ZFSet.{u}
   | .mul a b => ratMul (a.eval env) (b.eval env)
   | .neg a => ratNeg (a.eval env)
 
-/-- If every variable denotes a rational then so does every expression. -/
 theorem RatExpr.eval_mem {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.{u}) :
     ∀ e : RatExpr, e.eval env ∈ Rat.{u}
   | .var i => henv i
@@ -71,13 +70,11 @@ def evalSum (env : Nat → ZFSet.{u}) : List (Bool × RatExpr) → ZFSet.{u}
   | [] => ratZero.{u}
   | p :: t => ratAdd (evalAtom env p) (evalSum env t)
 
-/-- An atom of a rational environment denotes a rational. -/
 theorem evalAtom_mem {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.{u}) :
     ∀ p : Bool × RatExpr, evalAtom env p ∈ Rat.{u}
   | (true, e) => ratNeg_mem_Rat (RatExpr.eval_mem henv e)
   | (false, e) => RatExpr.eval_mem henv e
 
-/-- And so does a whole normal form. -/
 theorem evalSum_mem {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.{u}) :
     ∀ l : List (Bool × RatExpr), evalSum env l ∈ Rat.{u}
   | [] => ratZero_mem_Rat
@@ -104,8 +101,7 @@ theorem evalAtom_negAtom {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.
     show RatExpr.eval env e = ratNeg (ratNeg (RatExpr.eval env e))
     rw [ratNeg_ratNeg (RatExpr.eval_mem henv e)]
 
-/-- Negation becomes a sign flip. `ratNeg_add` is spent once per cons here
-and never at a call site. -/
+/-- `evalSum env (l.map negAtom) = -evalSum env l`. -/
 theorem evalSum_map_neg {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.{u}) :
     ∀ l : List (Bool × RatExpr),
       evalSum env (l.map negAtom) = ratNeg (evalSum env l)
@@ -166,10 +162,7 @@ theorem evalSum_perm {env : Nat → ZFSet.{u}} (henv : ∀ i, env i ∈ Rat.{u})
   | swap a b l => exact evalSum_swap henv b a l
   | trans _ _ ih1 ih2 => exact ih1.trans ih2
 
-/-- `a + (-a + s) = s`, a cancellation once the pair is adjacent. Distinct from
-`ratAdd_sub_cancel`, `q + (p + -q) = p`, by one `ratAdd_comm`; this spelling is
-the one `evalSum_cancel` and `insertAtom_sound` consume, because the normaliser
-puts the negation on the left. -/
+/-- `a + (-a + s) = s`. -/
 theorem ratAdd_neg_cancel_left {a s : ZFSet.{u}} (ha : a ∈ Rat.{u})
     (hs : s ∈ Rat.{u}) : ratAdd a (ratAdd (ratNeg a) s) = s := by
   rw [← ratAdd_assoc ha (ratNeg_mem_Rat ha) hs, ratAdd_neg ha, ratZero_add hs]
@@ -272,9 +265,6 @@ The additive parallel holds almost everywhere. `evalMon_append` is
 and `evalPoly_perm` get reordering from `List.Perm`'s four constructors exactly
 as `evalSum_perm` does. The one exception is `evalSMon_smonMul`: signs multiply,
 and there is no additive twin of that.
-
-The `norm*` prefix keeps clear of `Algebra.polyMul` and `Algebra.polyNeg`, which
-act on a polynomial as a `ZFSet`; these act on the reflected representation.
 
 The sort is hand-written because `List.mergeSort` is defined by well-founded
 recursion, so the kernel will not evaluate it, and a reflective proof needs the

@@ -13,12 +13,8 @@ universe u
 
 /-! ## Symmetry -/
 
-/-- Symmetry of the fold in its two list arguments, with no equal-length
-hypothesis: a ragged pair sends both sides to the module's zero, so all the
-statement needs is that the entries are ring elements.
-
-Stated at a ring rather than a module because it is the one law of the four that
-uses commutativity of the multiplication, and a module has no such law. -/
+/-- The dot product of two lists over a ring is symmetric. The lists need not
+have equal length. -/
 theorem dot_comm {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one) :
     ∀ (xs ys : List ZFSet.{u}), (∀ a, a ∈ xs → a ∈ R) → (∀ b, b ∈ ys → b ∈ R) →
       lincomb add mul zero xs ys = lincomb add mul zero ys xs
@@ -32,10 +28,7 @@ theorem dot_comm {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero on
       dot_comm hR xs ys (fun a ha => hxs a (List.mem_cons_of_mem _ ha))
         (fun b hb => hys b (List.mem_cons_of_mem _ hb))]
 
-/-- Additivity at the vectors, which is the form a consumer holds.
-`tupleToList_vecAdd` carries the vector sum to the pairwise sum of the
-coefficient lists, so this is `lincomb_zipWith_add` at three lists of one
-length rather than a second induction. -/
+/-- The dot product is additive in its left argument. -/
 theorem dot_vec_add_left {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {n : Nat} {x x' y : ZFSet.{u}}
     (hx : x ∈ powSet R n) (hx' : x' ∈ powSet R n) (hy : y ∈ powSet R n) :
@@ -64,17 +57,8 @@ theorem dot_vec_add_right {R add mul zero one : ZFSet.{u}}
 
 /-! ## The bridge to the two-coordinate form -/
 
-/-- Pythagoras, at arbitrary dimension and over any ring.
-
-The two-coordinate `Geometry.pythagoras` was what the landmark witnessed, and it
-reads as narrower than the inner-product-space statement it is compared
-against. It was not that the mathematics was missing --- `dot_vec_add_left`,
-`dot_vec_add_right` and `dot_comm` are all here and all over an arbitrary
-`IsRing`. Only the statement was.
-
-The addition form: it needs no vector subtraction, so no additive inverse is
-used and the ring hypothesis is not strengthened to reach it. Orthogonality is
-the dot product landing on the ring's zero. -/
+/-- Pythagoras in `R ^ n` over any ring: if `<x, y> = 0`, then `<x + y, x + y> =
+<x, x> + <y, y>`. -/
 theorem dot_vec_add_self_of_orth {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {n : Nat} {x y : ZFSet.{u}}
     (hx : x ∈ powSet R n) (hy : y ∈ powSet R n)
@@ -100,16 +84,8 @@ theorem dot_vec_add_self_of_orth {R add mul zero one : ZFSet.{u}}
     lincomb_mem (isModule_self hR) _ _ (tupleToList_mem hy) (tupleToList_mem hy)
   rw [ringAdd_zero hR hxx, ringZero_add hR hyy]
 
-/-- The full expansion of a sum's self inner product, over any ring.
-
-`<x+y, x+y> = (<x,x> + <x,y>) + (<x,y> + <y,y>)`.
-
-The general form of `Analysis.dot_vec_add_self_of_orth`, which is this with the
-cross terms killed by orthogonality. mathlib's counterpart writes `2<x,y>` for
-the middle; over an arbitrary ring a scalar `2` is not available without
-assuming one, so the four-term shape is what bilinearity gives and `dot_comm` is
-what makes the two middle terms the same element. Same content, no extra
-hypothesis. -/
+/-- `<x + y, x + y> = (<x, x> + <x, y>) + (<x, y> + <y, y>)` in `R ^ n` over any
+ring. -/
 theorem dot_vec_add_self {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {n : Nat} {x y : ZFSet.{u}}
     (hx : x ∈ powSet R n) (hy : y ∈ powSet R n) :

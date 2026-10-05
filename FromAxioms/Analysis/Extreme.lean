@@ -240,9 +240,8 @@ What is not spent on it is the step that looks most classical: `x <= s` with
 `s < realLOf q` gives `x < realLOf q` by cotransitivity.
 -/
 
-/-- Membership in the strictly-positive ray is positivity, with the `opair`
-gone. Sibling of `mem_negRay_iff` below; see its note on why the `sep` body
-keeps the topology's own spelling. -/
+/-- A real lies in the positive ray of the order topology if and only if it is
+positive. -/
 theorem mem_posRay_iff {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     x ∈ sep (fun z => opair realLZero.{u} z ∈ realLLtRel.{u}) RealL.{u}
       ↔ realLLt realLZero.{u} x := by
@@ -251,12 +250,7 @@ theorem mem_posRay_iff {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
   · exact (opair_mem_realLLtRel_iff realLZero_mem hx).mpr h
 
 
-/-- The supremum's value is not strictly positive.
-
-Every hypothesis is named rather than packaged, so the theorem can be read
-without unfolding `ExactIVT01Top`: `hSsub` and `hSle` say what `S` is, `hub`
-and `hleast` say `s` is its least upper bound, and `hcont` is the continuity
-the predicate supplies. -/
+/-- The value of `G` at the supremum of `S` is not strictly positive. -/
 theorem not_realLZero_lt_G_sup (hem : EM) {G : ZFSet.{u} → ZFSet.{u}}
     {S s : ZFSet.{u}}
     (hGmaps : ∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u})
@@ -297,7 +291,7 @@ theorem not_realLZero_lt_G_sup (hem : EM) {G : ZFSet.{u} → ZFSet.{u}}
   -- the concrete bracket: rationals strictly either side
   obtain ⟨p, hp, q, hq, hps, hsq, hIoo⟩ :=
     ((mem_realLOpens_iff U).mp hU).right s hsU
-  -- rung two: a member of `S` above `realLOf p`
+  -- a member of `S` above `realLOf p`
   obtain ⟨x, hxS, hpx⟩ := exists_mem_realLLt_of_lt_sup hem
     (realLOf_mem hp) hsR hSmem hleast hps
   have hxR : x ∈ RealL.{u} := hSmem x hxS
@@ -320,14 +314,8 @@ theorem not_realLZero_lt_G_sup (hem : EM) {G : ZFSet.{u} → ZFSet.{u}}
   exact hSle x hxS ((mem_posRay_iff (hGmaps x (hSsub x hxS))).mp hGx)
 
 
-/-- Membership in the strictly-negative ray is negativity, with the `opair`
-gone.
-
-The `sep` body is written in the form the order topology produces ---
-`opair z realLZero ∈ realLLtRel`, not `realLLt z realLZero`. They are
-equivalent and they are not the same term, so a lemma stated in the convenient
-form would not rewrite against the topology's own set; so the conversion is
-done here. -/
+/-- A real lies in the negative ray of the order topology if and only if it is
+negative. -/
 theorem mem_negRay_iff {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     x ∈ sep (fun z => opair z realLZero.{u} ∈ realLLtRel.{u}) RealL.{u}
       ↔ realLLt x realLZero.{u} := by
@@ -336,7 +324,6 @@ theorem mem_negRay_iff {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
   · exact (opair_mem_realLLtRel_iff hx realLZero_mem).mpr h
 
 
-/-- The supremum's value is not strictly negative. -/
 theorem not_G_sup_lt_realLZero (hem : EM) {G : ZFSet.{u} → ZFSet.{u}}
     {S s : ZFSet.{u}}
     (hGmaps : ∀ x, x ∈ realLIcc ratZero.{u} ratOne.{u} → G x ∈ RealL.{u})
@@ -418,10 +405,11 @@ theorem not_G_sup_lt_realLZero (hem : EM) {G : ZFSet.{u} → ZFSet.{u}}
 
 /-- The classical intermediate value theorem, priced at `EM`.
 
-The set is `{x in [0,1] : not (0 < G x)}`, its supremum exists by rung one, and
-the two refutations close both sides. `realLLe_antisymm` turns *neither above
-nor below* into equality --- which is the step a constructive proof cannot take
-and is exactly what the price buys. -/
+The set is `{x in [0,1] : not (0 < G x)}`, its supremum exists by
+`exists_sup_of_subset_realLIcc_of_em`, and the two refutations close both
+sides. `realLLe_antisymm` turns neither above nor below into equality ---
+which is the step a constructive proof cannot take and is exactly what the
+price buys. -/
 theorem exactIVT01Top_of_em (hem : EM) : ExactIVT01Top.{u} := by
   intro G hGmaps hcont hlo hhi
   let S : ZFSet.{u} :=
@@ -442,7 +430,7 @@ theorem exactIVT01Top_of_em (hem : EM) : ExactIVT01Top.{u} := by
     refine ⟨realLOf ratZero.{u}, (mem_sep_iff _ _ _).mpr ⟨hzero_icc, fun h => ?_⟩⟩
     exact realLLt_irrefl (hGmaps _ hzero_icc)
       (realLLt_trans (hGmaps _ hzero_icc) realLZero_mem (hGmaps _ hzero_icc) hlo h)
-  -- rung one: the supremum
+  -- the supremum
   obtain ⟨s, hsR, hub_pair, hleast⟩ :=
     exists_sup_of_subset_realLIcc_of_em hem ratOne_mem_Rat hSsub hne
   have hSmem : ∀ x, x ∈ S → x ∈ RealL.{u} := fun x hx =>

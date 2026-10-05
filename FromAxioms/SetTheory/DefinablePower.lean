@@ -100,8 +100,6 @@ def definablePower_definable (F : Nat → List ZFSet.{u} → ZFSet.{u})
   fam := definablePowerFam.{u} F R
   spec _ := rfl
 
-/-- Equivalent pre-sets have equivalent definable power sets -- `Definable`
-gives this for free, and the hierarchy's congruence needs it at each stage. -/
 theorem definablePowerFam_congr {F : Nat → List ZFSet.{u} → ZFSet.{u}}
     {R : Nat → List ZFSet.{u} → Prop} {a b : PSet.{u}} (h : PSet.Equiv a b) :
     PSet.Equiv (definablePowerFam.{u} F R a) (definablePowerFam.{u} F R b) :=

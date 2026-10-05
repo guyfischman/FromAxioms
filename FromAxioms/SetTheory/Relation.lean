@@ -33,7 +33,6 @@ namespace SetTheory
 def IsRelation (r : ZFSet.{u}) : Prop :=
   ∀ p, p ∈ r → ∃ a b, p = opair a b
 
-/-- Both coordinates of a pair in `r` live in `⋃⋃r`. -/
 theorem mem_sUnion_sUnion_of_opair_mem {a b r : ZFSet.{u}} (h : opair a b ∈ r) :
     a ∈ sUnion (sUnion r) ∧ b ∈ sUnion (sUnion r) := by
   have hsa : singleton a ∈ sUnion r :=
@@ -197,7 +196,6 @@ theorem isFunction_extendAt {g k v : ZFSet.{u}} (hg : IsFunction g)
       obtain ⟨-, hcv⟩ := opair_injective hc'
       rw [hbv, hcv]
 
-/-- The domain grows by exactly the new key. -/
 theorem domain_extendAt_succ {g k v : ZFSet.{u}} (hd : domain g = k) :
     domain (extendAt g k v) = succ k := by
   refine ext _ _ fun a => ⟨fun ha => ?_, fun ha => ?_⟩
@@ -214,8 +212,6 @@ theorem app_extendAt_self {g k v : ZFSet.{u}} (hg : IsFunction g)
     (hk : k ∉ domain g) : app (extendAt g k v) k = v :=
   app_eq (isFunction_extendAt hg hk) (opair_mem_extendAt g k v)
 
-/-- Below the new key nothing moves, so an approximation extends without
-disturbing what it already said. -/
 theorem app_extendAt_of_mem {g k v a : ZFSet.{u}} (hg : IsFunction g)
     (hk : k ∉ domain g) (ha : a ∈ domain g) :
     app (extendAt g k v) a = app g a :=
@@ -347,8 +343,7 @@ theorem mem_recSet_iff (A a f g : ZFSet.{u}) :
       (∃ p : Nat, IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g) :=
   mem_sep_iff _ _ _
 
-/-- An approximation qualifies: its pairs are bounded by `ω × A`, because its
-domain is a numeral and every member of a numeral is in `ω`. -/
+/-- An approximation of the recursion lies in `recSet A a f`. -/
 theorem recApprox_mem_recSet {A a f g : ZFSet.{u}} {p : Nat}
     (hg : IsRecApprox.{u} A a f (ofNat.{u} (p + 1)) g) : g ∈ recSet A a f := by
   refine (mem_recSet_iff A a f g).mpr ⟨(mem_powerset_iff _ _).mpr ?_, p, hg⟩
@@ -421,9 +416,7 @@ theorem app_recFun_empty {A a f : ZFSet.{u}} (ha : a ∈ A)
   rw [← ofNat_zero, app_recFun_eq hg (ofNat_zero ▸ h0), ofNat_zero]
   exact hg.zero h0
 
-/-- The step clause. The stage is chosen one past the successor, so both the
-successor and its predecessor are inside that approximation's domain and the
-union agrees with it at each. -/
+/-- `recFun A a f (succ n) = f (recFun A a f n)`. -/
 theorem app_recFun_succ {A a f : ZFSet.{u}} (ha : a ∈ A)
     (hval : ∀ v, v ∈ A → app f v ∈ A) :
     ∀ n, n ∈ omega.{u} →
@@ -440,8 +433,6 @@ theorem app_recFun_succ {A a f : ZFSet.{u}} (ha : a ∈ A)
     show ofNat.{u} (j + 1) = succ (ofNat.{u} j) from rfl]
   exact hg.step (ofNat.{u} j) hsj
 
-/-- The recursion's values stay in `A`, which the bound on every approximation
-already forces. -/
 theorem app_recFun_mem {A a f : ZFSet.{u}} (ha : a ∈ A)
     (hval : ∀ v, v ∈ A → app f v ∈ A) :
     ∀ n, n ∈ omega.{u} → app (recFun A a f) n ∈ A := by
@@ -712,7 +703,8 @@ def IsInjection (f x y : ZFSet.{u}) : Prop :=
   IsFunction f ∧ domain f = x ∧ range f ⊆ y ∧
     ∀ a, a ∈ x → ∀ b, b ∈ x → app f a = app f b → a = b
 
-/-- The clause a proof reaches for: injectivity itself. -/
+/-- If `f` is an injection on `x` and `f a = f b` for `a, b ∈ x`, then `a = b`.
+-/
 theorem isInjection_inj {f x y a b : ZFSet.{u}} (h : IsInjection f x y)
     (ha : a ∈ x) (hb : b ∈ x) (he : app f a = app f b) : a = b :=
   h.right.right.right a ha b hb he

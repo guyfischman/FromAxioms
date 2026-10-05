@@ -1215,16 +1215,8 @@ theorem equinumerous_singleton_one {a : ZFSet.{u}} :
 
 /-! ## A list with decided equality names a set of at most its length -/
 
-/-- An injective enumeration gives a duplicate-free list.
-
-`Distinct` has exactly one lemma in this tree and no way to build one, so every
-argument wanting a list of distinct roots has had to hand-roll the recursion.
-This is that recursion once.
-
-The induction is on the front of `List.range`, via `List.range_succ_eq_map`,
-because `Distinct` is defined head-first; `List.range_succ` appends at the back
-and would
-need an append lemma that does not exist either. -/
+/-- If `f` is injective on `{0, ..., n - 1}`, then `(List.range n).map f` has no
+duplicates. -/
 theorem distinct_map_range_of_inj {f : Nat → ZFSet.{u}} :
     ∀ n : Nat,
       (∀ i, i < n → ∀ j, j < n → i ≠ j → f i ≠ f j) →
@@ -1242,9 +1234,8 @@ theorem distinct_map_range_of_inj {f : Nat → ZFSet.{u}} :
 
 #print axioms distinct_map_range_of_inj
 
-/-- Two folds agree when their steps agree on the list's own members.
-Core has `List.foldr_map` but no congruence for the step function, and a
-pointwise argument over a mapped list needs one. -/
+/-- Two `List.foldr`s agree when their step functions agree on the members of
+the list. -/
 theorem foldr_ext_mem {f g : ZFSet.{u} → ZFSet.{u} → ZFSet.{u}} {e : ZFSet.{u}} :
     ∀ l : List ZFSet.{u}, (∀ a, a ∈ l → ∀ b, f a b = g a b) →
       List.foldr f e l = List.foldr g e l

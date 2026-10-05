@@ -135,9 +135,7 @@ def BinaryDCOn : Prop :=
     ∃ g, IsFunction g ∧ domain g = omega.{u} ∧ app g empty.{u} = a₀ ∧
       ∀ n, n ∈ omega.{u} → opair (app g n) (app g (succ n)) ∈ R
 
-/-- `DC` implies it, which is the easy half and fixes the direction: the
-named disjunction is one way of witnessing totality, so anything `BinaryDCOn`
-asks for `DC` already supplies. -/
+/-- `DC` implies `BinaryDCOn`. -/
 theorem binaryDCOn_of_dc (hdc : DC.{u}) : BinaryDCOn.{u} := by
   intro S R f₀ f₁ hRS _ _ _ _ hbin a₀ ha₀
   refine hdc S R hRS (fun a ha => ?_) a₀ ha₀
@@ -148,58 +146,39 @@ theorem binaryDCOn_of_dc (hdc : DC.{u}) : BinaryDCOn.{u} := by
 /-! ### What `BinaryDCOn` costs, at an arbitrary state set
 
 Two producers conclude `BinaryDCOn` and both are principles --- the join
-projecting, and `binaryDCOn_of_dc` above. No landmark yields it, so the seven
-theorems spending this pair cannot be repointed at `BisectionSearch`: a
-reversal would then have to conclude the join, and this half has no producer
-that is not already a principle.
+projecting, and `binaryDCOn_of_dc` above. No theorem yields it.
 
-The argument below is not new and its generality is. This tree runs the same
-`natSeq` recursion three times, each hard-wired to one state set:
-`halveIter`/`halve_limit_of_selector` and `halveStepD`/`halveIterD` further
+The same `natSeq` recursion runs three times, each hard-wired to one state
+set: `halveIter`/`halve_limit_of_selector` and `halveStepD`/`halveIterD` further
 down this file, and `Topology.exists_baire_walk_of_selector` at `baireState`.
-The insight is already in this file's own prose, one section below --- *`condP`
-is total on any `Prop` ... the step is definable with no principle whatever ...
-a set-level branch is free where a `Bool` is not*. What was missing is the
-statement at an arbitrary `S` and `R`.
+Below it is stated at an arbitrary `S` and `R`. `IsChainSelector` carries the
+selector as a `ZFSet`, so it can appear inside a `Prop`, which a reversal needs
+and a Lean-level `ZFSet → Bool` cannot do.
 
-The recursion is shared and the input is not, so the general form is worth
-having. `HalveSelector.bit` is a Lean `ZFSet → Bool` and `halveStep` a Lean
-function; `Topology.IsBaireSelector` carries a ZFSet `sel`. So
-`IsChainSelector` generalises the second exactly and is the set-level sibling
-of the first. That matters because a reversal argues about the principle: a
-`Prop` cannot quantify over Lean-level data here, so the halving machine's
-selector and decider cannot appear inside one, and the ZFSet forms can.
+The set form costs nothing, at `[propext, Quot.sound]`: `sep` takes an arbitrary
+formula, so `sep goLeft S` turns any predicate branch into a set one.
 
-And the set form costs nothing, at `[propext, Quot.sound]`: `sep` takes an
-arbitrary formula, so `sep goLeft S` turns any predicate branch into a set one
-and detachability transfers both ways. `HalveDecider.decided`'s obligation and
-`isChainSelector_of_detachable`'s `hdet` are interchangeable on `S`.
-
-Nor is `hdet` excluded middle in disguise. It is at a fixed `S` and `T`. The
-quantified form is the principle --- `Analysis.DecidableMemSet` is EM by
-`em_of_decidableMemSet`, and `IdealDetachableInt` reverses to `LPO` --- and this
-is the hypothesis form, as `HalveDecider.decided` is.
+`hdet` is at a fixed `S` and `T`, so it is a hypothesis and not a principle.
+The quantified form is the principle: `Analysis.DecidableMemSet` is excluded
+middle by `em_of_decidableMemSet`, and `IdealDetachableInt` reverses to `LPO`.
 
     BinaryDCOn  =  a free chain  +  a decision of the branch at each state
 
-Not claimed: that the bisection's branch is detachable. It is not --- choosing the
-half is exactly what `Constructive.SignDisjunction` buys, so the two
-are spent together, and the section below says the same thing about `ratLt_or_not`. -/
+The bisection's branch is not detachable: choosing the half is what
+`Constructive.SignDisjunction` buys. -/
 
 /-- `BinaryDCOn` at one carrier and relation.
 
-The quantified form is more than any consumer uses.
-`halve_limit_of_binaryDCOn` below takes `BinaryDCOn` and its proof opens
-`hbdc (halveS P) (halveR P) ...` --- a single instance, at a set of coded
-rational intervals. Seventeen theorems across `Analysis/Extreme.lean` and
-`Metamath/Calibrate.lean` inherit that hypothesis, so seven registry rows spend a
-principle about every carrier in order to use it at one.
+The quantified form is more than any use needs. `halve_limit_of_binaryDCOn`
+below takes `BinaryDCOn` and its proof opens `hbdc (halveS P) (halveR P) ...`
+--- a single instance, at a set of coded rational intervals. Every theorem
+inheriting that hypothesis spends a principle about every carrier in order to
+use it at one.
 
-Why that matters rather than being tidiness. Those rows' reversal is blocked, and
-the blocked target reads `<landmark> -> BinaryDCOn`: a chain in an arbitrary `S`,
-`powerset RealL` included, from a landmark that speaks only of `RealL`. At the
-instance the objection is gone --- `halveS P` is pairs of rationals, which is the
-landmarks' own subject.
+A reversal to the quantified form would have to conclude a chain in an
+arbitrary `S`, `powerset RealL` included, from a theorem that speaks only of
+`RealL`. At the instance the objection is gone --- `halveS P` is pairs of
+rationals, which is the theorem's own subject.
 
 This is the move `the category theorem` made for `DCOn`. That row records a
 parameterised principle giving a reversal nothing to aim at, and the repair was
@@ -214,8 +193,7 @@ def BinaryDCOnAt (S R : ZFSet.{u}) : Prop :=
     ∃ g, IsFunction g ∧ domain g = omega.{u} ∧ app g empty.{u} = a₀ ∧
       ∀ n, n ∈ omega.{u} → opair (app g n) (app g (succ n)) ∈ R
 
-/-- The quantified form gives every instance, which fixes the direction and
-is all this pair asserts. Nothing here derives the quantified form back. -/
+/-- `BinaryDCOn` gives `BinaryDCOnAt S R` for every `R ⊆ S × S`. -/
 theorem binaryDCOnAt_of_binaryDCOn (h : BinaryDCOn.{u})
     {S R : ZFSet.{u}} (hRS : R ⊆ prod S S) : BinaryDCOnAt.{u} S R :=
   fun f₀ f₁ hf0 hd0 hf1 hd1 hbin a₀ ha₀ =>
@@ -274,7 +252,6 @@ theorem halveS_spec {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u}}
         (And (ratLe (snd s) ratOne.{u}) (P (fst s) (snd s)))))) :=
   halveS_spec_on (p := ratZero.{u}) (q := ratOne.{u}) hs
 
-/-- The state's right endpoint is below the ambient's. -/
 theorem halveS_snd_le_q_on {p q : ZFSet.{u}}
     {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u}}
     (hs : s ∈ halveSOn p q P) : ratLe (snd s) q := by
@@ -310,10 +287,8 @@ theorem halve_total_on {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u
         ⟨opair_mem_prod hmQ hbQ, hinv'⟩), ?_⟩⟩
     exact ⟨a, b, haQ, hbQ, Or.inr ⟨rfl, hinv'⟩⟩
 
-/-- Both moves land in `Rat × Rat`, at an arbitrary ambient interval.
-`halveLeft_mem_prod` is this at `p = 0`, `q = 1`; the ambient enters only
-through `ratMid_facts_on`, so `hp` and `hq` appear here and not
-there. -/
+/-- `halveLeft` maps a state into `Rat × Rat`, over an arbitrary interval `[p,
+q]`. -/
 theorem halveLeft_mem_prod_on {p q : ZFSet.{u}} (hp : p ∈ Rat.{u})
     (hq : q ∈ Rat.{u}) {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u}}
     (hs : s ∈ halveSOn p q P) : halveLeft s ∈ prod Rat.{u} Rat.{u} := by
@@ -400,9 +375,7 @@ theorem halve_binary_on {p q : ZFSet.{u}} (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{
       ⟨opair_mem_prod hs hmem, ?_⟩⟩
     exact ⟨a, b, haQ, hbQ, Or.inr ⟨rfl, hinv'⟩⟩
 
-/-- The state's endpoints are ordered, at an arbitrary ambient.  A
-projection of `halveS_spec_on`'s fourth component; the ambient plays no part,
-so this is general in `p q` without mentioning either. -/
+/-- The endpoints of a state satisfy `fst s < snd s`. -/
 theorem halveS_lt_on {p q : ZFSet.{u}} {P : ZFSet.{u} → ZFSet.{u} → Prop}
     {s : ZFSet.{u}} (hs : s ∈ halveSOn p q P) : ratLt (fst s) (snd s) := by
   obtain ⟨-, -, -, h, -⟩ := halveS_spec_on hs
@@ -415,9 +388,7 @@ theorem halveS_payload_on {p q : ZFSet.{u}} {P : ZFSet.{u} → ZFSet.{u} → Pro
   obtain ⟨-, -, -, -, -, h⟩ := halveS_spec_on hs
   exact h
 
-/-- The generic invariant's upper bound, named.
-
-`halveS_snd_le_q_on` at `p = 0`, `q = 1`. -/
+/-- The right endpoint of a state is at most `1`. -/
 theorem halveS_snd_le_one {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u}}
     (hs : s ∈ halveS P) : ratLe (snd s) ratOne.{u} :=
   halveS_snd_le_q_on (p := ratZero.{u}) (q := ratOne.{u}) hs
@@ -438,11 +409,7 @@ below mentions `halveROn`, `splitR`, a ratio or a cut. `halveSOn p q P` and
 
 The generics are stated with a bare `S` rather than beside either family. -/
 
-/-- A step-monotone rational sequence is monotone. The machine proves one
-step at a time; `Topology.isNested_of_nat` asks across arbitrary `m ≤ n`, and
-this is the induction between them. Stated over an arbitrary sequence so the
-halving tower can use it too.
--/
+/-- If `K n ≤ K (n + 1)` for every `n`, then `K m ≤ K n` whenever `m ≤ n`. -/
 theorem ratSeq_mono_of_step {K : Nat → ZFSet.{u}} (hK : ∀ n, K n ∈ Rat.{u})
     (hstep : ∀ n, ratLe (K n) (K (n + 1))) :
     ∀ m n : Nat, m ≤ n → ratLe (K m) (K n) := by
@@ -462,7 +429,6 @@ theorem ratSeq_mono_of_step {K : Nat → ZFSet.{u}} (hK : ∀ n, K n ∈ Rat.{u}
 
 #print axioms ratSeq_mono_of_step
 
-/-- And the decreasing mirror, for the upper endpoints. -/
 theorem ratSeq_anti_of_step {L : Nat → ZFSet.{u}} (hL : ∀ n, L n ∈ Rat.{u})
     (hstep : ∀ n, ratLe (L (n + 1)) (L n)) :
     ∀ m n : Nat, m ≤ n → ratLe (L n) (L m) := by
@@ -482,14 +448,8 @@ theorem ratSeq_anti_of_step {L : Nat → ZFSet.{u}} (hL : ∀ n, L n ∈ Rat.{u}
 
 #print axioms ratSeq_anti_of_step
 
-/-- A step-scaled rational sequence is geometrically scaled. One step law
-`w (n+1) * q = w n * p` iterates to `w n * q^n = w 0 * p^n`.
-
-Stated over an arbitrary `w` rather than over a chain's width: nothing here
-mentions a chain, a cut, a ratio or a predicate. `ratSeq_le_ratPow` is the
-inequality at `w 0 = ratOne`; this is the equation at an arbitrary `w 0`, and
-neither subsumes the other.
--/
+/-- If `w (n + 1) * q = w n * p` for every `n`, then `w n * q ^ n = w 0 * p ^
+n`. -/
 theorem ratSeq_scaled_of_step {w : Nat → ZFSet.{u}} {p q : ZFSet.{u}}
     (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hw : ∀ n, w n ∈ Rat.{u})
@@ -507,10 +467,8 @@ theorem ratSeq_scaled_of_step {w : Nat → ZFSet.{u}} {p q : ZFSet.{u}}
 
 #print axioms ratSeq_scaled_of_step
 
-/-- A chain stays in the state set, from `sep` out of `prod S S` alone.
-The membership is carried by the second component of the product; the separating
-predicate `Q` is never read, and neither is any order or width content. This is
-`halve_chain_mem_on` and `split_chain_mem` at once. -/
+/-- If consecutive terms of `g` are related by a subset of `S × S` and `g 0 ∈
+S`, then every term of `g` lies in `S`. -/
 theorem chain_mem_of_sep_prod {S g s₀ : ZFSet.{u}} {Q : ZFSet.{u} → Prop}
     (hgR : ∀ n, n ∈ omega.{u} →
       opair (app g n) (app g (succ n)) ∈ sep Q (prod S S))
@@ -527,8 +485,6 @@ theorem chain_mem_of_sep_prod {S g s₀ : ZFSet.{u}} {Q : ZFSet.{u} → Prop}
 
 #print axioms chain_mem_of_sep_prod
 
-/-- The lower endpoint sequence is a rational sequence, given only that the
-chain lands in `S` and that `S` has rational first coordinates. -/
 theorem halveA_mem_ratSeqs_of_chain {S g : ZFSet.{u}}
     (hmem : ∀ n, n ∈ omega.{u} → app g n ∈ S)
     (hfst : ∀ s, s ∈ S → fst s ∈ Rat.{u}) :
@@ -538,7 +494,6 @@ theorem halveA_mem_ratSeqs_of_chain {S g : ZFSet.{u}}
 
 #print axioms halveA_mem_ratSeqs_of_chain
 
-/-- The `snd` twin of `halveA_mem_ratSeqs_of_chain`. -/
 theorem halveB_mem_ratSeqs_of_chain {S g : ZFSet.{u}}
     (hmem : ∀ n, n ∈ omega.{u} → app g n ∈ S)
     (hsnd : ∀ s, s ∈ S → snd s ∈ Rat.{u}) :
@@ -548,7 +503,6 @@ theorem halveB_mem_ratSeqs_of_chain {S g : ZFSet.{u}}
 
 #print axioms halveB_mem_ratSeqs_of_chain
 
-/-- Reading the lower sequence at an index. -/
 theorem app_halveA_of_chain {S g n : ZFSet.{u}}
     (hmem : ∀ m, m ∈ omega.{u} → app g m ∈ S)
     (hfst : ∀ s, s ∈ S → fst s ∈ Rat.{u})
@@ -557,7 +511,6 @@ theorem app_halveA_of_chain {S g n : ZFSet.{u}}
 
 #print axioms app_halveA_of_chain
 
-/-- The `snd` twin of `app_halveA_of_chain`. -/
 theorem app_halveB_of_chain {S g n : ZFSet.{u}}
     (hmem : ∀ m, m ∈ omega.{u} → app g m ∈ S)
     (hsnd : ∀ s, s ∈ S → snd s ∈ Rat.{u})
@@ -566,9 +519,7 @@ theorem app_halveB_of_chain {S g n : ZFSet.{u}}
 
 #print axioms app_halveB_of_chain
 
-/-- The endpoints move inward, from a per-step order law alone. No ratio, no
-cut, no width: the induction reads `hstep` and the two projections. This is
-`halveChain_mono_on` and `splitChain_mono` at once. -/
+/-- A chain whose endpoints move inward at each step has monotone endpoints. -/
 theorem chain_mono_of_step {S g : ZFSet.{u}}
     (hmem : ∀ n, n ∈ omega.{u} → app g n ∈ S)
     (hfst : ∀ s, s ∈ S → fst s ∈ Rat.{u})
@@ -601,14 +552,8 @@ theorem chain_mono_of_step {S g : ZFSet.{u}}
 
 #print axioms chain_mono_of_step
 
-/-- The width scales geometrically, from a per-step width law alone.
-
-`splitChain_width_scaled` carries an arbitrary `p:q` and concludes in `ratPow`;
-`halveChain_width_scaled_on` is fixed at `2:1` and concludes
-`w n * ratNat (pow2 n) 1 = w 0`. Neither induction reads the ratio, only the
-step law; the halve side reaches its own shape through `ratPow_ratTwo` below.
-The induction itself is `ratSeq_scaled_of_step` above; this adds the rewrite
-from the chain's two projections to that sequence. -/
+/-- If each step scales the width of a chain by `p / q`, then the width at stage
+`n` times `q ^ n` is the initial width times `p ^ n`. -/
 theorem chain_width_scaled_of_step {S g p q : ZFSet.{u}}
     (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     (hmem : ∀ n, n ∈ omega.{u} → app g n ∈ S)
@@ -640,8 +585,7 @@ theorem chain_width_scaled_of_step {S g p q : ZFSet.{u}}
 
 #print axioms chain_width_scaled_of_step
 
-/-- `pow2` is `2 ^ ·`. Stated because `pow2` is built by iteration and the
-`ratPow` bridge below needs the numeral form. -/
+/-- `pow2 n = 2 ^ n`. -/
 theorem pow2_eq_two_pow : ∀ n : Nat, pow2 n = 2 ^ n
   | 0 => rfl
   | n + 1 => by rw [pow2, pow2_eq_two_pow n, Nat.pow_succ]; omega
@@ -696,9 +640,8 @@ theorem halveR_step_on {p q : ZFSet.{u}} {P : ZFSet.{u} → ZFSet.{u} → Prop}
     exact ⟨(lt_ratMid haQ hbQ hab).left, ratLe_refl hbQ,
       ratMid_sub_right haQ hbQ⟩
 
-/-- Every state the chain reaches is a state, at an arbitrary ambient.
-`halve_chain_mem` is this at `p = 0`, `q = 1`; the proof never looks at the
-ambient, reading membership out of `halveROn`'s product instead. -/
+/-- Every term of a halving chain is a state, over an arbitrary interval `[p,
+q]`. -/
 theorem halve_chain_mem_on {p q : ZFSet.{u}}
     {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
     (hgR : ∀ n, n ∈ omega.{u} →
@@ -727,8 +670,8 @@ theorem app_halveB_on {p q : ZFSet.{u}} {P : ZFSet.{u} → ZFSet.{u} → Prop}
   app_halveB_of_chain (halve_chain_mem_on hgR h0 hs₀)
     (fun _ hs => (halveS_spec_on hs).right.left) hn
 
-/-- The left-endpoint sequence is a rational sequence, at an arbitrary
-ambient.  A pure citation, as its unit-interval original is. -/
+/-- The left endpoints of a halving chain form a rational sequence, over an
+arbitrary interval `[p, q]`. -/
 theorem halveA_mem_ratSeqs_on {p q : ZFSet.{u}}
     {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
     (hgR : ∀ n, n ∈ omega.{u} →
@@ -738,8 +681,6 @@ theorem halveA_mem_ratSeqs_on {p q : ZFSet.{u}}
   halveA_mem_ratSeqs_of_chain (halve_chain_mem_on hgR h0 hs₀)
     (fun _ hs => (halveS_spec_on hs).left)
 
-/-- The right-endpoint sequence is a rational sequence, at an arbitrary
-ambient. -/
 theorem halveB_mem_ratSeqs_on {p q : ZFSet.{u}}
     {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
     (hgR : ∀ n, n ∈ omega.{u} →
@@ -808,11 +749,8 @@ theorem halveChain_mono_on {p q : ZFSet.{u}}
       ⟨(halveR_step_on (hgR m hm)).left,
         (halveR_step_on (hgR m hm)).right.left⟩)
 
-/-- The width shrinks, at an arbitrary ambient: `width n` is at most
-`(q - p) * invWidth n`.
-
-`halveChain_width_le` is this at `p = 0`, `q = 1`, where `q - p` is 1 and
-disappears. -/
+/-- The width of a halving chain on `[p, q]` at stage `n` is at most `(q - p) *
+invWidth n`. -/
 theorem halveChain_width_le_on {p q : ZFSet.{u}}
     (hp : p ∈ Rat.{u}) (hq : q ∈ Rat.{u})
     {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
@@ -937,7 +875,6 @@ theorem domain_halveMove {P : ZFSet.{u} → ZFSet.{u} → Prop}
     domain (halveMove P f) = halveS P :=
   domain_halveMoveOn (p := ratZero.{u}) (q := ratOne.{u}) hf
 
-/-- Both moves land in `Rat × Rat`, so they can be graphed. -/
 theorem halveLeft_mem_prod {P : ZFSet.{u} → ZFSet.{u} → Prop} {s : ZFSet.{u}}
     (hs : s ∈ halveS P) : halveLeft s ∈ prod Rat.{u} Rat.{u} :=
   halveLeft_mem_prod_on ratZero_mem_Rat ratOne_mem_Rat hs
@@ -958,8 +895,7 @@ theorem halve_binary {P : ZFSet.{u} → ZFSet.{u} → Prop}
          (And (halveRight s ∈ halveS P) (opair s (halveRight s) ∈ halveR P)) :=
   halve_binary_on ratZero_mem_Rat ratOne_mem_Rat hstep
 
-/-- The chain `DC` produces for the halving machine never leaves the state
-set: each step's membership in the relation pins its target. -/
+/-- Every term of a halving chain is a state. -/
 theorem halve_chain_mem {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
     (hgR : ∀ n, n ∈ omega.{u} →
       opair (app g n) (app g (succ n)) ∈ halveR P)
@@ -1021,7 +957,6 @@ theorem halve_total {P : ZFSet.{u} → ZFSet.{u} → Prop}
     ∀ s, s ∈ halveS P → ∃ s', s' ∈ halveS P ∧ opair s s' ∈ halveR P :=
   halve_total_on ratZero_mem_Rat ratOne_mem_Rat hstep
 
-/-- Along the chain, left endpoints rise and right endpoints fall. -/
 theorem halveChain_mono {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFSet.{u}}
     (hgR : ∀ n, n ∈ omega.{u} →
       opair (app g n) (app g (succ n)) ∈ halveR P)
@@ -1073,8 +1008,7 @@ theorem halveChain_isNested {P : ZFSet.{u} → ZFSet.{u} → Prop} {g s₀ : ZFS
     IsNested (halveA g) (halveB g) :=
   halveChain_isNested_on ratZero_mem_Rat ratOne_mem_Rat hgR h0 hs₀
 
-/-- The real a nested family names lies between the family's first
-endpoints: the interval-membership every limit extraction re-derives. -/
+/-- The real of a nested family lies between the family's first endpoints. -/
 theorem nest_mem_Icc_of_ends {a b p q : ZFSet.{u}} (hnest : IsNested a b)
     (hA0 : app a (ofNat.{u} 0) = p) (hB0 : app b (ofNat.{u} 0) = q) :
     opair (nestLower a) (nestUpper b) ∈ realLIcc p q := by
@@ -1144,8 +1078,7 @@ theorem halve_limit_core {P : ZFSet.{u} → ZFSet.{u} → Prop} {g : ZFSet.{u}}
   · exact nest_le hnest (ofNat_mem_omega m)
 
 set_option maxHeartbeats 1000000 in
-/-- The machine's limit: `DC` chains the halving, and
-`halve_limit_core` does the rest. -/
+/-- The halving machine has a limit, from `BinaryDCOn`. -/
 theorem halve_limit_of_binaryDCOn {P : ZFSet.{u} → ZFSet.{u} → Prop}
     (hbdc : BinaryDCOn.{u})
     (hP : ∀ a b, a ∈ Rat.{u} → b ∈ Rat.{u} → ratLe ratZero.{u} a →
@@ -1183,16 +1116,13 @@ at `halveS P` and `halveR P`. This is the same proof with the carrier fixed, so
 the hypothesis is a statement about coded rational intervals rather than about
 every set.
 
-Why that is worth a separate theorem. Seven registry rows spend
-`SignDisjunction + BinaryDCOn` and their reversal is blocked on
-`<landmark> -> BinaryDCOn` --- a chain in an arbitrary `S`, `powerset RealL`
-included, from landmarks that conclude only about `RealL`. At the instance that
-objection is gone: `halveS P` is pairs of rationals, which is the landmarks' own
-subject. The blocked target shrinks even if it does not open.
+Why that is worth a separate theorem. A reversal to `BinaryDCOn` would have to
+conclude a chain in an arbitrary `S`, `powerset RealL` included, from theorems
+that conclude only about `RealL`. At the instance that objection is gone:
+`halveS P` is pairs of rationals, which is those theorems' own subject.
 
-ADDITIVE: `halve_limit_of_binaryDCOn` keeps its signature and its seventeen
-consumers are untouched; `binaryDCOnAt_of_binaryDCOn` bridges the two whenever
-the quantified form is what a caller holds. -/
+`binaryDCOnAt_of_binaryDCOn` bridges the two whenever the quantified form is
+what a caller holds. -/
 theorem halve_limit_of_binaryDCOnAt {P : ZFSet.{u} → ZFSet.{u} → Prop}
     (hbdc : BinaryDCOnAt.{u} (halveS P) (halveR P))
     (hP : ∀ a b, a ∈ Rat.{u} → b ∈ Rat.{u} → ratLe ratZero.{u} a →
@@ -1451,7 +1381,6 @@ theorem bridgeIter {P : ZFSet.{u} → ZFSet.{u} → Prop} (σ : HalveSelector P)
   | n + 1 => by
     rw [halveIter, halveIterD, bridgeIter σ n, bridgeStep]
 
-/-- The walk stays in the state set at every stage, by `bridgeIter`. -/
 theorem halveIter_mem {P : ZFSet.{u} → ZFSet.{u} → Prop}
     (σ : HalveSelector P) (hP01 : P ratZero.{u} ratOne.{u}) :
     ∀ n, halveIter σ n ∈ halveS P := by

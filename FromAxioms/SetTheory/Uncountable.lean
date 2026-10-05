@@ -75,7 +75,6 @@ def dyadicOf : List Bool → ZFSet.{u}
   | true :: s => ratAdd ratOne.{u} (ratMul (ratNat.{u} 1 2) (dyadicOf s))
   | false :: s => ratMul (ratNat.{u} 1 2) (dyadicOf s)
 
-/-- A dyadic sum is rational. -/
 theorem dyadicOf_mem_Rat (s : List Bool) :
     dyadicOf.{u} s ∈ NumberTheory.Rat.{u} := by
   induction s with
@@ -87,8 +86,6 @@ theorem dyadicOf_mem_Rat (s : List Bool) :
         (ratMul_mem_Rat (ratNat_mem_Rat (by omega)) ih)
     | false => exact ratMul_mem_Rat (ratNat_mem_Rat (by omega)) ih
 
-/-- A dyadic sum is nonnegative, which is one of the two side conditions
-`lub_of_familyLocated` will want of the family the route sums over. -/
 theorem dyadicOf_nonneg (s : List Bool) :
     ratLe ratZero.{u} (dyadicOf.{u} s) := by
   have hhalf : ratLe ratZero.{u} (ratNat.{u} 1 2) :=
@@ -131,8 +128,6 @@ theorem ratNat_two_mul_half : ratMul (ratNat.{u} 2 1) (ratNat.{u} 1 2)
     (by omega) (by omega)).mpr (by omega)]
   exact ratNat_one_one
 
-/-- A dyadic sum is at most two, the remaining side condition
-`lub_of_familyLocated` wants of the family the order route sums over. -/
 theorem dyadicOf_le_two (s : List Bool) :
     ratLe (dyadicOf.{u} s) (ratNat.{u} 2 1) := by
   have h2 : ratNat.{u} 2 1 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
@@ -174,10 +169,10 @@ theorem dyadicOf_le_two (s : List Bool) :
 
 /-- A dyadic sum splits at any cut-off.
 
-`dyadicOf s = dyadicOf (s.take k) + (1/2)^k * dyadicOf (s.drop k)`, exactly.
-Rung 3's induction controls patterns up to length `k` and needs to know what
-the rest contributes; with `dyadicOf_nonneg` and `dyadicOf_le_two` this pins
-the tail into `[0, 2 * (1/2)^k]` without any inequality reasoning here. -/
+`dyadicOf s = dyadicOf (s.take k) + (1/2)^k * dyadicOf (s.drop k)`, exactly. An
+induction over patterns up to length `k` needs to know what the rest
+contributes; with `dyadicOf_nonneg` and `dyadicOf_le_two` this pins the tail
+into `[0, 2 * (1/2)^k]` without any inequality reasoning here. -/
 theorem dyadicOf_split (k : Nat) : ∀ s : List Bool,
     dyadicOf.{u} s = ratAdd (dyadicOf.{u} (s.take k))
       (ratMul (ratPow (ratNat.{u} 1 2) k) (dyadicOf.{u} (s.drop k))) := by
@@ -756,8 +751,7 @@ theorem triadicOf_split (k : Nat) : ∀ s : List Bool,
 -- passing the sharp form would carry an irrelevant `(1/3)^|s|` through the
 -- multiplication.
 
-/-- Doubled, a triadic sum is at most three. The sharp bound with its power
-term dropped --- the weakest consequence, and the one the tail estimate uses. -/
+/-- `2 * triadicOf s ≤ 3`. -/
 theorem triadicOf_le_three (s : List Bool) :
     ratLe (ratMul (ratNat.{u} 2 1) (triadicOf.{u} s)) (ratNat.{u} 3 1) := by
   have hth : ratNat.{u} 1 3 ∈ NumberTheory.Rat.{u} := ratNat_mem_Rat (by omega)
@@ -944,12 +938,7 @@ theorem takeBits_upper_anti (b : Nat → Bool) (n m : Nat) :
 --
 --
 
-/-- Prefix values are monotone in the depth, in `i <= j` form.
-
-`takeBits_bracket` is stated on an explicit extension `n, m`, which is the shape
-its proof wants; every consumer instead has an order hypothesis. Converting once
-here keeps `Nat.le.dest` out of each caller --- and the `IsNested` fields, which
-arrive with `omega` subset hypotheses, need exactly this form. -/
+/-- `2 * triadicOf (takeBits b i)` is monotone in `i`. -/
 theorem takeBits_mono (b : Nat → Bool) {i j : Nat} (hij : i ≤ j) :
     ratLe (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b i)))
       (ratMul (ratNat.{u} 2 1) (triadicOf.{u} (takeBits b j))) := by
@@ -1101,11 +1090,7 @@ theorem triadicReal_mem (b : Nat → Bool) : triadicReal.{u} b ∈ RealL.{u} :=
 #print axioms SetTheory.triadicReal
 #print axioms SetTheory.triadicReal_mem
 
-/-- A prefix is the previous prefix with the next bit appended.
-
-`takeBits` is built from the front --- `takeBits b (n+1) = b 0 :: takeBits (shift
-b) n` --- so the last bit is not syntactically available, and every argument
-about what one more level contributes needs this snoc form instead. -/
+/-- `takeBits b (n + 1) = takeBits b n ++ [b n]`. -/
 theorem takeBits_succ : ∀ (n : Nat) (b : Nat → Bool),
     takeBits b (n + 1) = takeBits b n ++ [b n]
   | 0, _ => rfl
@@ -1129,7 +1114,6 @@ theorem triadicOf_false : triadicOf.{u} [false] = ratZero.{u} := by
   show ratMul (ratNat.{u} 1 3) ratZero.{u} = ratZero.{u}
   exact ratMul_zero (ratNat_mem_Rat (by omega))
 
-/-- The dropped tail of a one-longer prefix is exactly the new bit. -/
 theorem drop_takeBits_succ (b : Nat → Bool) (k : Nat) :
     List.drop k (takeBits b (k + 1)) = [b k] := by
   rw [takeBits_succ k b]
@@ -1372,11 +1356,11 @@ can be true. At every depth a real in range is bracketed by some bit string's
 value and that value plus the window.
 
 Why base two and not base three. An exact naming over `triadicOf` is
-refuted --- every real in range is `triadicReal` of some sequence is false by
-`triadicOf_gap`, since the base-three image is a Cantor set with a hole and most
-reals are named by nothing. Base two has no hole: `dyadicOf`'s two
+refuted --- every real in range is `triadicReal` of some sequence is false
+by `triadicOf_gap`, since the base-three image is a Cantor set with a hole and
+most reals are named by nothing. Base two has no hole: `dyadicOf`'s two
 branches meet, which is exactly the property that makes its separation fail and
-its surjection work. The two bases are for different halves of this row.
+its surjection work.
 
 Why approximation and not naming, even here. Asking for an `s` with
 `realLOf (dyadicOf s) = x` demands the real be a dyadic rational. Asking for a
@@ -1384,8 +1368,7 @@ bracket at every depth is what a constructive readout can deliver and what a
 locator supplies, and it is the shape `IsCauchyReal` and `IsNested` both take.
 
 Not proved. Naming it is the first half; deriving it from a locator, or the
-landmark from it, is the second and is not done. Stated so a future attempt has
-a true target --- which the withdrawn `TriadicReadout` was not. -/
+theorem from it, is the second and is not done. -/
 def DyadicApprox : Prop :=
   ∀ x : ZFSet.{u}, x ∈ RealL.{u} →
     realLLe (realLOf ratZero.{u}) x →
@@ -1734,33 +1717,17 @@ theorem dyadicOf_bitsOf_value : ∀ (n k : Nat), k < 2 ^ n →
 #print axioms SetTheory.one_add_ratNat
 #print axioms SetTheory.dyadicOf_bitsOf_value
 
-/-- A grid point is rational.
-
-No bound on `i`, though every other grid lemma here needs one. `i < 2^n` is
-never consulted --- `dyadicOf` of any list is rational, `bitsOf` included --- and
-the linter is what says so rather than a reading. A membership lemma carrying
-its neighbours' range bound would force every caller to supply one it does not
-need. -/
+/-- `dyadicOf (bitsOf i n)` is rational. No bound on `i` is needed. -/
 theorem dyadicOf_mem_Rat_bits (n i : Nat) :
     dyadicOf.{u} (bitsOf i n) ∈ NumberTheory.Rat.{u} := dyadicOf_mem_Rat _
 
 #print axioms SetTheory.dyadicOf_mem_Rat_bits
 
-/-- The grid starts at zero. -/
 theorem grid_zero (n : Nat) : dyadicOf.{u} (bitsOf 0 n) = ratZero.{u} := by
   have hp : 0 < 2 ^ n := Nat.pow_pos (by omega)
   rw [dyadicOf_bitsOf_value n 0 hp, Nat.mul_zero, ratNat_zero hp]
 
-/-- Consecutive grid points differ by exactly the window.
-
-    v (i+1)  =  v i  +  2/2^n
-
-and `2/2^n` is `2*(1/2)^n`, the depth-`n` window. This is the arithmetic the
-search reads: `lastTrue` hands back an index, and this turns index arithmetic
-into the bracket `[v i, v i + 2*window]` the two-cell form asks for.
-
-Both endpoints need the closed form, so both need their index below `2^n`; the
-single hypothesis `i + 1 < 2^n` supplies both. -/
+/-- If `i + 1 < 2 ^ n`, then consecutive grid points differ by `2 / 2 ^ n`. -/
 theorem grid_succ (n i : Nat) (h : i + 1 < 2 ^ n) :
     dyadicOf.{u} (bitsOf (i + 1) n)
       = ratAdd (dyadicOf.{u} (bitsOf i n)) (ratNat.{u} 2 (2 ^ n)) := by
@@ -1794,10 +1761,10 @@ theorem grid_lt (n i : Nat) (h : i + 1 < 2 ^ n) :
 constants, written twice. The proof does not use the constant at all --- it is
 `ratPow_half` and one `ratNat_mul` --- so the pair collapses to instances.
 
-Worth doing because the two constants are exactly what the row's whole
-measurement turns on: `k = 2` tiles and costs `LLPO`, `k = 4` overlaps and is
-free. Having them as instances of one lemma puts the difference in the argument
-rather than in two separate proofs that happen to differ by a numeral. -/
+The two constants are what the comparison turns on: `k = 2` tiles and costs
+`LLPO`, `k = 4` overlaps and is free. Having them as instances of one lemma
+puts the difference in the argument rather than in two separate proofs that
+happen to differ by a numeral. -/
 theorem windowValue_gen (k n : Nat) :
     ratMul (ratNat.{u} k 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} k (2 ^ n) := by
   rw [ratPow_half n, ratNat_mul (by omega) (Nat.pow_pos (by omega)),
@@ -1806,9 +1773,8 @@ theorem windowValue_gen (k n : Nat) :
 /-- A window of `m` cells advances exactly `m` grid points.
 
 `oneCell_tiles` (`m = 1`) and `window_step` (`m = 2`) are this at two values,
-and the two carried the row's whole distinction between tiling and overlap. As
-one theorem the distinction is the argument `m`, not two proofs differing by a
-numeral:
+and the two carry the distinction between tiling and overlap. As one theorem
+the distinction is the argument `m`, not two proofs differing by a numeral:
 
     m = 1   window = the step        cells MEET at a point   -> a decision
     m = 2   window = twice the step  cells OVERLAP           -> nothing forced
@@ -1834,12 +1800,7 @@ theorem grid_advance (n i m : Nat) (h : i + m < 2 ^ n) :
 states values as `ratNat _ (2^n)`, so nothing composes until the two are the
 same rational.
 
-`ratPow_half` supplies the power, and it was already there. I had started
-relocating `ratPow_ratNat_gen` down out of `TrigAdd` --- which `Uncountable`
-cannot reach --- before finding that `Rational.lean` states this very case, in
-the module where `ratPow` is defined. The general lemma being stranded high in
-`Analysis` is real and is somebody's work; it is not this row's, because nothing
-here needs a base other than one half. -/
+`ratPow_half` supplies the power. -/
 theorem window_value (n : Nat) :
     ratMul (ratNat.{u} 4 1) (ratPow (ratNat.{u} 1 2) n) = ratNat.{u} 4 (2 ^ n) := windowValue_gen 4 n
 

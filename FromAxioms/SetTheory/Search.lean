@@ -332,7 +332,6 @@ theorem nodeIv_append (s : List Bool) (b : Bool) :
   rw [nodeIv, nodeIv, List.foldl_append]
   rfl
 
-/-- A step keeps both endpoints rational. -/
 theorem nodeStep_mem {p : ZFSet.{u} × ZFSet.{u}} (h1 : p.1 ∈ NumberTheory.Rat.{u})
     (h2 : p.2 ∈ NumberTheory.Rat.{u}) (b : Bool) :
     And ((nodeStep p b).1 ∈ NumberTheory.Rat.{u}) ((nodeStep p b).2 ∈ NumberTheory.Rat.{u}) := by
@@ -341,7 +340,6 @@ theorem nodeStep_mem {p : ZFSet.{u} × ZFSet.{u}} (h1 : p.1 ∈ NumberTheory.Rat
   · exact ⟨h1, hmid⟩
   · exact ⟨hmid, h2⟩
 
-/-- Rationality is a fold invariant, so it holds at every node. -/
 theorem foldl_nodeStep_mem : ∀ (s : List Bool) (p : ZFSet.{u} × ZFSet.{u}),
     p.1 ∈ NumberTheory.Rat.{u} → p.2 ∈ NumberTheory.Rat.{u} →
     And ((List.foldl nodeStep p s).1 ∈ NumberTheory.Rat.{u})
@@ -558,9 +556,7 @@ theorem nodeWidth_length : ∀ (n : Nat) (s : List Bool), s.length = n →
       (invWidth (ofNat.{u} (2 * halveScale 0 n + 1)))
     exact (invWidth_half (halveScale 0 n)).symm
 
-/-- So a node of depth `n` is no wider than `1/(n+1)`, which is the bar
-every shrinking construction states its widths against. The whole arithmetic
-content is that the scale index outruns the depth. -/
+/-- A node of depth `n` has width at most `invWidth n`. -/
 theorem nodeWidth_le_invWidth (s : List Bool) :
     ratLe (nodeWidth.{u} s) (invWidth (ofNat.{u} s.length)) := by
   rw [nodeWidth_length s.length s rfl]

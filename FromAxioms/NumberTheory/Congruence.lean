@@ -7,10 +7,10 @@ Authors: Guy Fischman
 /-
 # Congruences, and the Chinese remainder theorem
 
-The first step of the arithmetic that discharges the incompleteness hypotheses
-(queue: representability). Gödel's β-function codes a finite sequence as a pair
-of numbers, and it works because the moduli it uses are pairwise coprime and the
-remainder theorem then recovers each entry.
+The first step of the arithmetic that discharges the incompleteness hypotheses.
+Gödel's β-function codes a finite sequence as a pair of numbers, and it works
+because the moduli it uses are pairwise coprime and the remainder theorem then
+recovers each entry.
 
 `Prime.lean` has Bézout in its Nat form -- a disjunction, because which side
 carries the coefficient flips with each Euclidean step -- and everything here is
@@ -51,13 +51,11 @@ theorem cong_mul {n a b c d : Nat} (h₁ : Cong n a b) (h₂ : Cong n c d) :
   show (a * c) % n = (b * d) % n
   rw [Nat.mul_mod, Nat.mul_mod b d, h₁, h₂]
 
-/-- Adding a multiple of the modulus changes nothing. -/
 theorem cong_add_mul (n a k : Nat) : Cong n (a + n * k) a := by
   show (a + n * k) % n = a % n
   rw [Nat.add_mul_mod_self_left]
 
-/-- The form the theorem is used in: `x = a + n·k` is exactly `x ≡ a`, once `a`
-is already reduced. -/
+/-- If `x = a + n * k`, then `x ≡ a` modulo `n`. -/
 theorem cong_of_eq_add_mul {n a k x : Nat} (h : x = a + n * k) : Cong n x a := by
   rw [h]
   exact cong_add_mul n a k

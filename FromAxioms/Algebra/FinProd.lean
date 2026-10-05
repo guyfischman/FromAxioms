@@ -62,9 +62,7 @@ theorem IsCommMonoid.toMonoid {M op e : ZFSet.{u}} (h : IsCommMonoid M op e) :
     assoc := h.assoc, left_id := h.left_id,
     right_id := fun a ha => by rw [h.comm a ha e h.mem_e, h.left_id a ha] }
 
-/-- One conclusion, reached through both structures: the group and commutative
-monoid families are instances of the monoid one rather than cousins of each
-other. -/
+/-- `a ^ (j + k) = a ^ j * a ^ k` in a commutative monoid. -/
 theorem gpow_add_of_commMonoid {M op e a : ZFSet.{u}} (h : IsCommMonoid M op e)
     (ha : a ∈ M) (j k : Nat) :
     gpow op e a (j + k) = opAt op (gpow op e a j) (gpow op e a k) :=
@@ -92,7 +90,6 @@ theorem left_comm_monoid {M op e a b c : ZFSet.{u}} (h : IsCommMonoid M op e)
 
 #print axioms left_comm_monoid
 
-/-- An abelian group is a commutative monoid. -/
 theorem isCommMonoid_of_isGroup {G op e : ZFSet.{u}} (hG : IsGroup G op e)
     (hab : IsAbelian G op) : IsCommMonoid G op e :=
   ⟨hG.isFun, hG.dom, hG.ran, hG.mem_e, hG.assoc, hG.left_id, hab⟩
@@ -162,7 +159,6 @@ theorem skipAt_origAt (j : Nat) (F : Nat → ZFSet.{u}) (i : Nat) :
     show _ = F (if i < j then i else i + 1)
     rw [if_neg (show ¬ i < j by omega)]
 
-/-- Deleting a value from a range shortens it by one. -/
 theorem survAt_lt_of_ne {j x n : Nat} (hj : j < n + 1) (hx : x < n + 1)
     (hne : x ≠ j) : survAt j x < n := by
   unfold survAt
@@ -181,14 +177,8 @@ theorem origAt_lt {n j i : Nat} (hi : i < n) : origAt j i < n + 1 := by
 
 #print axioms origAt_lt
 
-/-- A fold stays inside a set closed under the operation. No ring, no
-monoid, no commutativity -- the zero and the two-argument closure are the whole
-hypothesis, so a subring uses it without first exhibiting its restricted ring
-structure.
-
-Stated over the ambient operation rather than a restricted one: a subring's
-`IsRing` instance carries `restrictOp add S`, and bridging that back to `add`
-at every step is work this avoids by never leaving the ambient operation. -/
+/-- A fold of members of `S` lies in `S`, when `S` contains `zero` and is closed
+under `add`. No algebraic structure on `S` is assumed. -/
 theorem foldF_mem_closed {S add zero : ZFSet.{u}} (hz : zero ∈ S)
     (hadd : ∀ a, a ∈ S → ∀ b, b ∈ S → opAt add a b ∈ S)
     (F : Nat → ZFSet.{u}) (hF : ∀ i, F i ∈ S) :
@@ -199,8 +189,7 @@ theorem foldF_mem_closed {S add zero : ZFSet.{u}} (hz : zero ∈ S)
 #print axioms foldF_mem_closed
 
 
-/-- A `List.foldr` over ring elements stays in the ring. By recursion on
-the list; `List.foldr_induction` does not exist in this Lean. -/
+/-- A `List.foldr` of members of a commutative monoid lies in the monoid. -/
 theorem foldr_mem {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
     ∀ (l : List ZFSet.{u}), (∀ x, x ∈ l → x ∈ M) →
       List.foldr (fun r acc => opAt op r acc) e l ∈ M
@@ -234,11 +223,8 @@ theorem foldr_seed {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) :
 #print axioms foldr_seed
 
 
-/-- `gpow` stays in any subset closed under the operation, the companion of
-`foldF_mem_closed` and needed for the same reason: a subset can be closed under
-an operation without being a monoid, and `gpow_mem_bare` asks for the monoid.
-`ratIn` is exactly that case -- closed under both fraction operations, and
-carrying neither structure. -/
+/-- A power of a member of `S` lies in `S`, when `S` contains `e` and is closed
+under `op`. -/
 theorem gpow_mem_closed {S op e a : ZFSet.{u}} (he : e ∈ S)
     (hop : ∀ x, x ∈ S → ∀ y, y ∈ S → opAt op x y ∈ S) (ha : a ∈ S) :
     ∀ n : Nat, gpow op e a n ∈ S
@@ -451,16 +437,8 @@ theorem foldF_peel_pair {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
   rw [foldF_skip hM (n + 1) p (by omega) hmem,
     foldF_skip hM n 0 (by omega) hskip, skipAt_lt hp]
 
-/-- A `List.foldr` over a mapped range is the indexed fold.
-
-`evalAt_polyProd_foldr` produces the first and `foldF_mul_units` consumes the
-second; nothing joined them.
-
-They accumulate from opposite ends --- `foldF` from the left, `List.foldr` from
-the right --- so they agree only up to commutativity, hence `IsCommMonoid`. The
-induction uses `List.range_succ`, which appends at the end and so matches
-`foldF`'s own recursion; `List.range_succ_eq_map` conses at the front and
-fights it. -/
+/-- In a commutative monoid, `List.foldr` over `(List.range n).map f` equals
+`foldF op e f n`. -/
 theorem foldr_range_eq_foldF {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {f : Nat -> ZFSet.{u}} (hf : forall i, f i ∈ M) :
     forall n : Nat,
@@ -540,7 +518,6 @@ theorem foldr_range_eq_foldF_below {M op e : ZFSet.{u}} (hM : IsCommMonoid M op 
       foldr_range_eq_foldF_below hM n (fun i => F (i + 1)) (fun i hi => hmem (i + 1) (by omega)),
       foldF_cons hM n hmem]
 
-/-- Folds add termwise. -/
 theorem foldF_add {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F G : Nat → ZFSet.{u}} :
     ∀ n : Nat, (∀ i, i < n → F i ∈ M) → (∀ i, i < n → G i ∈ M) →
       foldF op e (fun i => opAt op (F i) (G i)) n
@@ -553,7 +530,6 @@ theorem foldF_add {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e) {F G : Nat →
       opAt_shuffle4 hM (foldF_mem hM n (fun i hi => hF i (by omega)))
         (foldF_mem hM n (fun i hi => hG i (by omega))) (hF n (by omega)) (hG n (by omega))]
 
-/-- Two folds combine into a third when their terms do. -/
 theorem foldF_pointwise_add {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {F G H : Nat → ZFSet.{u}} (n : Nat) (hF : ∀ i, i < n → F i ∈ M)
     (hG : ∀ i, i < n → G i ∈ M) (h : ∀ i, i < n → opAt op (F i) (G i) = H i) :
@@ -1010,10 +986,8 @@ theorem survPair_pairs {G op e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 #print axioms survPair_invol
 #print axioms survPair_pairs
 
-/-- The pairing transports to the survivors when it is conditional.
-`survPair_pairs` needs `F (sigma j) = ginv (F j)` at every index; this asks it
-only where `sigma` moves `j`, which is what a family with self-paired indices
-supplies. -/
+/-- `survPair_pairs` with the pairing hypothesis required only at the indices
+`sigma` moves. -/
 theorem survPair_pairs_of_fixed {G op e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     {sigma : Nat → Nat} {p n : Nat} (hp : 0 < p)
     (hinvol : ∀ i, i < n + 2 → sigma (sigma i) = i) (h0p : sigma 0 = p)
@@ -1061,11 +1035,10 @@ theorem survPair_fixed_unit {e : ZFSet.{u}} {F : Nat → ZFSet.{u}}
 
 #print axioms survPair_fixed_unit
 
-/-- An involution folds to the unit, self-paired indices allowed.
-Pairs `{i, sigma i}` contribute `op x (ginv x)`, and an index `sigma` fixes
-contributes the unit outright. `foldF_involution` is the case where no index is
-fixed. The branch is on index `0`: fixed, it peels alone; paired, it peels with
-`sigma 0` and `survPair` carries the involution to the survivors. -/
+/-- In an abelian group, the fold of a family is the unit when an involution
+`sigma` pairs its terms with their inverses and the terms at the fixed points of
+`sigma` are the unit. See `foldF_involution` for the case with no fixed points.
+-/
 theorem foldF_involution_of_fixed {G op e : ZFSet.{u}} (hG : IsGroup G op e)
     (hab : IsAbelian G op) :
     ∀ n : Nat, ∀ F : Nat → ZFSet.{u}, ∀ sigma : Nat → Nat,
@@ -1173,10 +1146,7 @@ theorem foldF_involution {G op e : ZFSet.{u}} (hG : IsGroup G op e)
 
 #print axioms foldF_involution
 
-/-- The bounded twin of `foldF_mem_closed`. A fold over `0..n-1` only ever
-evaluates `F` below `n`, so requiring membership at every index is stronger than
-the fold needs -- and the difference bites whenever `F` is defined by cases that
-fail at the boundary. -/
+/-- `foldF_mem_closed` with membership required only below the bound `n`. -/
 theorem foldF_mem_closed_below {S add zero : ZFSet.{u}} (hz : zero ∈ S)
     (hadd : ∀ a, a ∈ S → ∀ b, b ∈ S → opAt add a b ∈ S)
     (F : Nat → ZFSet.{u}) :

@@ -81,7 +81,7 @@ instance : SDiff ZFSet.{u} := ⟨sdiff⟩
 the membership lemmas above. -/
 
 
-/-- `A ∩ (Y \ X) = (A \ X) ∩ Y`, free: both sides are `w ∈ A ∧ w ∈ Y ∧ w ∉ X`. -/
+/-- `A ∩ (Y \ X) = (A \ X) ∩ Y`. -/
 theorem inter_sdiff_comm {A X Y : ZFSet.{u}} :
     inter A (sdiff Y X) = inter (sdiff A X) Y :=
   ext _ _ fun w => ⟨fun hw =>
@@ -95,8 +95,7 @@ theorem inter_sdiff_comm {A X Y : ZFSet.{u}} :
       (mem_inter_iff w A (sdiff Y X)).mpr
         ⟨h2.left, (mem_sdiff_iff w Y X).mpr ⟨h1.right, h2.right⟩⟩⟩
 
-/-- Union commutes. With the laws around it -- associativity, distribution,
-and the difference laws below -- this is Boole's algebra of logic. -/
+/-- Union is commutative. -/
 theorem union_comm (x y : ZFSet.{u}) : x ∪ y = y ∪ x :=
   ext _ _ fun z => by simp [Or.comm]
 
@@ -239,7 +238,6 @@ theorem sdiff_sdiff_cancel_of_detachable {x y : ZFSet.{u}}
 
 #print axioms sdiff_sdiff_cancel_of_detachable
 
-/-- Removing `x` from anything already inside `x` leaves nothing. -/
 @[simp] theorem sdiff_sdiff_left_self (x y : ZFSet.{u}) : (x \ y) \ x = empty.{u} :=
   ext _ _ fun w => by
     simp only [mem_sdiff_iff, not_mem_empty, iff_false]
@@ -342,14 +340,8 @@ theorem unionUpto_inter_eq_empty {F : Nat → ZFSet.{u}}
   rw [hdisj i k (by omega)] at hboth
   exact absurd hboth (not_mem_empty w)
 
-/-- The same disjointness, pointwise -- which is the form a consumer wants.
-
-`unionUpto_inter_eq_empty` states it as an equation because that is the algebra's own
-idiom, and every consumer of disjointness in the measure development asks instead for
-`∀ w, w ∈ B → w ∉ A`: `lebesgueOuter_add_of_measurableGe` takes exactly that. The two
-are interderivable through `mem_inter_iff` and neither is redundant, since a proof
-supplying disjointness naturally produces the equation and a proof consuming it
-naturally wants the implication. -/
+/-- A member of `F k` is not in the union of the earlier members of a pairwise
+disjoint family. -/
 theorem not_mem_unionUpto_of_mem {F : Nat → ZFSet.{u}}
     (hdisj : ∀ i j : Nat, i ≠ j → inter (F i) (F j) = empty.{u}) (k : Nat)
     (w : ZFSet.{u}) (hw : w ∈ F k) : w ∉ unionUpto F k := by
@@ -378,12 +370,7 @@ theorem unionUpto_inter_eq_empty_below {F : Nat → ZFSet.{u}} {k : Nat}
   rw [hdisj i k (by omega) (by omega) (by omega)] at hboth
   exact absurd hboth (not_mem_empty w)
 
-/-- Pointwise disjointness gives the equation -- the other direction, and the one a
-supplier of disjointness needs.
-
-Every proof that two sets are disjoint naturally produces the implication (it
-takes a point of one and derives a contradiction), while the algebra's lemmas
-consume the equation. So both conversions are wanted. -/
+/-- Sets with no common member have empty intersection. -/
 theorem inter_eq_empty_of_disjoint {X Y : ZFSet.{u}}
     (h : ∀ w : ZFSet.{u}, w ∈ X → w ∉ Y) : inter X Y = empty.{u} :=
   ext _ _ (fun w => ⟨fun hw =>
@@ -392,27 +379,17 @@ theorem inter_eq_empty_of_disjoint {X Y : ZFSet.{u}}
     fun hw => absurd hw (not_mem_empty w)⟩)
 
 
-/-- The equation gives pointwise disjointness -- the converse of
-`inter_eq_empty_of_disjoint`.
-
-Oriented to match its sibling; a caller wanting the other order composes with
-`inter_comm`. -/
+/-- Sets with empty intersection have no common member. -/
 theorem disjoint_of_inter_eq_empty {X Y : ZFSet.{u}} (h : inter X Y = empty.{u}) :
     ∀ w : ZFSet.{u}, w ∈ X → w ∉ Y := by
   intro w hwX hwY
   exact not_mem_empty w (h ▸ (mem_inter_iff w X Y).mpr ⟨hwX, hwY⟩)
-/-- A union met with its left part is that part. -/
 theorem inter_union_left {X Y : ZFSet.{u}} : inter (X ∪ Y) X = X :=
   ext _ _ (fun z => ⟨fun hz => ((mem_inter_iff z (X ∪ Y) X).mp hz).right,
     fun hz => (mem_inter_iff z (X ∪ Y) X).mpr
       ⟨(mem_union_iff z X Y).mpr (Or.inl hz), hz⟩⟩)
 
-/-- A union less its left part is the right part, given disjointness.
-
-Stated pointwise rather than as `inter X Y = empty`, because the measure
-development's splitting lemmas consume disjointness in this form. With
-`inter_union_left` it identifies the two Caratheodory pieces of a union with
-its two parts. -/
+/-- If `X` and `Y` are disjoint, then `(X ∪ Y) \ X = Y`. -/
 theorem sdiff_union_left {X Y : ZFSet.{u}} (hdisj : ∀ w : ZFSet.{u}, w ∈ Y → w ∉ X) :
     sdiff (X ∪ Y) X = Y :=
   ext _ _ (fun z => ⟨fun hz => by
@@ -422,10 +399,7 @@ theorem sdiff_union_left {X Y : ZFSet.{u}} (hdisj : ∀ w : ZFSet.{u}, w ∈ Y �
       ⟨(mem_union_iff z X Y).mpr (Or.inr hz), hdisj z hz⟩⟩)
 
 
-/-- A partial union stays inside anything its members are inside.
-
-Stated for an arbitrary family because the proof uses nothing about the members; the measure
-development's instance is at the dyadic pieces, whose own `⊆` lemma is the per-member input. -/
+/-- A partial union of subsets of `amb` is a subset of `amb`. -/
 theorem unionUpto_subset {amb : ZFSet.{u}} {F : Nat → ZFSet.{u}}
     (hF : ∀ i : Nat, F i ⊆ amb) : ∀ n : Nat, unionUpto F n ⊆ amb
   | 0 => fun z hz => absurd hz (not_mem_empty z)

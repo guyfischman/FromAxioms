@@ -35,7 +35,6 @@ Through `realLOf_lt_iff_mem_lower` and `lt_realLOf_iff_mem_upper`,
 `WithinOf z (realLOf c)` is a statement about two rationals not being in two
 sets. -/
 
-/-- A rational bracket, read as two non-memberships. -/
 theorem withinOf_realLOf_iff {x c : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hc : c ∈ NumberTheory.Rat.{u}) :
     WithinOf x (realLOf c) ↔ ¬ c ∈ fst x ∧ ¬ ratNeg c ∈ snd x := by
   have hneg : realLNeg (realLOf c) = realLOf (ratNeg c) := realLOf_neg hc
@@ -49,7 +48,6 @@ theorem withinOf_realLOf_iff {x c : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hc : c �
     rw [hneg] at hlt
     exact (lt_realLOf_iff_mem_upper hx (ratNeg_mem_Rat hc)).mp hlt
 
-/-- A bound may always be weakened. -/
 theorem withinOf_mono {x c d : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hc : c ∈ NumberTheory.Rat.{u})
     (hd : d ∈ NumberTheory.Rat.{u}) (hcd : ratLe c d) (h : WithinOf x (realLOf c)) :
     WithinOf x (realLOf d) := by
@@ -64,7 +62,6 @@ theorem withinOf_mono {x c d : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hc : c ∈ Num
   · exact realLLe_trans hx (realLOf_mem hc) (realLOf_mem hd) h.right
       ((realLOf_le_realLOf hc hd).mpr hcd)
 
-/-- Zero is within every non-negative bound. -/
 theorem withinOf_zero {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : ratLe ratZero.{u} c) :
     WithinOf realLZero.{u} (realLOf c) := by
   refine ⟨?_, ?_⟩
@@ -74,7 +71,6 @@ theorem withinOf_zero {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : r
     rwa [ratNeg_zero] at this
   · exact (realLOf_le_realLOf ratZero_mem_Rat hc).mpr hc0
 
-/-- A non-negative rational is within itself. -/
 theorem withinOf_self {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : ratLe ratZero.{u} c) :
     WithinOf (realLOf c) (realLOf c) := by
   have hnc := ratNeg_mem_Rat hc
@@ -84,7 +80,6 @@ theorem withinOf_self {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : r
   have := (ratNeg_le_neg_iff hc ratZero_mem_Rat).mpr hc0
   rwa [ratNeg_zero] at this
 
-/-- An anchor and the point one step back are close at that step. -/
 theorem close_realLOf_sub_self {r d : ZFSet.{u}} (hr : r ∈ NumberTheory.Rat.{u})
     (hd : d ∈ NumberTheory.Rat.{u}) (hd0 : ratLe ratZero.{u} d) :
     Close (realLOf r) (realLOf (ratAdd r (ratNeg d))) (realLOf d) := by
@@ -106,8 +101,8 @@ theorem close_realLOf_sub_self {r d : ZFSet.{u}} (hr : r ∈ NumberTheory.Rat.{u
 
 #print axioms Analysis.close_realLOf_sub_self
 
-/-- Bounds add, for rational bounds. The general form is `withinOf_add_real`;
-this is its specialisation to `realLOf (c + d)`. -/
+/-- If `|x| ≤ c` and `|y| ≤ d` for rationals `c` and `d`, then `|x + y| ≤ c +
+d`. See `withinOf_add_real` for real bounds. -/
 theorem withinOf_add {x y c d : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hc : c ∈ NumberTheory.Rat.{u}) (hd : d ∈ NumberTheory.Rat.{u}) (h₁ : WithinOf x (realLOf c))
     (h₂ : WithinOf y (realLOf d)) :
@@ -230,9 +225,8 @@ private theorem bracket_bounds {L U a e q q' : ZFSet.{u}} (h : IsLocated L U)
     rwa [ratAdd_zero ha] at this
 
 
-/-- Bounds multiply. Membership in the lower half of a product is an
-open condition, so a rational there has a strictly larger one `p` beside it,
-and the box estimate is fitted inside that gap. -/
+/-- If `|x| ≤ a` and `|y| ≤ b` for non-negative rationals `a` and `b`, then `|x
+* y| ≤ a * b`. -/
 theorem withinOf_mul {x y a b : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u}) (ha0 : ratLe ratZero.{u} a)
     (hb0 : ratLe ratZero.{u} b) (hxa : WithinOf x (realLOf a))
@@ -325,8 +319,8 @@ theorem withinOf_mul {x y a b : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Re
 
 In the rational-bound form every estimate below uses. -/
 
-/-- The triangle inequality, in the rational-bound form: two reals each near
-`A` are near each other. -/
+/-- The triangle inequality: if `B` is within `c` of `A` and `C` is within `d`
+of `A`, then `C` is within `c + d` of `B`. -/
 theorem close_of_close_close {A B C c d : ZFSet.{u}} (hA : A ∈ RealL.{u})
     (hB : B ∈ RealL.{u}) (hC : C ∈ RealL.{u}) (hc : c ∈ NumberTheory.Rat.{u}) (hd : d ∈ NumberTheory.Rat.{u})
     (h₁ : Close A B (realLOf c)) (h₂ : Close A C (realLOf d)) :
@@ -387,7 +381,6 @@ theorem exists_rat_bound {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
       (realLLt_trans hx (realLOf_mem hhiQ) (realLOf_mem hKQ) hlt2
         ((realLOf_lt_realLOf hhiQ hKQ).mpr hhiK))
 
-/-- Every scale is at most `1`. -/
 theorem invWidth_le_one (n : Nat) : ratLe (invWidth (ofNat.{u} n)) ratOne.{u} := by
   have h := invWidth_antitone (ofNat_mem_omega.{u} 0) (ofNat_mem_omega.{u} n)
     ((ofNat_subset_iff 0 n).mpr (Nat.zero_le n))
@@ -409,9 +402,7 @@ theorem exists_invWidth_mul_lt {K : ZFSet.{u}} (hK : K ∈ NumberTheory.Rat.{u})
   exact ratMul_le_mul_right hjQ hDQ hK hND.left hK0
 
 
-/-- A step fine enough for a coarse modulus is fine enough for every finer
-index. Combining two moduli by taking the larger index is how every rule below
-serves both of its hypotheses at once. -/
+/-- If `w ≤ invWidth k` and `i ≤ k`, then `w ≤ invWidth i`. -/
 theorem ratLe_invWidth_of_le {w : ZFSet.{u}} (hw : w ∈ NumberTheory.Rat.{u}) {i k : Nat}
     (hik : i ≤ k) (h : ratLe w (invWidth (ofNat.{u} k))) :
     ratLe w (invWidth (ofNat.{u} i)) :=
@@ -546,7 +537,6 @@ theorem withinOf_increment {Y Ya Sl h K w : ZFSet.{u}} {j : Nat}
   exact ratMul_le_mul_right (ratAdd_mem_Rat hjQ hK) (ratAdd_mem_Rat ratOne_mem_Rat hK) hw
     ((ratAdd_le_add_right_iff hK hjQ ratOne_mem_Rat).mpr (invWidth_le_one j)) hw0
 
-/-- The product rule. -/
 theorem hasDerivAt_mul {F G : ZFSet.{u} → ZFSet.{u}} {p q a L M : ZFSet.{u}}
     (hFm : ∀ x, x ∈ realLIcc p q → F x ∈ RealL.{u})
     (hGm : ∀ x, x ∈ realLIcc p q → G x ∈ RealL.{u})
@@ -788,7 +778,6 @@ def HasDerivOn (F F' : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u}) : Prop :=
       Close (F x) (realLAdd (F y) (realLMul (F' y) (realLAdd x (realLNeg y))))
         (realLOf (ratMul (invWidth (ofNat.{u} n)) w))
 
-/-- A closed interval inside a closed interval. -/
 theorem realLIcc_mono {p q c d : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u})
     (hc : c ∈ NumberTheory.Rat.{u}) (hd : d ∈ NumberTheory.Rat.{u}) (hpc : ratLe p c) (hdq : ratLe d q) :
     realLIcc c d ⊆ realLIcc p q := by
@@ -831,9 +820,7 @@ theorem ratSub_add_sub {a b c : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb
     ratAdd_comm (ratNeg_mem_Rat ha) ha, ratAdd_neg ha,
     ratZero_add (ratNeg_mem_Rat hc)]
 
-/-- A bound that holds up to every scale holds. The margin is a rational, so
-the witness separating `z` from `b` is a rational too, and a fine enough scale
-fits inside the gap it leaves. -/
+/-- If `|z| ≤ b + invWidth k` for every `k`, then `|z| ≤ b`. -/
 theorem withinOf_of_margins {z b : ZFSet.{u}} (hb : b ∈ NumberTheory.Rat.{u})
     (h : ∀ k : Nat, WithinOf z (realLOf (ratAdd b (invWidth (ofNat.{u} k))))) :
     WithinOf z (realLOf b) := by
@@ -1030,8 +1017,8 @@ theorem hasDerivOn_mvi {F F' : ZFSet.{u} → ZFSet.{u}} {p q c d K : ZFSet.{u}}
   rw [ratMul_comm hnQ hgapQ]
   exact hn.left
 
-/-- A function with zero slope is constant, at the endpoints of every
-rational subinterval. The `K = 0` case of the inequality. -/
+/-- A function with zero derivative on `[p, q]` takes equal values at the
+endpoints of every rational subinterval. -/
 theorem eq_of_hasDerivOn_zero {F F' : ZFSet.{u} → ZFSet.{u}} {p q c d : ZFSet.{u}}
     (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hc : c ∈ NumberTheory.Rat.{u}) (hd : d ∈ NumberTheory.Rat.{u})
     (hpc : ratLe p c) (hdq : ratLe d q) (hcd : ratLt c d)
@@ -1068,9 +1055,7 @@ the same grid; what changes is that the slack is spent on one side only, so a
 non-negative slope survives it. -/
 
 
-/-- An order bound that holds up to every scale holds. The real analogue of
-`withinOf_of_margins`; the gap is a positive real rather than a rational, so it
-takes `exists_pos_lower` to name a rational inside it first. -/
+/-- If `z ≤ b + invWidth k` for every `k`, then `z ≤ b`. -/
 theorem realLLe_of_margins {z b : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (h : ∀ k : Nat, realLLe z (realLAdd b (realLOf (invWidth (ofNat.{u} k))))) :
     realLLe z b := by
@@ -1277,7 +1262,6 @@ theorem hasDerivOn_const {c p q : ZFSet.{u}} (hc : c ∈ RealL.{u}) :
   exact withinOf_zero (ratMul_mem_Rat hεQ hwQ)
     (ratMul_pos hεQ hwQ (invWidth_pos (ofNat_mem_omega.{u} n)) hw0).left
 
-/-- Negation negates the slope. -/
 theorem hasDerivOn_neg {F F' : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{u}}
     (hFm : ∀ x, x ∈ realLIcc p q → F x ∈ RealL.{u})
     (hF'm : ∀ x, x ∈ realLIcc p q → F' x ∈ RealL.{u}) (hd : HasDerivOn F F' p q) :
@@ -1302,7 +1286,6 @@ theorem hasDerivOn_neg {F F' : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{u}}
     ← realLNeg_sub hFx (realLAdd_mem hFy hSh)]
   exact hneg
 
-/-- The uniform sum rule. -/
 theorem hasDerivOn_add {F F' G G' : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{u}}
     (hFm : ∀ x, x ∈ realLIcc p q → F x ∈ RealL.{u})
     (hGm : ∀ x, x ∈ realLIcc p q → G x ∈ RealL.{u})
@@ -1429,8 +1412,8 @@ theorem hasDerivOn_comp {F F' G G' : ZFSet.{u} → ZFSet.{u}}
   rw [← ratAdd_mul hiQ hiQ hwQ]
   exact ratMul_le_mul_right (ratAdd_mem_Rat hiQ hiQ) hεQ hwQ hi2.left hw0.left
 
-/-- Uniform differentiability respects pointwise agreement on the interval:
-every clause evaluates inside it. -/
+/-- `HasDerivOn F F' p q` depends only on the values of `F` and `F'` on `[p,
+q]`. -/
 theorem hasDerivOn_congr {F F' G G' : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{u}}
     (hFG : ∀ z, z ∈ realLIcc p q → F z = G z)
     (hF'G' : ∀ z, z ∈ realLIcc p q → F' z = G' z)
@@ -1586,10 +1569,8 @@ theorem hasDerivOn_mul {F F' G G' : ZFSet.{u} → ZFSet.{u}}
   rw [← ratAdd_mul hiQ hiQ hwQ]
   exact ratMul_le_mul_right (ratAdd_mem_Rat hiQ hiQ) hεQ hwQ hi2.left hw0.left
 
-/-- The one-sided mean value inequality, with a real bound. A slope below
-`B` moves the function by at most `B` times the distance. The proof is
-`hasDerivOn_mono` applied to `B·x - F x`, whose slope is `B - F'` and therefore
-non-negative -- so the tilt does all the work and no new estimate is needed. -/
+/-- The one-sided mean value inequality: if `F' ≤ B` on `[p, q]`, then `F`
+increases by at most `B` times the distance. -/
 theorem hasDerivOn_le_of_slope_le {F F' : ZFSet.{u} → ZFSet.{u}}
     {p q c d B : ZFSet.{u}}
     (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) (hc : c ∈ NumberTheory.Rat.{u}) (hd : d ∈ NumberTheory.Rat.{u})
@@ -1687,14 +1668,11 @@ def PointwiseModulus (H : ZFSet.{u} → ZFSet.{u}) (p q : ZFSet.{u})
     ratLe w (invWidth (ofNat.{u} (μ a n))) → x ∈ realLIcc p q →
     Close x a (realLOf w) → Close (H x) (H a) (realLOf (invWidth (ofNat.{u} n)))
 
-/-- Forgetting the function recovers continuity at each point, so the carrier
-is a strengthening rather than a change of subject. -/
 theorem continuousAtOn_of_pointwiseModulus {H : ZFSet.{u} → ZFSet.{u}}
     {p q a : ZFSet.{u}} {μ : ZFSet.{u} → Nat → Nat} (ha : a ∈ realLIcc p q)
     (h : PointwiseModulus H p q μ) : ContinuousAtOn H p q a :=
   fun n => ⟨μ a n, fun w x hw hw0 hwm hx hclose => h a ha n w x hw hw0 hwm hx hclose⟩
 
-/-- A point is close to itself at any non-negative distance. -/
 theorem close_self {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ NumberTheory.Rat.{u})
     (hw0 : ratLe ratZero.{u} w) : Close z z (realLOf w) := by
   show WithinOf (realLAdd z (realLNeg z)) (realLOf w)
@@ -1711,8 +1689,7 @@ theorem uniformlyContinuousOn_const {c p q : ZFSet.{u}} (hc : c ∈ RealL.{u}) :
   exact withinOf_zero (invWidth_mem_Rat (ofNat_mem_omega.{u} n))
     (invWidth_pos (ofNat_mem_omega.{u} n)).left
 
-/-- A sum of uniformly continuous functions is uniformly continuous: the
-difference splits summand by summand, and the error budget halves. -/
+/-- A sum of uniformly continuous functions is uniformly continuous. -/
 theorem uniformlyContinuousOn_add {F G : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{u}}
     (hFm : ∀ z, z ∈ realLIcc p q → F z ∈ RealL.{u})
     (hGm : ∀ z, z ∈ realLIcc p q → G z ∈ RealL.{u})
@@ -1739,10 +1716,8 @@ theorem uniformlyContinuousOn_add {F G : ZFSet.{u} → ZFSet.{u}} {p q : ZFSet.{
     (ratAdd_mem_Rat hjQ hjQ) (invWidth_mem_Rat (ofNat_mem_omega.{u} n))
     hj.left hsum
 
-/-- A differentiable function with bounded slope is uniformly continuous.
-The local estimate already says the increment is at most `(1 + K)` times the
-step; all that is left is to make the step small enough that the product is
-below the scale asked for. -/
+/-- A function with a bounded derivative on `[p, q]` is uniformly continuous
+there. -/
 theorem uniformlyContinuousOn_of_hasDerivOn {F F' : ZFSet.{u} → ZFSet.{u}}
     {p q K : ZFSet.{u}}
     (hFm : ∀ x, x ∈ realLIcc p q → F x ∈ RealL.{u})
@@ -1782,7 +1757,6 @@ def tilt (F : ZFSet.{u} → ZFSet.{u}) (p q x : ZFSet.{u}) : ZFSet.{u} :=
   realLAdd (F x) (realLNeg (realLMul (meanSlope F p q) x))
 
 
-/-- A rational between the endpoints names a point of the interval. -/
 theorem realLOf_mem_realLIcc {p q x : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u})
     (hx : x ∈ NumberTheory.Rat.{u}) (hpx : ratLe p x) (hxq : ratLe x q) :
     realLOf x ∈ realLIcc p q :=
@@ -1790,11 +1764,7 @@ theorem realLOf_mem_realLIcc {p q x : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u
     (realLOf_le_realLOf hx hq).mpr hxq⟩
 
 
-/-- A positive factor cancels from a two-sided bracket. `withinOf_mul`
-multiplies two bounds; this undoes one of them when the factor is positive, so
-an estimate on `(φ x - L)·(x - a)` reads as an estimate on `φ x - L` without
-dividing. Both halves are `realLLe_of_mul_le_mul_right`; the lower one needs
-`-(c·y)` recognised as `(-c)·y` first. -/
+/-- If `|z * y| ≤ c * y` and `0 < y`, then `|z| ≤ c`. -/
 theorem withinOf_of_withinOf_mul {z y c : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hc : c ∈ RealL.{u}) (hy0 : realLLt realLZero.{u} y)
     (h : WithinOf (realLMul z y) (realLMul c y)) : WithinOf z c := by
@@ -1998,8 +1968,7 @@ theorem segment_ratOne {a x : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hx : x ∈ Real
   rw [realLMul_comm realLOne_mem hs, realLMul_one hs, realLAdd_comm ha hs,
     realLSub_add_cancel hx ha]
 
-/-- Minus one is below zero, as reals: the bracket bound every unit-interval
-coefficient estimate opens with. -/
+/-- `-1 ≤ 0` in the reals. -/
 theorem realLNeg_one_le_zero :
     realLLe (realLNeg (realLOf ratOne.{u})) realLZero.{u} := by
   have hn10 : ratLe (ratNeg ratOne.{u}) ratZero.{u} := by
@@ -2011,7 +1980,6 @@ theorem realLNeg_one_le_zero :
   exact (realLOf_le_realLOf (ratNeg_mem_Rat ratOne_mem_Rat)
     ratZero_mem_Rat).mpr hn10
 
-/-- Minus one is strictly below zero, as reals. -/
 theorem realLNeg_one_lt_zero :
     realLLt (realLNeg realLOne.{u}) realLZero.{u} := by
   have h01 : realLLt realLZero.{u} realLOne.{u} :=
@@ -2043,7 +2011,6 @@ theorem realLClamp_bracket {z : ZFSet.{u}} :
         ((realLOf_lt_realLOf ratZero_mem_Rat ratOne_mem_Rat).mpr
           ratZero_lt_one)))
 
-/-- The clamp is nonpositive exactly when the argument is. -/
 theorem realLClamp_nonpos_iff {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     Iff (realLLe (realLClamp z) realLZero.{u}) (realLLe z realLZero.{u}) := by
   constructor
@@ -2056,7 +2023,6 @@ theorem realLClamp_nonpos_iff {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     exact realLLe_trans (realLMin_mem hz realLOne_mem) hz realLZero_mem
       (realLMin_le_left hz) hz0
 
-/-- The clamp is nonnegative exactly when the argument is. -/
 theorem realLClamp_nonneg_iff {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     Iff (realLLe realLZero.{u} (realLClamp z)) (realLLe realLZero.{u} z) := by
   constructor
@@ -2144,13 +2110,11 @@ theorem posPart_nonneg {z : ZFSet.{u}} :
 theorem le_posPart {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     realLLe z (posPart z) := realLLe_max_left hz
 
-/-- On the nonnegative side the positive part is the identity. -/
 theorem posPart_of_nonneg {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (h : realLLe realLZero.{u} z) : posPart z = z :=
   realLLe_antisymm (posPart_mem hz) hz
     (realLMax_le (realLLe_refl hz) h) (le_posPart hz)
 
-/-- On the nonpositive side the positive part vanishes. -/
 theorem posPart_of_nonpos {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (h : realLLe z realLZero.{u}) : posPart z = realLZero.{u} :=
   realLLe_antisymm (posPart_mem hz) realLZero_mem
@@ -2277,7 +2241,7 @@ theorem posPart_mul_negPart {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
 
 
 
-/-- The decomposition `z⁺ = z + z⁻`: the two parts reassemble the real. -/
+/-- `z⁺ = z + z⁻`. -/
 theorem posPart_eq_add_negPart {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     posPart z = realLAdd z (negPart z) := by
   have hnz := realLNeg_mem hz
@@ -2291,7 +2255,6 @@ theorem posPart_eq_add_negPart {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
         realLAdd_comm (realLMax_mem hnz realLZero_mem) hz
     _ = realLAdd z (negPart z) := rfl
 
-/-- The positive part is monotone. -/
 theorem posPart_mono {v w : ZFSet.{u}} (hv : v ∈ RealL.{u})
     (hw : w ∈ RealL.{u}) (h : realLLe v w) :
     realLLe (posPart v) (posPart w) :=
@@ -2406,7 +2369,7 @@ theorem posPart_mul_negPart_le_sq {x y w : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (realLLt_of_lt_of_le (realLMul_mem (realLMul_mem hw hw) ht)
       (realLMul_mem ht ht) (realLMul_mem (realLMul_mem hw hw) ht) hmul sq)
 
-/-- Closeness is symmetric: negate the difference. -/
+/-- `Close` is symmetric. -/
 theorem close_symm {x y c : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hc : c ∈ NumberTheory.Rat.{u}) (h : Close x y (realLOf c)) :
     Close y x (realLOf c) := by
@@ -2415,7 +2378,7 @@ theorem close_symm {x y c : ZFSet.{u}} (hx : x ∈ RealL.{u})
 
 
 
-/-- `max(x,y) = (x-y)⁺ + y`: the max through the positive part. -/
+/-- `max x y = (x - y)⁺ + y`. -/
 theorem realLMax_eq_posPart_add {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) :
     realLMax x y = realLAdd (posPart (realLAdd x (realLNeg y))) y := by
@@ -2427,8 +2390,7 @@ theorem realLMax_eq_posPart_add {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     = realLAdd (realLMax (realLAdd x (realLNeg y)) realLZero.{u}) y
   exact h
 
-/-- `min(x,y) = x - (x-y)⁺`: the min through the positive part, by two
-lattice arguments rather than a case split. -/
+/-- `min x y = x - (x - y)⁺`. The proof uses no case split on the order. -/
 theorem realLMin_eq_sub_posPart {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) :
     realLMin x y = realLAdd x (realLNeg (posPart (realLAdd x (realLNeg y)))) := by
@@ -2501,9 +2463,8 @@ theorem posPart_absorb {v w : ZFSet.{u}} (hv : v ∈ RealL.{u})
     rwa [realLAdd_comm realLZero_mem hv, realLAdd_zero hv,
       realLAdd_comm hpw hv] at hstep
 
-/-- The median through the ramps: for `A ≤ B`,
-`max(A, min(L, B)) = L + (A-L)⁺ - (L-B)⁺`. Proved through `posPart_absorb`,
-with no case split. -/
+/-- For `A ≤ B`, `max A (min L B) = L + (A - L)⁺ - (L - B)⁺`. The proof uses no
+case split on the order. -/
 theorem median_eq_clamp {A B L : ZFSet.{u}} (hA : A ∈ RealL.{u})
     (hB : B ∈ RealL.{u}) (hL : L ∈ RealL.{u}) (hAB : realLLe A B) :
     realLMax A (realLMin L B)
@@ -2531,8 +2492,7 @@ theorem median_eq_clamp {A B L : ZFSet.{u}} (hA : A ∈ RealL.{u})
     realLAdd_comm hp hL, realLAdd_assoc hL hp (realLNeg_mem hn)]
 
 
-/-- A nonnegative real below `c` is within `c`: the lower bracket rides
-through zero. -/
+/-- If `0 ≤ x ≤ c`, then `|x| ≤ c`. -/
 theorem withinOf_of_nonneg_le {x c : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : ratLe ratZero.{u} c)
     (h0 : realLLe realLZero.{u} x) (hup : realLLe x (realLOf c)) :
@@ -2847,9 +2807,7 @@ structure TaggedPartition (c d : ZFSet.{u}) : Type (u + 1) where
 #print axioms uniformlyContinuousOn_const
 #print axioms uniformlyContinuousOn_add
 #print axioms exists_rat_near_in_Icc
-/-- Two points of an interval are within its width of each other. The
-bound is the width as a rational, so a piece of the subdivision bounds the
-separation of anything inside it. -/
+/-- Two points of `[a, b]` are within `b - a` of each other. -/
 theorem close_of_mem_realLIcc {a b y z : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
     (hb : b ∈ NumberTheory.Rat.{u}) (hy : y ∈ realLIcc a b) (hz : z ∈ realLIcc a b) :
     Close y z (realLOf (ratAdd b (ratNeg a))) := by
@@ -2875,9 +2833,7 @@ theorem close_of_mem_realLIcc {a b y z : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat
     exact realLLe_add hym hbR (realLNeg_mem hzm) (realLNeg_mem haR) hyb
       (realLNeg_le_neg haR hzm haz)
 
-/-- The same, for the open bracket.
-
-The `realLIoo` twin of `close_of_mem_realLIcc` above. -/
+/-- Two points of `(c, e)` are within `e - c` of each other. -/
 theorem close_of_mem_realLIoo {c e y z : ZFSet.{u}}
     (hc : c ∈ NumberTheory.Rat.{u}) (he : e ∈ NumberTheory.Rat.{u})
     (hy : y ∈ realLIoo c e) (hz : z ∈ realLIoo c e) :
@@ -2906,7 +2862,7 @@ theorem le_add_radius_of_close {A B e : ZFSet.{u}} (hA : A ∈ RealL.{u})
 
 #print axioms le_add_radius_of_close
 
-/-- From `X - Y ≤ W`, shift `W` across: `X - W ≤ Y`. Pure rearrangement. -/
+/-- If `X - Y ≤ W`, then `X - W ≤ Y`. -/
 theorem realLLe_sub_of_sub_le {X Y W : ZFSet.{u}} (hX : X ∈ RealL.{u})
     (hY : Y ∈ RealL.{u}) (hW : W ∈ RealL.{u})
     (h : realLLe (realLAdd X (realLNeg Y)) W) :
@@ -2926,7 +2882,7 @@ theorem realLLe_sub_of_sub_le {X Y W : ZFSet.{u}} (hX : X ∈ RealL.{u})
   rw [hLc, hRc] at hshift
   exact hshift
 
-/-- From `w < a' - a`, get `a < a' - w`. The rational half of the same shift. -/
+/-- If `w < a' - a`, then `a < a' - w`. -/
 private theorem ratLt_sub_of_lt_sub {a a' w : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
     (ha' : a' ∈ NumberTheory.Rat.{u}) (hw : w ∈ NumberTheory.Rat.{u})
     (h : ratLt w (ratAdd a' (ratNeg a))) :
@@ -2946,7 +2902,7 @@ private theorem ratLt_sub_of_lt_sub {a a' w : ZFSet.{u}} (ha : a ∈ NumberTheor
   rw [hL, hR] at hstep
   exact hstep
 
-/-- From `w < b - b'`, get `b' + w < b`. The mirror of `ratLt_sub_of_lt_sub`. -/
+/-- If `w < b - b'`, then `b' + w < b`. -/
 private theorem ratLt_add_of_lt_sub {b b' w : ZFSet.{u}} (hb : b ∈ NumberTheory.Rat.{u})
     (hb' : b' ∈ NumberTheory.Rat.{u}) (hw : w ∈ NumberTheory.Rat.{u})
     (h : ratLt w (ratAdd b (ratNeg b'))) :
@@ -2960,9 +2916,7 @@ private theorem ratLt_add_of_lt_sub {b b' w : ZFSet.{u}} (hb : b ∈ NumberTheor
   -- `ratAdd_lt_add_right_iff` put `w` on the left; the goal wants `b'`.
   rwa [ratAdd_comm hw hb'] at hst
 
-/-- The lower bracket survives a move of at most `w`, when `w` is strictly
-inside the slack `a' - a`. Stated over bare reals so the continuity bridge can
-use it twice, once per side, instead of chasing the same chain in both. -/
+/-- If `a' < X`, `X - Y ≤ w` and `w < a' - a`, then `a < Y`. -/
 private theorem realLOf_lt_of_slack {a a' w X Y : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u})
     (ha' : a' ∈ NumberTheory.Rat.{u}) (hwQ : w ∈ NumberTheory.Rat.{u})
     (hX : X ∈ RealL.{u}) (hY : Y ∈ RealL.{u})
@@ -2985,7 +2939,7 @@ private theorem realLOf_lt_of_slack {a a' w X Y : ZFSet.{u}} (ha : a ∈ NumberT
       (realLAdd_mem (realLOf_mem ha') (realLNeg_mem hw))
       (realLAdd_mem hX (realLNeg_mem hw)) hstep1 hstep2) hstep3
 
-/-- The mirror: the upper bracket survives the same move. -/
+/-- If `X < b'`, `-w ≤ X - Y` and `w < b - b'`, then `Y < b`. -/
 private theorem lt_realLOf_of_slack {b b' w X Y : ZFSet.{u}} (hb : b ∈ NumberTheory.Rat.{u})
     (hb' : b' ∈ NumberTheory.Rat.{u}) (hwQ : w ∈ NumberTheory.Rat.{u})
     (hX : X ∈ RealL.{u}) (hY : Y ∈ RealL.{u})
@@ -3004,7 +2958,6 @@ private theorem lt_realLOf_of_slack {b b' w X Y : ZFSet.{u}} (hb : b ∈ NumberT
     (realLLt_trans (realLAdd_mem hX hw)
       (realLAdd_mem (realLOf_mem hb') hw) (realLOf_mem hb) hu2 hu1)
 
-/-- Two points of a bracket narrower than the modulus are close at it. -/
 theorem close_of_narrow_bracket {c e x y : ZFSet.{u}}
     (hcQ : c ∈ NumberTheory.Rat.{u}) (heQ : e ∈ NumberTheory.Rat.{u}) {m : Nat}
     (hce : ratLt e (ratAdd c (invWidth (ofNat.{u} m))))

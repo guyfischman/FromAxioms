@@ -44,10 +44,7 @@ structure IsIntegralDomain (R add mul zero one : ZFSet.{u}) : Prop where
   mul_ne_zero : ∀ a, a ∈ R → ∀ b, b ∈ R → a ≠ zero → b ≠ zero →
     opAt mul a b ≠ zero
 
-/-- The quotient by a prime ideal is an integral domain. The section header
-above has asserted this since it was written; the argument lived inside
-`isField_quotient_of_prime`, where finiteness was also required and nothing
-could reach the domain half on its own. -/
+/-- The quotient of a ring by a prime ideal is an integral domain. -/
 theorem isIntegralDomain_quotient_of_prime {I R add mul zero one : ZFSet.{u}}
     (h : IsRing R add mul zero one) (hP : IsPrimeIdeal I R add mul zero one) :
     IsIntegralDomain (quotientSet (idealRel R add zero I) R)
@@ -121,18 +118,14 @@ theorem isCancellative_of_disjunctive {R add mul zero one : ZFSet.{u}}
   · exact absurd h hc0
   · exact (ringSub_eq_zero_iff hR ha hb).mp h
 
-/-- A field cancels, so `IsCancellative` never has to be assumed alongside
-`IsField`. The inverse does the work in one step; the only content is the side,
-since `IsCancellative` is stated on the left and `mul_right_cancel_field`
-cancels on the right. -/
+/-- A field is cancellative. -/
 theorem isCancellative_of_isField {R add mul zero one : ZFSet.{u}}
     (hF : IsField R add mul zero one) : IsCancellative R mul zero :=
   fun c hc a ha b hb hc0 he =>
     mul_right_cancel_field hF ha hb hc hc0
       (by rw [hF.ring.mulComm a ha c hc, hF.ring.mulComm b hb c hc]; exact he)
 
-/-- Zero and one are distinct integers: their pair representatives differ in
-the first coordinate. -/
+/-- `0 ≠ 1` in the integers. -/
 theorem intZero_ne_intOne : intZero.{u} ≠ intOne.{u} := by
   intro he
   rw [intZero, intOne, intOf_eq_intOf_iff empty_mem_omega empty_mem_omega
@@ -227,8 +220,6 @@ theorem fracOf_mem {R mul zero a b : ZFSet.{u}} (ha : a ∈ R)
     (hb : b ∈ nonzeroIn R zero) : fracOf R mul zero a b ∈ FracField R mul zero :=
   cls_mem_quotientSet (opair_mem_prod ha hb)
 
-/-- Two fractions are equal exactly when they cross-multiply, which is
-the relation the quotient is by. -/
 theorem fracOf_eq_fracOf_iff {R add mul zero one a b c d : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hcan : IsCancellative R mul zero)
     (ha : a ∈ R) (hb : b ∈ nonzeroIn R zero)
@@ -248,7 +239,6 @@ products, the domain supplies `b*d ≠ 0` so the result is a legitimate
 fraction, and cancellation was spent on the relation's transitivity. No
 one of them subsumes another. -/
 
-/-- A product of nonzero elements is a legitimate denominator. -/
 theorem mulAt_mem_nonzeroIn {R add mul zero one b d : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hb : b ∈ nonzeroIn R zero) (hd : d ∈ nonzeroIn R zero) :
@@ -258,9 +248,7 @@ theorem mulAt_mem_nonzeroIn {R add mul zero one b d : ZFSet.{u}}
   exact mem_nonzeroIn_iff.mpr
     ⟨mulAt_mem hdom.ring hbR hdR, hdom.mul_ne_zero b hbR d hdR hb0 hd0⟩
 
-/-- Multiplication respects the relation, so it descends to the
-quotient. Only the ring laws are used to rearrange; the domain supplies the
-denominator's nonvanishing. -/
+/-- Multiplication of fractions respects the equivalence of fractions. -/
 theorem fracOf_mul_congr {R add mul zero one a b c d a' b' c' d' : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -294,9 +282,7 @@ for multiplication, so the domain does the same job; what is new is that the
 numerator is a sum, and `ringRight_distrib` splits the cross-multiplied
 equation into two halves that `h₁` and `h₂` close separately. -/
 
-/-- Addition respects the relation, so it descends to the quotient. Each
-half of the numerator is closed by one of the two hypotheses, after the
-right-distributive split. -/
+/-- Addition of fractions respects the equivalence of fractions. -/
 theorem fracOf_add_congr {R add mul zero one a b c d a' b' c' d' : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -355,7 +341,6 @@ A class is zero exactly when its numerator is, and that is an equivalence
 rather than a decision -- so "this class is nonzero" hands back
 `a ≠ zero` with nothing spent, and `b/a` is then a legitimate fraction. -/
 
-/-- `one` is a legitimate denominator, since a domain has `0 ≠ 1`. -/
 theorem one_mem_nonzeroIn {R add mul zero one : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one) :
     one ∈ nonzeroIn R zero :=
@@ -587,8 +572,7 @@ def fracNeg (R add mul zero r : ZFSet.{u}) : ZFSet.{u} :=
         p ∈ fracOf R mul zero (ringNeg R add zero a) b)
     (fracPairs R zero)
 
-/-- Negation respects the relation. Only the ring laws are used: the
-denominator is carried through unchanged, so the domain is not consulted. -/
+/-- Negation of fractions respects the equivalence of fractions. -/
 theorem fracOf_neg_congr {R add mul zero one a b a' b' : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hcan : IsCancellative R mul zero)
     (ha : a ∈ R) (hb : b ∈ nonzeroIn R zero)
@@ -723,7 +707,6 @@ Three more laws, each one cross-multiplication after the computation
 lemmas. Associativity of addition and distributivity are the long ones and
 follow separately. -/
 
-/-- Multiplication of classes is commutative. -/
 theorem fracMul_comm {R add mul zero one a b c d : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -738,7 +721,6 @@ theorem fracMul_comm {R add mul zero one a b c d : ZFSet.{u}}
     fracMul_fracOf hdom hcan hc hd ha hb,
     hR.mulComm c hc a ha, hR.mulComm d hdR b hbR]
 
-/-- Addition of classes is commutative. -/
 theorem fracAdd_comm {R add mul zero one a b c d : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -754,8 +736,6 @@ theorem fracAdd_comm {R add mul zero one a b c d : ZFSet.{u}}
     ringAdd_comm hR (mulAt_mem hR hc hbR) (mulAt_mem hR ha hdR),
     hR.mulComm d hdR b hbR]
 
-/-- Multiplication of classes is associative, by associativity in the
-numerator and the denominator separately. -/
 theorem fracMul_assoc {R add mul zero one a b c d e f : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -779,10 +759,7 @@ theorem fracMul_assoc {R add mul zero one a b c d e f : ZFSet.{u}}
       (mulAt_mem_nonzeroIn hdom hd hf),
     hR.mulAssoc a ha c hc e he, hR.mulAssoc b hbR d hdR f hfR]
 
-/-- Addition of classes is associative. The long one: both sides split
-by right-distributivity into three products, and the three match pairwise
-after one associativity and one commutation each. The denominators are the
-same triple product associated the two ways. -/
+/-- Addition of fractions is associative. -/
 theorem fracAdd_assoc {R add mul zero one a b c d e f : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)
@@ -1161,7 +1138,7 @@ theorem pb_clear_denom {R add mul zero one r : ZFSet.{u}}
   rw [hR.mul_one _ (mulAt_mem hR hbR ha), hR.mulComm _ honeR _ hbR,
       hR.mul_one _ hbR, hR.mulComm _ hbR _ ha]
 
-/-- The embedding is multiplicative: `b*c` over one is the product of the two. -/
+/-- The embedding sending `b` to `b / 1` is multiplicative. -/
 theorem pb_embed_mul {R add mul zero one b c : ZFSet.{u}}
     (hdom : IsIntegralDomain R add mul zero one)
     (hcan : IsCancellative R mul zero)

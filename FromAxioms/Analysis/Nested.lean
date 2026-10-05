@@ -73,11 +73,7 @@ theorem IsNested.cross {a b : ZFSet.{u}} (h : IsNested a b) {m n : ZFSet.{u}}
     (ratLt_of_lt_of_le (app_mem_Rat h.lower_seq hk) (app_mem_Rat h.upper_seq hk)
       (app_mem_Rat h.upper_seq hn) (h.bracket k hk) (h.upper_mono n hn k hk hkn))
 
-/-- The nest's lower set is a generic cut, over the predicate *is a left
-endpoint*. `nestLower` is not `cutLower` by `rfl` --- it asks for a stage below
-`q` directly, where `cutLower` interposes a rational witness --- so this is the
-one instance of the six that needs a bridge, and the bridge is
-`app_mem_Rat` supplying the witness's membership. -/
+/-- `nestLower a` is the lower cut of the rationals of the form `a n`. -/
 theorem nestLower_eq_cut {a : ZFSet.{u}} (ha : a ∈ ratSeqs.{u}) :
     nestLower a = cutLower (fun p' => ∃ n, n ∈ omega.{u} ∧ p' = app a n) := by
   apply ZFSet.ext
@@ -91,8 +87,6 @@ theorem nestLower_eq_cut {a : ZFSet.{u}} (ha : a ∈ ratSeqs.{u}) :
 
 #print axioms nestLower_eq_cut
 
-/-- The nest's upper set is a generic cut, the mirror of
-`nestLower_eq_cut`. -/
 theorem nestUpper_eq_cut {b : ZFSet.{u}} (hb : b ∈ ratSeqs.{u}) :
     nestUpper b = cutUpper (fun r' => ∃ n, n ∈ omega.{u} ∧ r' = app b n) := by
   apply ZFSet.ext
@@ -253,13 +247,8 @@ theorem exists_unique_mem_nest {a b : ZFSet.{u}} (h : IsNested a b) :
 
 #print axioms exists_unique_mem_nest
 
-/-- Shrinking from a scaled width bound.  `shrink_of_invWidth` is this at
-`W = 1`.
-
-A nested family whose width at stage `n` is at most `W * invWidth n`, for any
-positive rational `W`, still comes below every positive `eps` --- the scale
-only moves which stage is reached. A bisection on `[p, q]` needs this, where
-the natural bound carries the factor `q - p`. -/
+/-- If the widths `b n - a n` are at most `W * invWidth n` for a positive
+rational `W`, then they fall below every positive `ε`. -/
 theorem shrink_of_scaled_invWidth {a b W : ZFSet.{u}} (ha : a ∈ ratSeqs.{u})
     (hb : b ∈ ratSeqs.{u}) (hW : W ∈ NumberTheory.Rat.{u})
     (hW0 : ratLt ratZero.{u} W)
@@ -289,9 +278,8 @@ theorem shrink_of_scaled_invWidth {a b W : ZFSet.{u}} (ha : a ∈ ratSeqs.{u})
     (ratMul_mem_Rat hW hinvN) hεQ (hw N hN) ?_⟩
   rwa [ratMul_comm hinvN hW] at hscaled
 
-/-- The usual way a construction supplies `shrink`: widths bounded by `1/(n+1)`.
-Anything shrinking geometrically clears this bar, and Archimedes
-(`exists_invWidth_lt`) does the rest. -/
+/-- If the widths `b n - a n` are at most `invWidth n`, then they fall below
+every positive `ε`. -/
 theorem shrink_of_invWidth {a b : ZFSet.{u}} (ha : a ∈ ratSeqs.{u}) (hb : b ∈ ratSeqs.{u})
     (hw : ∀ n, n ∈ omega.{u} → ratLe (ratAdd (app b n) (ratNeg (app a n))) (invWidth n)) :
     ∀ ε, ε ∈ NumberTheory.Rat.{u} → ratLt ratZero.{u} ε → ∃ N, N ∈ omega.{u} ∧

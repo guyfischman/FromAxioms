@@ -146,7 +146,6 @@ theorem boolDigit_eq_one_iff {α : Nat → Bool} {n : Nat} :
   · next h => exact ⟨fun _ => h, fun _ => rfl⟩
   · next h => exact ⟨fun he => absurd he (by decide), fun hα => absurd hα h⟩
 
-/-- The numerator is positive exactly when some earlier digit fired. -/
 theorem tnum_pos_iff (c : Nat → Nat) : ∀ m : Nat,
     0 < tnum c m ↔ ∃ n, n < m ∧ 0 < c n
   | 0 => by
@@ -173,7 +172,6 @@ theorem tnum_pos_iff (c : Nat → Nat) : ∀ m : Nat,
         rw [this] at hcn
         omega
 
-/-- `0` is in the walk's lower cut exactly when the sequence fires. -/
 theorem zero_mem_ternary_iff (α : Nat → Bool) :
     ratZero.{u} ∈ nestLower (tlowSeq.{u} (boolDigit α)) ↔ ∃ n, α n = true := by
   rw [mem_nestLower_iff]
@@ -385,12 +383,8 @@ theorem nnStable_forall {D : Nat → Prop} (hdec : ∀ n, D n ∨ ¬ D n)
   · exact hd
   · exact absurd (fun hall => hd (hall n)) h
 
-/-- Markov's principle is the double-negation stability of a `Σ⁰₁` statement,
-stated over the `Nat → Bool` shape `MP` uses.
-
-This is the other half: a `Σ⁰₁` bar is `¬¬`-stable exactly when `MP` holds, so
-the literature's stability condition does not give this tree's for free. `MP` is
-a lattice node here, not a theorem. -/
+/-- Markov's principle holds if and only if every statement `∃ n, α n = true` is
+stable under double negation. -/
 theorem mp_iff_sigma01_stable :
     MP ↔ ∀ α : Nat → Bool, ¬ ¬ (∃ n, α n = true) → ∃ n, α n = true := by
   constructor
@@ -539,7 +533,6 @@ path, so the fan theorem is the single statement `Ubar B []`. -/
 def Ubar (B : List Bool → Prop) (s : List Bool) : Prop :=
   ∃ N, ∀ α : Nat → Bool, take α s.length = s → ∃ n, n ≤ N ∧ B (take α n)
 
-/-- A barred path is uniformly barred, at its own length. -/
 theorem ubar_of_mem {B : List Bool → Prop} {s : List Bool} (h : B s) :
     Ubar B s :=
   ⟨s.length, fun _ hα => ⟨s.length, Nat.le_refl _, by rw [hα]; exact h⟩⟩
@@ -695,18 +688,7 @@ theorem take_extend (s : List Bool) : ∀ k, k ≤ s.length →
       List.getElem?_eq_getElem hlt]
     simp [extend, List.getElem?_eq_getElem hlt]
 
-/-- A uniform bar closed under extension holds on every string at its depth.
-
-`IsUniformBar` says every path meets the bar by depth `N`; this says every
-string of length `N` is in it, which is the form a covering argument consumes.
-`extend` turns a string into a path, `take_extend` identifies that path's
-prefix, and the monotonicity hypothesis carries the bar up from whichever
-prefix the path happened to meet.
-
-Nothing here is about any particular bar. `Analysis.wideOsc_at_depth` was this
-proof with `WideOsc` inlined, and its `wideOsc_mono` discharges the hypothesis
-as it stands --- the hypothesis is in the append form the tree's `_mono` lemmas
-already use. -/
+/-- A uniform bar closed under extension holds on every string at its depth. -/
 theorem forall_length_of_isUniformBar {B : List Bool → Prop}
     (hmono : ∀ s t : List Bool, B s → B (s ++ t))
     (huni : IsUniformBar B) :
@@ -720,7 +702,6 @@ theorem forall_length_of_isUniformBar {B : List Bool → Prop}
 
 #print axioms Constructive.forall_length_of_isUniformBar
 
-/-- Prefixes stay in a tree, so leaving it once means leaving it for good. -/
 theorem not_mem_of_prefix {T : List Bool → Prop} (hT : IsTree T) :
     ∀ s : List Bool, ∀ k, k ≤ s.length → ¬ T (List.take k s) → ¬ T s := by
   intro s
@@ -955,7 +936,7 @@ to leave the tree -- into an actual path is the step `WKL` performs and
 object: `FANΔ` together with it is `WKL`, so everything `WKL` buys beyond
 compactness is the selection. -/
 
-/-- An infinite tree is not bounded: the bound's own depth has a string. -/
+/-- An infinite tree is not bounded. -/
 theorem not_isBounded_of_isInfiniteTree {T : List Bool → Prop}
     (h : IsInfiniteTree T) : ¬ IsBounded T := by
   rintro ⟨N, hN⟩
@@ -1054,8 +1035,7 @@ theorem pathAt_unbounded {T : List Bool → Prop} (r : TreeReadout T)
   | 0 => h0
   | n + 1 => r.keeps _ (pathAt_unbounded r h0 n)
 
-/-- An unbounded node is in the tree: it reaches depth zero, and the only
-string of length zero is the empty one. -/
+/-- An unbounded node belongs to the tree. -/
 theorem mem_of_unbounded {T : List Bool → Prop} {s : List Bool}
     (h : Unbounded T s) : T s := by
   obtain ⟨t, hlen, hmem⟩ := h 0
@@ -1108,8 +1088,7 @@ noncomputable def readoutSeq (f : Nat → Nat) (d : Nat → Bool)
     f (natFind (fun n => Nat.ble (k + 1) (f n)) ((hd k).mp h))
   else f 0
 
-/-- Every term is drawn from the range of `f`, which is what `Pseudobounded`
-quantifies over: both branches are `f` of something. -/
+/-- Every term of `readoutSeq f d hd` is a value of `f`. -/
 theorem readoutSeq_mem (f : Nat → Nat) (d : Nat → Bool)
     (hd : ∀ k, d k = true ↔ ∃ n, Nat.ble (k + 1) (f n) = true) (k : Nat) :
     ∃ m, readoutSeq f d hd k = f m := by
@@ -1275,12 +1254,7 @@ theorem isBounded_at_above {T : List Bool → Prop} (hT : IsTree T) {N : Nat}
   rw [List.length_take]
   omega
 
-/-- Both children bounded makes the node bounded.
-
-A string of length `N + 1` below `s` begins with a bit, and the rest sits at
-length `N` below `s ++ [b]`. Taking the larger of the two levels and adding
-one covers both children at once; `isBounded_at_above` is what lets one level
-serve where each child supplies its own. -/
+/-- If both children of a node have bounded subtrees, then so does the node. -/
 theorem isBounded_of_children {T : List Bool → Prop} (hT : IsTree T)
     (s : List Bool) (h0 : IsBounded (subTree T (s ++ [false])))
     (h1 : IsBounded (subTree T (s ++ [true]))) :
@@ -1329,7 +1303,6 @@ so the `Bool` carrier is the one to work over.
 def boundedBit (T : List Bool → Bool) (s : List Bool) (n : Nat) : Bool :=
   (allStrings n).all (fun t => !(T (s ++ t)))
 
-/-- The bit fires exactly when the level is empty. -/
 theorem boundedBit_eq_true_iff (T : List Bool → Bool) (s : List Bool) (n : Nat) :
     boundedBit T s n = true ↔
       ∀ u : List Bool, u.length = n → T (s ++ u) = false := by
@@ -1345,7 +1318,6 @@ theorem boundedBit_eq_true_iff (T : List Bool → Bool) (s : List Bool) (n : Nat
     rw [h t (length_of_mem_allStrings n t ht)]
     rfl
 
-/-- Boundedness is exactly the bit firing somewhere. -/
 theorem isBounded_iff_exists_boundedBit (T : List Bool → Bool) (s : List Bool) :
     IsBounded (subTree (fun v => T v = true) s) ↔ ∃ n, boundedBit T s n = true := by
   constructor
@@ -1442,8 +1414,7 @@ def TreeDC : Prop :=
     (∀ s, P s → P (s ++ [false]) ∨ P (s ++ [true])) →
     ∃ α : Nat → Bool, ∀ n, P (take α n)
 
-/-- An unbounded subtree sits at a node of the tree. At level zero the only
-string is the empty one, so a node outside the tree has an empty subtree. -/
+/-- A node whose subtree is not bounded belongs to the tree. -/
 theorem mem_of_not_isBounded_subTree {T : List Bool → Bool} {s : List Bool}
     (h : ¬ IsBounded (subTree (fun v => T v = true) s)) : T s = true := by
   cases hb : T s

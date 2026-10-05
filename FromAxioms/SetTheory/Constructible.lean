@@ -51,9 +51,7 @@ def L (F : Nat → List ZFSet.{u} → ZFSet.{u}) (R : Nat → List ZFSet.{u} →
     PSet.{u} → PSet.{u}
   | ⟨α, A⟩ => sUnion ⟨α, fun a => SetTheory.definablePowerFam F R (L F R (A a))⟩
 
-/-- `L` respects `Equiv`, by the same induction that defines it. The stage-wise
-step is `Definable.congr` on the operation, where the pre-set realisation pays
-for itself a second time. -/
+/-- `L F R` respects `Equiv`. -/
 theorem L_congr {F : Nat → List ZFSet.{u} → ZFSet.{u}}
     {R : Nat → List ZFSet.{u} → Prop} :
     ∀ {x y : PSet.{u}}, Equiv x y → Equiv (L F R x) (L F R y)

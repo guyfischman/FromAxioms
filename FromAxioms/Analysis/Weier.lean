@@ -64,7 +64,6 @@ theorem realLSum_mem' {G : Nat → ZFSet.{u}} :
 `realLSum` is a left fold --- `realLSum G (k+1)` is `realLSum G k + G k`, so
 the term it exposes for free is the last one. Peeling the first needs an
 induction: no unfolding reaches the head of a left fold. -/
-/-- Membership, from a hypothesis holding at every index. -/
 theorem realLSum_mem {G : Nat → ZFSet.{u}}
     (hG : ∀ k : Nat, G k ∈ RealL.{u}) :
     ∀ k : Nat, realLSum G k ∈ RealL.{u} :=

@@ -133,7 +133,6 @@ is exactly its own double negation. -/
 theorem not_not_not {a : Prop} (h : Not (Not (Not a))) : Not a :=
   fun ha => h (fun hna => hna ha)
 
-/-- Non-contradiction. -/
 theorem not_and_self {a : Prop} (h : And a (Not a)) : False :=
   h.right h.left
 

@@ -95,7 +95,6 @@ satisfying `Right`. Open by construction. -/
 def cutUpper (Right : ZFSet.{u} → Prop) : ZFSet.{u} :=
   sep (fun r => ∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt r' r ∧ Right r') NumberTheory.Rat.{u}
 
-/-- Membership in `cutLower`, unfolded. -/
 theorem mem_cutLower_iff (Left : ZFSet.{u} → Prop) (p : ZFSet.{u}) :
     p ∈ cutLower Left ↔ p ∈ NumberTheory.Rat.{u} ∧
       ∃ p', p' ∈ NumberTheory.Rat.{u} ∧ ratLt p p' ∧ Left p' :=
@@ -103,7 +102,6 @@ theorem mem_cutLower_iff (Left : ZFSet.{u} → Prop) (p : ZFSet.{u}) :
 
 #print axioms Analysis.mem_cutLower_iff
 
-/-- Membership in `cutUpper`, unfolded. -/
 theorem mem_cutUpper_iff (Right : ZFSet.{u} → Prop) (r : ZFSet.{u}) :
     r ∈ cutUpper Right ↔ r ∈ NumberTheory.Rat.{u} ∧
       ∃ r', r' ∈ NumberTheory.Rat.{u} ∧ ratLt r' r ∧ Right r' :=
@@ -631,9 +629,7 @@ theorem mem_negUpper_iff (L₁ p : ZFSet.{u}) :
     p ∈ negUpper L₁ ↔ p ∈ NumberTheory.Rat.{u} ∧ ∃ q, q ∈ L₁ ∧ ratLt (ratNeg q) p :=
   mem_sep_iff _ _ _
 
-/-- Negation just swaps the two halves and reflects them. Unlike the one-sided
-`realNeg`, no quantification over the complement is needed -- the upper set is
-already there. -/
+/-- The negation of a located pair is located. -/
 theorem isLocated_neg {L₁ U₁ : ZFSet.{u}} (h₁ : IsLocated L₁ U₁) :
     IsLocated (negLower U₁) (negUpper L₁) where
   lower_subset p hp := ((mem_negLower_iff _ p).mp hp).left
@@ -728,8 +724,6 @@ theorem mem_mulUpper_iff (L₁ U₁ L₂ U₂ p : ZFSet.{u}) :
         ratLt (ratMul q' r) p ∧ ratLt (ratMul q' r') p :=
   mem_sep_iff _ _ _
 
-/-- Two members of a lower set have a common one above both -- no `max` needed,
-just the total order. -/
 private theorem larger_mem {L a b : ZFSet.{u}} (ha : a ∈ L) (hb : b ∈ L)
     (haQ : a ∈ NumberTheory.Rat.{u}) (hbQ : b ∈ NumberTheory.Rat.{u}) :
     ∃ c, c ∈ L ∧ ratLe a c ∧ ratLe b c := by
@@ -1311,9 +1305,7 @@ theorem realLAdd_assoc {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Re
     addLower_assoc h₁.lower_subset h₂.lower_subset h₃.lower_subset,
     addUpper_assoc h₁.upper_subset h₂.upper_subset h₃.upper_subset]
 
-/-- Swap the last two summands. Named with the `realLAdd` prefix rather than
-bare, so it is not mistaken for core's additive right-commutativity, which is
-in a different namespace. -/
+/-- `(a + b) + c = (a + c) + b`. -/
 theorem realLAdd_right_comm {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u}) :
     realLAdd (realLAdd a b) c = realLAdd (realLAdd a c) b := by
@@ -1374,7 +1366,6 @@ theorem addUpper_zero {L U : ZFSet.{u}} (h : IsLocated L U) :
     have := (ratAdd_lt_add_left_iff hqQ hrQ hd).mpr hrd
     rwa [ratAdd_sub_cancel hpQ hqQ] at this
 
-/-- Zero is the additive identity. -/
 theorem realLAdd_zero {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     realLAdd x realLZero.{u} = x := by
   obtain ⟨L, U, rfl, h⟩ := (mem_RealL_iff x).mp hx
@@ -1478,9 +1469,8 @@ The four corners `q·r`, `q·r'`, `q'·r`, `q'·r'` permute when the factors swa
 the two mixed corners exchange -- so commutativity is `ratMul_comm` applied four
 times with the middle pair reordered. -/
 
-/-- The corner swap, shared by both halves. `cmp` is `ratLt` for the upper half
-and its converse for the lower, which is the only difference between the two
-proofs -- so it is a parameter rather than a second copy. -/
+/-- The four-corner condition for a product is symmetric in the two factors, for
+any comparison `cmp`. -/
 private theorem mulCorners_comm {cmp : ZFSet.{u} → ZFSet.{u} → Prop}
     {L₁ U₁ L₂ U₂ p : ZFSet.{u}} (hL₁ : ∀ q, q ∈ L₁ → q ∈ NumberTheory.Rat.{u})
     (hU₁ : ∀ q, q ∈ U₁ → q ∈ NumberTheory.Rat.{u}) (hL₂ : ∀ q, q ∈ L₂ → q ∈ NumberTheory.Rat.{u})
@@ -1544,8 +1534,8 @@ theorem upper_pair_bound {L U r s : ZFSet.{u}} (h : IsLocated L U) (hr : r ∈ U
   · exact ⟨r, hr, ratLe_refl (h.upper_subset r hr), hle⟩
   · exact ⟨s, hs, hle, ratLe_refl (h.upper_subset s hs)⟩
 
-/-- A bracket tighter than a given one still puts `p` below every corner. This
-is `ratLt_mul_of_corners` read as stability of membership under refinement. -/
+/-- If `p` is below every corner of a bracket, then it is below every corner of
+any tighter bracket. -/
 theorem corners_of_refinement {L₁ U₁ L₂ U₂ p q q' r r' s s' t t' : ZFSet.{u}}
     (h₁ : IsLocated L₁ U₁) (h₂ : IsLocated L₂ U₂) (hpQ : p ∈ NumberTheory.Rat.{u})
     (hq : q ∈ L₁) (hq' : q' ∈ U₁) (hr : r ∈ L₂) (hr' : r' ∈ U₂)
@@ -1763,14 +1753,12 @@ theorem mulUpper_one {L U : ZFSet.{u}} (h : IsLocated L U) :
       (mem_ratCut_iff _ _).mpr ⟨hrQ, hr1⟩, s, (mem_sep_iff _ _ _).mpr ⟨hsQ, h1s⟩,
       hqr, hqs, hwr, hws⟩
 
-/-- One is the multiplicative identity. -/
 theorem realLMul_one {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     realLMul x realLOne.{u} = x := by
   obtain ⟨L, U, rfl, h⟩ := (mem_RealL_iff x).mp hx
   rw [realLMul, realLOne, realLOf, fst_opair, snd_opair, fst_opair, snd_opair,
     mulLower_one h, mulUpper_one h]
 
-/-- And multiplying by one on the left. -/
 theorem realLOne_mul {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     realLMul realLOne.{u} x = x := by
   rw [realLMul_comm realLOne_mem hx, realLMul_one hx]
@@ -1864,7 +1852,6 @@ theorem mulUpper_zero {L U : ZFSet.{u}} (h : IsLocated L U) :
       d, (mem_sep_iff _ _ _).mpr ⟨hdQ, h0d⟩,
       hneg q hqQ hq2.right, hq2.left, hneg w hwQ hw2.right, hw2.left⟩
 
-/-- Zero annihilates. -/
 theorem realLMul_zero {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     realLMul x realLZero.{u} = realLZero.{u} := by
   obtain ⟨L, U, rfl, h⟩ := (mem_RealL_iff x).mp hx
@@ -1877,8 +1864,7 @@ theorem realLZero_mul {y : ZFSet.{u}} (hy : y ∈ RealL.{u}) :
     realLMul realLZero.{u} y = realLZero.{u} := by
   rw [realLMul_comm realLZero_mem hy, realLMul_zero hy]
 
-/-- `-0 = 0`. Each half is a density argument: a rational below zero has a
-positive rational whose negation still exceeds it. -/
+/-- `-0 = 0`. -/
 theorem realLNeg_zero : realLNeg realLZero.{u} = realLZero.{u} := by
   have hlow : negLower (sep (fun p => ratLt ratZero.{u} p) NumberTheory.Rat.{u}) = ratCut ratZero.{u} := by
     refine ext _ _ fun p => ⟨fun hp => ?_, fun hp => ?_⟩
@@ -2187,7 +2173,6 @@ theorem mulUpper_assoc_le {L₁ U₁ L₂ U₂ L₃ U₃ p : ZFSet.{u}} (h₁ : 
       ratLt_of_le_of_lt (ratMul_mem_Rat hn'Q hc'Q) hvQ hVQ v₄ hVgt⟩,
     hmW, hmV, hm'W, hm'V⟩
 
-/-- Multiplication is associative. -/
 theorem realLMul_assoc {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hz : z ∈ RealL.{u}) :
     realLMul (realLMul x y) z = realLMul x (realLMul y z) := by
@@ -2203,7 +2188,7 @@ theorem realLMul_assoc {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Re
     fst_opair, snd_opair, fst_opair, snd_opair, fst_opair, snd_opair,
     fst_opair, snd_opair, fst_opair, snd_opair, hL, hU]
 
-/-- `x·(y·z) = y·(x·z)`: the left factor moves past the middle one. -/
+/-- `x * (y * z) = y * (x * z)`. -/
 theorem realLMul_left_comm {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hz : z ∈ RealL.{u}) :
     realLMul x (realLMul y z) = realLMul y (realLMul x z) := by
@@ -2292,7 +2277,6 @@ theorem mem_invUpper_iff (L p : ZFSet.{u}) :
     p ∈ invUpper L ↔ p ∈ NumberTheory.Rat.{u} ∧ ∃ q, q ∈ L ∧ ratLt ratZero.{u} q ∧ ratLt (ratInv q) p :=
   mem_sep_iff _ _ _
 
-/-- Every member of the upper cut is above the positive witness, hence positive. -/
 theorem upper_pos_of_witness {L U c : ZFSet.{u}} (h : IsLocated L U) (hc : c ∈ L)
     (hc0 : ratLt ratZero.{u} c) {r : ZFSet.{u}} (hr : r ∈ U) : ratLt ratZero.{u} r :=
   ratLt_trans ratZero_mem_Rat (h.lower_subset c hc) (h.upper_subset r hr) hc0
@@ -2377,8 +2361,7 @@ theorem isLocated_inv {L U c : ZFSet.{u}} (h : IsLocated L U) (hc : c ∈ L)
 def realLInv (z : ZFSet.{u}) : ZFSet.{u} :=
   opair (invLower (snd z)) (invUpper (fst z))
 
-/-- `0 < z` is exactly the witness `isLocated_inv` wants: a positive rational in
-the lower cut. -/
+/-- The reciprocal of a positive real is a real. -/
 theorem realLInv_mem {z : ZFSet.{u}} (hz : z ∈ RealL.{u}) (h : realLLt realLZero.{u} z) :
     realLInv z ∈ RealL.{u} := by
   obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff z).mp hz
@@ -2398,9 +2381,7 @@ theorem exists_pos_lower {z : ZFSet.{u}} (h : realLLt realLZero.{u} z) :
   rw [realLZero, realLOf, snd_opair] at hcU0
   exact ⟨c, hcL, ((mem_sep_iff _ c _).mp hcU0).right⟩
 
-/-- The reciprocal of a positive real is positive. A rational strictly
-between zero and `1/r`, for any `r` in the upper cut, is the witness -- and `r`
-is positive because the real is. -/
+/-- The reciprocal of a positive real is positive. -/
 theorem realLInv_pos {z : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (h : realLLt realLZero.{u} z) : realLLt realLZero.{u} (realLInv z) := by
   obtain ⟨c, hcL, hc0⟩ := exists_pos_lower h
@@ -2721,8 +2702,7 @@ apart from zero. The pieces are that a product of positives is positive, and
 that a positive plus a non-negative is positive -- the second by cotransitivity,
 which is where `realLApart_cotrans` earns its keep. -/
 
-/-- A product of positives is positive. The least corner is the product of the
-two lower witnesses, and everything else is larger. -/
+/-- A product of positive reals is positive. -/
 theorem realLMul_pos {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (h1 : realLLt realLZero.{u} a) (h2 : realLLt realLZero.{u} b) :
     realLLt realLZero.{u} (realLMul a b) := by
@@ -2774,9 +2754,7 @@ theorem realLMul_pos {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.
 /-- `≤`, constructively: not strictly below. -/
 def realLLe (a b : ZFSet.{u}) : Prop := ¬ realLLt b a
 
-/-- A square is never negative. A rational above `a·a` would dominate every
-product from inside the two brackets -- including `t·t` for a `t` lying in both,
-and a rational square is not negative. -/
+/-- The square of a real is non-negative. -/
 theorem realLSq_nonneg {a : ZFSet.{u}} (ha : a ∈ RealL.{u}) :
     realLLe realLZero.{u} (realLMul a a) := by
   obtain ⟨L, U, rfl, hloc⟩ := (mem_RealL_iff a).mp ha
@@ -2795,7 +2773,6 @@ theorem realLSq_nonneg {a : ZFSet.{u}} (ha : a ∈ RealL.{u}) :
     ratZero_mem_Rat (ratMul_self_nonneg htQ)
     (ratLt_trans (ratMul_mem_Rat htQ htQ) hpQ ratZero_mem_Rat hsq hp0))
 
-/-- A negative rational names a negative real. -/
 theorem realLOf_lt_zero {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u}) (hc0 : ratLt c ratZero.{u}) :
     realLLt (realLOf c) realLZero.{u} := by
   obtain ⟨t, htQ, hct, ht0⟩ := rat_dense hc ratZero_mem_Rat hc0
@@ -2857,9 +2834,7 @@ theorem realLLt_add_right {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈
   · rw [realLAdd, fst_opair, fst_opair, fst_opair]
     exact (mem_addLower_iff _ _ _).mpr ⟨htQ, l, hlL, lz, hlzL, ht2⟩
 
-/-- Positive plus non-negative is positive. The lower witness `p` of `x`
-gives `-p < 0 ≤ y`, so `y`'s lower cut reaches above `-p`, and the two lower
-witnesses then sum to something positive. -/
+/-- The sum of a positive real and a non-negative real is positive. -/
 theorem realLAdd_pos_of_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hx0 : realLLt realLZero.{u} x) (hy0 : realLLe realLZero.{u} y) :
     realLLt realLZero.{u} (realLAdd x y) := by
@@ -2890,7 +2865,6 @@ theorem realLAdd_pos_of_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y 
     simp only [fst_opair, snd_opair]
     exact (mem_addLower_iff _ _ s).mpr ⟨hsQ, p, hpL, t, htL, hspt⟩
 
-/-- Two is a real. -/
 theorem realLTwo_mem : realLAdd realLOne.{u} realLOne.{u} ∈ RealL.{u} :=
   realLAdd_mem realLOne_mem realLOne_mem
 
@@ -2956,8 +2930,7 @@ theorem toCut_injective {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ Rea
   subst h
   rw [upper_eq_of_lower h₁, upper_eq_of_lower h₂]
 
-/-- `realLOf` carries addition. Stated here, with the construction it is about,
-rather than downstream where it was first needed. -/
+/-- `realLOf` preserves addition. -/
 theorem realLOf_add {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u}) :
     realLOf (ratAdd a b) = realLAdd (realLOf a) (realLOf b) := by
   have hab := ratAdd_mem_Rat ha hb
@@ -3042,10 +3015,7 @@ theorem toCut_le {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) (hw : w ∈ RealL.{u})
   · exact hin
   · exact absurd ⟨p', by rw [snd_opair]; exact hin, by rw [fst_opair]; exact hp'L⟩ h
 
-/-- The two additions agree on cuts. `realAdd` is the sumset `{q + r}` and
-`addLower` its downward closure; they coincide because a cut is already
-downward closed -- given `p < q + r`, the summand `p - r` is below `q` and so
-still in the lower cut. -/
+/-- `addLower` and `realAdd` agree on the lower halves of located pairs. -/
 theorem addLower_eq_realAdd {L₁ U₁ L₂ U₂ : ZFSet.{u}} (h₁ : IsLocated L₁ U₁)
     (h₂ : IsLocated L₂ U₂) : addLower L₁ L₂ = realAdd L₁ L₂ := by
   refine ext _ _ fun p => ⟨fun hp => ?_, fun hp => ?_⟩
@@ -3148,24 +3118,19 @@ private theorem four_corners_of_nonneg {p q q' r r' : ZFSet.{u}}
     ratLt_of_lt_of_le hpQ (ratMul_mem_Rat hqQ hrQ) (ratMul_mem_Rat hq'Q hrQ) hp h_q',
     ratLt_of_lt_of_le hpQ (ratMul_mem_Rat hqQ hrQ) (ratMul_mem_Rat hq'Q hr'Q) hp h_far⟩
 
-/-- A negative rational lies in the lower set of a non-negative real. -/
 private theorem neg_mem_lower {L d : ZFSet.{u}} (hn : realNonneg L)
     (hdQ : d ∈ NumberTheory.Rat.{u}) (hd : ratLt d ratZero.{u}) : d ∈ L :=
   hn d ((mem_ratCut_iff ratZero.{u} d).mpr ⟨hdQ, hd⟩)
 
-/-- An upper witness of a non-negative real is non-negative. Zero is not
-excluded: that is the real-is-zero case, where the upper set is closed at its
-infimum, so this is `ratLe`. -/
+/-- A member of the upper half of a non-negative real is non-negative. -/
 private theorem upper_nonneg {L U q' : ZFSet.{u}} (h : IsLocated L U)
     (hn : realNonneg L) (hq' : q' ∈ U) : ratLe ratZero.{u} q' := by
   have hq'Q := h.upper_subset q' hq'
   refine ratLe_of_not_lt ratZero_mem_Rat hq'Q (fun hc => ?_)
   exact ratLt_irrefl (h.ordered q' (neg_mem_lower hn hq'Q hc) q' hq')
 
-/-- Below zero, the negatives reach every corner. The upper witnesses are
-fixed first, so each mixed corner imposes one inequality on its own variable
-and `small_of_pos` discharges it. The like-signed corners are free: a product
-of two negatives is positive, and `q'·r'` is non-negative, both above `p`. -/
+/-- Every negative rational lies in the lower half of a product of non-negative
+reals. -/
 private theorem mem_mulLower_of_neg {L₁ U₁ L₂ U₂ p : ZFSet.{u}}
     (h₁ : IsLocated L₁ U₁) (h₂ : IsLocated L₂ U₂)
     (hn₁ : realNonneg L₁) (hn₂ : realNonneg L₂)
@@ -3236,7 +3201,6 @@ theorem mulLower_eq_realMulNonneg {L₁ U₁ L₂ U₂ : ZFSet.{u}}
     exact (mem_mulLower_iff _ _ _ _ p).mpr
       ⟨hpQ, q, hq, q', hq', r, hr, r', hr', c1, c2, c3, c4⟩
 
-/-- The embedding carries addition. -/
 theorem toCut_add {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u}) :
     toCut (realLAdd x y) = realAdd (toCut x) (toCut y) := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff x).mp hx
@@ -3245,8 +3209,6 @@ theorem toCut_add {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u}
   simp only [fst_opair, snd_opair]
   exact addLower_eq_realAdd h₁ h₂
 
-/-- The embedding carries multiplication, where both factors are
-non-negative. -/
 theorem toCut_mul {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hn₁ : realNonneg (toCut x)) (hn₂ : realNonneg (toCut y)) :
     toCut (realLMul x y) = realMulNonneg (toCut x) (toCut y) := by
@@ -3312,7 +3274,6 @@ theorem realLLe_of_lt {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL
     (h : realLLt a b) : realLLe a b :=
   fun hlt => realLLt_irrefl ha (realLLt_trans ha hb ha h hlt)
 
-/-- Negation takes a nonnegative real to a nonpositive one. -/
 theorem realLNeg_le_zero {e : ZFSet.{u}} (he : e ∈ RealL.{u})
     (h : realLLe realLZero.{u} e) : realLLe (realLNeg e) realLZero.{u} := by
   intro hlt
@@ -3320,7 +3281,7 @@ theorem realLNeg_le_zero {e : ZFSet.{u}} (he : e ∈ RealL.{u})
   rw [realLNeg_realLNeg he, realLNeg_zero] at this
   exact h this
 
-/-- `0 <= -e` from `e <= 0`. The companion of `realLNeg_le_zero`. -/
+/-- If `e ≤ 0`, then `0 ≤ -e`. -/
 theorem realLZero_le_realLNeg {e : ZFSet.{u}} (he : e ∈ RealL.{u})
     (h : realLLe e realLZero.{u}) : realLLe realLZero.{u} (realLNeg e) := by
   intro hlt
@@ -3573,8 +3534,7 @@ def realLMin (z w : ZFSet.{u}) : ZFSet.{u} :=
   refine (mem_RealL_iff _).mpr ⟨_, _, ?_, isLocated_min h₁ h₂⟩
   rw [realLMin, fst_opair, fst_opair, snd_opair, snd_opair]
 
-/-- `min` is below each argument, in the sense the order gives: nothing sits
-strictly above the argument and below the minimum. -/
+/-- `min z w ≤ z`. -/
 theorem realLMin_le_left {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     realLLe (realLMin z w) z := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
@@ -3775,7 +3735,6 @@ def realLMax (z w : ZFSet.{u}) : ZFSet.{u} :=
   refine (mem_RealL_iff _).mpr ⟨_, _, ?_, isLocated_max h₁ h₂⟩
   rw [realLMax, fst_opair, fst_opair, snd_opair, snd_opair]
 
-/-- Each argument is below `max`. -/
 theorem realLLe_max_left {z w : ZFSet.{u}} (hz : z ∈ RealL.{u}) :
     realLLe z (realLMax z w) := by
   obtain ⟨L₁, U₁, rfl, h₁⟩ := (mem_RealL_iff z).mp hz
@@ -3902,7 +3861,7 @@ theorem realLLt_min_pair {a b x : ZFSet.{u}}
   obtain ⟨h1, h2⟩ := (mem_inter_iff _ _ _).mp hpL
   exact ⟨⟨p, hpU, h1⟩, ⟨p, hpU, h2⟩⟩
 
-/-- Above the max is above both: the witness lies in the intersected upper. -/
+/-- If `max a b < x`, then `a < x` and `b < x`. -/
 theorem realLMax_lt_pair {a b x : ZFSet.{u}}
     (h : realLLt (realLMax a b) x) : And (realLLt a x) (realLLt b x) := by
   obtain ⟨p, hpU, hpL⟩ := h
@@ -3910,8 +3869,7 @@ theorem realLMax_lt_pair {a b x : ZFSet.{u}}
   obtain ⟨h1, h2⟩ := (mem_inter_iff _ _ _).mp hpU
   exact ⟨⟨p, h1, hpL⟩, ⟨p, h2, hpL⟩⟩
 
-/-- The min is not strictly below both arguments: whichever upper half the
-first witness came from closes against one of the two lowers. -/
+/-- `min b d` is not strictly below both `b` and `d`. -/
 theorem not_min_lt_both {b d : ZFSet.{u}} (hb : b ∈ RealL.{u})
     (hd : d ∈ RealL.{u}) (h1 : realLLt (realLMin b d) b)
     (h2 : realLLt (realLMin b d) d) : False := by
@@ -3952,7 +3910,6 @@ theorem realLMin_add_le {v w z : ZFSet.{u}} (hv : v ∈ RealL.{u})
 #print axioms realLLt_min_pair
 #print axioms realLMax_lt_pair
 
-/-- A maximum against something below it is itself. -/
 theorem realLMax_eq_left_of_le {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (h : realLLe b a) : realLMax a b = a :=
   realLLe_antisymm (realLMax_mem ha hb) ha
@@ -3968,7 +3925,6 @@ Proved from the group and distributive laws here, not transported from the
 ring instance -- that instance lives in `Complex.lean`, which imports this
 file. -/
 
-/-- `a·(-b) = -(a·b)`. -/
 theorem realLMul_neg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u}) :
     realLMul a (realLNeg b) = realLNeg (realLMul a b) := by
   have hnb := realLNeg_mem hb
@@ -3977,7 +3933,6 @@ theorem realLMul_neg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.
   rw [← realLMul_distrib ha hnb hb, realLAdd_comm hnb hb, realLAdd_neg hb,
     realLMul_zero ha, realLAdd_comm (realLNeg_mem hab) hab, realLAdd_neg hab]
 
-/-- `(-a)·(-b) = a·b`. -/
 theorem realLMul_neg_neg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u}) :
     realLMul (realLNeg a) (realLNeg b) = realLMul a b := by
   have hna := realLNeg_mem ha
@@ -4034,7 +3989,7 @@ theorem realL_mul_ne_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 /-! The regularity form of `realL_mul_ne_zero` --- `IsRegularElt RealL …` ---
 cannot live here: `IsRegularElt` is `Algebra/Ring.lean`'s and this file imports
-only `Analysis.Real`, so the two cones are parallel. It is landed in
+only `Analysis.Real`, so the two cones are parallel. It is in
 `Analysis/Complex.lean` beside `isConstructiveField_realL`, which is the lowest
 file holding both. -/
 
@@ -4185,7 +4140,6 @@ theorem realLNeg_realLMul {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ R
   rw [realLAdd_comm (realLMul_mem hnx hy) hxy, ← realLAdd_mul hx hnx hy,
     realLAdd_neg hx, realLZero_mul hy,
     realLAdd_comm (realLNeg_mem hxy) hxy, realLAdd_neg hxy]
-/-- `x·z - y·z = (x - y)·z`. -/
 theorem realLSub_mul {x y z : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hz : z ∈ RealL.{u}) :
     realLAdd (realLMul x z) (realLNeg (realLMul y z))
@@ -4201,9 +4155,7 @@ theorem realLDouble {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
     show realLOf ratOne.{u} = realLOne.{u} from rfl,
     realLAdd_mul realLOne_mem realLOne_mem hx, realLOne_mul hx]
 
-/-- The product's error, split. `x*y - L*M = (x - L)y + L(y - M)` -- the
-identity every product-limit argument runs on, with each factor carrying one
-error. -/
+/-- `x * y - L * M = (x - L) * y + L * (y - M)`. -/
 theorem realLMul_sub_mul {x y L M : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hL : L ∈ RealL.{u}) (hM : M ∈ RealL.{u}) :
     realLAdd (realLMul x y) (realLNeg (realLMul L M))
@@ -4404,7 +4356,7 @@ theorem approx_diff {A L L' W : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hL : L ∈ Re
     realLAdd_comm realLZero_mem (realLAdd_mem hP hnQ),
     realLAdd_zero (realLAdd_mem hP hnQ), realLSub_mul hL hL' hW]
 
-/-- `(A + B) - (C + D) = (A - C) + (B - D)`: the sum rule, before any analysis. -/
+/-- `(A + B) - (C + D) = (A - C) + (B - D)`. -/
 theorem realLAdd_sub_add {A B C D : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B ∈ RealL.{u})
     (hC : C ∈ RealL.{u}) (hD : D ∈ RealL.{u}) :
     realLAdd (realLAdd A B) (realLNeg (realLAdd C D))
@@ -4412,7 +4364,6 @@ theorem realLAdd_sub_add {A B C D : ZFSet.{u}} (hA : A ∈ RealL.{u}) (hB : B �
   rw [realLNeg_realLAdd hC hD,
     realLAdd_interchange hA hB (realLNeg_mem hC) (realLNeg_mem hD)]
 
-/-- `(Z + X) - (Z + Y) = X - Y`. -/
 theorem realLAdd_sub_cancel_left {Z X Y : ZFSet.{u}} (hZ : Z ∈ RealL.{u})
     (hX : X ∈ RealL.{u}) (hY : Y ∈ RealL.{u}) :
     realLAdd (realLAdd Z X) (realLNeg (realLAdd Z Y)) = realLAdd X (realLNeg Y) := by
@@ -4466,7 +4417,6 @@ theorem realLLt_sub_pos {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ Rea
     rwa [realLZero_add ha, realLAdd_assoc hb hna ha,
       realLAdd_comm hna ha, realLAdd_neg ha, realLAdd_zero hb] at this
 
-/-- Strict order adds. -/
 theorem realLLt_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) (h₁ : realLLt a b) (h₂ : realLLt c d) :
     realLLt (realLAdd a c) (realLAdd b d) := by
@@ -4499,14 +4449,13 @@ theorem realLLt_of_le_of_lt {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b �
   · exact absurd h hab
   · exact h
 
-/-- Mixed transitivity, the other way. -/
 theorem realLLt_of_lt_of_le {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hab : realLLt a b) (hbc : realLLe b c) : realLLt a c := by
   rcases realLLt_cotrans ha hb hc hab with h | h
   · exact h
   · exact absurd h hbc
 
-/-- `max` is symmetric: the halves are a union and an intersection. -/
+/-- `max a b = max b a`. -/
 theorem realLMax_comm (a b : ZFSet.{u}) : realLMax a b = realLMax b a := by
   rw [realLMax, realLMax, union_comm, inter_comm]
 
@@ -4536,10 +4485,7 @@ They sat in the geometry files because that is where they were first needed,
 and `realLApart` is defined here, so the apartness three belong here by
 dependency and not merely by vocabulary. -/
 
-/-- A product of two sums, expanded. With this, every quadratic identity
-the Minkowski form needs is a rearrangement rather than a fresh distributivity
-chain -- including the boost's, whose cross terms cancel between the two
-squares before the unit relation is used at all. -/
+/-- `(a + b) * (c + d) = (a * c + a * d) + (b * c + b * d)`. -/
 theorem realL_add_mul_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) :
     realLMul (realLAdd a b) (realLAdd c d)
@@ -4576,8 +4522,6 @@ theorem realLApart_iff_sub {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
       rwa [h0]
 
 
-/-- `0 < r` turns into `-r < 0` by shifting the whole inequality, which is what
-`realLLt_add_right` is for. -/
 theorem realLNeg_neg_of_pos {r : ZFSet.{u}} (hr : r ∈ RealL.{u})
     (h : realLLt realLZero.{u} r) : realLLt (realLNeg r) realLZero.{u} := by
   have := realLLt_add_right realLZero_mem hr (realLNeg_mem hr) h
@@ -4679,7 +4623,6 @@ theorem chain_slack {X A Mv U L h : ZFSet.{u}} (hX : X ∈ RealL.{u}) (hA : A �
     ← realLAdd_assoc (realLNeg_mem hP) hP (realLNeg_mem hQ),
     realLAdd_comm (realLNeg_mem hP) hP, realLAdd_neg hP,
     realLAdd_comm realLZero_mem (realLNeg_mem hQ), realLAdd_zero (realLNeg_mem hQ)]
-/-- Multiplication by a positive real is strictly monotone. -/
 theorem realLMul_lt_right {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (huv : realLLt u v) (hc0 : realLLt realLZero.{u} c) :
     realLLt (realLMul u c) (realLMul v c) := by
@@ -4687,7 +4630,6 @@ theorem realLMul_lt_right {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈
   rw [realLSub_mul hv hu hc]
   exact realLMul_pos (realLAdd_mem hv (realLNeg_mem hu)) hc
     ((realLLt_sub_pos hu hv).mp huv) hc0
-/-- The weak order adds. -/
 theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hd : d ∈ RealL.{u}) (h₁ : realLLe a b) (h₂ : realLLe c d) :
     realLLe (realLAdd a c) (realLAdd b d) := by
@@ -4696,17 +4638,7 @@ theorem realLLe_add {a b c d : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ Rea
   have := realLLe_add_right hc hd hb h₂
   rwa [realLAdd_comm hc hb, realLAdd_comm hd hb] at this
 
-/-- Two half-epsilon bounds compose into one whole-epsilon bound.
-
-    a ≤ b + ε/2   and   b + c ≤ M + ε/2   ⊢   a + c ≤ M + ε
-
-`b` is the intermediate quantity: the first bound overshoots it by `ε/2`, the
-second places it with `c` under `M` up to another `ε/2`, and the two halves fold
-by `ratMid_add_self`.
-
-`hh` is a hypothesis rather than a derivation: every call site already holds
-it, so taking it costs no caller anything.
--/
+/-- If `a ≤ b + ε/2` and `b + c ≤ M + ε/2`, then `a + c ≤ M + ε`. -/
 theorem realLLe_add_of_halves {a b c M e : ZFSet.{u}}
     (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u}) (hc : c ∈ RealL.{u})
     (hM : M ∈ RealL.{u}) (he : e ∈ NumberTheory.Rat.{u})
@@ -4759,7 +4691,6 @@ theorem eq_zero_of_add_eq_zero {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     realLLe_add ha ha realLZero_mem hb (realLLe_refl ha) hb0
   rwa [realLAdd_zero ha, h] at hstep
 
-/-- Adding something non-negative does not decrease. -/
 theorem realLLe_self_add_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (h0 : realLLe realLZero.{u} b) :
     realLLe a (realLAdd a b) := by
@@ -4768,11 +4699,9 @@ theorem realLLe_self_add_nonneg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 #print axioms realLLe_self_add_nonneg
 
-/-- `x ≤ y` read as `x - y ≤ 0`. -/
 theorem realLSub_nonpos_of_le {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (h : realLLe x y) : realLLe (realLAdd x (realLNeg y)) realLZero.{u} :=
   fun hlt => h ((realLLt_sub_pos hy hx).mpr hlt)
-/-- `a - b ≤ d` exactly when `a ≤ b + d`, as reals. -/
 theorem realLSub_le_iff {a b d : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hd : d ∈ RealL.{u}) :
     Iff (realLLe (realLAdd a (realLNeg b)) d) (realLLe a (realLAdd b d)) := by
@@ -4908,7 +4837,6 @@ theorem block_split {S P Q w₁ w₂ : ZFSet.{u}} (hS : S ∈ RealL.{u}) (hP : P
     realLAdd_sub_add hS (realLMul_mem hQ hw₂) (realLMul_mem hP hw₁)
       (realLMul_mem hP hw₂),
     realLSub_mul hQ hP hw₂]
-/-- Moving a summand across `≤`, in the one direction the bracket needs. -/
 theorem realLLe_neg_of_le_add {a e : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (he : e ∈ RealL.{u}) (h : realLLe realLZero.{u} (realLAdd a e)) :
     realLLe (realLNeg e) a := by
@@ -4931,7 +4859,6 @@ theorem realLAdd_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Rea
   have step := realLLe_add_right realLZero_mem hx hy h0x
   rw [realLZero_add hy] at step
   exact realLLe_trans realLZero_mem hy (realLAdd_mem hx hy) h0y step
-/-- From `a - b ≤ ε`, the value `a` is no more than `ε` above `b`. -/
 theorem le_add_of_sub_le {a b e : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (he : e ∈ RealL.{u}) (h : realLLe (realLAdd a (realLNeg b)) e) :
     realLLe a (realLAdd b e) := by
@@ -4939,10 +4866,7 @@ theorem le_add_of_sub_le {a b e : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ 
   have h1 := realLLe_add_right (realLAdd_mem ha hnb) he hb h
   rwa [realLAdd_assoc ha hnb hb, realLAdd_comm hnb hb, realLAdd_neg hb,
     realLAdd_zero ha, realLAdd_comm he hb] at h1
-/-- From `-ε ≤ a - b`, the value `b` is no more than `ε` above `a`.
-
-The mirror of `realLLe_sub_of_sub_le`: together the two are the two sides of
-`WithinOf` read as bounds on `b`. -/
+/-- If `-ε ≤ a - b`, then `b ≤ a + ε`. -/
 theorem le_add_of_neg_le_sub'  {a b e : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (he : e ∈ RealL.{u})
     (h : realLLe (realLNeg e) (realLAdd a (realLNeg b))) :
@@ -4956,14 +4880,11 @@ theorem le_add_of_neg_le_sub'  {a b e : ZFSet.{u}} (ha : a ∈ RealL.{u})
   rwa [realLAdd_assoc hne hb he, realLAdd_comm hb he,
     ← realLAdd_assoc hne he hb, realLAdd_comm hne he, realLAdd_neg he,
     realLZero_add hb] at h2
-/-- Reading `-a < -b` forwards, which `realLNeg_lt_neg` and double negation
-together allow. -/
 theorem realLLt_of_neg_lt_neg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (h : realLLt (realLNeg a) (realLNeg b)) :
     realLLt b a := by
   have := realLNeg_lt_neg (realLNeg_mem ha) (realLNeg_mem hb) h
   rwa [realLNeg_realLNeg ha, realLNeg_realLNeg hb] at this
-/-- The two orientations of a difference are negatives of each other. -/
 theorem sub_add_sub_eq_zero {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) :
     realLAdd (realLAdd y (realLNeg x)) (realLAdd x (realLNeg y))
@@ -4989,14 +4910,12 @@ theorem realL_inv_unique {a e e' : ZFSet.{u}} (ha : a ∈ RealL.{u})
   rw [← realLMul_assoc he ha he', realLMul_comm he ha, h,
     realLOne_mul he', realLMul_one he] at step
   exact step.symm
-/-- The embedding is an order embedding. -/
 theorem realLOf_lt_realLOf {p q : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u}) :
     realLLt (realLOf p) (realLOf q) ↔ ratLt p q := by
   refine Iff.trans (realLOf_lt_iff_mem_lower (realLOf_mem hq) hp) ?_
   rw [realLOf, fst_opair]
   exact Iff.trans (mem_ratCut_iff q p) ⟨And.right, fun h => ⟨hp, h⟩⟩
 
-/-- The order on rationals, read through the embedding. -/
 theorem realLOf_le_realLOf {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u}) :
     realLLe (realLOf a) (realLOf b) ↔ ratLe a b := by
   constructor
@@ -5103,7 +5022,6 @@ theorem realLLt_sub_pos_self {L e : ZFSet.{u}} (hL : L ∈ RealL.{u})
   have h := realLLt_add_right (realLNeg_mem (realLOf_mem he)) realLZero_mem hL hneg
   rwa [realLAdd_comm (realLNeg_mem (realLOf_mem he)) hL, realLZero_add hL] at h
 
-/-- A product of non-negatives is non-negative. -/
 theorem realLMul_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ RealL.{u})
     (hx0 : realLLe realLZero.{u} x) (hy0 : realLLe realLZero.{u} y) :
     realLLe realLZero.{u} (realLMul x y) := by
@@ -5130,7 +5048,6 @@ theorem realLMul_nonneg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u}) (hy : y ∈ Rea
     (ratZero_le_mul (h₁.upper_subset q' hq') (h₂.upper_subset r' hr') hq'0 hr'0)
     (ratLt_trans (ratMul_mem_Rat (h₁.upper_subset q' hq') (h₂.upper_subset r' hr'))
       hpQ ratZero_mem_Rat c₄ hp0))
-/-- Multiplication by a non-negative real is monotone. -/
 theorem realLMul_le_right {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (huv : realLLe u v) (hc0 : realLLe realLZero.{u} c) :
     realLLe (realLMul u c) (realLMul v c) := by
@@ -5139,7 +5056,6 @@ theorem realLMul_le_right {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈
   exact realLMul_nonneg (realLAdd_mem hv (realLNeg_mem hu)) hc
     ((realLLe_sub_nonneg hu hv).mp huv) hc0
 
-/-- Multiplication on the left by a non-negative real is monotone. -/
 theorem realLMul_le_left {u v c : ZFSet.{u}} (hu : u ∈ RealL.{u}) (hv : v ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (huv : realLLe u v) (hc0 : realLLe realLZero.{u} c) :
     realLLe (realLMul c u) (realLMul c v) := by
@@ -5157,9 +5073,7 @@ reason.
 Nothing about the slope function is asked for in the definition. Where a bound
 on it is needed the bound is a hypothesis, because a supremum over an interval
 is exactly the thing a constructive development cannot help itself to. -/
-/-- The embedding carries multiplication. Both inclusions are one corner
-lemma: a rational above the product beats every corner of a bracket around
-`(a, b)`, and a rational below it is beaten by every one. -/
+/-- `realLOf` preserves multiplication. -/
 theorem realLOf_mul {a b : ZFSet.{u}} (ha : a ∈ NumberTheory.Rat.{u}) (hb : b ∈ NumberTheory.Rat.{u}) :
     realLOf (ratMul a b) = realLMul (realLOf a) (realLOf b) := by
   have hab := ratMul_mem_Rat ha hb
@@ -5228,13 +5142,7 @@ theorem realLInv_antitone {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
 
 #print axioms realLInv_antitone
 
-/-- The inverse is unique: anything multiplying `z` to one is `1/z`.
-
-`realLMul_ratInv_cancel` shows that `realLOf (ratInv d)` cancels `realLOf d`
-without saying that such a witness must be `realLInv`. This identifies a
-rational reciprocal with the constructed one.
-
-One line of associativity: `w = w * (z * (1/z)) = (w * z) * (1/z) = 1/z`. -/
+/-- If `0 < z` and `z * w = 1`, then `w = 1 / z`. -/
 theorem realLInv_eq_of_mul_one {z w : ZFSet.{u}} (hz : z ∈ RealL.{u})
     (hw : w ∈ RealL.{u}) (hz0 : realLLt realLZero.{u} z)
     (h : realLMul z w = realLOne.{u}) :
@@ -5296,13 +5204,11 @@ theorem realLInv_le_of_le {z c : ZFSet.{u}} (hz : z ∈ RealL.{u})
 theorem realLNeg_le_neg {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL.{u})
     (h : realLLe a b) : realLLe (realLNeg b) (realLNeg a) :=
   fun hlt => h (realLLt_of_neg_lt_neg ha hb hlt)
-/-- A negative real times a positive one is negative. -/
 theorem realLMul_neg_of_neg_of_pos {a b : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (ha0 : realLLt a realLZero.{u})
     (hb0 : realLLt realLZero.{u} b) : realLLt (realLMul a b) realLZero.{u} := by
   have := realLMul_lt_right ha realLZero_mem hb ha0 hb0
   rwa [realLZero_mul hb] at this
-/-- Multiplication by a positive real cancels on the right. -/
 theorem realLLe_of_mul_le_mul_right {X Y w : ZFSet.{u}} (hX : X ∈ RealL.{u})
     (hY : Y ∈ RealL.{u}) (hw : w ∈ RealL.{u}) (hw0 : realLLt realLZero.{u} w)
     (h : realLLe (realLMul X w) (realLMul Y w)) : realLLe X Y :=
@@ -5330,8 +5236,8 @@ theorem realLMax_add_dist {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
   rwa [realLAdd_assoc hmaxs (realLNeg_mem hc) hc,
     realLAdd_comm (realLNeg_mem hc) hc, realLAdd_neg hc,
     realLAdd_zero hmaxs] at hstep
-/-- A bracketed real has a bracketed square: `w² - d² = (w-d)(w+d)` is a
-product of nonnegatives, and no case ever asks for `d`'s sign. -/
+/-- If `-W ≤ d ≤ W`, then `d ^ 2 ≤ W ^ 2`. The proof uses no case split on the
+sign of `d`. -/
 theorem sq_le_sq_of_bracket {d W : ZFSet.{u}} (hd : d ∈ RealL.{u})
     (hW : W ∈ RealL.{u}) (h1 : realLLe (realLNeg W) d) (h2 : realLLe d W) :
     realLLe (realLMul d d) (realLMul W W) := by
@@ -5345,7 +5251,6 @@ theorem sq_le_sq_of_bracket {d W : ZFSet.{u}} (hd : d ∈ RealL.{u})
   have hid := (realLSub_sq hW hd).symm
   rw [hid] at hprod
   exact (realLLe_sub_nonneg (realLMul_mem hd hd) (realLMul_mem hW hW)).mpr hprod
-/-- Squaring is monotone from a nonnegative base. -/
 theorem sq_le_sq_of_le {a c : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hc : c ∈ RealL.{u}) (hc0 : realLLe realLZero.{u} c)
     (h : realLLe c a) : realLLe (realLMul c c) (realLMul a a) := by
@@ -5356,7 +5261,6 @@ theorem sq_le_sq_of_le {a c : ZFSet.{u}} (ha : a ∈ RealL.{u})
   rw [realLMul_comm ha hc]
   exact realLMul_le_right hc ha ha h ha0
 
-/-- `-d ≤ a - b` exactly when `b ≤ a + d`, as reals. -/
 theorem realLNeg_le_sub_iff {a b d : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hd : d ∈ RealL.{u}) :
     Iff (realLLe (realLNeg d) (realLAdd a (realLNeg b)))
@@ -5700,7 +5604,6 @@ theorem realLSq_lt_sq {a b : ZFSet.{u}} (ha : a ∈ RealL.{u}) (hb : b ∈ RealL
   exact realLLt_of_le_of_lt (realLMul_mem hb hb) (realLMul_mem ha hb)
     (realLMul_mem ha ha) h₁ h₂
 
-/-- A difference is negative exactly when the other orientation is positive. -/
 theorem realLLt_sub_neg {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) :
     realLLt realLZero.{u} (realLAdd y (realLNeg x)) ↔
@@ -5807,10 +5710,7 @@ theorem disp_sub {a b c : ZFSet.{u}} (ha : a ∈ RealL.{u})
 #print axioms neg_of_mul_neg_left
 #print axioms lt_of_sub_pos
 #print axioms disp_sub
-/-- The Hahn-Banach gap rearrangement.  `a + b ≤ p + q` says exactly that
-`a - p` sits below `q - b`, which is the well-posedness of the separating value
-in the one-dimensional extension step: every candidate lower bound lies below
-every candidate upper bound. -/
+/-- If `a + b ≤ p + q`, then `a - p ≤ q - b`. -/
 theorem realLLe_sub_sub_of_add_le {a b p q : ZFSet.{u}} (ha : a ∈ RealL.{u})
     (hb : b ∈ RealL.{u}) (hp : p ∈ RealL.{u}) (hq : q ∈ RealL.{u})
     (h : realLLe (realLAdd a b) (realLAdd p q)) :
@@ -5842,13 +5742,8 @@ theorem realLLe_of_lower_subset {L U L' U' : ZFSet.{u}}
   rw [fst_opair] at hpL
   exact ratLt_irrefl (h'.ordered p (hsub p hpL) p hpU)
 
-/-- The supremum is the least upper bound, at the order rather than the cut.
-`sup_le` says the lower cut is contained; the bridge turns that into `realLLe`,
-which is what a consumer states its bounds in.
-
-Together with `isLocated_sup_of_familyLocated` this is the whole supremum API a
-Hahn-Banach extension needs: `FamilyLocated` gives the value, this gives that it
-does not overshoot any bound the family respects. -/
+/-- If the lower half of every member of `S` is contained in that of `b`, then
+`sup S ≤ b`. -/
 theorem sup_realLLe_of_forall {S b L' U' : ZFSet.{u}}
     (hb : b = opair L' U') (h' : IsLocated L' U')
     (h : ∀ z, z ∈ S → ∀ L U, z = opair L U → L ⊆ L') :
@@ -5856,14 +5751,7 @@ theorem sup_realLLe_of_forall {S b L' U' : ZFSet.{u}}
   rw [hb]
   exact realLLe_of_lower_subset h' (sup_le h)
 
-/-- The supremum is the least upper bound, with the hypothesis at the order
-level.  The companion of `sup_realLLe_of_forall`, and the one that composes:
-consumers produce `realLLe` bounds, not cut inclusions, and the converse bridge
-is not available.
-
-`rangeSup_le` (`Extreme.lean`) is this argument inlined for one particular
-set.  Stated here for an arbitrary `S`, which is what a family indexed by
-something other than an interval needs. -/
+/-- If every member of `S` is at most `w`, then `sup S ≤ w`. -/
 theorem sup_realLLe_of_forall_le {S w : ZFSet.{u}}
     (h : ∀ z, z ∈ S → realLLe z w) :
     realLLe (opair (supLower S) (supUpper S)) w := by
@@ -6007,7 +5895,7 @@ theorem approached_of_inf {S U : ZFSet.{u}} (hS : S ⊆ RealL.{u})
   exact ratLt_irrefl (ratLt_trans hrQ hpQ hrQ hrp hpr)
 
 
-/-- The infimum is a lower bound.  Dual to `le_sup_realLLe`. -/
+/-- `inf S ≤ z` for every `z` in `S`. -/
 theorem inf_realLLe_of_mem {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair L U)
     (hloc : IsLocated L U) :
     realLLe (opair (infLower S) (infUpper S)) z := by
@@ -6018,8 +5906,7 @@ theorem inf_realLLe_of_mem {S z L U : ZFSet.{u}} (hz : z ∈ S) (he : z = opair 
   exact ratLt_irrefl (ratLt_trans hrQ hqQ hrQ hrq
     (hloc.ordered q (hall z hz L U he) r hrU))
 
-/-- And it is the greatest lower bound.  Dual to `sup_realLLe_of_forall_le`,
-with the hypothesis at the order level, which is the form that composes. -/
+/-- If `K` is at most every member of `S`, then `K ≤ inf S`. -/
 theorem realLLe_inf_of_forall {S K : ZFSet.{u}}
     (h : ∀ z, z ∈ S → realLLe K z) :
     realLLe K (opair (infLower S) (infUpper S)) := by
@@ -6115,9 +6002,7 @@ theorem mem_lower_of_neg_of_nonneg {M Ml Mu p : ZFSet.{u}} (hMeq : M = opair Ml 
     · rw [realLZero, realLOf, fst_opair]
       exact (mem_ratCut_iff ratZero.{u} r).mpr ⟨hlocM.upper_subset r hrU, hr0⟩
 
-/-- A member of the upper cut names a rational the real is strictly below.
-`upper_open` supplies the witness `realLLt` asks for; the rationality of `v`
-is not needed, since the witness comes from the cut rather than from `v`. -/
+/-- A real is strictly below every member of its upper half. -/
 theorem realLLt_realLOf_of_mem_upper {L Ll Lu v : ZFSet.{u}} (hLeq : L = opair Ll Lu)
     (hloc : IsLocated Ll Lu) (hv : v ∈ Lu) :
     realLLt L (realLOf v) := by
@@ -6230,8 +6115,7 @@ theorem lub_of_familyLocated {S : ZFSet.{u}}
   · intro K hub
     exact sup_realLLe_of_forall_le hub
 
-/-- `1/1 = 1`. Nothing in the tree states it; it is one application of
-`realLInv_eq_of_mul_one` to `1 * 1 = 1`. -/
+/-- `1 / 1 = 1`. -/
 theorem realLInv_one : realLInv realLOne.{u} = realLOne.{u} :=
   (realLInv_eq_of_mul_one realLOne_mem realLOne_mem realLZero_lt_one.{u}
     (realLMul_one realLOne_mem)).symm
@@ -6361,10 +6245,7 @@ theorem realLOf_ratNat_le {p r : Nat} (h : p ≤ r) :
     ((ratNat_le_iff (by omega) (by omega)).mpr (by omega))
 
 
-/-- A nonnegative rational names a nonnegative real. The idiom
-`realLThreeQuarters_nonneg` spelled once for every numerator and denominator,
-since the descent's rational ratio needs it too and that one is not a
-reciprocal. -/
+/-- `0 ≤ a / d` in the reals, for naturals `a` and `0 < d`. -/
 theorem realLOf_ratNat_nonneg (a : Nat) {d : Nat} (hd : 0 < d) :
     realLLe realLZero.{u} (realLOf (ratNat.{u} a d)) := by
   rw [show realLZero.{u} = realLOf (ratNat.{u} 0 d) from
@@ -6373,20 +6254,7 @@ theorem realLOf_ratNat_nonneg (a : Nat) {d : Nat} (hd : 0 < d) :
     ((ratNat_le_iff hd hd).mpr (by omega))
 
 
-/-- A positive natural embeds as a positive real.
-
-The family already has `realLOf_ratNat_nonneg`, `realLOf_ratNat_le` and
-`ratNat_pos`, and not this composition of them --- so the four-line
-form
-
-    show realLLt (realLOf ratZero) _
-    exact (realLOf_lt_realLOf ratZero_mem_Rat (ratNat_mem_Rat h1)).mpr
-      (ratNat_pos hk)
-
-is otherwise written inline wherever a denominator or a `realLInv` needs its
-argument positive. `Topology/Metric.lean` has `realLOf_pos` at the same shape
-over a general rational; this one sits beside `_nonneg`, where a reader of the
-family looks, and needs no `open` line changed to be named. -/
+/-- `0 < k / 1` in the reals, for a natural `0 < k`. -/
 theorem realLOf_ratNat_pos {k : Nat} (hk : 0 < k) :
     realLLt realLZero.{u} (realLOf (ratNat.{u} k 1)) := by
   show realLLt (realLOf ratZero.{u}) _
@@ -6406,32 +6274,20 @@ theorem realLOf_ratNat_mul (a b : Nat) :
 
 #print axioms Analysis.realLOf_ratNat_mul
 
-/-- `k / 1` is a real. The membership half of the `realLOf_ratNat_*` family.
-
-Every use is at denominator `1`, where `ratNat_mem_Rat`'s hypothesis is the
-constant `0 < 1`. Stating it here removes that `have h1 : (0:Nat) < 1` from the
-call sites, which is the only thing the inline form was ever carrying. -/
+/-- `k / 1` is a real, for a natural `k`. -/
 @[simp] theorem realLOf_ratNat_mem (k : Nat) : realLOf (ratNat.{u} k 1) ∈ RealL.{u} :=
   realLOf_mem (ratNat_mem_Rat (by omega : (0:Nat) < 1))
 
 #print axioms realLOf_ratNat_mem
 
-/-- `k / 1` is nonnegative, as a function of `k`.
-
-`realLOf_ratNat_nonneg` takes the denominator's positivity as a hypothesis, so
-every call site carried a `have h1 : (0:Nat) < 1`. At denominator `1` that
-hypothesis is constant and `omega` closes it here instead. -/
+/-- `0 ≤ k / 1` in the reals, for a natural `k`. -/
 theorem realLOf_ratNat_one_nonneg (k : Nat) :
     realLLe realLZero.{u} (realLOf (ratNat.{u} k 1)) :=
   realLOf_ratNat_nonneg k (by omega : (0:Nat) < 1)
 
 #print axioms realLOf_ratNat_one_nonneg
 
-/-- `(k+1) / 1` is positive, as a function of `k`.
-
-The successor form, where positivity of the numerator is a fact about `k + 1`
-rather than a hypothesis. The call sites use this shape --- they index sums
-from `1` --- so a bare name replaces the local `have`. -/
+/-- `0 < (k + 1) / 1` in the reals, for a natural `k`. -/
 theorem realLOf_ratNat_succ_pos (k : Nat) :
     realLLt realLZero.{u} (realLOf (ratNat.{u} (k + 1) 1)) :=
   realLOf_ratNat_pos (by omega : 0 < k + 1)
@@ -6456,8 +6312,8 @@ theorem exists_realLLt_ratOf {x : ZFSet.{u}} (hx : x ∈ RealL.{u}) :
 
 /-- Deciding the strict order between located reals, as a Prop.
 
-Named because the seven bisection rows' residue is exactly this and a principle
-named in prose cannot be reversed to. Those rows spend
+Named because the residue of the bisection theorems is exactly this, and a
+principle named in prose cannot be reversed to. Those theorems spend
 `SignDisjunction + BinaryDCOn`; `NumberTheory.binaryDCOnAt_of_decided` replaces
 the second summand by a decision about the branch, and the branch is a
 comparison of one located real against another.

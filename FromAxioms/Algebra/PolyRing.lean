@@ -46,9 +46,7 @@ theorem mem_polyRing_iff (R zero f : ZFSet.{u}) :
   rw [← h.right.left]
   exact (mem_domain_iff a f).mpr ⟨b, hz⟩
 
-/-- A polynomial over a subset is a polynomial over the ambient set. Only
-the range clause moves; the support bound and functionhood do not mention the
-ring at all. -/
+/-- A polynomial over a subset `S ⊆ R` is a polynomial over `R`. -/
 theorem isPolyOver_mono {S R zero f : ZFSet.{u}} (hSR : S ⊆ R)
     (hf : IsPolyOver S zero f) : IsPolyOver R zero f :=
   ⟨hf.left, hf.right.left,
@@ -285,14 +283,9 @@ theorem app_polyMul {R add mul zero one f g : ZFSet.{u}} (hR : IsRing R add mul 
     app (polyMul R add mul zero f g) (ofNat.{u} k) = convCoeff R add mul zero f g k :=
   app_polyOfSeq (fun j => convCoeff_mem hR hf hg j) k
 
-/-- Beyond the two support bounds every term of the convolution has a zero
-factor.
-
-The sharp form of this is `convCoeff_eq_zero_sharp`, further down this file, at
-`Nf + Ng - 1 ≤ k`. Use that one when the index matters: `polyMul_bound_sharp`
-and `isBoundOf_polyMul` are built on it. This looser statement is kept because
-its callers are satisfied by it and because `Nf + Ng ≤ k` avoids the `Nat`
-subtraction. -/
+/-- The convolution coefficient at `k` is zero when `Nf + Ng ≤ k`, for `f` and
+`g` vanishing from `Nf` and `Ng` on. See `convCoeff_eq_zero_sharp` for the bound
+`Nf + Ng - 1 ≤ k`. -/
 theorem convCoeff_eq_zero {R add mul zero one f g : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) {Nf Ng : Nat}
     (hNf : ∀ i : Nat, Nf ≤ i → app f (ofNat.{u} i) = zero)
@@ -542,11 +535,7 @@ theorem foldF_telescope {R add mul zero one : ZFSet.{u}}
     exact ringSub_trans hR (hT 0) (hT m) (hT (m + 1))
 
 #print axioms foldF_telescope
-/-- A ring's multiplication is a commutative monoid on the carrier.
-
-Moved up from the `evalAt`-is-multiplicative section, which was its old home
-and is 2800 lines below: the character-convolution block that follows is its
-first user, and a probe over the whole file cannot see the difference. -/
+/-- A ring's multiplication is a commutative monoid on the carrier. -/
 theorem isCommMonoid_ringMul {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one) :
     IsCommMonoid R mul one :=
   ⟨hR.mulFun, hR.mulDom, hR.mulRan, hR.mem_one, hR.mulAssoc,
@@ -557,9 +546,7 @@ def convTerm (R add mul zero f g h : ZFSet.{u}) (k a b : Nat) : ZFSet.{u} :=
   opAt mul (opAt mul (app f (ofNat.{u} a)) (app g (ofNat.{u} b)))
     (app h (ofNat.{u} (k - a - b)))
 
-/-- A convolution term lies in the ring, over a semiring: the term is a
-product of three coefficients, so closure of multiplication is the whole
-proof. `IsPolyOver` already says the coefficients are in `R`. -/
+/-- A convolution term lies in `R`, over a semiring. -/
 theorem convTerm_mem_semi {R add mul zero one f g h : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) (hh : IsPolyOver R zero h)
@@ -567,9 +554,7 @@ theorem convTerm_mem_semi {R add mul zero one f g h : ZFSet.{u}}
   mulAt_mem_semi hR (mulAt_mem_semi hR (coeff_mem hf (ofNat_mem_omega a))
     (coeff_mem hg (ofNat_mem_omega b))) (coeff_mem hh (ofNat_mem_omega (k - a - b)))
 
-/-- A convolution coefficient lies in the ring, over a semiring. A fold of
-products over the additive monoid -- `isCommMonoid_ringAdd` built that monoid
-from the additive group, and a semiring simply carries it as `addMonoid`. -/
+/-- A convolution coefficient lies in `R`, over a semiring. -/
 theorem convCoeff_mem_semi {R add mul zero one f g : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) (k : Nat) :
@@ -607,13 +592,11 @@ theorem isPolyOver_polyOne {R add mul zero one : ZFSet.{u}} (hR : IsRing R add m
     obtain ⟨j, rfl⟩ : ∃ j, i = j + 1 := ⟨i - 1, by omega⟩
     rfl)
 
-/-- `polyOne` lies in the polynomial ring. The membership form of
-`isPolyOver_polyOne`, which five proofs re-derived inline. -/
+/-- `polyOne` lies in the polynomial ring. -/
 theorem polyOne_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one) :
     polyOne R zero one ∈ PolyRing R zero :=
   (mem_polyRing_iff _ _ _).mpr (isPolyOver_polyOne hR)
 
-/-- And the membership form of `isPolyOver_polyNeg`. -/
 theorem polyNeg_mem {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) :
     polyNeg R add zero f ∈ PolyRing R zero :=
@@ -641,16 +624,7 @@ theorem foldF_multiple {R add mul zero one d : ZFSet.{u}}
     show opAt add (foldF add zero T n) (T n) = _
     rw [he₁, he₂, hR.distrib d hd c₁ hc₁ c₂ hc₂]
 
-/-- A divisor of a sum and of one summand divides the other.
-
-Stated with the divisibility written out as an existential rather than through a
-predicate: the tree has `Divides` for `Nat`, `DividesSet` for `ω`, `Dvd` for the
-Eisenstein integers and `polyDvd` for polynomials, but nothing general over a
-ring, and one lemma is not enough to justify a fifth notion.
-
-Paired with `convCoeff_split`, this turns *`p` divides the product's `k`-th
-coefficient* into `p` divides `f_k·g_0` -- the step the least-index argument
-closes on. -/
+/-- If `d` divides `a` and `a + b`, then `d` divides `b`. -/
 theorem dvd_of_addAt_dvd {R add mul zero one d a b : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hd : d ∈ R) (ha : a ∈ R) (hb : b ∈ R)
     (h1 : ∃ c, c ∈ R ∧ a = opAt mul d c)
@@ -910,10 +884,7 @@ theorem foldF_last_semi {R add mul zero one : ZFSet.{u}}
   show opAt add (foldF add zero T k) (T k) = T k
   rw [foldF_zeros_semi hR k hz, hR.addMonoid.left_id _ hT]
 
-/-- The unit sequence lands in the ring, over a semiring: `one` at index
-zero and `zero` after. `unitCoeff_mem` reads the zero off the additive group,
-but only as its identity element -- `addMonoid.mem_e` is the same element and
-needs no inverse. -/
+/-- The coefficients of the unit sequence lie in `R`, over a semiring. -/
 theorem unitCoeff_mem_semi {R add mul zero one : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one) :
     ∀ k : Nat, unitCoeff zero one k ∈ R
@@ -1150,10 +1121,7 @@ theorem convCoeff_distrib_right_semi {R add mul zero one f g h : ZFSet.{u}}
 
 #print axioms Algebra.isCommMonoid_polyAdd_semi
 
-/-- The convolution vanishes past the sum of the degrees, over a
-semiring. Each summand has a factor beyond one polynomial's degree, so it is
-`zero` by `zeroMul` or `mulZero` -- assumed here, proved by cancelling in a
-ring. -/
+/-- `convCoeff_eq_zero` over a semiring. -/
 theorem convCoeff_eq_zero_semi {R add mul zero one f g : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) {Nf Ng : Nat}
@@ -1258,14 +1226,12 @@ theorem convCoeff_assoc_semi {R add mul zero one f g h : ZFSet.{u}}
   exact foldF_triangle (hR.addMonoid)
     (fun a b => convTerm_mem_semi hR hf hg hh k a b) k
 
-/-- `polyOne` lies in the polynomial ring, over a semiring. -/
 theorem polyOne_mem_semi {R add mul zero one : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one) :
     polyOne R zero one ∈ PolyRing R zero :=
   (mem_polyRing_iff _ _ _).mpr (isPolyOver_polyOne_semi hR)
 
-/-- A product of polynomials is a polynomial, over a semiring: each
-coefficient is a convolution, and `convCoeff_mem_semi` places it in `R`. -/
+/-- A product of polynomials is a polynomial, over a semiring. -/
 theorem polyMul_mem_semi {R add mul zero one : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one) :
     ∀ p, p ∈ prod (PolyRing R zero) (PolyRing R zero) →
@@ -1555,7 +1521,6 @@ sums. -/
 def binomTerm (R add mul zero one a b : ZFSet.{u}) (n k : Nat) : ZFSet.{u} :=
   gpow add zero (opAt mul (gpow mul one a k) (gpow mul one b (n - k))) (choose n k)
 
-/-- Monomials of the same degree add coefficientwise. -/
 theorem monomial_add {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (k : Nat) :
     polyAdd R add (monomial R zero a k) (monomial R zero b k)
@@ -1593,8 +1558,7 @@ theorem binomTerm_mem {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mu
     (ha : a ∈ R) (hb : b ∈ R) (n k : Nat) : binomTerm R add mul zero one a b n k ∈ R :=
   ringNsmul_mem hR (mulAt_mem hR (ringPow_mem hR ha k) (ringPow_mem hR hb (n - k))) _
 
-/-- `binomTerm_mem` over a semiring. Every ingredient is the `_semi` form:
-the additive iterate, the product, and the two powers. -/
+/-- `binomTerm_mem` over a semiring. -/
 theorem binomTerm_mem_semi {R add mul zero one a b : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (n k : Nat) :
@@ -1609,9 +1573,7 @@ theorem binomTerm_mem_semi {R add mul zero one a b : ZFSet.{u}}
 def binomSum (R add mul zero one a b : ZFSet.{u}) (n : Nat) : ZFSet.{u} :=
   foldF add zero (fun k => binomTerm R add mul zero one a b n k) (n + 1)
 
-/-- A binomial term above the degree is the ring's zero. `binomTerm` carries
-`choose n k` as `gpow add zero _ (choose n k)`, and `gpow` at exponent zero is
-the unit -- so `choose_gt` is the whole proof and no ring law is used. -/
+/-- A binomial term with `n < k` is zero. -/
 theorem binomTerm_eq_zero_of_gt {R add mul zero one a b : ZFSet.{u}}
     {n k : Nat} (h : n < k) :
     binomTerm R add mul zero one a b n k = zero := by
@@ -1624,8 +1586,7 @@ theorem binomSum_mem {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul
     (ha : a ∈ R) (hb : b ∈ R) (n : Nat) : binomSum R add mul zero one a b n ∈ R :=
   foldF_mem (isCommMonoid_ringAdd hR) (n + 1) (fun k _ => binomTerm_mem hR ha hb n k)
 
-/-- `binomSum_mem` over a semiring: `IsSemiring.addMonoid` is the commutative
-monoid `foldF_mem` asks for, so the ring detour disappears. -/
+/-- `binomSum_mem` over a semiring. -/
 theorem binomSum_mem_semi {R add mul zero one a b : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (n : Nat) :
@@ -1634,15 +1595,14 @@ theorem binomSum_mem_semi {R add mul zero one a b : ZFSet.{u}}
 
 #print axioms binomSum_mem_semi
 
-/-- Multiplying the binomial sum out, term by term. -/
+/-- Right multiplication distributes over the binomial sum. -/
 theorem binomSum_mul {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (c : ZFSet.{u}) (hc : c ∈ R) (n : Nat) :
     opAt mul (binomSum R add mul zero one a b n) c
       = foldF add zero (fun k => opAt mul (binomTerm R add mul zero one a b n k) c) (n + 1) :=
   foldF_mul_right hR hc (fun k => binomTerm_mem hR ha hb n k) (n + 1)
 
-/-- `binomSum_mul` over a semiring, on `foldF_mul_right_semi` --- which the
-polynomial migration had already landed. -/
+/-- `binomSum_mul` over a semiring, on `foldF_mul_right_semi`. -/
 theorem binomSum_mul_semi {R add mul zero one a b : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (c : ZFSet.{u}) (hc : c ∈ R) (n : Nat) :
@@ -1722,7 +1682,6 @@ theorem binomShift_mem {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add m
     (ha : a ∈ R) (hb : b ∈ R) (n j c : Nat) : binomShift add mul zero one a b n j c ∈ R :=
   ringNsmul_mem hR (mulAt_mem hR (ringPow_mem hR ha (j + 1)) (ringPow_mem hR hb (n - j))) c
 
-/-- `binomShift_mem` over a semiring. -/
 theorem binomShift_mem_semi {R add mul zero one a b : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (n j c : Nat) :
@@ -1732,7 +1691,6 @@ theorem binomShift_mem_semi {R add mul zero one a b : ZFSet.{u}}
 
 #print axioms binomShift_mem_semi
 
-/-- Pascal's rule, on the terms of the binomial sum. -/
 theorem binomTerm_succ {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (n j : Nat) :
     binomTerm R add mul zero one a b (n + 1) (j + 1)
@@ -1764,7 +1722,6 @@ theorem binomUp_mem {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R add mul 
     (ha : a ∈ R) (hb : b ∈ R) (n k : Nat) : binomUp add mul zero one a b n k ∈ R :=
   ringNsmul_mem hR (mulAt_mem hR (ringPow_mem hR ha k) (ringPow_mem hR hb (n + 1 - k))) _
 
-/-- `binomUp_mem` over a semiring. -/
 theorem binomUp_mem_semi {R add mul zero one a b : ZFSet.{u}}
     (hR : IsSemiring R add mul zero one)
     (ha : a ∈ R) (hb : b ∈ R) (n k : Nat) :
@@ -1925,29 +1882,15 @@ theorem binomial_semi {R add mul zero one a b : ZFSet.{u}}
 
 /-! ### The binomial theorem over a Lean type
 
-`binomial_semi` above is over a `ZFSet` commutative semiring; mathlib's
-`add_pow` (`Mathlib/Data/Nat/Choose/Sum.lean`) is over `[CommSemiring R]` with
-`Finset.sum`, so ours cannot be applied to mathlib's carriers at all.
+`binomial_semi` above is over a `ZFSet` commutative semiring. Here the carrier
+is a Lean type, with the finite sum `sumUptoT` over it.
 
-The finite sum over an arbitrary carrier is new here. Before it there was only
-`Core.prodUpto`, a product over `Nat`, so the theorem could not even be stated
-over a Lean type.
+No ring is assumed: no `neg` appears among the hypotheses. Coefficients enter
+through `nsmulT`, repeated addition, which is the only way a semiring can scale
+by a natural --- and `nsmulT` is `sumUptoT` at a constant summand rather than a
+second recursion.
 
-No ring is assumed and none is needed: no `neg` appears among the hypotheses.
-Coefficients enter through `nsmulT`, repeated addition, which is the only way a
-semiring can scale by a natural --- and `nsmulT` is `sumUptoT` at a constant
-summand rather than a second recursion, so its lemmas cannot drift from the
-sum's.
-
-`NumberTheory.choose` is cited rather than copied, and a private `chooseT` here
-would be pure duplication. The tempting reason to write one is a belief that
-`Prime.lean` is outside this file's cone. It is not: `Algebra.Field` imports it
-and this file imports `Field`, so the name is reachable. Checked in the other
-direction too --- neither `Prime` nor `Arith` imports anything under `Algebra/`,
-so there is no cycle.
-
-`Nat.choose` is a Mathlib name and Lean core has none, so the tree defines its
-own. -/
+The binomial coefficient is `NumberTheory.choose`. -/
 
 def sumUptoT {α : Type u} (add : α → α → α) (zero : α) (f : Nat → α) :
     Nat → α
@@ -2249,16 +2192,8 @@ def listCoeff (zero : ZFSet.{u}) : List ZFSet.{u} → Nat → ZFSet.{u}
   | c :: _, 0 => c
   | _ :: cs, k + 1 => listCoeff zero cs k
 
-/-- `listCoeff` lands in any set containing the padding value.
-
-`listCoeff_mem` below asks for a ring and uses it for exactly one thing:
-`zero ∈ R`. That is invisible to every check here --- the lemma compiles, prints
-clean, and the binder is used, so the unused-variable linter is silent --- and it
-still excludes callers for no reason. The `R`-side of Kummer's relation hands
-back its dependency as two lists, coefficients and vectors; the vectors live in
-`powSet RealL n`, which is a module and not a ring, and the ring form does not
-apply to them.
--/
+/-- `listCoeff` takes values in any set containing the padding value and the
+list's entries. -/
 theorem listCoeff_mem_of_zero_mem {S zero : ZFSet.{u}} (hz : zero ∈ S) :
     ∀ (cs : List ZFSet.{u}), (∀ c, c ∈ cs → c ∈ S) →
       ∀ k : Nat, listCoeff zero cs k ∈ S
@@ -2411,7 +2346,6 @@ theorem exists_deg {R zero f : ZFSet.{u}}
   obtain ⟨d, hd, hleast⟩ := exists_least hQdec N hN
   exact ⟨d, hd, hleast⟩
 
-/-- Over a finite ring the hypothesis is free. -/
 theorem decidableVanishing_of_finite {R zero : ZFSet.{u}} {n : Nat}
     (hR : Equinumerous R (ofNat.{u} n)) (hzero : zero ∈ R) : DecidableVanishing R zero :=
   fun a ha => eq_or_ne_of_finite hR ha hzero
@@ -2835,7 +2769,6 @@ theorem app_polyOfTuple {R add mul zero one t : ZFSet.{u}} (hR : IsRing R add mu
 def tupleOfPoly (r : ZFSet.{u}) (d : Nat) : ZFSet.{u} :=
   tupleOf (fun i => app r (ofNat.{u} i)) d
 
-/-- A polynomial's coefficients land in its own ring. -/
 theorem tupleOfPoly_mem {R zero r : ZFSet.{u}} (hr : IsPolyOver R zero r) (d : Nat) :
     tupleOfPoly.{u} r d ∈ powSet R d :=
   tupleOf_mem d (fun i _ =>
@@ -2867,12 +2800,8 @@ theorem polyOfTuple_tupleOfPoly {R add mul zero one r : ZFSet.{u}}
 #print axioms tupleOfPoly
 #print axioms tupleOfPoly_mem
 #print axioms polyOfTuple_tupleOfPoly
-/-- A tuple's polynomial peels off its top monomial.
-
-`polyOfTuple t (d+1)` is `polyOfTuple (fst t) d` plus `(snd t)·x^d`, which is
-the induction step for reading a tuple as a linear combination of the monomials
-below its length. Stated at the polynomial level: everything above happens in
-`PolyRing`, so the quotient only has to be a ring homomorphism. -/
+/-- `polyOfTuple t (d + 1)` is `polyOfTuple (fst t) d` plus the monomial `(snd
+t) * x ^ d`. -/
 theorem polyOfTuple_succ {R add mul zero one t : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {d : Nat} (ht : t ∈ powSet R (d + 1)) :
     polyOfTuple R zero t (d + 1)
@@ -2903,14 +2832,7 @@ theorem polyOfTuple_succ {R add mul zero one t : ZFSet.{u}}
     rw [if_neg (by omega), if_neg (by omega), if_neg (by omega)]
     exact (ringAdd_zero hR hR.addGroup.mem_e).symm
 
-/-- The same peel, downstairs in `R[x]/(f)`.
-
-`polyOfTuple_succ` is an identity between polynomials, so the class map carries
-it for free: this is that identity with `cls` applied, and it is the induction
-step a power basis runs on -- each application strips one monomial class off the
-top, so `d` applications express a class as a combination of the `d` monomial
-classes below it. Nothing here is a new fact; the content is that the quotient's
-addition is `congOp`, which agrees with `polyAdd` on classes. -/
+/-- `polyOfTuple_succ` for classes in the quotient `R[x]/(f)`. -/
 theorem cls_polyOfTuple_succ {R add mul zero one f t : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hf : f ∈ PolyRing R zero)
     {d : Nat} (ht : t ∈ powSet R (d + 1)) :
@@ -3031,16 +2953,8 @@ theorem convCoeff_top {R add mul zero one g h : ZFSet.{u}} (hR : IsRing R add mu
   show opAt mul (app g (ofNat.{u} dg)) (app h (ofNat.{u} (dg + dh - dg))) = _
   rw [show dg + dh - dg = dh by omega]
 
-/-- The degree of a product, from the top coefficient alone.
-
-`polyMul_top` below asks that `R` have no zero divisors, and spends it at exactly
-one step: showing the product's coefficient at `dg + dh` is non-zero. That step
-needs only `lead(g)·lead(h) ≠ 0`, which is a fact about the two polynomials rather
-than about `R`.
-
-The distinction is what a monic modulus turns on -- `lead(h) = one` makes the
-product's top coefficient `lead(g)`, so the degree is exact over any ring, and no
-domain hypothesis is available or needed. -/
+/-- If the product of the top coefficients of `g` and `h` is non-zero, then `g *
+h` has degree `dg + dh`. No domain hypothesis on `R` is needed. -/
 theorem polyMul_top_of_top {R add mul zero one g h : ZFSet.{u}}
     (hR : IsRing R add mul zero one)
     (hg : IsPolyOver R zero g) (hh : IsPolyOver R zero h) {dg dh : Nat}
@@ -3301,7 +3215,6 @@ theorem mem_polyIdeal_iff {R add mul zero one f w : ZFSet.{u}} (hR : IsRing R ad
   · rintro ⟨hwP, q, hq, rfl⟩
     exact ⟨mulAt_mem hP hq hf, q, hq, hP.mulComm _ hq _ hf⟩
 
-/-- A non-zero constant is a unit. -/
 theorem polyUnit_of_const {R add mul zero one p : ZFSet.{u}} (hF : IsField R add mul zero one)
     (hp : p ∈ PolyRing R zero) (hbound : ∀ i : Nat, 1 ≤ i → app p (ofNat.{u} i) = zero)
     (hne : app p (ofNat.{u} 0) ≠ zero) : IsPolyUnit R add mul zero one p := by
@@ -3594,7 +3507,6 @@ theorem polyOfTuple_injective {R add mul zero one t t' : ZFSet.{u}}
   rw [if_pos hi] at h1
   exact h1.symm
 
-/-- The zero constant is the zero polynomial. -/
 theorem monomial_zero_eq_polyZero {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) : monomial R zero zero 0 = polyZero R zero := by
   refine poly_ext_coeff (isPolyOver_monomial hR hR.addGroup.mem_e 0)
@@ -3732,28 +3644,14 @@ theorem monomial_zero_add {R add mul zero one a b : ZFSet.{u}} (hR : IsRing R ad
       = polyAdd R add (monomial R zero a 0) (monomial R zero b 0) :=
   (monomial_add hR ha hb 0).symm
 
-/-- `x`, the polynomial. It is an abbreviation, and that has cost a duplicate:
-`gpow_polyX` below and a retired `polyX_pow` in `SetTheory/Extension.lean` were
-one statement, differing only in whether this definition was written out. A
-statement query cannot see such a pair --- it is written in one spelling and
-matches its own --- so the check that finds them is to grep a one-line
-definition's body as well as its name.
+/-- `x`, the polynomial.
 
-`abbrev` and not `def`, and that is load-bearing. As a plain `def` this is
-semi-reducible, and the retirement above failed the build on it: four of the six
-call sites reach the lemma through `rw`, whose keyed matching unifies at
-`instances` transparency, which reaches reducible definitions and stops at
-semi-reducible ones. So `rw [gpow_polyX hR i]` could not see `polyX R zero one`
-in a goal that spelled `monomial R zero one 1`, and reported the pattern simply
-absent.
-
-A term proof of the same statement settles nothing here. Elaborating a term
-against an expected type unifies at default transparency, where a `def` unfolds
-fine; `rw` is strictly weaker, so the term form goes through where the tactic
-form does not, and reducibility is the only thing standing between them. -/
+`abbrev` and not `def`. `rw` matches at `instances` transparency, which reaches
+reducible definitions and stops at semi-reducible ones, so as a plain `def` a
+`rw [gpow_polyX hR i]` cannot see `polyX R zero one` in a goal that spells
+`monomial R zero one 1`. -/
 abbrev polyX (R zero one : ZFSet.{u}) : ZFSet.{u} := monomial R zero one 1
 
-/-- `polyNeg` is the additive inverse of the polynomial ring. -/
 theorem polyNeg_eq_ringNeg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) :
     polyNeg R add zero f
@@ -3766,14 +3664,7 @@ theorem polyNeg_eq_ringNeg {R add mul zero one f : ZFSet.{u}} (hR : IsRing R add
   rw [opAt_polyAddOp hR hfm hnm]
   exact polyAdd_neg hR hf
 
-/-- `polySub` is the ring's subtraction on `PolyRing`. Two spellings of one
-operation, and until this existed nothing joined them: `app_polySub` gives the
-coefficient formula for the first, and the quotient's relation produces the
-second, because `opair_mem_idealRel_iff` is stated over an arbitrary ring.
-
-The pieces were both present -- `opAt_polyAddOp` and `polyNeg_eq_ringNeg` --
-and the gap was that neither is stated about subtraction, so a search shaped
-around `polySub` finds neither. -/
+/-- `polySub` is the subtraction of the ring `PolyRing R zero`. -/
 theorem polySub_eq_ringSub {R add mul zero one f g : ZFSet.{u}}
     (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) :
@@ -3850,7 +3741,7 @@ theorem evalAt_polyZero {R add mul zero one x : ZFSet.{u}} (hR : IsRing R add mu
   rfl
 
 
-/-- Euclid's lemma in `F[x]`. An irreducible dividing a product divides a
+/-- Euclid's lemma in `F[x]`: an irreducible dividing a product divides a
 factor. -/
 theorem polyDvd_mul_of_irreducible {R add mul zero one f g h : ZFSet.{u}}
     (hF : IsField R add mul zero one) (hdec : DecidableVanishing R zero)
@@ -3914,8 +3805,7 @@ surmountable, but its permutation and length lemmas both audit
 `[propext, Classical.choice, Quot.sound]` in core v4.24.0. A splitting needs
 neither, and carries strictly more. -/
 
-/-- A divisor of a unit is a unit. Membership of the unit is not needed: it is
-the witness inside `IsPolyUnit` that the argument uses, not the unit itself. -/
+/-- A divisor of a unit polynomial is a unit. -/
 theorem polyUnit_of_dvd_unit {R add mul zero one g u : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hg : g ∈ PolyRing R zero)
     (huu : IsPolyUnit R add mul zero one u) (hdvd : polyDvd R add mul zero g u) :
@@ -4377,7 +4267,6 @@ theorem eisenstein_witness_of_convCoeff {R add mul zero one d g h : ZFSet.{u}}
       htop
 
 
-/-- The constant term of a product is the product of the constant terms. -/
 theorem convCoeff_at_zero {R add mul zero one g h : ZFSet.{u}}
     (hR : IsRing R add mul zero one)
     (hg : IsPolyOver R zero g) (hh : IsPolyOver R zero h) :
@@ -4672,12 +4561,7 @@ theorem polyOver_eq_polyZero_or_ne {q : ZFSet.{u}}
 #print axioms isEisenstein_int
 #print axioms isPolyOver_cycShiftPoly
 
-/-- The constant coefficient of `Φp(x+1)` is `p`, read straight off the
-coefficient sequence `choose p (i+1)` at `i = 0`.
-
-`cycShiftPoly_const` states that `p²` does not divide this coefficient and names
-the value only in its prose; this gives the value, in the tuple form the
-coordinate work consumes. -/
+/-- The constant coefficient of `Φp(x + 1)` is `p`. -/
 theorem cycShiftPoly_tupleCoeff_zero {p : Nat} (hp : 0 < p) :
     tupleCoeff (tupleOfPoly.{u} (cycShiftPoly.{u} p) p) p 0 = intOfNat.{u} p := by
   rw [tupleOfPoly, tupleCoeff_tupleOf p 0 hp, cycShiftPoly,
@@ -4843,8 +4727,7 @@ theorem detN_succ (R add mul zero one : ZFSet.{u}) (E : Nat → Nat → ZFSet.{u
     detN R add mul zero one E (n + 1)
       = foldF add zero (fun j => detTerm R add mul zero one E n j) (n + 1) := rfl
 
-/-- The double expansion: `detN` at `n+2` is a fold over `j` of terms whose
-inner factor is itself a fold over `k`. -/
+/-- `detN` at size `n + 2`, expanded along its first two rows. -/
 theorem detN_succ_succ (R add mul zero one : ZFSet.{u})
     (E : Nat → Nat → ZFSet.{u}) (n : Nat) :
     detN R add mul zero one E (n + 2)
@@ -4989,12 +4872,10 @@ theorem foldF_neg {R add mul zero one : ZFSet.{u}}
     (ringNeg_zero hR)
     (fun _ ha _ hb => ringNeg_addAt hR ha hb) hF n
 
-/-- A minor of an entry function with entries in `R` has entries in `R`. -/
 theorem matMinor_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
     (hE : ∀ i m, E i m ∈ R) (j : Nat) :
     ∀ i m, matMinor E j i m ∈ R := fun _ _ => hE _ _
 
-/-- A determinant of entries in `R` lies in `R`. -/
 theorem detN_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one)
     {E : Nat → Nat → ZFSet.{u}} (hE : ∀ i m, E i m ∈ R) :
     ∀ n : Nat, detN R add mul zero one E n ∈ R
@@ -5006,7 +4887,6 @@ theorem detN_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero on
     exact ringSign_mem (c := j) hR
       (mulAt_mem hR (hE 0 j) (detN_mem hR (matMinor_mem hE j) n))
 
-/-- Pointwise-equal entry functions have equal determinants. -/
 theorem detN_congr {R add mul zero one : ZFSet.{u}}
     {E F : Nat → Nat → ZFSet.{u}} (h : ∀ i m, E i m = F i m) (n : Nat) :
     detN R add mul zero one E n = detN R add mul zero one F n := by
@@ -5197,10 +5077,7 @@ theorem ringSign_addAt {R add mul zero one x y : ZFSet.{u}}
   · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega),
       ringNeg_addAt hR hx hy]
 
-/-- Multilinearity in row 0: a determinant is additive in its first row,
-the other rows held fixed. Expanding along row 0 leaves each minor untouched --
-`matMinor` reads rows `i + 1` only -- so the whole content is distributivity
-inside one fold. -/
+/-- The determinant is additive in row `0`. -/
 theorem detN_row0_add {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A B C : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R)
@@ -5285,9 +5162,7 @@ theorem detN_rows_adj {R add mul zero one : ZFSet.{u}}
       ih n (matMinor E j) (matMinor_mem hE j) (fun c => hrows _),
       mul_zero_of_isRing hR (hE 0 j), ringSign_zero hR]
 
-/-- Multilinearity at any row. Same shift as `detN_rows_adj`: row `r + 1`
-is row `r` of every minor, so the induction runs on the row index and each step
-is one application of the fold's pointwise additivity. -/
+/-- The determinant is additive in each row. -/
 theorem detN_rowk_add {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) :
     ∀ (r n : Nat) (A B C : Nat → Nat → ZFSet.{u}),
@@ -5433,7 +5308,6 @@ theorem rowsAdj_congr_at (E : Nat → Nat → ZFSet.{u}) (r : Nat)
     · rw [show i = r + 1 from by omega, rowsAdj_succ, rowsAdj_succ]
     · rw [rowsAdj_other E r u y hi (by omega), rowsAdj_other E r v y hi (by omega)]
 
-/-- Off row `r + 1`, the second substituted row is invisible. -/
 theorem rowsAdj_congr_succ (E : Nat → Nat → ZFSet.{u}) (r : Nat)
     (x u v : Nat → ZFSet.{u}) {i : Nat} (hi : i ≠ r + 1) (m : Nat) :
     rowsAdj E r x u i m = rowsAdj E r x v i m := by
@@ -5460,7 +5334,6 @@ theorem detN_rowsAdj_add_at {R add mul zero one : ZFSet.{u}}
     (fun m => by rw [rowsAdj_at, rowsAdj_at, rowsAdj_at])
   rwa [show r + (n + 1) + 1 = r + n + 2 from by omega] at h
 
-/-- Multilinearity at row `r + 1`, in the same vocabulary. -/
 theorem detN_rowsAdj_add_succ {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
     (hE : ∀ i m, E i m ∈ R) {x u v : Nat → ZFSet.{u}}
@@ -5506,7 +5379,6 @@ theorem detN_antisym_adj {R add mul zero one : ZFSet.{u}}
     right_id_monoid hM hmba] at h0
   rw [← h0, vanish (fun m => opAt add (a m) (b m)) hab]
 
-/-- Substituting a row's own entries changes nothing. -/
 theorem rowsAdj_self (E : Nat → Nat → ZFSet.{u}) (r i m : Nat) :
     rowsAdj E r (E r) (E (r + 1)) i m = E i m := by
   rcases Nat.lt_or_ge i r with h | h
@@ -5735,7 +5607,6 @@ theorem inversions_swapVal {r : Nat} (s : Nat → Nat) :
 #print axioms inversions_below
 #print axioms inversions_swapVal
 
-/-- Adjacent non-descent chains into non-descent at a distance. -/
 theorem mono_of_adj {s : Nat → Nat} {n : Nat}
     (h : ∀ r, r + 1 < n → s r ≤ s (r + 1)) :
     ∀ b a, a ≤ b → b < n → s a ≤ s b := by
@@ -5748,7 +5619,6 @@ theorem mono_of_adj {s : Nat → Nat} {n : Nat}
     · exact Nat.le_trans (ih a (by omega) (by omega)) (h k (by omega))
     · rw [show a = k + 1 from by omega]; exact Nat.le_refl _
 
-/-- No adjacent descent means no inversions at all. -/
 theorem inversions_eq_zero_of_adj {s : Nat → Nat} {n : Nat}
     (h : ∀ r, r + 1 < n → s r ≤ s (r + 1)) : inversions s n = 0 := by
   have hrow : ∀ j, j < n → invRow s j j = 0 := by
@@ -5829,9 +5699,7 @@ theorem strictMono_step {f : Nat → Nat} {n : Nat}
     rw [show i + (m + 1) = (i + m) + 1 from by omega]
     omega
 
-/-- No inversions means the identity, on the range. Nondecreasing plus
-injective is strictly increasing; strictly increasing bounds `f i` below by `i`,
-and running the same step up to `n - 1` bounds it above by `i` as well. -/
+/-- An injective nondecreasing self-map of `{0, ..., n - 1}` is the identity. -/
 theorem eq_self_of_no_descent {f finv : Nat → Nat} {n : Nat}
     (hf : ∀ m, m < n → f m < n) (hinv : ∀ m, m < n → finv (f m) = m)
     (hmono : ∀ r, r + 1 < n → f r ≤ f (r + 1)) :
@@ -5909,8 +5777,6 @@ theorem rows_swapVal (B : Nat → Nat → ZFSet.{u}) (f : Nat → Nat) (r i m : 
       · rw [swapVal_other f (by omega) (by omega),
           rowsAdj_other _ r _ _ (by omega) (by omega)]
 
-/-- A descent forces a nonzero inversion count -- the converse direction to
-`exists_descent`, and what makes the base case of the sign induction usable. -/
 theorem inversions_ne_zero_of_descent {f : Nat → Nat} {r n : Nat}
     (hd : f (r + 1) < f r) (hn : r + 2 ≤ n) : inversions f n ≠ 0 := by
   have h := inversions_descent hd hn
@@ -6073,7 +5939,6 @@ theorem rowAt_mem {R : ZFSet.{u}} {E : Nat → Nat → ZFSet.{u}}
     · rw [show i = r from by omega, rowAt_at]; exact hx m
     · rw [rowAt_other E r x (by omega)]; exact hE _ _
 
-/-- A zero row kills the determinant -- homogeneity at `c = zero`. -/
 theorem detN_row_zero {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (r n : Nat) {C : Nat → Nat → ZFSet.{u}}
     (hC : ∀ i m, C i m ∈ R) (hz : ∀ m, C r m = zero) :
@@ -6296,22 +6161,18 @@ noncomputable def leibSum (R add mul zero one : ZFSet.{u})
 #print axioms leibSum
 /-! ### The determinant over a Lean type
 
-mathlib's `Matrix.det_succ_row_zero` is over
-`Matrix (Fin n.succ) (Fin n.succ) R`, so the row needs a form our `ZFSet`
-version cannot reach.
-
-The re-siting is smaller than it looks. `matMinor` here is
+`matMinor` here is
 
     fun i k => E (i + 1) (if k < j then k else k + 1)
 
 over `E : Nat → Nat → ZFSet`: the indexing is already lean-native and only the
-entries are set-sited. So the re-siting is the same substitution the binomial
-theorem needed --- entry type becomes a parameter, `foldF` becomes `sumUptoT`,
-which is landed a few hundred lines above.
+entries are set-sited. So the type-sited form is the same substitution the
+binomial expansion needed --- entry type becomes a parameter, `foldF` becomes
+`sumUptoT`.
 
-No permutations enter. `det_succ_row_zero` is the recursive expansion and `detN`
-is defined by that recursion; `leibSumF_eq_detN` bridges to the Leibniz sum
-separately. The signed-sum-over-permutations landmark is a different row.
+No permutations enter. `det_succ_row_zero` is the recursive expansion and
+`detN` is defined by that recursion; `leibSumF_eq_detN` bridges to the Leibniz
+sum separately.
 
 Every declaration here prints `does not depend on any axioms`. -/
 def matMinorT {α : Type u} (E : Nat → Nat → α) (j : Nat) : Nat → Nat → α :=
@@ -6329,8 +6190,6 @@ def detT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero one 
         if j % 2 = 0 then t else neg t)
       (n + 1)
 
-/-- The expansion is the definition, at every size --- stated so a consumer
-can cite the shape without unfolding a recursion. -/
 theorem detT_succ {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α) (E : Nat → Nat → α) (n : Nat) :
     detT add mul neg zero one E (n + 1)
@@ -6363,13 +6222,7 @@ theorem matMulOn_row (add mul zero : ZFSet.{u}) (A B : Nat → Nat → ZFSet.{u}
     matMulOn add mul zero A B n i k
       = foldF add zero (fun j => opAt mul (A i j) (B j k)) n := rfl
 
-/-- Matrix multiplication is associative, entrywise over the first `n`
-indices.
-
-Both sides expand to the same double fold, so the content is that the two
-summation orders agree -- `foldF_swap`. The ring's associativity enters only to
-make the two summands identical before the exchange, not to reassociate the
-sums. -/
+/-- Matrix multiplication is associative. -/
 theorem matMulOn_assoc {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A B C : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R) (hC : ∀ i m, C i m ∈ R)
@@ -6429,11 +6282,7 @@ noncomputable def matTrace (add zero : ZFSet.{u})
 
 #print axioms matTrace
 
-/-- The trace is cyclic: `Tr(AB) = Tr(BA)`.
-
-Both sides are the same double sum with the order of summation exchanged, so
-`foldF_swap` is the whole content and the ring's commutativity supplies the
-rest. -/
+/-- `Tr (A * B) = Tr (B * A)`. -/
 theorem matTrace_mul_comm {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A B : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R) (n : Nat) :
@@ -6516,13 +6365,8 @@ theorem foldF_pair_below {R add mul zero one : ZFSet.{u}}
 
 #print axioms foldF_pair_below
 
-/-- A convolution against a factor of degree at most one collapses to two
-terms. The fold runs over `0 .. k` and every index from two upward has a
-vanishing left coefficient, so `foldF_pair_below` at `0` and `1` closes it.
-
-This is the step the adjugate recurrence turns on: with `f` a
-characteristic-matrix entry, `charMat_coeff_zero` and `charMat_coeff_one` name
-the two surviving coefficients as `-A i j` and `idMat i j`. -/
+/-- For `f` of degree at most one, the convolution coefficient of `f` and `g` at
+`k > 0` has two terms. -/
 theorem convCoeff_deg_one {R add mul zero one f g : ZFSet.{u}}
     (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g)
@@ -6544,14 +6388,8 @@ theorem convCoeff_deg_one {R add mul zero one f g : ZFSet.{u}}
 
 #print axioms convCoeff_deg_one
 
-/-- The `k`-th coefficient of a polynomial matrix product, when the left
-factor has entries of degree at most one. Three existing steps composed:
-`app_foldF_polyAdd` carries `app` past the matrix sum, `app_polyMul` turns each
-term into a convolution, and `convCoeff_deg_one` collapses each convolution to
-two terms.
-
-With `E` the characteristic matrix and `F` its adjugate, the right-hand side is
-the adjugate recurrence, entrywise and before naming the coefficients. -/
+/-- The `k`-th coefficient of a product of polynomial matrices whose left factor
+has entries of degree at most one. -/
 theorem app_matMulOn_deg_one {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E F : Nat → Nat → ZFSet.{u}}
     (hE : ∀ i j, E i j ∈ PolyRing R zero)
@@ -6603,7 +6441,7 @@ theorem mixRows_mem {R add mul zero one : ZFSet.{u}}
   · rw [mixRows_lt add mul zero A B g n t i k h]; exact hB _ _
   · rw [mixRows_ge add mul zero A B g n t i k h]; exact matMulOn_mem hR hA hB n i k
 
-/-- At `t = 0` nothing has been expanded: the matrix is the product. -/
+/-- `mixRows` at `t = 0` is the matrix product. -/
 theorem mixRows_zero (add mul zero : ZFSet.{u}) (A B : Nat → Nat → ZFSet.{u})
     (g : Nat → Nat) (n i k : Nat) :
     mixRows add mul zero A B g n 0 i k = matMulOn add mul zero A B n i k :=
@@ -6673,8 +6511,8 @@ theorem prodPrefix_mem {R add mul zero one : ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (n t m : Nat) : prodPrefix mul one A n t m ∈ R :=
   foldF_mem (isCommMonoid_ringMul hR) t (fun _ _ => hA _ _)
 
-/-- Peeling the last factor: the product over `t + 1` rows is the product over
-`t` times the entry row `t` takes. -/
+/-- `prodPrefix` at `t + 1` is `prodPrefix` at `t` times the entry of row `t`.
+-/
 theorem prodPrefix_succ (mul one : ZFSet.{u}) (A : Nat → Nat → ZFSet.{u})
     (n t m : Nat) :
     prodPrefix mul one A n (t + 1) m
@@ -6682,31 +6520,21 @@ theorem prodPrefix_succ (mul one : ZFSet.{u}) (A : Nat → Nat → ZFSet.{u})
 
 /-! ### The Leibniz machinery over a Lean type
 
-Why it is here. A statement about an arbitrary Lean type is reached either
-by re-siting it, as below, or by encoding the type as a `ZFSet`. The encoding
-spends `Classical.choice` and the re-siting spends nothing, and a Lean-typed
-caller can apply the re-sited form directly.
+A statement about an arbitrary Lean type is reached either by stating it over
+the type, as below, or by encoding the type as a `ZFSet`. The encoding spends
+`Classical.choice` and the type-sited form spends nothing, and a Lean-typed
+caller can apply it directly.
 
-The measurement that made it tractable. Reading `detN_mul` and
-`leibSum_eq_detN`, the machinery splits in two, and only half needs a twin:
+The machinery behind `detN_mul` and `leibSum_eq_detN` splits in two, and only
+half needs a twin. The index combinatorics are `Nat`- and `Bool`-valued and
+are cited unchanged:
 
-    ALREADY LEAN-NATIVE --- `Nat`- and `Bool`-valued, defined over Lean types
-    already, compiling unchanged:
-        natDigit  mixAssign  injUptoB  anyRepeat  inversions  invRow
-    ENTRY-VALUED --- everything returning a ring element, and this is the list
-    below:
-        foldF -> `sumUptoT` (landed) and `prodUptoT` (here)
-        matMulOn  idMat  ringSign  prodPrefix  permProd  mixRows  leibSum
+    natDigit  mixAssign  injUptoB  anyRepeat  inversions  invRow
 
-So no permutations are re-sited. The Leibniz argument reads as though it needs
-`Equiv.Perm` over a Lean type; `detT`'s own docstring already records that the
-indexing is Lean-native and only the entries are set-sited, and that stays true
-one layer down.
+Everything returning a ring element is restated below:
 
-`Core.prodUpto` is the neighbour and does not serve. It is
-`(Nat → Nat) → Nat → Nat`, the `Nat` specialisation landed for the CRT modulus
-product; what is needed here is the fold over an arbitrary `α` with `mul` and
-`one` as arguments. Found by `grep -rn "^def prodUpto" FromAxioms/`.
+    foldF -> `sumUptoT` and `prodUptoT`
+    matMulOn  idMat  ringSign  prodPrefix  permProd  mixRows  leibSum
 
 Every declaration in this section prints `does not depend on any axioms`. -/
 
@@ -6754,11 +6582,7 @@ def permProdT {α : Type u} (mul : α → α → α) (one : α)
     (A : Nat → Nat → α) (n m : Nat) : α :=
   prodUptoT mul one (fun i => A i (natDigit n i m)) n
 
-/-- `prodPrefixT` at full length is `permProdT`, by `rfl` --- `mixAssign` is
-definitionally `natDigit`, so the two differ only in the name the index map is
-written under. Worth stating because the `ZFSet` proof moves between the two
-spellings inside one rewrite chain, and a reader who expects a lemma there will
-otherwise look for one. -/
+/-- `prodPrefixT` at full length is `permProdT`. -/
 theorem prodPrefixT_eq_permProdT {α : Type u} (mul : α → α → α) (one : α)
     (A : Nat → Nat → α) (n m : Nat) :
     prodPrefixT mul one A n n m = permProdT mul one A n m := rfl
@@ -6808,11 +6632,11 @@ def leibSumT {α : Type u} (add mul : α → α → α) (neg : α → α) (zero 
 All of these mirror `FinProd.lean`'s `foldF_*` family with `ZFSet` replaced by a
 parameter and the commutative-monoid structure passed as function hypotheses.
 
-What the re-siting deletes is most of each proof. `foldF_skip`'s body is
-dominated by membership --- `hmem`, two `foldF_mem` obligations, and a pair of
-`∈ M` facts for the two entries being swapped. None of it exists over a type, so
-what survives is the induction and one comparison. `foldF_involution_below`, a
-whole lemma whose only job is to guard `foldF_involution`'s *membership at every
+Over a type most of each proof disappears. `foldF_skip`'s body is dominated
+by membership --- `hmem`, two `foldF_mem` obligations, and a pair of `∈ M`
+facts for the two entries being swapped. None of it exists over a type, so what
+survives is the induction and one comparison. `foldF_involution_below`, a whole
+lemma whose only job is to guard `foldF_involution`'s *membership at every
 index* hypothesis, has no counterpart here for the same reason.
 
 And the index family is cited unchanged. `origAt`, `survAt`, `survPair`,
@@ -6969,10 +6793,7 @@ theorem sumUptoT_split {α : Type u} (add : α → α → α) (zero : α)
 
 /-- A double sum is a single sum over the flattened index.
 
-`flat_div_mod` is the landed `Nat` fact and is cited unchanged. Hand-rolling it
-from core fails twice: `Nat.add_mul_div_left` is stated as `(a + m * b) / m` and
-the goal is `(n * m + i) / m`, the other multiplication order, and
-`Nat.add_mul_emod_self_left` does not exist under that name. -/
+`flat_div_mod` is the `Nat` fact and is cited unchanged. -/
 theorem sumUptoT_flatten {α : Type u} (add : α → α → α) (zero : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
     (ha0 : ∀ q, add q zero = q) (G : Nat → Nat → α) (m : Nat) :
@@ -7017,7 +6838,7 @@ One lemma goes the other way. `prodUptoT_congr_lt` has no `ZFSet` twin
 because there `foldF` takes the operation as an argument, so one `foldF_congr`
 serves the sum and the product both. Over a type the two folds are two
 definitions and each needs its own congruence --- the only place on this stack
-where re-siting adds a declaration.
+where the type-sited form adds a declaration.
 -/
 
 theorem detT_congr {α : Type u} (add mul : α → α → α) (neg : α → α)
@@ -7066,7 +6887,6 @@ theorem prodUptoT_congr_lt {α : Type u} (mul : α → α → α) (one : α)
       prodUptoT_congr_lt mul one f g m (fun k hk => h k (by omega)),
       h m (by omega)]
 
-/-- The sum of a pointwise sum is the sum of the sums. -/
 theorem sumUptoT_pointwise_add {α : Type u} (add : α → α → α) (zero : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
     (hcomm : ∀ p q, add p q = add q p) (ha0 : ∀ q, add q zero = q)
@@ -7086,7 +6906,6 @@ theorem sumUptoT_pointwise_add {α : Type u} (add : α → α → α) (zero : α
       hassoc (f n) (sumUptoT add zero g n) (g n),
       ← hassoc (sumUptoT add zero f n) (f n) _]
 
-/-- A scalar comes out of a sum. -/
 theorem sumUptoT_mul_left {α : Type u} (add mul : α → α → α) (zero : α)
     (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
     (hmul0 : ∀ p, mul p zero = zero) (c : α) (f : Nat → α) :
@@ -7110,7 +6929,6 @@ theorem rowAtT_other {α : Type u} (E : Nat → Nat → α) (r : Nat) (x : Nat �
     {i : Nat} (h : i ≠ r) (m : Nat) : rowAtT E r x i m = E i m := by
   unfold rowAtT; rw [if_neg h]
 
-/-- Multilinearity at row 0. -/
 theorem detT_row0_add {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -7141,8 +6959,7 @@ theorem detT_row0_add {α : Type u} (add mul : α → α → α) (neg : α → �
   · rw [if_pos hp, if_pos hp, if_pos hp, hdistr]
   · rw [if_neg hp, if_neg hp, if_neg hp, hdistr, hnegadd]
 
-/-- Multilinearity at any row. Row `r + 1` is row `r` of every minor, so one
-induction on the row index suffices. -/
+/-- The determinant is additive in each row, over a Lean type. -/
 theorem detT_rowk_add {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -7235,8 +7052,6 @@ theorem detT_row_smul {α : Type u} (add mul : α → α → α) (neg : α → �
     · rw [if_pos hp, if_pos hp, hpull]
     · rw [if_neg hp, if_neg hp, hpull, hmulneg]
 
-/-- A zero row kills the determinant --- `detT_row_smul` at `c = zero`, not
-a separate induction. -/
 theorem detT_row_zero {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hdistl : ∀ p q r, mul p (add q r) = add (mul p q) (mul p r))
@@ -7349,7 +7164,6 @@ theorem detT_rowAtT_smul {α : Type u} (add mul : α → α → α) (neg : α �
     (fun i k hi => by rw [rowAtT_other _ r _ hi, rowAtT_other _ r _ hi])
     (fun k => by rw [rowAtT_at, rowAtT_at])
 
-/-- The bridge between two expansion stages. -/
 theorem mixRowsT_rowAtT_succ {α : Type u} (add mul : α → α → α) (zero : α)
     (A B : Nat → Nat → α) {n : Nat} (hn : 0 < n) {t j m : Nat}
     (hj : j < n) (hm : m < n ^ t) (i k : Nat) :
@@ -7387,7 +7201,6 @@ def expandTermT {α : Type u} (add mul : α → α → α) (neg : α → α)
     (detT add mul neg zero one
       (mixRowsT add mul zero A B (mixAssign n m) n t) n)
 
-/-- At `t = 0` the sum is a single term and the matrix is the product. -/
 theorem expandTermT_zero {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α) (hm1 : ∀ p, mul one p = p)
     (A B : Nat → Nat → α) (n m : Nat) :
@@ -7463,7 +7276,6 @@ theorem matMinor2T_swap {α : Type u} (E : Nat → Nat → α) {j k : Nat} (h : 
         if_neg (show ¬ m + 1 < k + 1 by omega),
         if_neg (show ¬ m + 1 < j by omega)]
 
-/-- The sign flips one step, needing only that `neg` is an involution. -/
 theorem ringSignT_succ {α : Type u} (neg : α → α)
     (hnn : ∀ q, neg (neg q) = q) (x : α) (c : Nat) :
     ringSignT neg (c + 1) x = neg (ringSignT neg c x) := by
@@ -7473,7 +7285,6 @@ theorem ringSignT_succ {α : Type u} (neg : α → α)
   · rw [if_neg (show ¬ c % 2 = 0 by omega),
       if_pos (show (c + 1) % 2 = 0 by omega), hnn]
 
-/-- Two signs compose into one, at the sum of the exponents. -/
 theorem ringSignT_add {α : Type u} (neg : α → α)
     (hnn : ∀ q, neg (neg q) = q) (x : α) (c d : Nat) :
     ringSignT neg c (ringSignT neg d x) = ringSignT neg (c + d) x := by
@@ -7640,9 +7451,9 @@ theorem sumUptoT_zeros {α : Type u} (add : α → α → α) (zero : α)
 
 /-! ### Alternation's second half --- from two equal rows to the permutation sign
 
-The first half (`detSumT` through `detT_double`) landed above. What follows is
-the rest of the chain the two capstones need, and the split that runs through
-this whole stack holds at its top exactly as at its bottom: every combinatorial
+The first half is `detSumT` through `detT_double`, above. What follows is the
+rest of the chain the two capstones need, and the split that runs through this
+whole stack holds at its top exactly as at its bottom: every combinatorial
 lemma is `Nat`- or `Bool`-valued and is cited unchanged --- `detPair` and its
 four properties, `flat_decomp`, `flat_div_mod`, `swapVal` and its three,
 `inversions` and its descent lemmas, `invBelow`, `invBelow_eq`. Only the
@@ -7957,8 +7768,8 @@ vanishes --- over a Lean type.
 So the Leibniz expansion can sum over all `n ^ n` assignments rather than only
 the injective ones: the non-injective terms cost nothing and need not be carved
 out of the index set. It is one of the two hypotheses `leibSumT_eq_detT` will
-need, and the shorter one --- `detT_permOn` is a strong recursion on the
-inversion count and is the next real rung. -/
+need, and the shorter one; the other is `detT_permOn`, a strong recursion on
+the inversion count. -/
 theorem detT_repeatOn {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -7984,7 +7795,7 @@ theorem detT_repeatOn {α : Type u} (add mul : α → α → α) (neg : α → �
     (b - a - 1) a (n - b - 1) _
     (fun c => by rw [show a + (b - a - 1) + 1 = b from by omega, heq])
 
-/-! ### The permutation sign --- the last substantial rung
+/-! ### The permutation sign
 
 `detT_permOn` goes through `detT_perm`, a strong recursion on the inversion
 COUNT: with no inversions the permutation is the identity on the range; with
@@ -8014,7 +7825,6 @@ theorem rows_swapValT {α : Type u} (B : Nat → Nat → α) (f : Nat → Nat)
       · rw [swapVal_other f (by omega) (by omega),
           rowsAdjT_other _ r _ _ (by omega) (by omega)]
 
-/-- `a + b = zero` gives `neg a = b`, over a type. -/
 theorem negT_eq_of_add_eq_zero {α : Type u} (add : α → α → α) (neg : α → α)
     (zero : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -8137,7 +7947,6 @@ theorem expandTerm_mem {R add mul zero one : ZFSet.{u}}
   mulAt_mem hR (prodPrefix_mem hR hA n t m)
     (detN_mem hR (mixRows_mem hR hA hB (mixAssign n m) n t) n)
 
-/-- At `t = 0` the sum is a single term and the matrix is the product. -/
 theorem expandTerm_zero {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A B : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (hB : ∀ i m, B i m ∈ R) (n m : Nat) :
@@ -8175,10 +7984,8 @@ theorem detN_rowAt_smul {R add mul zero one : ZFSet.{u}}
 
 
 
-/-- The bridge between two stages. Expanding row `t` of the stage-`t`
-matrix and fixing the column at `j` gives exactly the stage-`(t+1)` matrix whose
-assignment is the code `j * n ^ t + m`: the digits below `t` are `m`'s, and the
-digit at `t` is `j`. -/
+/-- Expanding row `t` of the stage-`t` matrix at column `j` gives the stage-`(t
++ 1)` matrix whose assignment is the code `j * n ^ t + m`. -/
 theorem mixRows_rowAt_succ (add mul zero : ZFSet.{u})
     (A B : Nat → Nat → ZFSet.{u}) {n : Nat} (hn : 0 < n) {t j m : Nat}
     (hj : j < n) (hm : m < n ^ t) (i k : Nat) :
@@ -8528,7 +8335,7 @@ theorem detT_permOn {α : Type u} (add mul : α → α → α) (neg : α → α)
 /-! ### The two inputs the capstones still lacked: the identity and the expansion
 
 `leibSum_eq_detN` is the case `B = I` of the expansion and `detN_mul` is the
-general case, so both rest on the same four rungs. Three are here ---
+general case, so both rest on the same four lemmas. Three are here ---
 `sumUptoT_single`, `matMinorT_idMatT_zero` and `detT_idMatT` for the identity,
 `matMulOnT_idMatT` for multiplying by it --- and the fourth is `expandSumT`
 below with its own two.
@@ -8754,9 +8561,9 @@ theorem expandSumT {α : Type u} (add mul : α → α → α) (neg : α → α)
 
 `ringSignT` is an `if` on the parity, so both branches are decided by the same
 `Nat` test and the odd branch is exactly `hnegmul`. The `ZFSet` twin below
-carries `(hR : IsRing ...) (ha : a in R) (hb : b in R)`; the re-siting takes all
-three off, and with the membership goes the only route to a quotient --- these
-print `does not depend on any axioms`. -/
+carries `(hR : IsRing ...) (ha : a in R) (hb : b in R)`; over a type all three
+go, and with the membership goes the only route to a quotient --- these print
+`does not depend on any axioms`. -/
 theorem ringSignT_mul_left {α : Type u} (mul : α → α → α) (neg : α → α)
     (hnegmul : ∀ p q, mul (neg p) q = neg (mul p q)) (a b : α) (c : Nat) :
     mul (ringSignT neg c a) b = ringSignT neg c (mul a b) := by
@@ -8765,7 +8572,6 @@ theorem ringSignT_mul_left {α : Type u} (mul : α → α → α) (neg : α → 
   · rw [if_neg h, if_neg h, hnegmul]
   · rw [if_pos h, if_pos h]
 
-/-- ...and out of the right factor, by `hmulneg` instead. -/
 theorem ringSignT_mul_right {α : Type u} (mul : α → α → α) (neg : α → α)
     (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q)) (a b : α) (c : Nat) :
     mul a (ringSignT neg c b) = ringSignT neg c (mul a b) := by
@@ -8774,8 +8580,6 @@ theorem ringSignT_mul_right {α : Type u} (mul : α → α → α) (neg : α →
   · rw [if_neg h, if_neg h, hmulneg]
   · rw [if_pos h, if_pos h]
 
-/-- And the sign absorbs a unit on the right, which is the shape the Leibniz
-identity reaches for once the inner determinant has become `one`. -/
 theorem ringSignT_mul_one {α : Type u} (mul : α → α → α) (neg : α → α)
     (one : α) (hm1 : ∀ p, mul p one = p)
     (hmulneg : ∀ p q, mul p (neg q) = neg (mul p q)) (a : α) (c : Nat) :
@@ -8783,7 +8587,6 @@ theorem ringSignT_mul_one {α : Type u} (mul : α → α → α) (neg : α → �
   rw [ringSignT_mul_right mul neg hmulneg a one c, hm1]
 
 
-/-- A sign passes through the left factor of a product. -/
 theorem ringSign_mul_left {R add mul zero one a b : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (c : Nat) :
     opAt mul (ringSign R add zero c a) b = ringSign R add zero c (opAt mul a b) := by
@@ -8792,7 +8595,6 @@ theorem ringSign_mul_left {R add mul zero one a b : ZFSet.{u}}
   · rw [if_neg h, if_neg h, ringNeg_mul hR ha hb]
   · rw [if_pos h, if_pos h]
 
-/-- ...and through the right factor. -/
 theorem ringSign_mul_right {R add mul zero one a b : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (ha : a ∈ R) (hb : b ∈ R) (c : Nat) :
     opAt mul a (ringSign R add zero c b) = ringSign R add zero c (opAt mul a b) := by
@@ -8839,21 +8641,13 @@ theorem anyRepeat_of_injUptoB_false {f : Nat → Nat} {n : Nat}
 /-! ### The two capstones, over a Lean type
 
 `leibSumT_eq_detT` is the case `B = I` of `expandSumT` and `detT_mul` is the
-general case, so the two share every rung above. What the re-siting buys.
-Reaching an arbitrary Lean type by encoding it as a `ZFSet` costs
-`Classical.choice`; with `detT_mul` stated here a Lean-typed caller applies it
-directly and no encoding is needed.
+general case, so the two share everything above. Reaching an arbitrary Lean
+type by encoding it as a `ZFSet` costs `Classical.choice`; with `detT_mul`
+stated here a Lean-typed caller applies it directly and no encoding is needed.
 -/
 
-/-- The Leibniz identity over a Lean type: the signed sum over all
-assignments in the `n ^ n` encoding is the determinant.
-
-The route is the `ZFSet` twin's: `expandSumT` at `B = I`, then per term a case
-split on whether the assignment is injective. Injective, it is a permutation and
-`detT_permOn` plus `detT_idMatT` turn the inner determinant into a sign;
-repeated, `detT_repeatOn` kills it. `ringSignT_mul_one` collects the sign onto
-the outside, which is the step the `ZFSet` proof spends two membership lemmas
-on. -/
+/-- The Leibniz formula over a Lean type: the signed sum over all assignments in
+the `n ^ n` encoding is the determinant. -/
 theorem leibSumT_eq_detT {α : Type u} (add mul : α → α → α) (neg : α → α)
     (zero one : α)
     (hassoc : ∀ p q r, add (add p q) r = add p (add q r))
@@ -8972,8 +8766,8 @@ theorem detT_mul {α : Type u} (add mul : α → α → α) (neg : α → α)
 #print axioms leibSumT_eq_detT
 #print axioms detT_mul
 
-/-- The Leibniz identity in the `n ^ n` encoding, as the case `B = I` of the
-expansion: the sum over all assignments is the determinant. -/
+/-- The Leibniz formula: the signed sum over all assignments in the `n ^ n`
+encoding is the determinant. -/
 theorem leibSum_eq_detN {R add mul zero one : ZFSet.{u}} {n : Nat}
     (hR : IsRing R add mul zero one) {A : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (hn : 0 < n) :
@@ -9064,9 +8858,8 @@ theorem matPow_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero 
   | k + 1, i, m =>
     matMulOn_mem hR (matPow_mem hR hA n k) hA n i m
 
-/-- A power peels off on either side. `matPow` recurses on the right
-(`A^(k+1) = A^k * A`); this is the left form, and the induction step is exactly
-`matMulOn_assoc`. -/
+/-- `A ^ (k + 1) = A * A ^ k`. See the definition of `matPow` for the other
+multiplication order. -/
 theorem matPow_succ_left {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (n : Nat) :
@@ -9115,11 +8908,7 @@ theorem recurrence_fold_eq {R add mul zero one : ZFSet.{u}}
 
 #print axioms recurrence_fold_eq
 
-/-- Negating the left factor negates the product. `ringNeg_mul` inside the
-sum and `foldF_neg` outside it.
-
-The recurrence arrives with a negated matrix on one side, which this turns into
-a subtraction, which is the form the telescope and `matMulOn_sub` both want. -/
+/-- Negating the left factor negates a matrix product. -/
 theorem matMulOn_neg_left {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A B : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i j, A i j ∈ R) (hB : ∀ i j, B i j ∈ R) (n i j : Nat) :
@@ -9156,9 +8945,7 @@ theorem matMulOn_scaleIdMat {R add mul zero one c : ZFSet.{u}}
 
 #print axioms matMulOn_scaleIdMat
 
-/-- The degree-zero coefficient of a polynomial matrix product. The same
-three steps as `app_matMulOn_deg_one`, but with `convCoeff_at_zero` in place of
-the two-term collapse -- at degree zero there is one surviving term, not two. -/
+/-- The degree-zero coefficient of a product of polynomial matrices. -/
 theorem app_matMulOn_zero {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E F : Nat → Nat → ZFSet.{u}}
     (hE : ∀ i j, E i j ∈ PolyRing R zero)
@@ -9183,12 +8970,7 @@ theorem app_matMulOn_zero {R add mul zero one : ZFSet.{u}}
 
 #print axioms app_matMulOn_zero
 
-/-- The first power is the matrix. `matPow` recurses by right-multiplication
-from the identity, so one step is `I * A`, which `idMat_matMulOn` collapses.
-
-Needed because the degree-zero end of the telescope names `A^1 * B 0` while the
-recurrence at zero names `A * B 0`, and those are the same matrix only after
-this. -/
+/-- `A ^ 1 = A`, at row indices below the size `n`. -/
 theorem matPow_one {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i j, A i j ∈ R) {n i : Nat} (hi : i < n) (j : Nat) :
@@ -9214,10 +8996,9 @@ theorem matPow_one {R add mul zero one : ZFSet.{u}}
 
 /-! ## Reduction into the quotient, and the pigeonhole over an ideal -/
 
-/-- The sharp convolution bound. Identical proof to `convCoeff_eq_zero`,
-with `Nf + Ng - 1` in place of `Nf + Ng`. Nat subtraction is safe here: at
-`Ng = 0` the hypothesis reads `Nf - 1 <= k` and `g` is identically zero, so
-every summand vanishes regardless. -/
+/-- The convolution coefficient at `k` is zero when `Nf + Ng - 1 ≤ k`. The
+subtraction is truncated: at `Ng = 0` the polynomial `g` is zero and every
+summand vanishes. -/
 theorem convCoeff_eq_zero_sharp {R add mul zero one f g : ZFSet.{u}}
     (hR : IsRing R add mul zero one)
     (hf : IsPolyOver R zero f) (hg : IsPolyOver R zero g) {Nf Ng : Nat}
@@ -9373,8 +9154,7 @@ theorem lead_mul {R add mul zero one f g : ZFSet.{u}} (hR : IsRing R add mul zer
   rw [hrest, show m + n - m = n by omega, ringZero_add hR hab]
 
 
-/-- `(x+1)` has coefficient one at index 1. The half of its shape that
-`shiftPow_bound` did not need. -/
+/-- `x + 1` has coefficient one at index `1`. -/
 theorem app_shift_one {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one) :
     app (opAt (polyAddOp R add zero) (polyX R zero one) (polyOne R zero one))
       (ofNat.{u} 1) = one := by
@@ -9419,21 +9199,8 @@ theorem shiftPow_monic {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul z
       shiftPow_monic hR j, app_shift_one hR, ringOne_mul hR hR.mem_one]
 
 
-/-- A matrix whose column 0 vanishes has determinant zero (at size `n+1`).
-
-Not stated at size 0: `detN _ 0 = one` by definition, and a 0x0 matrix has no
-column to vanish.
-
-`detN` expands along row 0, so this does not fall out of the zero column
-directly -- the `j = 0` term dies because `E 0 0 = zero`, and each `j > 0` term
-dies because `matMinor E j` has column 0 equal to `E (i+1) 0`, which vanishes
-for every `i` since `i + 1 > 0`. So the recursion carries the hypothesis down
-rather than discharging it, and every term of the fold is zero.
-
-A triangular determinant needs this, and not a transpose law. An
-upper-triangular matrix has an all-ones row 0 in the cyclotomic case, so the
-Laplace expansion does not collapse; it collapses one level down, through
-exactly this lemma. -/
+/-- A matrix whose column `0` vanishes has determinant zero, at every size `n +
+1`. -/
 theorem detN_of_zero_column {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
     (hcol : ∀ i : Nat, E i 0 = zero) (hmem : ∀ i j, E i j ∈ R) :
@@ -9467,19 +9234,8 @@ theorem detN_of_zero_column {R add mul zero one : ZFSet.{u}}
       rw [if_neg hpar, hterm, ringNeg_zero hR]
 
 
-/-- A unitriangular matrix has determinant one -- zero below the diagonal,
-one on it, at every size.
-
-The Laplace expansion is along row 0, which for such a matrix is not sparse, so
-the collapse happens one level down: for `j > 0` the minor `matMinor E j` has
-column 0 equal to `E (i+1) 0`, which vanishes because `i + 1 > 0`, and
-`detN_of_zero_column` kills the term. Only `j = 0` survives, contributing
-`E 0 0 = one` times the determinant of `matMinor E 0`, which is unitriangular
-again.
-
-`cycNorm (cycOne p) = 1` consumes this, and not an identity-matrix lemma --
-the cyclotomic multiplication matrix at one is Pascal's triangle, whose row 0
-is all ones. -/
+/-- A matrix that is zero below the diagonal and one on it has determinant one.
+-/
 theorem detN_of_unitriangular {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
     (hmem : ∀ i j, E i j ∈ R)
@@ -9616,13 +9372,8 @@ theorem app_polyMul_const {R add mul zero one a g : ZFSet.{u}}
 #print axioms app_polyMul_const
 /-! ### Roots with multiplicity: the power spelling and the repeat spelling -/
 
-/-- A root of a monic polynomial expresses its top power by the lower ones.
-
-    f monic of degree d,  f(x) = 0   =>   x^d = -(a_0 + a_1 x + ... + a_(d-1) x^(d-1))
-
-`evalAt_eq` turns the evaluation into the partial sum `evalUpTo` at the support
-bound, the fold's own successor equation peels the top term off, and monicity
-makes that term `x^d` rather than a multiple of it. -/
+/-- A root `x` of a monic polynomial of degree `d` satisfies `x ^ d = -(a_0 +
+a_1 x + ... + a_(d-1) x ^ (d-1))`. -/
 theorem gpow_eq_neg_evalUpTo_of_monic_root {R add mul zero one x f : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hx : x ∈ R) (hf : IsPolyOver R zero f)
     {d : Nat} (hbound : ∀ i : Nat, d < i → app f (ofNat.{u} i) = zero)
@@ -9745,7 +9496,6 @@ theorem cycleUpInv_cycleUp (j : Nat) :
           have h2 : ¬ m = j := by omega
           simp [h1, h2]
 
-/-- The three cases of `cycleUp`, so no later proof has to see an `if`. -/
 theorem cycleUp_zero (j : Nat) : cycleUp j 0 = j := rfl
 
 theorem cycleUp_mid {j m : Nat} (h1 : 1 ≤ m) (h2 : m ≤ j) :
@@ -9865,8 +9615,7 @@ noncomputable def adjMat (R add mul zero one : ZFSet.{u})
     (E : Nat → Nat → ZFSet.{u}) (n : Nat) : Nat → Nat → ZFSet.{u} :=
   fun i j => adjEntry R add mul zero one E n i j
 
-/-- The adjugate's entries lie in the ring: each is a signed determinant of a
-minor, and `detN_mem` covers the determinant. -/
+/-- The entries of the adjugate lie in the ring. -/
 theorem adjMat_mem {R add mul zero one : ZFSet.{u}} (hR : IsRing R add mul zero one)
     {E : Nat → Nat → ZFSet.{u}} (hE : ∀ i j, E i j ∈ R) (n i j : Nat) :
     adjMat R add mul zero one E n i j ∈ R := by
@@ -9958,10 +9707,7 @@ theorem matMulOn_adjMat_diag {R add mul zero one : ZFSet.{u}}
 
 #print axioms matMulOn_adjMat_diag
 
-/-- `cycleUp k` sends only `0` to `k`. Below `k` it lands strictly below,
-above `k` it is the identity -- so a minor taken after `cycleUp k`, which reads
-only rows `1` and up, never touches row `k`, so a row substituted at `k` leaves
-every cofactor unchanged. -/
+/-- `cycleUp k` sends only `0` to `k`. -/
 theorem cycleUp_ne_of_pos {k m : Nat} (hm : 1 ≤ m) : cycleUp k m ≠ k := by
   by_cases h : m ≤ k
   · rw [cycleUp_mid hm h]; omega
@@ -10104,9 +9850,7 @@ theorem matMulOn_foldF_right {R add mul zero one : ZFSet.{u}}
 
 #print axioms matMulOn_foldF_right
 
-/-- A matrix product absorbs a scalar on the right. `(A * Y) * c` is
-`A * (Y scaled by c)`, entrywise -- the fold pushed through by
-`foldF_mul_right_lt` and one associativity per term. -/
+/-- `(A * Y) * c = A * (Y * c)` entrywise, for a scalar `c`. -/
 theorem matMulOn_mul_right {R add mul zero one c : ZFSet.{u}}
     (hR : IsRing R add mul zero one) (hc : c ∈ R)
     {A Y : Nat → Nat → ZFSet.{u}} (hA : ∀ i j, A i j ∈ R) (hY : ∀ i j, Y i j ∈ R)
@@ -10173,9 +9917,9 @@ Step 1 of `injective -> detN /= zero` by the Cayley-Hamilton route.
 The vector-kill shape in this development is a fold rather than a matrix
 product, so `matMulOn_assoc` does not apply to it directly. It does apply once
 the vector is lifted to a constant-column matrix `V j m := v j`: the left side
-of associativity then reads as the fold of `E^(k+1)` against `v`, independent of
-the column, and the right side reads as `E^k` applied to the vector `E v`. That
-turns what would be an induction over `foldF` into one landed lemma. -/
+of associativity then reads as the fold of `E^(k+1)` against `v`, independent
+of the column, and the right side reads as `E^k` applied to the vector `E v`.
+That turns what would be an induction over `foldF` into one lemma. -/
 theorem matPow_injective {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {E : Nat → Nat → ZFSet.{u}}
     (hE : ∀ a m, E a m ∈ R) (n : Nat)
@@ -10256,9 +10000,7 @@ theorem ringPow_eq_zero_of_matMulOn_scalar {R add mul zero one c : ZFSet.{u}}
 
 #print axioms ringPow_eq_zero_of_matMulOn_scalar
 
-/-- A matrix product absorbs a negation on the right. The mirror of
-`matMulOn_neg_left`, which the tree had without this half -- the first caller
-needed the left one and the pair was never completed. -/
+/-- Negating the right factor negates a matrix product. -/
 theorem matMulOn_neg_right {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A C : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i j, A i j ∈ R) (hC : ∀ i j, C i j ∈ R) (n m j : Nat) :
@@ -10269,17 +10011,8 @@ theorem matMulOn_neg_right {R add mul zero one : ZFSet.{u}}
 
 #print axioms matMulOn_neg_right
 
-/-- Matrix powers add: `A^(k + t) = A^k * A^t`, entrywise over the indices
-the size bounds.
-
-`matPow` recurses on the right, so the induction is on `t` and each step is one
-`matMulOn_assoc`. The index hypotheses are what `matMulOn_idMat` needs at the
-base -- outside the range the identity matrix is not a right unit, because the
-fold does not reach the diagonal entry.
-
-Wanted wherever a power has to be split so a factor can leave a sum, which is
-what the Cayley-Hamilton route to `injective -> detN /= zero` does at every
-step. -/
+/-- `A ^ (k + t) = A ^ k * A ^ t`, at indices below the size `n`. Outside that
+range the identity matrix is not a right unit. -/
 theorem matPow_add {R add mul zero one : ZFSet.{u}}
     (hR : IsRing R add mul zero one) {A : Nat → Nat → ZFSet.{u}}
     (hA : ∀ i m, A i m ∈ R) (n k : Nat) :

@@ -427,18 +427,7 @@ theorem gcd_eq_one_of_prime_not_divides {p a : Nat} (hp : IsPrime p)
     · omega
   · exact absurd ((hp.right _ hge hd) ▸ (Nat.gcd_dvd_right p a : Divides (Nat.gcd p a) a)) h
 
-/-- A modular inverse, as a natural number.
-
-For a prime `p` and `j` strictly between `0` and `p`, some `k` has
-`j * k % p = 1`.
-
-`Field.lean`'s `mem_modInv_iff_gcd_one` says the class is invertible, but it is
-stated at universe `0` and yields a class. Bezout gives the witness directly
-and stays in `Nat`, so nothing crosses a universe or a quotient.
-
-Bezout's two cases are not symmetric here. One gives `j * b + 1` as a multiple
-of `p` outright; the other only gives `j * b` congruent to `-1`, and its
-witness is `b * (p - 1)`, since `(p-1)^2 = (p-2)*p + 1`. -/
+/-- For a prime `p` and `0 < j < p`, some natural `k` has `j * k % p = 1`. -/
 theorem exists_mul_mod_one {p j : Nat} (hp : IsPrime p)
     (hj : 0 < j) (hjp : j < p) :
     ∃ k : Nat, j * k % p = 1 := by
@@ -649,7 +638,6 @@ theorem prime_divides_prodList {p : Nat} (hp : IsPrime p) : ∀ l : List Nat,
     · obtain ⟨r, hr, hpr⟩ := prime_divides_prodList hp t ht
       exact ⟨r, List.mem_cons_of_mem q hr, hpr⟩
 
-/-- Primes dividing primes are equal, so the factor found is the prime itself. -/
 theorem prime_eq_of_divides {p q : Nat} (hp : IsPrime p) (hq : IsPrime q)
     (h : Divides p q) : p = q := hq.right p hp.left h
 
@@ -732,7 +720,6 @@ theorem prime_divides_pow {p q : Nat} (hp : IsPrime p) (hq : IsPrime q) :
     · exact prime_divides_pow hp hq k h
     · exact prime_eq_of_divides hp hq h
 
-/-- A prime power and a number the prime misses are coprime. -/
 theorem gcd_prime_pow_eq_one {p z : Nat} (hp : IsPrime p) (hz : ¬ Divides p z) (k : Nat) :
     Nat.gcd (p ^ k) z = 1 := by
   have hp2 := hp.left
@@ -1031,7 +1018,6 @@ def sumOver (g : Nat → Nat) : List Nat → Nat
   | [] => 0
   | e :: es => g e + sumOver g es
 
-/-- A zero remainder is a divisibility. -/
 theorem dvd_of_mod_zero {a d : Nat} (h : a % d = 0) : Divides d a := by
   refine ⟨a / d, ?_⟩
   have hs := Nat.div_add_mod a d
@@ -1048,9 +1034,9 @@ three Eisenstein hypotheses are then binomial facts:
 * the constant term is `C(p,1) = p`, which `p²` does not divide.
 
 Stated over the coefficient function rather than over a polynomial object,
-because the substitution `x → x+1` does not exist in this tree and is not needed
-to state the conditions -- only to transfer the resulting irreducibility back to
-`Φp` itself, which is a separate rung. -/
+because the substitution `x → x+1` does not exist in this tree and is not
+needed to state the conditions -- only to transfer the resulting irreducibility
+back to `Φp` itself. -/
 theorem cyclotomicShift_eisenstein {p : Nat} (hp : IsPrime p) :
     (∀ j, j < p - 1 -> Divides p (choose p (j + 1)))
       ∧ ¬ Divides p (choose p (p - 1 + 1))
@@ -1194,9 +1180,7 @@ theorem norm_nonneg (x : Eis) : 0 <= norm x := by
   · have h1 := int_sq_nonneg (x.re - x.im)
     rw [norm_split]; omega
 
-/-- The norm is multiplicative, so a factorisation in `ℤ[ω]` becomes a
-factorisation of a natural number, in which a proper factor is strictly
-smaller, so the descent terminates. -/
+/-- The norm on `ℤ[ω]` is multiplicative. -/
 theorem norm_mul (x y : Eis) : norm (mul x y) = norm x * norm y := by
   simp [norm, mul, Int.sub_mul, Int.mul_sub, Int.mul_add, Int.add_mul,
     Int.mul_assoc, Int.mul_comm, Int.mul_left_comm]
@@ -1236,8 +1220,7 @@ theorem mul_assoc (x y z : Eis) : mul (mul x y) z = mul x (mul y z) := by
 
 theorem norm_one : norm one = 1 := by simp [norm, one]
 
-/-- A unit has norm `1`. The converse holds too, and this direction is the
-one a descent needs: a factor of norm `1` is not a proper factor. -/
+/-- A unit of `ℤ[ω]` has norm `1`. -/
 theorem norm_eq_one_of_unit {x y : Eis} (h : mul x y = one) : norm x = 1 := by
   have hn : norm x * norm y = 1 := by rw [← norm_mul, h, norm_one]
   have hx := norm_nonneg x
@@ -1273,8 +1256,7 @@ theorem norm_conj (x : Eis) : norm (conj x) = norm x := by
   simp [norm, conj, Int.mul_sub,
     Int.mul_neg, Int.neg_mul, Int.neg_neg, Int.mul_comm]
 
-/-- Cancellation: `ℤ[ω]` has no zero divisors, because the norm has none in
-`ℤ`. The descent needs this to know a proper factor is proper. -/
+/-- `ℤ[ω]` has no zero divisors. -/
 theorem eq_zero_of_mul_eq_zero {x y : Eis} (h : mul x y = zero)
     (hx : ¬ (x.re = 0 ∧ x.im = 0)) : y.re = 0 ∧ y.im = 0 := by
   have hn : norm x * norm y = 0 := by
@@ -1310,7 +1292,6 @@ theorem roundDiv_error {n d : Int} (hd : 0 < d) :
   rw [hunfold]
   exact ⟨by omega, by omega⟩
 
-/-- `|A| <= N` gives `A² <= N²`, by cases on the sign. -/
 private theorem sq_le_sq {A N : Int} (h1 : -N <= A) (h2 : A <= N) :
     A * A <= N * N := by
   rcases Int.lt_or_le A 0 with h | h
@@ -1566,8 +1547,7 @@ before the descent itself. -/
 
 def IsUnit (u : Eis) : Prop := ∃ v : Eis, mul u v = one
 
-/-- Norm `1` is the unit condition, not just a consequence of it: `x · conj x`
-is `N(x)`, so an element of norm `1` has its own conjugate as an inverse. -/
+/-- An element of `ℤ[ω]` of norm `1` is a unit. -/
 theorem isUnit_of_norm_eq_one {x : Eis} (h : norm x = 1) : IsUnit x :=
   ⟨conj x, by rw [mul_conj, h]; rfl⟩
 
@@ -1644,8 +1624,7 @@ theorem ext_of_coords {a b : Eis} (hr : a.re = b.re) (hi : a.im = b.im) : a = b 
   simp at hr hi
   simp [hr, hi]
 
-/-- Cancellation. `ℤ[ω]` has no zero divisors, so a non-zero factor may be
-struck from both sides, turning `λ⁴ ∣ λ³w³` into `λ ∣ w³`. -/
+/-- A non-zero factor cancels on the left in `ℤ[ω]`. -/
 theorem eq_of_mul_left_cancel {a b c : Eis}
     (ha : ¬ (a.re = 0 ∧ a.im = 0)) (h : mul a b = mul a c) : b = c := by
   have hz : mul a (sub b c) = zero := by
@@ -1667,9 +1646,7 @@ def IsIrreducible (p : Eis) : Prop :=
   ¬ IsUnit p ∧ ¬ (p.re = 0 ∧ p.im = 0) ∧
     ∀ a b : Eis, p = mul a b → IsUnit a ∨ IsUnit b
 
-/-- A factor of norm one is a unit, so a product of norm one has two. The
-step that makes `SplitDecision` unsatisfiable when stated over every element,
-and the one an argument by cases on the norm keeps needing. -/
+/-- If `norm a * norm b = 1`, then `norm a = 1` and `norm b = 1`. -/
 theorem norm_mul_eq_one {a b : Eis} (h : norm a * norm b = 1) :
     norm a = 1 ∧ norm b = 1 := by
   have ha := norm_nonneg a
@@ -1790,13 +1767,8 @@ theorem dvd_iff_norm_dvd_coords {a x : Eis}
         refine ext_of_coords ?_ ?_ <;> simp [mul, ofInt] <;> omega
       rw [hl, hr]
 
-/-- A non-unit divisor of `x` other than an associate is proper: its norm is
-strictly between `1` and `N(x)`. The band the search runs over, stated so the
-enumeration has a `Nat` to count.
-
-`1 < N(a)` because `a` is not a unit and not zero; `N(a) < N(x)` because the
-cofactor is not a unit either -- which is exactly what "splits into two
-non-units" says. -/
+/-- If `x = a * b` is non-zero with `a` and `b` non-units, then `1 < norm a <
+norm x`. -/
 theorem norm_band_of_split {x a b : Eis} (h : x = mul a b)
     (ha : ¬ IsUnit a) (hb : ¬ IsUnit b)
     (hx : ¬ (x.re = 0 ∧ x.im = 0)) :
@@ -1873,11 +1845,7 @@ membership a question about two integer remainders.
 The enumeration returns a `Bool`, so the outer branch is `Bool.rec` and never
 `em`, and no `Classical.em` enters where the audit line would not show it. -/
 
-/-- `c ≤ c·c` and `-(c·c) ≤ c`, for every integer.
-
-Crude: it turns a square bound into a linear box, which `omega` can carry
-through the rest of the argument. A tight bound would need a square root and
-buy nothing, since the box only has to be finite. -/
+/-- `c ≤ c * c` and `-(c * c) ≤ c` for every integer `c`. -/
 theorem le_sq_self (c : Int) : c <= c * c ∧ -(c * c) <= c := by
   have hsq := int_sq_nonneg c
   constructor
@@ -2216,10 +2184,8 @@ theorem leastPrimeAbove_spec (n : Nat) :
 
 
 
-/-- A product of two naturals prime to `p` is prime to `p`.
-
-Euclid's lemma in the `% p /= 0` spelling. `prime_divides_mul` splits the
-divisibility and each branch contradicts a hypothesis. -/
+/-- If a prime `p` divides neither `a` nor `b`, then it does not divide `a * b`.
+-/
 theorem mul_mod_ne_zero {p a b : Nat} (hp : IsPrime p)
     (ha : a % p ≠ 0) (hb : b % p ≠ 0) : (a * b) % p ≠ 0 := by
   intro h
@@ -2229,15 +2195,8 @@ theorem mul_mod_ne_zero {p a b : Nat} (hp : IsPrime p)
 
 #print axioms NumberTheory.mul_mod_ne_zero
 
-/-- A product of naturals prime to `p` is prime to `p`.
-
-Euclid's lemma folded along `prodUpto`. The hypothesis is bounded because the
-consumer below has a family of distinct primes and can only show the factors
-below `K` are prime to `P K`, so a version demanding it at every index would
-compile and never apply.
-
-The two-factor case is `mul_mod_ne_zero` above.
--/
+/-- If a prime `p` divides none of `F 0, ..., F (K - 1)`, then it does not
+divide their product. -/
 theorem prodUpto_mod_ne_zero {p : Nat} (hp : IsPrime p) {F : Nat → Nat} :
     ∀ K : Nat, (∀ k : Nat, k < K → F k % p ≠ 0) → prodUpto F K % p ≠ 0
   | 0, _ => by
@@ -2253,19 +2212,8 @@ theorem prodUpto_mod_ne_zero {p : Nat} (hp : IsPrime p) {F : Nat → Nat} :
         (mod_eq_zero_of_divides hd)
     · exact hF K (by omega) (mod_eq_zero_of_divides hd)
 
-/-- An exponent vector is determined by the product it names.
-
-    prod_{k<K} P k ^ d k = prod_{k<K} P k ^ e k   ->   d k = e k for k < K
-
-for a family of pairwise distinct primes. `prime_pow_split_unique` peels one
-prime, and what it needs of the remaining factor --- that it is prime to the
-peeled prime --- is `prodUpto_mod_ne_zero` applied through `prime_divides_pow`,
-which says a prime dividing a prime power divides its base.
-
-This is the injectivity an Euler product needs: with it, the flat sum produced
-by expanding the product is a sum over distinct naturals rather than a sum with
-repetitions. Unique factorisation is not invoked --- the statement is about a
-fixed family in a fixed order, so no permutation appears. -/
+/-- For pairwise distinct primes `P k`, if `∏ k < K, P k ^ d k = ∏ k < K, P k ^
+e k`, then `d k = e k` for all `k < K`. -/
 theorem prodUpto_pow_inj {P : Nat → Nat} (hP : ∀ k : Nat, IsPrime (P k))
     (hne : ∀ i j : Nat, i ≠ j → P i ≠ P j) {d e : Nat → Nat} :
     ∀ K : Nat,
@@ -2310,8 +2258,6 @@ theorem orderedPrime_isPrime : ∀ k : Nat, IsPrime (orderedPrime k)
   | 0 => isPrime_two
   | k + 1 => (leastPrimeAbove_spec (orderedPrime k)).right
 
-/-- The family is strictly increasing, which is what "in order" means here
-and what makes its members pairwise distinct. -/
 theorem orderedPrime_lt_succ (k : Nat) :
     orderedPrime k < orderedPrime (k + 1) :=
   (leastPrimeAbove_spec (orderedPrime k)).left
@@ -2353,7 +2299,6 @@ theorem orderedPrime_ge : ∀ k : Nat, k + 2 ≤ orderedPrime k
     omega
 
 
-/-- A `prodUpto` only reads its family below the bound. -/
 theorem prodUpto_congr {F G : Nat → Nat} :
     ∀ K : Nat, (∀ k : Nat, k < K → F k = G k) → prodUpto F K = prodUpto G K
   | 0, _ => rfl
@@ -2406,7 +2351,6 @@ theorem exists_prodUpto_pow {P : Nat → Nat} (hP : ∀ k : Nat, IsPrime (P k)) 
       ← hd, hnz, Nat.mul_comm]
 
 
-/-- A product of positive factors is positive. -/
 theorem prodUpto_pos {F : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
     ∀ K : Nat, 0 < prodUpto F K
   | 0 => by
@@ -2487,23 +2431,8 @@ theorem orderedPrime_complete {q : Nat} (hq : IsPrime q) :
         exact ⟨K, by omega, hEq⟩
 
 
-/-- Every positive number below the `K`-th prime factors over the first `K`
-primes, with every exponent bounded by the number itself.
-
-This is the step that makes the Euler comparison finite. The product side is
-truncated twice --- at `K` primes and at exponent depth `J` --- and this fixes
-both truncations at once against a single bound `n`:
-
-  * the factorisation exists over the first `K` primes, because a prime divisor
-    of `n` is at most `n`, hence strictly below `orderedPrime K`, and
-    `orderedPrime_complete` then places it in the enumeration below `K`;
-  * each exponent obeys `2 ^ d k <= n`, because the factor `p k ^ d k` divides
-    --- indeed is dominated by --- the whole product, and every prime is at
-    least two.
-
-The exponent bound is stated against `2 ^ d k` rather than `d k` because what
-the truncation depth must satisfy is `2 ^ J > n`, so this is the form the
-consumer uses, with no logarithm needed anywhere. -/
+/-- Every positive `n` below the `K`-th prime is a product of powers of the
+first `K` primes, with exponents `d k` satisfying `2 ^ d k ≤ n`. -/
 theorem exists_orderedPrime_pow_of_lt {n K : Nat} (hn : 0 < n)
     (hlt : n < orderedPrime K) :
     ∃ d : Nat → Nat, n = prodUpto (fun k => orderedPrime k ^ d k) K ∧
@@ -2525,15 +2454,8 @@ theorem exists_orderedPrime_pow_of_lt {n K : Nat} (hn : 0 < n)
   omega
 
 
-/-- A product grows with its factors.
-
-Termwise monotonicity, bounded like every other `prodUpto` fact by the range
-rather than demanded at every index --- the consumer compares digit exponents,
-which agree with the bound only below `K`.
-
-Positivity of the smaller family is what makes the step sound: without it a
-zero factor collapses the left product and the induction's multiplication step
-carries no information. -/
+/-- If `F` is positive and `F k ≤ G k` for all `k < K`, then `∏ k < K, F k ≤ ∏ k
+< K, G k`. -/
 theorem prodUpto_le_of_le {F G : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
     ∀ K : Nat, (∀ k : Nat, k < K → F k ≤ G k) → prodUpto F K ≤ prodUpto G K
   | 0, _ => by
@@ -2544,14 +2466,7 @@ theorem prodUpto_le_of_le {F G : Nat → Nat} (hF : ∀ i : Nat, 0 < F i) :
     exact Nat.mul_le_mul (prodUpto_le_of_le hF K (fun k hk => h k (by omega)))
       (h K (by omega))
 
-/-- The fibre congruence behind the character-family product.
-
-    (a + f*b) * (g*k')  ==  a * (g*k')   (mod f*g)
-
-Splitting `j < n` as `j = a + f*b` with `n = f*g`, the exponent `j*k` depends
-only on `a`, because the `f*b` part contributes a multiple of `n`.  This is why
-the product over the family fibres over the inner index rather than permuting:
-`j |-> j*k mod n` is `g`-to-one, not a bijection, unless `p` generates. -/
+/-- `(a + f * b) * (g * k') ≡ a * (g * k')` modulo `f * g`. -/
 theorem mul_mod_of_split (f g a b k' : Nat) :
     ((a + f * b) * (g * k')) % (f * g) = (a * (g * k')) % (f * g) := by
   have h : (a + f * b) * (g * k') = a * (g * k') + (f * g) * (b * k') := by
@@ -2559,15 +2474,8 @@ theorem mul_mod_of_split (f g a b k' : Nat) :
       Nat.mul_comm b g, Nat.mul_assoc g b k', ← Nat.mul_assoc f g (b * k')]
   rw [h, Nat.add_mul_mod_self_left]
 
-/-- Multiplication by a unit is injective on residues.
-
-    a*k == b*k  (mod f),  gcd f k = 1,  a,b < f   ==>   a = b
-
-`coprime_divides` is the content: `f` divides `(a-b)*k` and is coprime to `k`,
-so it divides `a-b`, which is below `f` and therefore zero.  This is the
-injectivity `foldF_permOn` asks for, and with it `a |-> a*k' mod f` is a
-permutation of the inner index in the character-family product --- the outer
-index fibres instead, which no permutation lemma can express. -/
+/-- If `gcd f k = 1` and `a, b < f` satisfy `a * k ≡ b * k` modulo `f`, then `a
+= b`. -/
 theorem mul_mod_inj_of_gcd_one {f k : Nat} (hf : 0 < f)
     (hgcd : Nat.gcd f k = 1) {a b : Nat} (ha : a < f) (hb : b < f)
     (h : (a * k) % f = (b * k) % f) : a = b := by

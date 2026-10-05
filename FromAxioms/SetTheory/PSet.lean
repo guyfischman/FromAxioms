@@ -139,12 +139,10 @@ theorem equiv_iff_ext : ∀ x y : PSet.{u}, Equiv x y ↔ ∀ w : PSet.{u}, w �
        ⟨fun a => (h (A a)).mp ⟨a, Equiv.refl (A a)⟩,
         fun b => let ⟨a, ha⟩ := (h (B b)).mpr ⟨b, Equiv.refl (B b)⟩; ⟨a, ha.symm⟩⟩⟩
 
-/-- Membership respects equivalence on the right. -/
 theorem mem_congr_right {x y : PSet.{u}} (h : Equiv x y) (w : PSet.{u}) :
     w ∈ x ↔ w ∈ y :=
   (equiv_iff_ext x y).mp h w
 
-/-- Membership respects equivalence on the left. -/
 theorem mem_congr_left {w v : PSet.{u}} (h : Equiv w v) (x : PSet.{u}) :
     w ∈ x ↔ v ∈ x :=
   ⟨fun ⟨a, ha⟩ => ⟨a, h.symm.trans ha⟩, fun ⟨a, ha⟩ => ⟨a, h.trans ha⟩⟩

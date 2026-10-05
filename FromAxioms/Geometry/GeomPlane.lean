@@ -203,7 +203,8 @@ def apex (A B : ZFSet.{u}) : ZFSet.{u} :=
         (realLMul (realLMul geomHalf.{u} geomRootThree.{u})
           (realLAdd (fst B) (realLNeg (fst A))))))
 
-/-- Euclid I.1, first congruence. The apex is as far from `A` as `B` is. -/
+/-- Euclid I.1: the apex of the equilateral triangle on `AB` is as far from `A`
+as `B` is. -/
 theorem sqDist_apex_left {x y x' y' : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hx' : x' ∈ RealL.{u}) (hy' : y' ∈ RealL.{u}) :
     sqDist (apex (opair x y) (opair x' y')) (opair x y)

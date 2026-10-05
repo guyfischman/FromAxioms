@@ -36,7 +36,6 @@ branch to the power set of its stage. -/
 def V : PSet.{u} → PSet.{u}
   | ⟨α, A⟩ => sUnion ⟨α, fun a => powerset (V (A a))⟩
 
-/-- `V` respects `Equiv`, by the same induction that defines it. -/
 theorem V_congr : ∀ {x y : PSet.{u}}, Equiv x y → Equiv (V x) (V y)
   | ⟨α, A⟩, ⟨β, B⟩, h => by
     refine sUnion_congr ?_

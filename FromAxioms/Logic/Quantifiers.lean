@@ -129,7 +129,6 @@ not, and is deferred to `Logic/Classical.lean`. Which one fails is worth
 predicting before reading on.
 -/
 
-/-- If nothing satisfies `p`, then nothing satisfies `p`. -/
 theorem not_exists_of_forall_not {α : Sort u} {p : α → Prop}
     (h : (a : α) → Not (p a)) : Not (Exists p) :=
   fun he => he.elim (fun w hw => h w hw)

@@ -75,7 +75,6 @@ structure IsContentOn (R add zero nonneg m A : ZFSet.{u}) : Prop where
   additive : ∀ U, U ∈ A → ∀ V, V ∈ A → inter U V = empty.{u} →
     app m (U ∪ V) = opAt add (app m U) (app m V)
 
-/-- The value of a content lies in its carrier. -/
 theorem contentOn_app_mem {R add zero nonneg m A U : ZFSet.{u}}
     (hm : IsContentOn R add zero nonneg m A) (hU : U ∈ A) : app m U ∈ R :=
   hm.ran _ (app_mem_range hm.isFun (by rw [hm.dom]; exact hU))
@@ -197,7 +196,6 @@ def realSum (G : Nat → ZFSet.{u}) : Nat → ZFSet.{u}
   | k + 1 => realAdd (realSum G k) (G k)
 
 #print axioms Analysis.realSum
-/-- Adding a non-negative real can only move a cut up. -/
 theorem realLe_realAdd_of_nonneg {x y : ZFSet.{u}} (hx : x ∈ Real.{u})
     (hy0 : realNonneg y) : realLe x (realAdd x y) := by
   intro p hp

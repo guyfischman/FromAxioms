@@ -106,7 +106,6 @@ rational and `realLMin`. Halving would have needed `realLMul` by `1/2` and the
 order lemmas that go with it.
 -/
 
-/-- A positive rational is a positive real. -/
 theorem realLOf_pos {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u})
     (hc0 : ratLt ratZero.{u} c) : realLLt realLZero.{u} (realLOf c) := by
   obtain ⟨t, htQ, h0t, htc⟩ := rat_dense ratZero_mem_Rat hc hc0
@@ -119,9 +118,7 @@ theorem realLOf_pos {c : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{u})
 /-! ## Width
 -/
 
-/-- A rational interval grows with its endpoints, and the proof is the order
-bridge rather than a comparison of reals: `p ≤ p'` and `p' ∈ fst y` give
-`p ∈ fst y` by `lower_down`. -/
+/-- If `p ≤ p'` and `q' ≤ q`, then `(p', q') ⊆ (p, q)`. -/
 theorem realLIoo_mono {p q p' q' : ZFSet.{u}} (hp : p ∈ NumberTheory.Rat.{u}) (hq : q ∈ NumberTheory.Rat.{u})
     (hp' : p' ∈ NumberTheory.Rat.{u}) (hq' : q' ∈ NumberTheory.Rat.{u})
     (h1 : ratLe p p') (h2 : ratLe q' q) : realLIoo p' q' ⊆ realLIoo p q := by
@@ -199,7 +196,6 @@ def realLLtRel : ZFSet.{u} :=
   sep (fun z => ∃ x, ∃ y, z = opair x y ∧ realLLt x y)
     (prod RealL.{u} RealL.{u})
 
-/-- Membership in the reified order is the order. -/
 theorem opair_mem_realLLtRel_iff {x y : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) :
     opair x y ∈ realLLtRel.{u} ↔ realLLt x y := by
@@ -224,7 +220,6 @@ theorem realLIoo_mem_realLOpens {c e : ZFSet.{u}} (hc : c ∈ NumberTheory.Rat.{
 
 /-- The order topology on `RealL` is a topology, constructively.
 
-PROBE: the statement elaborates; the five fields are the next session's work.
 `mem_univ` wants rationals bracketing an arbitrary located real, which is
 `IsLocated`'s two non-empty cuts; `inter_closed` wants the rational max and min
 of the two brackets, decidable because the endpoints are rational. -/
@@ -311,7 +306,6 @@ theorem isMetric_triangle {d X : ZFSet.{u}} (hd : IsMetric d X)
   obtain ⟨-, -, -, -, -, -, htri⟩ := hd
   exact htri x hx y hy z hz
 
-/-- Symmetry. -/
 theorem isMetric_symm {d X : ZFSet.{u}} (hd : IsMetric d X)
     {x y : ZFSet.{u}} (hx : x ∈ X) (hy : y ∈ X) :
     app d (opair x y) = app d (opair y x) := by
@@ -341,11 +335,7 @@ theorem mem_metricOpens_iff (d X U : ZFSet.{u}) :
         metricBall d X x r ⊆ U := by
   rw [metricOpens, mem_sep_iff, mem_powerset_iff]
 
-/-- The distance between two points of the space is a real. Named for the
-reason the other four accessors are: `IsMetric` is a seven-way conjunction, so
-every consumer would otherwise destructure it and consume the hypothesis. This
-one was missing while `triangle`, `nonneg`, `symm` and `self` were not --- the
-first proof that needs `realLLt_add` needs it, and none had. -/
+/-- The distance between two points of a metric space is a real. -/
 theorem isMetric_app_mem {d X : ZFSet.{u}} (hd : IsMetric d X)
     {x y : ZFSet.{u}} (hx : x ∈ X) (hy : y ∈ X) :
     app d (opair x y) ∈ RealL.{u} := by

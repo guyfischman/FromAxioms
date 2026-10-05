@@ -93,8 +93,8 @@ varying with the input and a reciprocal in the same breath. Both are now
 available and neither costs anything, so III.1 is free. Euclid I.1 needed
 neither, and came out free before any of this machinery existed. -/
 
-/-- Squared distance is the squared norm of the displacement. Written once
-here because every point-level statement below needs it. -/
+/-- The squared distance between two points is the squared norm of their
+difference. -/
 theorem sqDist_eq_sqNorm {xA yA xB yB : ZFSet.{u}} (hxA : xA ∈ RealL.{u})
     (hyA : yA ∈ RealL.{u}) (hxB : xB ∈ RealL.{u}) (hyB : yB ∈ RealL.{u}) :
     sqDist (opair xA yA) (opair xB yB)
@@ -106,7 +106,7 @@ theorem sqDist_eq_sqNorm {xA yA xB yB : ZFSet.{u}} (hxA : xA ∈ RealL.{u})
       (realLAdd_mem hyB (realLNeg_mem hyA))]
   rfl
 
-/-- Squared distance does not care which end you measure from. -/
+/-- Squared distance is symmetric. -/
 theorem sqDist_comm {x y x' y' : ZFSet.{u}} (hx : x ∈ RealL.{u})
     (hy : y ∈ RealL.{u}) (hx' : x' ∈ RealL.{u}) (hy' : y' ∈ RealL.{u}) :
     sqDist (opair x y) (opair x' y') = sqDist (opair x' y') (opair x y) := by

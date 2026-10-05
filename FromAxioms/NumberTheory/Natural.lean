@@ -56,8 +56,7 @@ namespace NumberTheory
 /-- The von Neumann numeral of a Lean natural. -/
 def ofNat (n : Nat) : ZFSet.{u} := mk (PSet.ofNat n)
 
-/-- Both hold by `rfl`: the quotient's `insert` computes on representatives, so
-the `ZFSet` recursion and the `PSet` recursion are the same recursion. -/
+/-- `ofNat 0` is the empty set. -/
 @[simp] theorem ofNat_zero : ofNat.{u} 0 = empty.{u} := rfl
 
 @[simp] theorem ofNat_succ (n : Nat) : ofNat.{u} (n + 1) = succ (ofNat.{u} n) := rfl
@@ -65,8 +64,6 @@ the `ZFSet` recursion and the `PSet` recursion are the same recursion. -/
 theorem ofNat_mem_omega (n : Nat) : ofNat.{u} n ∈ omega.{u} :=
   ⟨ULift.up n, PSet.Equiv.refl _⟩
 
-/-- `omega` is exactly the image of `ofNat` -- every member is a numeral and
-every numeral is a member. -/
 theorem mem_omega_iff (x : ZFSet.{u}) : x ∈ omega.{u} ↔ ∃ n : Nat, x = ofNat.{u} n := by
   refine Quotient.inductionOn x (fun x => ?_)
   constructor
@@ -104,9 +101,7 @@ theorem mem_succ_self (x : ZFSet.{u}) : x ∈ succ x :=
 theorem mem_succ_iff (w x : ZFSet.{u}) : w ∈ succ x ↔ w = x ∨ w ∈ x :=
   mem_insert_iff w x x
 
-/-- `ω` is transitive: a member of a natural number is a natural number.
-The induction is on the `Nat` the member came from, which is what
-`mem_omega_iff` supplies. -/
+/-- A member of a natural number is a natural number. -/
 theorem mem_of_mem_ofNat : ∀ (k : Nat) {x : ZFSet.{u}},
     x ∈ ofNat.{u} k → x ∈ omega.{u}
   | 0, x, h => absurd h (not_mem_empty x)
@@ -132,8 +127,6 @@ theorem ofNat_transitive : ∀ (m : Nat) {x y : ZFSet.{u}},
       (fun hm => (mem_succ_iff x (ofNat.{u} m)).mpr
         (Or.inr (ofNat_transitive m hm hx)))
 
-/-- Zero is a member of every later natural, so a recursion's base clause fires
-at every stage past the first. -/
 theorem empty_mem_ofNat_succ : ∀ m : Nat, empty.{u} ∈ ofNat.{u} (m + 1)
   | 0 => (mem_succ_iff _ _).mpr (Or.inl rfl)
   | m + 1 => (mem_succ_iff _ _).mpr (Or.inr (empty_mem_ofNat_succ m))
@@ -148,9 +141,7 @@ The two-cycle lemma first. This is foundation doing real work: nothing about
 the definition of membership forbids `x ∈ y ∈ x`, and only well-foundedness
 rules it out. -/
 
-/-- No two-step membership cycle. Proved by ∈-induction on `x`: the inductive
-hypothesis applies to `y`, which is a member of `x`, and then contradicts
-itself. -/
+/-- There is no membership cycle `x ∈ y ∈ x`. -/
 theorem not_mem_mem : ∀ x y : ZFSet.{u}, x ∈ y → y ∈ x → False :=
   inductionOn (motive := fun x => ∀ y : ZFSet.{u}, x ∈ y → y ∈ x → False)
     (fun x ih y hxy hyx => ih y hyx x hyx hxy)
@@ -184,7 +175,7 @@ theorem ofNat_injective : ∀ {m n : Nat}, ofNat.{u} m = ofNat.{u} n → m = n
     absurd (show succ (ofNat.{u} m) = empty.{u} from h) (succ_ne_empty _)
   | _ + 1, _ + 1, h => congrArg (· + 1) (ofNat_injective (succ_injective h))
 
-/-- The order structure of the numerals: `ofNat n` is exactly `{0, …, n-1}`. -/
+/-- `ofNat n = {ofNat 0, ..., ofNat (n - 1)}`. -/
 theorem mem_ofNat_iff (w : ZFSet.{u}) : ∀ n : Nat,
     w ∈ ofNat.{u} n ↔ ∃ k, k < n ∧ w = ofNat.{u} k
   | 0 => by

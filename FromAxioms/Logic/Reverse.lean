@@ -114,8 +114,7 @@ theorem wem_of_not_and_or (h : LogicNotAndOr)
     (a : Prop) : Or (Not a) (Not (Not a)) :=
   h a (Not a) (fun hand => hand.right hand.left)
 
-/-- And the converse: `WEM` is enough to prove it, so `WEM` is exactly its
-strength. The same pair of proofs appears one phase later for `sdiff_inter`. -/
+/-- `WEM` implies that `¬ (a ∧ b)` gives `¬ a ∨ ¬ b`. -/
 theorem not_and_or_of_wem (h : LogicWEM) (a b : Prop)
     (hab : Not (And a b)) : Or (Not a) (Not b) :=
   (h a).elim (fun hna => Or.inl hna)

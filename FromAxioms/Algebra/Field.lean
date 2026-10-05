@@ -184,9 +184,7 @@ theorem isRing_int : IsRing NumberTheory.Int.{u} intAddOp.{u} intMulOp.{u} intZe
       opAt_intAddOp (intMul_mem_Int ha hb) (intMul_mem_Int ha hc)]
     exact intMul_add ha hb hc
 
-/-- `natIn` on `Int` is `intOfNat`: `n`-fold repeated addition of `intOne` is
-the embedded natural. `hom_natIn` carries `natIn` across a ring homomorphism,
-and this reads the result as a statement about `intOfNat n`. -/
+/-- The `n`-fold sum of `intOne` in `Int` is `intOfNat n`. -/
 theorem natIn_eq_intOfNat :
     ∀ n : Nat, natIn NumberTheory.Int.{u} intAddOp.{u} intZero.{u} intOne.{u} n
       = intOfNat.{u} n
@@ -312,8 +310,7 @@ theorem isCongruence_modRel {n : ZFSet.{u}} (hn : n ∈ NumberTheory.Int.{u}) :
       intAdd_assoc (intNeg_mem_Int ha') hb (intNeg_mem_Int hb'),
       ← intAdd_assoc ha (intNeg_mem_Int ha') (intAdd_mem_Int hb (intNeg_mem_Int hb'))]
 
-/-- Congruence mod `n` respects multiplication: `ab - a'b' = a(b-b') + (a-a')b'`,
-and an ideal absorbs both terms. -/
+/-- Congruence modulo `n` is compatible with multiplication on `Int`. -/
 theorem isCongruence_modRel_mul {n : ZFSet.{u}} (hn : n ∈ NumberTheory.Int.{u}) :
     IsCongruence (modRel n) NumberTheory.Int.{u} intMulOp.{u} := by
   refine ⟨(isCongruence_modRel hn).left, fun a ha a' ha' b hb b' hb' hr₁ hr₂ => ?_⟩
@@ -631,7 +628,7 @@ theorem isField_intMod {p : Nat} (hp : IsPrime p) :
       omega
 
 
-/-- Closure: a product of non-zero elements of a field is non-zero. -/
+/-- A product of non-zero elements of a field is non-zero. -/
 theorem mul_mem_units {R add mul zero one : ZFSet.{u}} (hF : IsField R add mul zero one) :
     ∀ x, x ∈ units R mul zero → ∀ y, y ∈ units R mul zero →
       opAt mul x y ∈ units R mul zero := by
@@ -705,12 +702,7 @@ def modUnits (p : Nat) : ZFSet.{u} :=
 
 def modUnitMul (p : Nat) : ZFSet.{u} := restrictOp (modMul.{u} p) (modUnits.{u} p)
 
-/-- Two naturals with the same residue name the same class.
-
-`cls_eq_iff_sub` turns class equality into a divisibility of the difference and
-`intOfNat_sub_mem_multiples_iff` reads that back as a pair of natural
-witnesses; the witnesses are the two quotients, and the shared remainder
-cancels. -/
+/-- Naturals with the same residue modulo `p` have the same class modulo `p`. -/
 theorem modCls_intOfNat_congr {p j k : Nat} (h : j % p = k % p) :
     modCls.{u} p (intOfNat.{u} j) = modCls.{u} p (intOfNat.{u} k) := by
   refine (cls_eq_iff_sub (intOfNat_mem_Int p) (intOfNat_mem_Int _)
@@ -793,15 +785,7 @@ through the ring structure. -/
 #print axioms isRing_intMod
 #print axioms isField_intMod
 #print axioms isGroup_units
-/-- A divisibility of naturals, carried into `ℤ` as a ring.
-
-`Divides a b` says `b = a·k` in `Nat`; `eisenstein_least_index` and the rest of
-the polynomial layer state divisibility as `∃ c ∈ R, x = opAt mul d c` over an
-arbitrary ring. It is the one rewrite between them, and it lets the cyclotomic
-coefficient conditions -- which are facts about `choose` in `Nat` -- discharge
-the criterion's hypotheses over `ℤ`.
-
-The two layers meet through `intOfNat_mul`. -/
+/-- If `a ∣ b` in `Nat`, then `intOfNat a` divides `intOfNat b` in `Int`. -/
 theorem intDvd_of_divides {a b : Nat} (h : Divides a b) :
     ∃ c, c ∈ NumberTheory.Int.{u} ∧
       intOfNat.{u} b = opAt intMulOp.{u} (intOfNat.{u} a) c := by
@@ -809,11 +793,7 @@ theorem intDvd_of_divides {a b : Nat} (h : Divides a b) :
   refine ⟨intOfNat.{u} k, intOfNat_mem_Int k, ?_⟩
   rw [opAt_intMulOp (intOfNat_mem_Int a) (intOfNat_mem_Int k), intOfNat_mul, hk]
 
-/-- A numeral divisibility, read back into `Nat`. The converse of
-`intDvd_of_divides`, for a numeral cofactor, as the sign step delivers.
-
-`intOfNat_mul` carries divisibility into `ℤ` and `intOfNat_injective` carries
-it back. -/
+/-- If `intOfNat b = intOfNat a * intOfNat c`, then `a ∣ b` in `Nat`. -/
 theorem divides_of_intMul_ofNat {a b c : Nat}
     (h : intOfNat.{u} b = intMul (intOfNat.{u} a) (intOfNat.{u} c)) :
     Divides a b := by
@@ -881,9 +861,7 @@ theorem intDvd_ofNat_decidable {a b : Nat} :
   have hb : Divides a b := divides_of_intOfNat_eq_mul hc he
   exact absurd (mod_eq_zero_of_divides hb) (by omega)
 
-/-- Every integer is a numeral or the negation of one. The reduction that
-turns the numeral-restricted divisibility lemmas into the arbitrary-element
-clauses `IsEisenstein` quantifies over. -/
+/-- Every integer is `intOfNat n` or `intNeg (intOfNat n)` for some `n`. -/
 theorem int_eq_ofNat_or_neg {z : ZFSet.{u}} (hz : z ∈ NumberTheory.Int.{u}) :
     (∃ n : Nat, z = intOfNat.{u} n)
       ∨ (∃ n : Nat, z = intNeg (intOfNat.{u} n)) := by
@@ -895,9 +873,7 @@ theorem int_eq_ofNat_or_neg {z : ZFSet.{u}} (hz : z ∈ NumberTheory.Int.{u}) :
   · obtain ⟨n, -, hcm⟩ := exists_intOfNat_of_intPositive hneg
     exact Or.inr ⟨n, by rw [← hcm, intNeg_intNeg hz]⟩
 
-/-- A numeral divides an integer exactly when it divides its magnitude.
-The sign is absorbed on both sides: if `d` divides `z` then it divides `-z`,
-because negating the cofactor suffices. -/
+/-- `d` divides `z` if and only if `d` divides `-z`. -/
 theorem intDvd_neg_iff {d z : ZFSet.{u}} (hd : d ∈ NumberTheory.Int.{u}) (hz : z ∈ NumberTheory.Int.{u}) :
     (∃ c, c ∈ NumberTheory.Int.{u} ∧ z = intMul d c)
       ↔ (∃ c, c ∈ NumberTheory.Int.{u} ∧ intNeg z = intMul d c) := by
@@ -928,13 +904,8 @@ theorem intDvd_decidable {a : Nat} {z : ZFSet.{u}} (hz : z ∈ NumberTheory.Int.
         (intOfNat_mem_Int n)).mpr hc))
 
 #print axioms intDvd_neg_iff
-/-- Euclid's lemma over `ℤ` at arbitrary elements. The `prime` clause of
-`IsEisenstein` at the integers. Each factor normalises to a numeral by
-`int_eq_ofNat_or_neg`; the sign leaves the product, and the conclusion
-transports back by `intDvd_neg_iff`.
-
-`intDvd_of_divides` states its conclusion with `opAt intMulOp` and the sign
-machinery uses `intMul`, so `opAt_intMulOp` converts. -/
+/-- Euclid's lemma in `Int`: a prime dividing a product divides one of the
+factors. -/
 theorem intPrime_divides_mul {p : Nat} (hp : IsPrime p) {a b : ZFSet.{u}}
     (ha : a ∈ NumberTheory.Int.{u}) (hb : b ∈ NumberTheory.Int.{u})
     (h : ∃ c, c ∈ NumberTheory.Int.{u} ∧ intMul a b = intMul (intOfNat.{u} p) c) :

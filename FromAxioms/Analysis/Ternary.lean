@@ -50,8 +50,6 @@ theorem pow3_pos : ∀ n : Nat, 0 < pow3 n
     simp only [pow3]
     omega
 
-/-- `n + 1 ≤ 3ⁿ`, which turns the geometric widths into the harmonic bound
-`shrink_of_invWidth` wants. -/
 theorem succ_le_pow3 : ∀ n : Nat, n + 1 ≤ pow3 n
   | 0 => by simp [pow3]
   | n + 1 => by
@@ -64,9 +62,7 @@ def tnum (c : Nat → Nat) : Nat → Nat
   | 0 => 0
   | n + 1 => 3 * tnum c n + 2 * c n
 
-/-- The walk's numerator stays strictly below its denominator: with digits at
-most `1`, `tnum c n ≤ 3^n - 1`. Induction, and the `+1` is what makes it usable
-against `thigh`. -/
+/-- If every digit `c i` is at most `1`, then `tnum c n + 1 ≤ 3 ^ n`. -/
 theorem tnum_lt_pow3 {c : Nat → Nat} (hc : ∀ i, c i ≤ 1) :
     ∀ n, tnum c n + 1 ≤ pow3 n
   | 0 => by simp [tnum, pow3]
@@ -194,7 +190,6 @@ theorem isNested_ternary {c : Nat → Nat} (hc : ∀ n, c n ≤ 1) :
 Choice-free throughout, by the shape of the recursion: the digit enters as a
 factor, never as a branch. -/
 
-/-- A positive walk numerator means some digit fired, and names one. -/
 theorem exists_of_tnum_pos {c : Nat → Nat} :
     ∀ n : Nat, 0 < tnum c n → ∃ i : Nat, 0 < c i
   | 0, h => absurd h (by rw [tnum]; omega)

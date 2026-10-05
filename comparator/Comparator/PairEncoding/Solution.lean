@@ -17,8 +17,7 @@ this pair.
 mathlib's simp set closes the whole challenge from the inductive's own
 injectivity, which is precisely the fact this pair exists to avoid using.
 
-What changed is the embedding, not the theorem, and this pair is the one on
-the re-siting list where that was the whole fix.
+What changed is the embedding, not the theorem.
 
 The previous version reached `ZFSet` through `Bridge/TypeTransferU.encodeU`,
 which is a well-ordering and an injection --- `embU`, Mostowski's collapse

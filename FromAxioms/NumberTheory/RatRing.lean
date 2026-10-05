@@ -134,7 +134,6 @@ elab "rat_ring" : tactic => do
   Lean.Elab.Tactic.evalTactic (← `(tactic|
     refine rat_by_reflection (env := $envS) ?_ $eaS $ebS (by decide)))
 
-/-- `1 + -(x+1) = -x`, closed by the tactic. -/
 theorem reflected_one_sub_succ {x : ZFSet.{u}} (hx : x ∈ Rat.{u}) :
     ratAdd ratOne.{u} (ratNeg (ratAdd x ratOne.{u})) = ratNeg x := by
   rat_ring
@@ -163,8 +162,6 @@ def envOf : List ZFSet.{u} → Nat → ZFSet.{u}
   | a :: _, 0 => a
   | _ :: t, (n+1) => envOf t n
 
-/-- Every index of a rational environment is a rational --- including the
-indices past the end, so the default had to be `ratZero`. -/
 theorem envOf_mem : ∀ (l : List ZFSet.{u}), (∀ x ∈ l, x ∈ Rat.{u}) →
     ∀ i, envOf l i ∈ Rat.{u}
   | [], _, _ => ratZero_mem_Rat

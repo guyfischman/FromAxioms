@@ -25,11 +25,10 @@ decidability; supplying it here from `Classical.propDecidable` is what makes
 honest reading of the row: the fan theorem is a principle in both libraries,
 and they differ in where the price is paid rather than in whether it is paid.
 
-`Constructive.Decider` is a `Type`, not a `Prop`, so it cannot be extracted from
-an `EM` hypothesis (`Reverse.lean` records why, at the retired
-`decider_of_em`). `Classical.propDecidable` is a `Decidable`, which is also a
-`Type`, so the conversion below is a match and not a choice principle of its
-own.
+`Constructive.Decider` is a `Type`, not a `Prop`, so it cannot be extracted
+from an `EM` hypothesis. `Classical.propDecidable` is a `Decidable`, which is
+also a `Type`, so the conversion below is a match and not a choice principle of
+its own.
 -/
 import Comparator.FanTheorem.Challenge
 import FromAxioms.Constructive.Omniscience
