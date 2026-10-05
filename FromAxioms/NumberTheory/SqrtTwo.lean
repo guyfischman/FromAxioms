@@ -82,7 +82,11 @@ def snum : Nat → Nat
 
 def sqLow (n : Nat) : ZFSet.{u} := ratNat (snum n) (pow2 n)
 
+def sqHigh (n : Nat) : ZFSet.{u} := ratNat (snum n + 1) (pow2 n)
+
 def sqLowSeq : ZFSet.{u} := natSeq Rat.{u} sqLow
+
+def sqHighSeq : ZFSet.{u} := natSeq Rat.{u} sqHigh
 
 /-- √2 as a real. -/
 def sqrtTwo : ZFSet.{u} := nestLower sqLowSeq.{u}
@@ -171,5 +175,5 @@ theorem no_rat_sq_two {r : ZFSet.{u}} (hr : r ∈ Rat.{u}) :
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (no_rat_sq_prime no_rat_sq_two pow2 snum sqLow sqLowSeq sq_two_irrational sqrtTwo succ_le_pow2)
+export NumberTheory (no_rat_sq_prime no_rat_sq_two pow2 snum sqHigh sqHighSeq sqLow sqLowSeq sq_two_irrational sqrtTwo succ_le_pow2)
 end ZFSet

@@ -680,9 +680,45 @@ theorem exactIVT_of_llpo_binaryDC_binaryDCOn (hllpo : LLPO) (hbdc : BinaryDC)
 #print axioms Metamath.attainment_of_signDisjunction_binaryDCOn_le
 #print axioms Metamath.attainment_of_signDisjunction_binaryDCOnAt_le
 #print axioms Metamath.straddleSignP
+/-! ## Local nonzeroness, as data
+
+A `Prop` saying a good point exists in each interval cannot supply one, and
+extracting a function from it for every interval at once is countable choice.
+Booij's corresponding hypothesis is lifts to locators, likewise structure.
+`LocalNonzeroData` decides nothing about `G` at a point the caller names, so it
+is not a sign readout. -/
+
+/-- Local nonzeroness as data, with the contraction Booij's middle third
+gives. `pt` names, in each interval, a rational where `G` is apart from zero. -/
+structure LocalNonzeroData (G : ZFSet.{u} → ZFSet.{u}) where
+  pt : ZFSet.{u} → ZFSet.{u} → ZFSet.{u}
+  ratio : ZFSet.{u}
+  ratio_mem : ratio ∈ NumberTheory.Rat.{u}
+  ratio_pos : ratLt ratZero.{u} ratio
+  ratio_lt_one : ratLt ratio ratOne.{u}
+  pt_mem : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    pt a b ∈ NumberTheory.Rat.{u}
+  pt_between : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    ratLt a b → And (ratLt a (pt a b)) (ratLt (pt a b) b)
+  pt_apart : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    ratLt a b → realLApart realLZero.{u} (G (realLOf (pt a b)))
+  pt_maps : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    G (realLOf (pt a b)) ∈ RealL.{u}
+  pt_shrinkL : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    ratLt a b →
+    ratLe (ratAdd (pt a b) (ratNeg a)) (ratMul ratio (ratAdd b (ratNeg a)))
+  pt_shrinkR : ∀ a b, a ∈ NumberTheory.Rat.{u} → b ∈ NumberTheory.Rat.{u} →
+    ratLt a b →
+    ratLe (ratAdd b (ratNeg (pt a b))) (ratMul ratio (ratAdd b (ratNeg a)))
+
+
+/-- `√2` as a member of `RealL`, named once. -/
+def sqrtTwoR : ZFSet.{u} :=
+  opair NumberTheory.sqrtTwo.{u} (nestUpper NumberTheory.sqHighSeq.{u})
+
 end Metamath
 #print axioms Metamath.ExactIVT01
 #print axioms Metamath.ExactIVT01Top
 namespace ZFSet
-export Metamath (ExactIVT01 ExactIVT01Top attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le clamp_third_strict exactIVT01_of_top exactIVT_of_llpo_binaryDC_binaryDCOn isOrderTopology_realLOpens not_halveDecider_forall signDisjunction_of_exact_ivt signDisjunction_of_llpo_binaryDC signDisjunction_read straddleSignP)
+export Metamath (ExactIVT01 ExactIVT01Top LocalNonzeroData attainment_of_signDisjunction_binaryDCOn attainment_of_signDisjunction_binaryDCOnAt_le attainment_of_signDisjunction_binaryDCOn_le clamp_third_strict exactIVT01_of_top exactIVT_of_llpo_binaryDC_binaryDCOn isOrderTopology_realLOpens not_halveDecider_forall signDisjunction_of_exact_ivt signDisjunction_of_llpo_binaryDC signDisjunction_read sqrtTwoR straddleSignP)
 end ZFSet
