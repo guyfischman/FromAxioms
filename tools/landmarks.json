@@ -59,10 +59,6 @@
   "constructive analysis: located reals",
   1967
  ],
- "Constructive.EM": [
-  "law of excluded middle, informally",
-  -350
- ],
  "Analysis.isNested_ternary": [
   "nested intervals, bisection",
   1817
@@ -230,6 +226,10 @@
  "Metamath.sqrtTwoR": [
   "irrationality of √2",
   -540
+ ],
+ "Metamath.JunkOk.em": [
+  "law of excluded middle, informally",
+  -350
  ],
  "Metamath.ExactIVT01": [
   "the intermediate value theorem",

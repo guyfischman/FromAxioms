@@ -1578,5 +1578,18 @@
   "meaning": "one lower cut is contained in another",
   "verdict": "never",
   "where": "FromAxioms/Analysis/Located.lean"
+ },
+ "JunkOk": {
+  "calibration": {
+   "forward": "n/a",
+   "principle": "none",
+   "reverse": "n/a",
+   "shape": "subject"
+  },
+  "discharge": "never: subject matter, not strength -- the binder says the derivation context lists the seven junk-set axioms, which is a membership fact about a `List Formula` and carries nothing about the universe.",
+  "kind": "structural",
+  "meaning": "the first-order context contains every junk-set axiom",
+  "verdict": "never",
+  "where": "FromAxioms/Metamath/SetArithJunk.lean"
  }
 }

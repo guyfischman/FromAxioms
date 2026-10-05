@@ -14,3 +14,5 @@ import FromAxioms.Metamath.Robinson
 import FromAxioms.Metamath.Incompleteness
 import FromAxioms.Metamath.Calibrate
 import FromAxioms.Metamath.Scott
+import FromAxioms.Metamath.SetArith
+import FromAxioms.Metamath.SetArithJunk

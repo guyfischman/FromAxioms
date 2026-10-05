@@ -545,6 +545,39 @@ theorem soundnessFO {D : ZFSet.{u}} {F : Nat → List ZFSet.{u} → ZFSet.{u}}
     | zero => exact ha
     | succ k => exact he k
 
+/-! ## The axioms of set theory, as formulas
+
+Over one relation symbol, in de Bruijn indices. -/
+
+def memF (a b : Nat) : Formula := .rel 0 [.var a, .var b]
+
+/-- `∀ x ∀ y ((∀ z (z ∈ x ↔ z ∈ y)) → x = y)`, in de Bruijn indices. -/
+def zfExt : Formula :=
+  .all (.all (.imp
+    (.all (.conj (.imp (memF 0 2) (memF 0 1)) (.imp (memF 0 1) (memF 0 2))))
+    (.eq (.var 1) (.var 0))))
+
+/-- `∀ x ∀ y ∃ p ∀ z (z ∈ p ↔ (z = x ∨ z = y))`. -/
+def zfPair : Formula :=
+  .all (.all (.ex (.all (.conj
+    (.imp (memF 0 1) (.disj (.eq (.var 0) (.var 3)) (.eq (.var 0) (.var 2))))
+    (.imp (.disj (.eq (.var 0) (.var 3)) (.eq (.var 0) (.var 2))) (memF 0 1))))))
+
+/-- `∀ x ∃ u ∀ z (z ∈ u ↔ ∃ w (w ∈ x ∧ z ∈ w))`. -/
+def zfUnion : Formula :=
+  .all (.ex (.all (.conj
+    (.imp (memF 0 1) (.ex (.conj (memF 0 3) (memF 1 0))))
+    (.imp (.ex (.conj (memF 0 3) (memF 1 0))) (memF 0 1)))))
+
+/-- Separation, as the schema it is: one axiom per formula of the language.
+
+The formula is placed where the bound `z` sits, so `φ` may mention only index
+`0`. -/
+def zfSep (φ : Formula) : Formula :=
+  .all (.ex (.all (.conj
+    (.imp (memF 0 1) (.conj (memF 0 2) φ))
+    (.imp (.conj (memF 0 2) φ) (memF 0 1)))))
+
 /-! ## Which indices a formula reads
 
 Separation's schema needs "φ mentions only its hole", stated syntactically: a
@@ -576,6 +609,19 @@ def FreeBelow : Nat → Formula → Prop
   | d, .all φ => FreeBelow (d + 1) φ
   | d, .ex φ => FreeBelow (d + 1) φ
 
+/-! ## A theory -/
+
+/-- A set of axioms, given as a predicate so that schemas fit. -/
+structure Theory where
+  axioms : Formula → Prop
+
+/-! ## Foundation -/
+
+/-- `∀ x (x is inhabited → x has a member disjoint from it)`. -/
+def zfFound : Formula :=
+  .all (.imp (.ex (memF 0 1))
+    (.ex (.conj (memF 0 1) (.all (.imp (memF 0 1) (.imp (memF 0 2) .fls))))))
+
 #print axioms cons_substUp
 #print axioms eval_subst
 #print axioms eval_single
@@ -595,5 +641,5 @@ end Metamath
 #print axioms Metamath.soundnessFO
 #print axioms Metamath.DerivesFO
 namespace ZFSet
-export Metamath (ClosedUnder DerivesFO Formula FreeBelow Term cons cons_sub cons_substUp cons_up evalCtxF evalCtxF_map_shift evalCtxF_mem evalF eval_rename eval_shift eval_single eval_subst fnot map_shift_sub mem_map_shift mem_map_shift_of_mem rename shift single soundnessFO subst substUp up weaken)
+export Metamath (ClosedUnder DerivesFO Formula FreeBelow Term Theory cons cons_sub cons_substUp cons_up evalCtxF evalCtxF_map_shift evalCtxF_mem evalF eval_rename eval_shift eval_single eval_subst fnot map_shift_sub memF mem_map_shift mem_map_shift_of_mem rename shift single soundnessFO subst substUp up weaken zfExt zfFound zfPair zfSep zfUnion)
 end ZFSet
