@@ -190,6 +190,9 @@ def _core_url(name):
 def _pairs():
     """Comparator pairs keyed by the landmark rows they match.
 
+    Each record carries `ours`, the declaration the pair proves the statement
+    from, which is the node its match is shown on.
+
     Mathlib links are pinned to the revision `comparator/lake-manifest.json`
     records, and use the `path:line` each pair gives for its statement, so an
     upstream change cannot move what a link points at.
@@ -230,13 +233,14 @@ def _pairs():
             mlu = _core_url(ml)
         d = "".join(w[:1].upper() + w[1:] for w in pid.split("-"))
         pair_dir = ROOT / "comparator" / "Comparator" / d
-        rec = {"id": pid, "ml": ml, "mlu": mlu,
+        rec = {"id": pid, "ml": ml, "mlu": mlu, "ours": get("ours"),
                "src": "Lean core" if "Lean core" in src else "Mathlib",
                "dir": (f"{REPO}tree/master/comparator/Comparator/{d}"
                        if pair_dir.is_dir() else None),
                "yaml": f"{REPO}blob/master/comparator/formalization.yaml"
                        f"#L{s + 1}-L{e}"}
-        for row in re.findall(r'^      - "(.+)"$', blk, re.M):
+        rec["rows"] = re.findall(r'^      - "(.+)"$', blk, re.M)
+        for row in rec["rows"]:
             out[row] = rec
             # A form of a landmark (`X, exactly`) is drawn as X, so a pair
             # whose row is the form is drawn beside X.
@@ -527,7 +531,16 @@ def graph():
         return {"p": s, "pu": _decl_url(by, princ[s])}
 
     pairs = _pairs()
+    # A match belongs to the theorem its pair names. The landmark's witness is
+    # often another declaration, and the match shown there would be read as a
+    # match of the witness.
+    named = {}
+    for rec in pairs.values():
+        if rec not in named.setdefault(rec["ours"], []):
+            named[rec["ours"]].append(rec)
     for nd in nodes:
+        if nd["f"] in named:
+            nd["pr"] = sorted(named[nd["f"]], key=lambda r: r["id"])
         got = land.get(nd["f"])
         # `the` dropped from the front, so an alphabetical list sorts by the
         # result's own name.
@@ -566,8 +579,6 @@ def graph():
         ax = [a for a in KERNEL if via and a in by[via].get("axioms", ())]
         nd["br"] = {"rev": rev, "used": used, "ax": ax, "via": via,
                     "vu": _decl_url(by, via) if via else None}
-        if got[0] in pairs:
-            nd["pr"] = pairs[got[0]]
 
     # Only what a landmark pays for is drawn. A principle reached by no dated
     # result is a cost this library's headline theorems do not carry, and a
@@ -650,6 +661,9 @@ def _conformance(by, land, nodes, pairs, equivs, princ, priced):
         if row not in drawn and not as_form:
             out.append(f"pair `{rec['id']}` matches the row `{row}`, which no "
                        f"drawn landmark carries")
+        if rec["ours"] not in by:
+            out.append(f"pair `{rec['id']}` names `{rec['ours']}`, which is "
+                       f"not a declaration here")
         if rec["ml"] and not rec["mlu"]:
             out.append(f"pair `{rec['id']}` names `{rec['ml']}` with no pinned "
                        f"source to link")
@@ -936,7 +950,9 @@ function pairHtml(p){
     ? 'Matches ' + link('<code>'+esc(p.ml)+'</code>', p.mlu)
       + ' <span class=p>(' + p.src + ')</span>'
     : 'Discharged from Lean core; no library declaration to match';
-  return '<div class=sec>Comparator</div><div class=row>' + ml + '</div>'
+  return '<div class=sec>Comparator</div>'
+    + '<div class=row><span class=p>' + esc(p.rows.join('; ')) + '</span></div>'
+    + '<div class=row>' + ml + '</div>'
     + '<div class=row>' + link('the pair', p.dir) + ' &middot; '
     + link('its formalization.yaml entry', p.yaml) + '</div>';
 }
@@ -1462,7 +1478,7 @@ function pick(n){ sel=n; const s=document.getElementById('side');
     + stmtHtml(n)
     + (n.lm ? '<p><b>Landmark:</b> '+esc(n.lm)+'</p>' : '')
     + (n.br ? bracketHtml(n.br) : '')
-    + (n.pr ? pairHtml(n.pr) : '')
+    + (n.pr ? n.pr.map(pairHtml).join('') : '')
     // Once only. A landmark's bracket already lists the axioms its proof
     // used, beside the principles; the row below repeated them. It stays
     // where the bracket names no proof, or a witness whose axioms differ.
