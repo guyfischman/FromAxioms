@@ -1,12 +1,4 @@
 {
- "NumberTheory.sq_two_irrational": [
-  "irrationality of √2",
-  -540
- ],
- "Geometry.pythagoras": [
-  "the Pythagorean theorem",
-  -500
- ],
  "PSet.mem_sep_iff": [
   "separation, axiomatic set theory",
   1908
@@ -58,10 +50,6 @@
  "NumberTheory.intNeg_intNeg": [
   "zero and the negative numbers",
   628
- ],
- "NumberTheory.bezout": [
-  "Bezout's identity",
-  -300
  ],
  "NumberTheory.exists_factorization": [
   "unique factorisation",
@@ -143,17 +131,13 @@
   "inner product and Hilbert space",
   1906
  ],
- "NumberTheory.sqrtTwoP": [
-  "irrationality of √2",
-  -540
+ "Geometry.sqDist_comm": [
+  "analytic geometry / the coordinate plane",
+  1637
  ],
  "Geometry.pythagoras_points": [
   "the Pythagorean theorem",
   -500
- ],
- "Geometry.sqDist_comm": [
-  "analytic geometry / the coordinate plane",
-  1637
  ],
  "NumberTheory.Eis.bezout": [
   "Bezout's identity",
@@ -242,10 +226,6 @@
  "Metamath.soundnessFO": [
   "quantifiers, formal predicate logic",
   1879
- ],
- "NumberTheory.sqrtTwo": [
-  "irrationality of √2",
-  -540
  ],
  "Algebra.sqrtTwoPoly": [
   "irrationality of √2",
