@@ -601,6 +601,31 @@ def idOn (x : ZFSet.{u}) : ZFSet.{u} := graphOn x x (fun w => w)
 theorem app_idOn {x w : ZFSet.{u}} (hw : w ∈ x) : app (idOn x) w = w :=
   app_graphOn (fun _ hm => hm) hw
 
+/-- `omega` satisfies the Peano axioms, as the bundle its consumers take.
+
+The successor is the set `graphOn omega omega succ`, since `IsPeano` quantifies
+over a successor that is a set rather than a meta-level map.
+
+It is the witness that theorems over `IsPeano` are not vacuous. -/
+theorem omega_isPeano :
+    IsPeano.{u} omega.{u} empty.{u} (graphOn omega.{u} omega.{u} succ) where
+  zero_mem := empty_mem_omega
+  succ_fun := graphOn_isFunction _ _ _
+  succ_dom := graphOn_domain succ_mem_omega
+  succ_mem := fun x hx => by
+    rw [app_graphOn succ_mem_omega hx]; exact succ_mem_omega x hx
+  succ_ne_zero := fun x hx => by
+    rw [app_graphOn succ_mem_omega hx]; exact succ_ne_empty x
+  succ_inj := fun x hx y hy h => by
+    rw [app_graphOn succ_mem_omega hx, app_graphOn succ_mem_omega hy] at h
+    exact succ_injective h
+  induct := fun S hSub hz hstep =>
+    ext _ _ fun n => Iff.intro (fun hn => hSub n hn) (fun hn =>
+      omega_induction (motive := fun m => m ∈ S) hz
+        (fun k hk ih => by
+          have hk' := hstep k ih
+          rwa [app_graphOn succ_mem_omega hk] at hk') n hn)
+
 
 /-- Two functions with disjoint domains are a function. What lets a map
 defined by cases be assembled from pieces, each of which is the graph of a
@@ -733,6 +758,7 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 #print axioms peanoMap_injective
 #print axioms graphOn_domain
 #print axioms app_graphOn
+#print axioms omega_isPeano
 #print axioms app_mem_of_isSurjection
 
 #print axioms mem_sUnion_sUnion_of_opair_mem
@@ -762,5 +788,5 @@ theorem app_mem_of_isSurjection {f x y : ZFSet.{u}} (h : IsSurjection f x y)
 end SetTheory
 
 namespace ZFSet
-export SetTheory (IsFunction IsInjection IsPeano IsRecApprox IsRelation IsSurjection app app_eq app_extendAt_of_mem app_extendAt_self app_graphOn app_idOn app_mem_of_isSurjection app_mem_range app_natSeq app_recFun_empty app_recFun_eq app_recFun_mem app_recFun_succ domain domain_empty domain_extendAt_succ domain_recFun exists_recApprox extendAt funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idOn imageIn imageIn_subset isFunction_empty isFunction_extendAt isFunction_graphOn isFunction_recFun isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_extendAt_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_recFun_iff mem_recSet_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq opAt opair_app_mem opair_mem_extendAt peanoMap peanoMap_injective peanoMap_mem peanoMap_succ peanoMap_surjective peanoMap_zero range range_empty recApprox_agree recApprox_mem_recSet recFun recSet sep_range_eq_singleton subset_extendAt)
+export SetTheory (IsFunction IsInjection IsPeano IsRecApprox IsRelation IsSurjection app app_eq app_extendAt_of_mem app_extendAt_self app_graphOn app_idOn app_mem_of_isSurjection app_mem_range app_natSeq app_recFun_empty app_recFun_eq app_recFun_mem app_recFun_succ domain domain_empty domain_extendAt_succ domain_recFun exists_recApprox extendAt funext_zf graphOn graphOn_domain graphOn_isFunction graphOn_subset idOn imageIn imageIn_subset isFunction_empty isFunction_extendAt isFunction_graphOn isFunction_recFun isFunction_union isInjection_inj isSurjection_onto mem_domain_iff mem_extendAt_iff mem_graphOn_iff mem_imageIn_iff mem_range_iff mem_recFun_iff mem_recSet_iff mem_sUnion_sUnion_of_opair_mem natFun natFun_mem natFun_ofNat natSeq omega_isPeano opAt opair_app_mem opair_mem_extendAt peanoMap peanoMap_injective peanoMap_mem peanoMap_succ peanoMap_surjective peanoMap_zero range range_empty recApprox_agree recApprox_mem_recSet recFun recSet sep_range_eq_singleton subset_extendAt)
 end ZFSet

@@ -323,3 +323,20 @@ pairs:
       `TypeTransfer.encode_injective` and mathlib's own proof carried it
       too. `Metamath.llpo_of_exact_ivt` is the tree's proof that the
       price cannot be avoided.
+
+  - id: peano-induction
+    date: 1889
+    rows:
+      - "the Peano axioms"
+    mathlib: none
+    ours: SetTheory.IsPeano.induct
+    status: complete
+    note: >
+      NO MATHLIB THEOREM IS NAMED BECAUSE THERE IS NONE TO NAME, and
+      that is measured rather than assumed: `Comparator/Audit.lean`
+      walks this challenge's compiled witness and reports ZERO Mathlib
+      propositions in its dependency set --- it rests on Lean core
+      (`Classical.em`, `Classical.choose`, `Nat.rec`, `Prod.ext`).
+      `mathlib_source` is omitted for the same reason: there is no
+      declaration to cite, and a line number invented to fill the
+      field would be worse than the blank.

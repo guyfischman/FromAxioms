@@ -129,6 +129,15 @@ a pair is narrower than what it matches.
     - `SetTheory.opair_eq_opair_iff`
     - `NumberTheory.ofNat_injective`
 
+## `Comparator.PeanoInduction.solution`
+
+- this pair costs: `[Quot.sound, propext]`
+- rests on 10 tower proposition(s), costing `[Quot.sound, propext]`
+    - `SetTheory.IsPeano.induct`
+    - `SetTheory.omega_isPeano`
+    - `SetTheory.mem_sep_iff`
+    - `SetTheory.empty_mem_omega`
+
 ## `Comparator.ProductUniversal.solution`
 
 - this pair costs: `[Quot.sound]`

@@ -49,6 +49,7 @@ import Comparator.ProductUniversal.Solution
 import Comparator.Soundness.Solution
 import Comparator.ModuleQuotient.Solution
 import Comparator.IvtExact.Solution
+import Comparator.PeanoInduction.Solution
 
 open Lean
 
@@ -173,7 +174,8 @@ def matched : List (Name × Name) := [(`Comparator.NatAddSucc, `Nat.add_succ),
   (`Comparator.ProductUniversal, `none),
   (`Comparator.Soundness, `none),
   (`Comparator.ModuleQuotient, `zero_smul),
-  (`Comparator.IvtExact, `intermediate_value_Icc)]
+  (`Comparator.IvtExact, `intermediate_value_Icc),
+  (`Comparator.PeanoInduction, `none)]
 
 /-- Does `start`'s proof term reach `target`, descending into Mathlib?
 
