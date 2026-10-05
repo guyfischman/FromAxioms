@@ -25,3 +25,4 @@ import FromAxioms.SetTheory.Cardinal
 import FromAxioms.SetTheory.Uncountable
 import FromAxioms.SetTheory.DefinablePower
 import FromAxioms.SetTheory.Constructible
+import FromAxioms.SetTheory.Extension

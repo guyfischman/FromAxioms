@@ -21,6 +21,7 @@ which `exchange_le` already requires and which ℚ satisfies.
 
 import FromAxioms.Algebra.LinAlg
 import FromAxioms.Algebra.Module
+import FromAxioms.SetTheory.Extension
 import FromAxioms.SetTheory.Uncountable
 
 universe u
@@ -45,10 +46,20 @@ theorem tupleToList_vecAdd (add : ZFSet.{u}) {d : Nat} (x y : ZFSet.{u}) :
   rw [tupleToList_getElem, List.getElem_zipWith, tupleToList_getElem, tupleToList_getElem,
     coeff_vecAdd i hi]
 
+/-! ## A number field exhibited
+
+`Q(√2)` is the first number field this development names, presented by
+`x² - 2`. -/
+
+/-- `x² - 2` over the rationals: `sqrtPoly` at `c = 2`. -/
+def sqrtTwoPoly : ZFSet.{u} :=
+  sqrtPoly NumberTheory.Rat.{u} ratAddOp.{u} ratZero.{u} ratOne.{u} (ratNat.{u} 2 1)
+
 #print axioms tupleToList_vecAdd
+#print axioms sqrtTwoPoly
 end Algebra
 
 
 namespace ZFSet
-export Algebra (tupleToList_vecAdd)
+export Algebra (sqrtTwoPoly tupleToList_vecAdd)
 end ZFSet
