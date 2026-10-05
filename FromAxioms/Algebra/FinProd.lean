@@ -1180,19 +1180,9 @@ theorem foldF_flatten_const {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
   rw [← foldF_flatten hM (G := fun _ a => H a) (fun _ a => hmem a) f g,
     foldF_const]
 
-/-- Any two distinct factors move to the outside of a fold.
-
-    foldF F (n+2)
-      = opAt (opAt (foldF (skipAt (survAt j p) (skipAt j F)) n) (F p)) (F j)
-
-`foldF_peel_pair` already does this when one of the two is index `0`, which is
-where `app_charFamily_zero` puts the trivial character. The conjugate pair row
-1837's non-real case needs is two non-zero indices, so the peel runs `foldF_skip`
-twice and `survAt j p` is where `p` has moved after `j` is removed.
-
-`skipAt_origAt` and `origAt_survAt` are what put `F p` back at the end: skipping
-re-indexes, and `origAt j (survAt j p) = p` exactly when `p /= j`, which is the
-hypothesis. -/
+/-- In a commutative monoid, the factors at two distinct indices `j` and `p` of
+a fold move to the outside. See `foldF_peel_pair` for the case where one index
+is `0`. -/
 theorem foldF_peel_two {M op e : ZFSet.{u}} (hM : IsCommMonoid M op e)
     {F : Nat → ZFSet.{u}} (n j p : Nat) (hj : j < n + 2) (hp : p < n + 2)
     (hjp : p ≠ j) (hmem : ∀ i, i < n + 2 → F i ∈ M) :

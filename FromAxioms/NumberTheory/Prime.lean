@@ -2598,6 +2598,21 @@ theorem conj_index_complement {n j : Nat} (hj0 : 0 < j) (hjn : j < n) :
     omega
   rw [hsplit, Nat.add_mul_mod_self_left, Nat.mod_eq_of_lt (by omega)]
 
+/-- There are infinitely many odd primes: above every `n` there is a prime `q`
+with `q % 2 = 1`. -/
+theorem exists_prime_gt_mod_two (n : Nat) :
+    ∃ q : Nat, IsPrime q ∧ n < q ∧ q % 2 = 1 := by
+  obtain ⟨q, hq, hgt⟩ := exists_prime_gt (n + 2)
+  refine ⟨q, hq, by omega, ?_⟩
+  cases hr : q % 2 with
+  | zero =>
+    have hdvd : Divides 2 q := divides_of_mod_eq_zero hr
+    have := hq.right 2 (by omega) hdvd
+    omega
+  | succ k =>
+    have : q % 2 < 2 := Nat.mod_lt q (by omega)
+    omega
+
 #print axioms mul_shuffle
 #print axioms nat_sq_mul_sq
 
@@ -2632,7 +2647,7 @@ theorem conj_index_complement {n j : Nat} (hj0 : 0 < j) (hjn : j < n) :
 end NumberTheory
 
 namespace ZFSet
-export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_mul_fact choose_one choose_self choose_succ_succ choose_zero conj_index_complement coprime_divides cyclotomicShift_eisenstein divides_fact divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_sub divides_trans divisorsBelow dvd_of_mod_zero eq_one_of_divides_one exists_factorization exists_fibre_split exists_mul_mod_one exists_orderedPrime_pow_of_lt exists_primeTest_above exists_prime_ge exists_prime_gt exists_prime_pow_not_divides exists_prodUpto_pow fact fact_pos factorization_perm fallNat fallNat_mul_fact fallNat_succ_back choose_mul_fact_mul_fact gcd_eq_one_of_prime_not_divides gcd_prime_pow_eq_one isPrime_iff_minFac_self isPrime_minFac isPrime_three isPrime_two leastPrimeAbove leastPrimeAbove_least leastPrimeAbove_spec lt_minFac_fact_succ minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides mul_mod_inj_of_gcd_one mul_mod_of_split nthPrime one_divides orderedPrime orderedPrime_complete orderedPrime_ge orderedPrime_isPrime orderedPrime_lt_succ orderedPrime_ne orderedPrime_strictMono prime_divides_mul prime_divides_pow prime_divides_prodList prime_divides_sq prime_dvd_choose prime_eq_of_divides prime_pow_split prime_pow_split_unique prime_sq_irrational prodList prodList_perm prodUpto_congr prodUpto_factor_le prodUpto_le_of_le prodUpto_mod_ne_zero prodUpto_pos prodUpto_pow_inj succ_mul_choose sumOver sumOver_add sumOver_congr sumOver_zero upto)
+export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezout_int choose choose_gt choose_mul_fact choose_one choose_self choose_succ_succ choose_zero conj_index_complement coprime_divides cyclotomicShift_eisenstein divides_fact divides_le divides_of_mod_eq_zero divides_or_not_nat divides_refl divides_sub divides_trans divisorsBelow dvd_of_mod_zero eq_one_of_divides_one exists_factorization exists_fibre_split exists_mul_mod_one exists_orderedPrime_pow_of_lt exists_primeTest_above exists_prime_ge exists_prime_gt exists_prime_gt_mod_two exists_prime_pow_not_divides exists_prodUpto_pow fact fact_pos factorization_perm fallNat fallNat_mul_fact fallNat_succ_back choose_mul_fact_mul_fact gcd_eq_one_of_prime_not_divides gcd_prime_pow_eq_one isPrime_iff_minFac_self isPrime_minFac isPrime_three isPrime_two leastPrimeAbove leastPrimeAbove_least leastPrimeAbove_spec lt_minFac_fact_succ minFac minFacAux minFacAux_divides minFacAux_ge minFacAux_least minFac_divides minFac_ge minFac_least mod_eq_zero_of_divides mul_mod_inj_of_gcd_one mul_mod_of_split nthPrime one_divides orderedPrime orderedPrime_complete orderedPrime_ge orderedPrime_isPrime orderedPrime_lt_succ orderedPrime_ne orderedPrime_strictMono prime_divides_mul prime_divides_pow prime_divides_prodList prime_divides_sq prime_dvd_choose prime_eq_of_divides prime_pow_split prime_pow_split_unique prime_sq_irrational prodList prodList_perm prodUpto_congr prodUpto_factor_le prodUpto_le_of_le prodUpto_mod_ne_zero prodUpto_pos prodUpto_pow_inj succ_mul_choose sumOver sumOver_add sumOver_congr sumOver_zero upto)
 #print axioms NumberTheory.prime_pow_split_unique
 #print axioms NumberTheory.exists_primeTest_above
 #print axioms NumberTheory.leastPrimeAbove_spec
@@ -2657,4 +2672,5 @@ export NumberTheory (Divides DividesSet Eis IsFactorization IsPrime bezout bezou
 
 #print axioms NumberTheory.exists_fibre_split
 #print axioms NumberTheory.conj_index_complement
+#print axioms NumberTheory.exists_prime_gt_mod_two
 end ZFSet
